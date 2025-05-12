@@ -1,0 +1,6 @@
+<svg width="400" height="120" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="360" height="36" rx="8" fill="#fff" stroke="#E3EAFD"/>
+  <text x="30" y="43" font-size="14" font-family="Montserrat, Arial, sans-serif" fill="#888">Campo activo</text>
+  <rect x="20" y="70" width="360" height="36" rx="8" fill="#F5F5F5" stroke="#E0E0E0"/>
+  <text x="30" y="93" font-size="14" font-family="Montserrat, Arial, sans-serif" fill="#BDBDBD">Campo deshabilitado</text>
+</svg>

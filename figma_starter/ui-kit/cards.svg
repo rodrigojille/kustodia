@@ -1,0 +1,11 @@
+<svg width="400" height="160" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="170" height="60" rx="12" fill="#fff" stroke="#E3EAFD"/>
+  <text x="35" y="45" font-size="13" font-family="Montserrat, Arial, sans-serif" fill="#444">Saldo MXN</text>
+  <text x="35" y="65" font-size="18" font-family="Montserrat, Arial, sans-serif" fill="#1A73E8">$12,500</text>
+  <rect x="210" y="20" width="170" height="60" rx="12" fill="#fff" stroke="#E3EAFD"/>
+  <text x="225" y="45" font-size="13" font-family="Montserrat, Arial, sans-serif" fill="#444">Saldo MXNB</text>
+  <text x="225" y="65" font-size="18" font-family="Montserrat, Arial, sans-serif" fill="#1A73E8">$8,300</text>
+  <rect x="20" y="100" width="360" height="40" rx="10" fill="#fff" stroke="#E3EAFD"/>
+  <text x="35" y="125" font-size="14" font-family="Montserrat, Arial, sans-serif" fill="#444">Pago a Juan</text>
+  <text x="340" y="125" font-size="14" font-family="Montserrat, Arial, sans-serif" fill="#4CAF50" text-anchor="end">Liberado</text>
+</svg>

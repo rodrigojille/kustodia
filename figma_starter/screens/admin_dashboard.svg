@@ -1,0 +1,21 @@
+<svg width="375" height="667" xmlns="http://www.w3.org/2000/svg">
+  <rect width="375" height="667" fill="#F9FAFB"/>
+  <text x="187.5" y="50" font-size="20" font-family="Montserrat, Arial, sans-serif" fill="#1A73E8" text-anchor="middle">Panel de administración</text>
+  <rect x="20" y="90" width="335" height="60" rx="12" fill="#fff" stroke="#E3EAFD"/>
+  <text x="40" y="120" font-size="14" font-family="Montserrat, Arial, sans-serif" fill="#444">Buscar usuario/transacción</text>
+  <rect x="40" y="135" width="295" height="32" rx="8" fill="#fff" stroke="#E3EAFD"/>
+  <rect x="20" y="170" width="335" height="90" rx="12" fill="#fff" stroke="#E3EAFD"/>
+  <text x="40" y="200" font-size="14" font-family="Montserrat, Arial, sans-serif" fill="#444">Disputas abiertas</text>
+  <text x="300" y="200" font-size="14" font-family="Montserrat, Arial, sans-serif" fill="#F44336" text-anchor="end">3</text>
+  <rect x="40" y="220" width="295" height="32" rx="8" fill="#FFE0E0" stroke="#F44336"/>
+  <text x="55" y="240" font-size="13" font-family="Montserrat, Arial, sans-serif" fill="#F44336">#123 Pago de Ana - En disputa</text>
+  <rect x="20" y="270" width="335" height="120" rx="12" fill="#fff" stroke="#E3EAFD"/>
+  <text x="40" y="300" font-size="14" font-family="Montserrat, Arial, sans-serif" fill="#444">Analítica</text>
+  <text x="40" y="325" font-size="12" font-family="Montserrat, Arial, sans-serif" fill="#888">Volumen mensual: $XXX,XXX</text>
+  <text x="40" y="345" font-size="12" font-family="Montserrat, Arial, sans-serif" fill="#888">Comisiones generadas: $X,XXX</text>
+  <text x="40" y="365" font-size="12" font-family="Montserrat, Arial, sans-serif" fill="#888">Disputas: XX</text>
+  <rect x="230" y="360" width="100" height="28" rx="8" fill="#E3EAFD"/>
+  <text x="280" y="378" font-size="13" font-family="Montserrat, Arial, sans-serif" fill="#1A73E8" text-anchor="middle">Descargar reporte</text>
+  <text x="187.5" y="650" font-size="10" font-family="Montserrat, Arial, sans-serif" fill="#888" text-anchor="middle">© 2025 Tecnologias Avanzadas Centrales SAPI de CV. Todos los derechos reservados.</text>
+  <text x="187.5" y="662" font-size="10" font-family="Montserrat, Arial, sans-serif" fill="#888" text-anchor="middle">Términos y condiciones | Aviso de privacidad</text>
+</svg>
