@@ -1,0 +1,6 @@
+<svg width="400" height="140" xmlns="http://www.w3.org/2000/svg">
+  <text x="20" y="40" font-size="28" font-family="Montserrat, Arial, sans-serif" fill="#1A73E8">Montserrat Bold 28pt</text>
+  <text x="20" y="70" font-size="20" font-family="Montserrat, Arial, sans-serif" fill="#222">Montserrat Regular 20pt</text>
+  <text x="20" y="100" font-size="16" font-family="Montserrat, Arial, sans-serif" fill="#444">Montserrat Regular 16pt</text>
+  <text x="20" y="130" font-size="13" font-family="Montserrat, Arial, sans-serif" fill="#888">Montserrat Light 13pt</text>
+</svg>

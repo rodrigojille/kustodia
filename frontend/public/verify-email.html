@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kustodia | Verifica tu correo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0c1836 0%, #2e7ef7 100%);
+      color: #fff;
+      font-family: 'Montserrat', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: rgba(255,255,255,0.04);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(46,126,247,0.2);
+      padding: 2.5rem 2rem 2rem 2rem;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    .logo {
+      width: 72px;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 2rem;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      color: #2e7ef7;
+      font-weight: 700;
+    }
+    p {
+      color: #e3e9f7;
+      margin-bottom: 1.5rem;
+    }
+    .success {
+      background: #27ae60;
+      color: #fff;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .error {
+      background: #c0392b;
+      color: #fff;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    a.button {
+      display: inline-block;
+      background: #2e7ef7;
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s;
+      margin-top: 1rem;
+    }
+    a.button:hover {
+      background: #195dbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="/logo.svg" alt="Kustodia Logo" class="logo">
+    <h1>Correo verificado</h1>
+    <div id="status"></div>
+    <p id="message">Procesando verificación...</p>
+    <a href="/login.html" class="button" style="display:none;" id="loginBtn">Ir a Iniciar Sesión</a>
+  </div>
+  <script>
+    async function verifyEmail() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const statusDiv = document.getElementById('status');
+      const messageP = document.getElementById('message');
+      const loginBtn = document.getElementById('loginBtn');
+      if (!token) {
+        statusDiv.innerHTML = '<div class="error">Token de verificación faltante.</div>';
+        messageP.textContent = 'El enlace de verificación es inválido o ha expirado.';
+        return;
+      }
+      try {
+        const res = await fetch('/api/users/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          statusDiv.innerHTML = '<div class="success">¡Tu correo ha sido verificado exitosamente!</div>';
+          messageP.textContent = 'Ahora puedes iniciar sesión en Kustodia.';
+          loginBtn.style.display = 'inline-block';
+        } else {
+          statusDiv.innerHTML = '<div class="error">No se pudo verificar el correo.</div>';
+          messageP.textContent = data.error || 'El enlace no es válido o ya fue usado.';
+        }
+      } catch (err) {
+        statusDiv.innerHTML = '<div class="error">Error de conexión.</div>';
+        messageP.textContent = 'Intenta de nuevo más tarde.';
+      }
+    }
+    verifyEmail();
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<svg width="160" height="160" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="160" height="160" rx="32" fill="#E3EAFD"/>
+  <circle cx="80" cy="80" r="50" fill="#1A73E8"/>
+  <text x="80" y="92" font-size="36" font-family="Montserrat, Arial, sans-serif" fill="#fff" text-anchor="middle">MXNB</text>
+</svg>
