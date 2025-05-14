@@ -19,8 +19,18 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // POST /api/evidence/upload
-router.post('/upload', upload.single('evidence'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+// Extend Express Request type for multer
+import { Request } from 'express';
+
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+}
+
+router.post('/upload', upload.single('evidence'), (req: MulterRequest, res) => {
+  if (!req.file) {
+    res.status(400).json({ error: 'No file uploaded' });
+    return;
+  }
   // Return relative path for now
   res.json({ url: `/uploads/evidence/${req.file.filename}` });
 });
