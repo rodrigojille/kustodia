@@ -72,40 +72,42 @@ export default function EarlyAccess() {
           )}
 
           {step === 'form' && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                name="name"
-                placeholder="Nombre completo"
-                value={form.name}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-indigo-200"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Correo electrónico"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-indigo-200"
-                required
-              />
-              <textarea
-                name="message"
-                placeholder="¿Por qué te interesa Kustodia? (opcional)"
-                value={form.message}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-indigo-200"
-                rows={3}
-              />
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              <button
-                type="submit"
-                className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
-              >Registrarme</button>
-            </form>
-          )}
+  <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <input
+      type="text"
+      name="name"
+      placeholder="Nombre completo"
+      value={form.name}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 mb-2"
+      required
+    />
+    <input
+      type="email"
+      name="email"
+      placeholder="Correo electrónico"
+      value={form.email}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 mb-2"
+      required
+    />
+    <textarea
+      name="message"
+      placeholder="¿Por qué te interesa Kustodia? (opcional)"
+      value={form.message}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 mb-2"
+      rows={3}
+    />
+    {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+    <button
+      type="submit"
+      className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition mt-2 font-semibold text-lg shadow"
+    >
+      Registrarme
+    </button>
+  </form>
+)}
 
           {step === 'success' && (
             <div className="text-center space-y-4">
