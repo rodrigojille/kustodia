@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { authFetch } from '../authFetch';
+import { Helmet } from 'react-helmet';
 
 
 import { FaShieldAlt, FaEye, FaHeadset, FaRocket, FaUser, FaLock, FaMoneyBillWave } from 'react-icons/fa';
@@ -58,7 +59,19 @@ export default function EarlyAccess() {
 
 
   return (
-    <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen py-10 px-2">
+    <>
+      <Helmet>
+        <title>Acceso Anticipado a Kustodia | Pagos Seguros con MXNB</title>
+        <meta name="description" content="Regístrate para acceso anticipado a Kustodia, la plataforma líder en pagos y custodia segura con MXNB y smart contracts. Protege tu dinero y disfruta de la máxima seguridad fintech." />
+        <meta name="keywords" content="fintech, pagos seguros, MXNB, Kustodia, acceso anticipado, blockchain, custodia, smart contracts, LATAM" />
+        <link rel="canonical" href="https://kustodia.com/early-access" />
+        <meta property="og:title" content="Acceso Anticipado a Kustodia" />
+        <meta property="og:description" content="Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM. Únete al acceso anticipado de Kustodia." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kustodia.com/early-access" />
+        <meta property="og:image" content="https://kustodia.com/og-image.jpg" />
+      </Helmet>
+      <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen py-10 px-2">
       <div className="max-w-md mx-auto rounded-3xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
         <img src="/logo.svg" alt="Kustodia Logo" className="w-16 mb-5 drop-shadow-lg" />
         <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
@@ -186,5 +199,6 @@ export default function EarlyAccess() {
         &copy; {new Date().getFullYear()} Kustodia. Todos los derechos reservados.
       </footer>
     </div>
+    </>
   );
 }
