@@ -45,78 +45,95 @@ export default function EarlyAccess() {
         <meta property="og:type" content="website" />
         <link rel="canonical" href="https://kustodia.mx/early-access" />
       
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <section className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 space-y-6">
-          <img src="/kustodia-logo.svg" alt="Kustodia logo" className="mx-auto h-12" />
-          <h1 className="text-2xl font-bold text-center text-indigo-900">Acceso Anticipado a Kustodia</h1>
-          <p className="text-center text-gray-600">Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM.</p>
+      <main className="min-h-screen bg-gradient-to-br from-blue-100/70 via-indigo-100/80 to-indigo-200/90 flex items-center justify-center py-12 px-4">
+  <section className="w-full max-w-md rounded-2xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
+    <img src="/kustodia-logo.svg" alt="Kustodia logo" className="mx-auto h-14 mb-4 drop-shadow-lg" />
+    <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
+    <p className="text-center text-indigo-700/90 font-medium mb-6">Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM.</p>
 
-          {step === 'password' && (
-            <form onSubmit={checkPassword} className="space-y-4">
-              <input
-                type="password"
-                name="password"
-                placeholder="Contraseña de acceso"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-indigo-200"
-                autoFocus
-                required
-              />
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              <button
-                type="submit"
-                className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
-              >Entrar</button>
-            </form>
-          )}
+    {step === 'password' && (
+      <form onSubmit={checkPassword} className="space-y-5 w-full">
+        <div className="relative">
+          <input
+            type="password"
+            name="password"
+            id="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="peer w-full px-4 py-3 border border-indigo-200 rounded-lg bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent"
+            placeholder="Contraseña de acceso"
+            autoFocus
+            required
+          />
+          <label htmlFor="password" className="absolute left-4 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Contraseña de acceso</label>
+        </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <button
+          type="submit"
+          className="w-full bg-gradient-to-r from-indigo-500 to-blue-400 text-white py-3 rounded-lg font-semibold text-lg shadow hover:from-indigo-600 hover:to-blue-500 transition"
+        >Entrar</button>
+      </form>
+    )}
 
-          {step === 'form' && (
-  <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-    <input
-      type="text"
-      name="name"
-      placeholder="Nombre completo"
-      value={form.name}
-      onChange={handleChange}
-      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 mb-2"
-      required
-    />
-    <input
-      type="email"
-      name="email"
-      placeholder="Correo electrónico"
-      value={form.email}
-      onChange={handleChange}
-      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 mb-2"
-      required
-    />
-    <textarea
-      name="message"
-      placeholder="¿Por qué te interesa Kustodia? (opcional)"
-      value={form.message}
-      onChange={handleChange}
-      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 mb-2"
-      rows={3}
-    />
-    {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-    <button
-      type="submit"
-      className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition mt-2 font-semibold text-lg shadow"
-    >
-      Registrarme
-    </button>
-  </form>
-)}
+    {step === 'form' && (
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full mt-2">
+        <div className="relative">
+          <input
+            type="text"
+            name="name"
+            id="name"
+            value={form.name}
+            onChange={handleChange}
+            className="peer w-full px-4 py-3 border border-indigo-200 rounded-lg bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent"
+            placeholder="Nombre completo"
+            required
+          />
+          <label htmlFor="name" className="absolute left-4 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Nombre completo</label>
+        </div>
+        <div className="relative">
+          <input
+            type="email"
+            name="email"
+            id="email"
+            value={form.email}
+            onChange={handleChange}
+            className="peer w-full px-4 py-3 border border-indigo-200 rounded-lg bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent"
+            placeholder="Correo electrónico"
+            required
+          />
+          <label htmlFor="email" className="absolute left-4 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Correo electrónico</label>
+        </div>
+        <div className="relative">
+          <textarea
+            name="message"
+            id="message"
+            value={form.message}
+            onChange={handleChange}
+            className="peer w-full px-4 py-3 border border-indigo-200 rounded-lg bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent resize-none min-h-[60px]"
+            placeholder="¿Por qué te interesa Kustodia? (opcional)"
+            rows={3}
+          />
+          <label htmlFor="message" className="absolute left-4 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">¿Por qué te interesa Kustodia? (opcional)</label>
+        </div>
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+        <button
+          type="submit"
+          className="w-full bg-gradient-to-r from-indigo-500 to-blue-400 text-white py-3 rounded-lg font-semibold text-lg shadow hover:from-indigo-600 hover:to-blue-500 transition mt-2"
+        >
+          Registrarme
+        </button>
+      </form>
+    )}
 
-          {step === 'success' && (
-            <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-green-700">¡Gracias por registrarte!</h2>
-              <p className="text-gray-600">Te avisaremos cuando Kustodia esté disponible para early access.</p>
-            </div>
-          )}
-        </section>
-      </main>
-    </>
+    {step === 'success' && (
+      <div className="text-center space-y-4 mt-4">
+        <h2 className="text-xl font-semibold text-green-700">¡Gracias por registrarte!</h2>
+        <p className="text-gray-600">Te avisaremos cuando Kustodia esté disponible para early access.</p>
+      </div>
+    )}
+  </section>
+</main>
+
+    </> 
   );
 }
