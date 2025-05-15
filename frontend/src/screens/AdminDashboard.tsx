@@ -89,7 +89,8 @@ const AdminDashboard: React.FC = () => {
           const response = await axios.get("/api/admin/payments", {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
           });
-          setTransactions(response.data.payments || []);
+          const data = response.data as { payments: any[] };
+setTransactions(data.payments || []);
         } catch (err) {
           setTransactions([]);
         }
