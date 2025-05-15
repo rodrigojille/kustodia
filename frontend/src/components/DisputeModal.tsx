@@ -35,7 +35,8 @@ const DisputeModal: React.FC<DisputeModalProps> = ({ escrowId, onClose, canReapp
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        finalEvidenceUrl = uploadRes.data.url;
+        const uploadData = uploadRes.data as { url: string };
+finalEvidenceUrl = uploadData.url;
         setEvidenceUrl(finalEvidenceUrl);
         setUploading(false);
       }
