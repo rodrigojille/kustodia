@@ -16,7 +16,7 @@ const DisputeTimeline: React.FC<DisputeTimelineProps> = ({ escrowId }) => {
     })
       .then(res => setTimeline((res.data as { timeline: any[] }).timeline || []))
       .catch(() => setError('Error al cargar la línea de tiempo de disputa'))
-      .finally(() => setLoading(false)); // Ensure axios returns a native Promise
+      .then(() => setLoading(false));
   }, [escrowId]);
 
   if (loading) return <div>Cargando línea de tiempo...</div>;
