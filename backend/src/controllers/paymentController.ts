@@ -82,7 +82,7 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
 
 import { sendEmail } from '../utils/emailService';
 
-import { mintToEscrow } from '../services/erc20Service';
+// import { mintToEscrow } from '../services/erc20Service';
 import { sendJunoPayment, redeemMXNbForMXN } from '../services/junoService';
 
 export const junoWebhook = async (req: Request, res: Response): Promise<void> => {
