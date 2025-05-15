@@ -2,55 +2,7 @@ import { useState } from 'react';
 import { authFetch } from '../authFetch';
 
 
-const cardStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: 24,
-  boxShadow: '0 4px 24px rgba(26,115,232,0.12)',
-  maxWidth: 420,
-  margin: '0 auto',
-  padding: '32px 18px 28px 18px',
-  color: '#222',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '10px 14px',
-  border: '1px solid #cfd8dc',
-  borderRadius: 8,
-  fontSize: 16,
-  marginBottom: 12,
-  fontFamily: 'Montserrat, Arial, sans-serif',
-  outline: 'none',
-  background: '#fff',
-  color: '#222',
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: '100%',
-  background: 'linear-gradient(90deg, #1A73E8 0%, #1976D2 100%)',
-  color: '#fff',
-  padding: '12px 0',
-  border: 'none',
-  borderRadius: 8,
-  fontWeight: 700,
-  fontSize: 17,
-  cursor: 'pointer',
-  marginTop: 6,
-  boxShadow: '0 2px 8px #E3EAFD',
-  transition: 'background 0.2s',
-};
-
-const labelStyle: React.CSSProperties = {
-  fontWeight: 500,
-  color: '#1A73E8',
-  fontSize: 15,
-  marginBottom: 2,
-};
-
-import { FaShieldAlt, FaEye, FaHeadset, FaRocket } from 'react-icons/fa';
+import { FaShieldAlt, FaEye, FaHeadset, FaRocket, FaUser, FaLock, FaMoneyBillWave } from 'react-icons/fa';
 
 const benefits = [
   {
@@ -106,57 +58,68 @@ export default function EarlyAccess() {
 
 
   return (
-    <div style={{ fontFamily: 'Montserrat, Arial, sans-serif', background: '#F8FAFB', minHeight: '100vh', padding: '32px 0' }}>
-      <div style={cardStyle}>
-        <img src="/logo.svg" alt="Kustodia Logo" style={{ width: 64, marginBottom: 18, filter: 'drop-shadow(0 2px 8px #E3EAFD)' }} />
-        <h1 style={{ color: '#1A73E8', fontWeight: 700, fontSize: 27, textAlign: 'center', marginBottom: 8 }}>Acceso Anticipado a Kustodia</h1>
-        <p style={{ color: '#222', textAlign: 'center', fontSize: 15, marginBottom: 24, lineHeight: 1.5 }}>
+    <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen py-10 px-2">
+      <div className="max-w-md mx-auto rounded-3xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
+        <img src="/logo.svg" alt="Kustodia Logo" className="w-16 mb-5 drop-shadow-lg" />
+        <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
+        <p className="text-center text-indigo-700/90 font-medium mb-6">
           Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM.
         </p>
 
         {step === 'form' && (
-          <form onSubmit={handleSubmit} style={{ width: '100%', marginTop: 8 }}>
-            <label style={labelStyle} htmlFor="name">Nombre completo</label>
-            <input
-              type="text"
-              name="name"
-              id="name"
-              placeholder="Nombre completo"
-              value={form.name}
-              onChange={handleChange}
-              style={inputStyle}
-              required
-            />
-            <label style={labelStyle} htmlFor="email">Correo electrónico</label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              placeholder="Correo electrónico"
-              value={form.email}
-              onChange={handleChange}
-              style={inputStyle}
-              required
-            />
-            <label style={labelStyle} htmlFor="message">¿Por qué te interesa Kustodia? (opcional)</label>
-            <textarea
-              name="message"
-              id="message"
-              placeholder="¿Por qué te interesa Kustodia? (opcional)"
-              value={form.message}
-              onChange={handleChange}
-              style={{ ...inputStyle, resize: 'vertical', minHeight: 60, marginBottom: 8 }}
-              rows={3}
-            />
-            {error && <p style={{ color: '#e53935', fontSize: 14, marginTop: 0 }}>{error}</p>}
-            <button type="submit" style={buttonStyle}>Registrarme</button>
+          <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2">
+            <div className="relative">
+              <input
+                type="text"
+                name="name"
+                id="name"
+                value={form.name}
+                onChange={handleChange}
+                className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
+                placeholder="Nombre completo"
+                required
+              />
+              <label htmlFor="name" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Nombre completo</label>
+            </div>
+            <div className="relative">
+              <input
+                type="email"
+                name="email"
+                id="email"
+                value={form.email}
+                onChange={handleChange}
+                className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
+                placeholder="Correo electrónico"
+                required
+              />
+              <label htmlFor="email" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Correo electrónico</label>
+            </div>
+            <div className="relative">
+              <textarea
+                name="message"
+                id="message"
+                value={form.message}
+                onChange={handleChange}
+                className="peer w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow resize-none min-h-[60px]"
+                placeholder="¿Por qué te interesa Kustodia? (opcional)"
+                rows={3}
+              />
+              <label htmlFor="message" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">¿Por qué te interesa Kustodia? (opcional)</label>
+            </div>
+            {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-indigo-500 to-blue-400 text-white py-3 rounded-full font-semibold text-lg shadow hover:from-indigo-600 hover:to-blue-500 transition mt-2"
+            >
+              Registrarme
+            </button>
           </form>
         )}
 
         {step === 'success' && (
-          <div style={{ textAlign: 'center', marginTop: 28 }}>
-            <h2 style={{ color: '#43A047', fontWeight: 600, fontSize: 22, marginBottom: 8 }}>¡Gracias por registrarte!</h2>
-            <p style={{ color: '#222', fontSize: 15 }}>Te avisaremos cuando Kustodia esté disponible para early access.</p>
+          <div className="text-center mt-8">
+            <h2 className="text-xl font-semibold text-green-700 mb-2">¡Gracias por registrarte!</h2>
+            <p className="text-gray-700">Te avisaremos cuando Kustodia esté disponible para early access.</p>
           </div>
         )}
       </div>
@@ -176,11 +139,49 @@ export default function EarlyAccess() {
         </div>
       </section>
 
+      {/* ¿Qué es MXNB? Section */}
+      <section className="max-w-xl mx-auto mt-10 bg-white/80 rounded-2xl shadow-lg p-7">
+        <h2 className="text-indigo-700 font-bold text-2xl text-center mb-4">¿Qué es MXNB?</h2>
+        <p className="text-gray-700 text-base text-center mb-3">
+          <strong>MXNB</strong> es dinero digital que siempre vale lo mismo que un peso mexicano.<br/>
+          Puedes enviar, recibir y guardar MXNB de forma rápida y segura usando la tecnología blockchain.
+        </p>
+        <p className="text-center mb-4">
+          <a href="https://mxnb.mx/es-MX" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-semibold">Más información sobre MXNB</a>
+        </p>
+        <div className="bg-indigo-50 rounded-xl p-4 mb-1">
+          <h3 className="text-indigo-700 font-bold text-lg text-center mb-2">¿Por qué usamos smart contracts?</h3>
+          <ul className="text-gray-700 text-base list-disc list-inside space-y-1 max-w-md mx-auto mb-2">
+            <li>Tu dinero queda seguro en custodia.</li>
+            <li>Las reglas se cumplen solas, sin personas de por medio.</li>
+            <li>No hay trucos ni sorpresas: todo es automático y transparente.</li>
+          </ul>
+          {/* Payment Flow Diagram */}
+          <div className="flex flex-row justify-center items-end gap-6 py-3 bg-indigo-100 rounded-lg max-w-md mx-auto mt-2">
+            <div className="flex flex-col items-center min-w-[72px]">
+              <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaUser size={28} className="text-indigo-600" /></span>
+              <span className="font-bold text-indigo-700 text-sm">Tú</span>
+            </div>
+            <span className="text-2xl text-indigo-600">→</span>
+            <div className="flex flex-col items-center min-w-[92px]">
+              <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaLock size={28} className="text-indigo-600" /></span>
+              <span className="font-bold text-indigo-700 text-sm">En custodia</span>
+              <span className="text-indigo-500 text-xs">(Smart Contract)</span>
+            </div>
+            <span className="text-2xl text-indigo-600">→</span>
+            <div className="flex flex-col items-center min-w-[92px]">
+              <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaMoneyBillWave size={28} className="text-indigo-600" /></span>
+              <span className="font-bold text-indigo-700 text-sm">Liberado</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer style={{ background: '#1A73E8', color: '#fff', textAlign: 'center', padding: 24, marginTop: 36, fontSize: 15, borderRadius: 0 }}>
-        <div style={{ marginBottom: 8 }}>
-          <a href="/terminos" style={{ color: '#fff', textDecoration: 'underline', marginRight: 16 }}>Términos y Condiciones</a>
-          <a href="/privacidad" style={{ color: '#fff', textDecoration: 'underline' }}>Aviso de Privacidad</a>
+      <footer className="bg-indigo-700 text-white text-center py-6 mt-10 rounded-none">
+        <div className="mb-2">
+          <a href="/terminos" className="text-white underline mr-6">Términos y Condiciones</a>
+          <a href="/privacidad" className="text-white underline">Aviso de Privacidad</a>
         </div>
         &copy; {new Date().getFullYear()} Kustodia. Todos los derechos reservados.
       </footer>
