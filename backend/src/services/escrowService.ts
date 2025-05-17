@@ -7,8 +7,8 @@ console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS:', process.env.ESCROW_C
 console.log('[escrowService] ENV.ESCROW_PRIVATE_KEY:', process.env.ESCROW_PRIVATE_KEY ? '***set***' : '***missing***');
 
 // Artifact paths
-const escrowArtifactPath = path.join(__dirname, '../../../contracts/artifacts/contracts/KustodiaEscrow.sol/KustodiaEscrow.json');
-const erc20ArtifactPath = path.join(__dirname, "../../../contracts/artifacts/contracts/ERC20.json");
+const escrowArtifactPath = path.join(__dirname, '../../artifacts/contracts/KustodiaEscrow.sol/KustodiaEscrow.json');
+const erc20ArtifactPath = path.join(__dirname, '../../artifacts/contracts/ERC20.json');
 console.log('[escrowService] Resolved KustodiaEscrow.json path:', escrowArtifactPath);
 console.log('[escrowService] Resolved ERC20.json path:', erc20ArtifactPath);
 console.log('[escrowService] KustodiaEscrow.json exists:', fs.existsSync(escrowArtifactPath));
