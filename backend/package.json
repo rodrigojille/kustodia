@@ -20,17 +20,17 @@
     "multer": "^1.4.5-lts.2",
     "pg": "^8.11.1",
     "tsconfig-paths": "^4.2.0",
-    "typeorm": "^0.3.17"
+    "typeorm": "^0.3.17",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/multer": "^1.4.12"
   },
   "engines": {
     "node": ">=18.0.0 <23"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.2",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/multer": "^1.4.12",
     "@types/node": "^22.15.3",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
