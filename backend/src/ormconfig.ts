@@ -12,4 +12,5 @@ export default new DataSource({
   entities: [isCompiled ? "dist/entity/**/*.js" : "src/entity/**/*.ts"],
   migrations: [isCompiled ? "dist/migration/**/*.js" : "src/migration/**/*.ts"],
   subscribers: [isCompiled ? "dist/subscriber/**/*.js" : "src/subscriber/**/*.ts"],
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
