@@ -174,18 +174,20 @@ export default function EarlyAccess() {
               </ul>
               {/* Payment Flow Diagram */}
               <div className="flex flex-row justify-center items-end gap-6 py-3 bg-indigo-100 rounded-lg max-w-md mx-auto mt-2">
-                <div className="flex flex-col items-center min-w-[72px]">
+                <div className="flex flex-col items-center min-w-0 min-w-[72px]">
                   <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaUser size={28} className="text-indigo-600" /></span>
                   <span className="font-bold text-indigo-700 text-sm">Tú</span>
                 </div>
                 <span className="text-2xl text-indigo-600">→</span>
-                <div className="flex flex-col items-center min-w-[92px]">
-                  <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaLock size={28} className="text-indigo-600" /></span>
+                <div className="flex flex-col items-center min-w-0 min-w-[92px]">
+                  <a href="https://arbiscan.io/address/0xcee0890216d71e58ee97807857aa6b2b786075d9" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block' }}>
+                    <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaLock size={28} className="text-indigo-600" /></span>
+                  </a>
                   <span className="font-bold text-indigo-700 text-sm">En custodia</span>
                   <span className="text-indigo-500 text-xs">(Smart Contract)</span>
                 </div>
                 <span className="text-2xl text-indigo-600">→</span>
-                <div className="flex flex-col items-center min-w-[92px]">
+                <div className="flex flex-col items-center min-w-0 min-w-[92px]">
                   <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaMoneyBillWave size={28} className="text-indigo-600" /></span>
                   <span className="font-bold text-indigo-700 text-sm">Liberado</span>
                 </div>
