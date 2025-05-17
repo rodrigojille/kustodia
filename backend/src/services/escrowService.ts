@@ -28,9 +28,7 @@ const ESCROW_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS!;
 const TOKEN_ADDRESS = "0xF197FFC28c23E0309B5559e7a166f2c6164C80aA";
 
 // Load ABIs
-const artifactPath = path.join(__dirname, '../../../contracts/artifacts/contracts/KustodiaEscrow.sol/KustodiaEscrow.json');
-console.log('Resolved KustodiaEscrow.json path:', artifactPath);
-const KustodiaEscrowArtifact = require(artifactPath);
+const KustodiaEscrowArtifact = require(escrowArtifactPath);
 const ESCROW_ABI = KustodiaEscrowArtifact.abi;
 // MXNB is a proxy contract. Merge proxy ABI with ERC20 ABI for full functionality.
 const PROXY_ABI = [
@@ -48,7 +46,7 @@ const PROXY_ABI = [
 // Load ERC20 ABI from artifact if available, otherwise use minimal ERC20 ABI
 let ERC20_ABI: any[] = [];
 try {
-  ERC20_ABI = JSON.parse(fs.readFileSync(path.join(__dirname, "../../../contracts/artifacts/contracts/ERC20.json"), "utf8")).abi;
+  ERC20_ABI = JSON.parse(fs.readFileSync(erc20ArtifactPath, "utf8")).abi;
 } catch (e) {
   // Fallback: minimal ERC20 ABI
   ERC20_ABI = [
