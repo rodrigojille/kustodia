@@ -71,8 +71,8 @@ export default function EarlyAccess() {
         <meta property="og:url" content="https://kustodia.com/early-access" />
         <meta property="og:image" content="https://kustodia.com/og-image.jpg" />
       </Helmet>
-      <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col items-center px-2">
-        <div className="w-full max-w-xl flex flex-col items-center justify-center py-10">
+      <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-2">
+        <div className="w-full max-w-xl flex flex-col items-center justify-center">
           <div className="w-full rounded-3xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
             <img src="/logo.svg" alt="Kustodia Logo" className="w-16 mb-5 drop-shadow-lg" />
             <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
