@@ -35,7 +35,7 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children }) => (
     >
       {children}
       <footer style={{ textAlign: 'center', fontSize: 13, color: '#888', fontFamily: 'Montserrat, Arial, sans-serif', marginTop: 32, paddingBottom: 18 }}>
-  2025 Tecnologias Avanzadas Centrales SAPI de CV. Todos los derechos reservados.<br />
+  © 2025 Tecnologias Avanzadas Centrales SAPI de CV. Todos los derechos reservados.<br />
   <span>
     <a href="/terminos" style={{ color: '#1A73E8', textDecoration: 'none', marginRight: 8 }}>Términos y condiciones</a>
     |

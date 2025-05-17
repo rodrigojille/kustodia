@@ -18,7 +18,7 @@ const Privacidad: React.FC = () => (
       <h3>3. Finalidad</h3>
       <p>Utilizamos tus datos para proveer servicios, procesar pagos y cumplir obligaciones legales.</p>
       <h3>4. Derechos ARCO</h3>
-      <p>Puedes ejercer tus derechos de acceso, rectificación, cancelación y oposición enviando una solicitud a soporte@kustodia.app.</p>
+      <p>Puedes ejercer tus derechos de acceso, rectificación, cancelación y oposición enviando una solicitud a soporte@kustodia.mx.</p>
       <h3>5. Transferencias</h3>
       <p>No compartimos tus datos con terceros sin tu consentimiento, salvo obligación legal.</p>
       <h3>6. Seguridad</h3>
