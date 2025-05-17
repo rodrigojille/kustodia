@@ -61,6 +61,7 @@ export default function EarlyAccess() {
   return (
     <>
       <Helmet>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Acceso Anticipado a Kustodia | Pagos Seguros con MXNB</title>
         <meta name="description" content="Regístrate para acceso anticipado a Kustodia, la plataforma líder en pagos y custodia segura con MXNB y smart contracts. Protege tu dinero y disfruta de la máxima seguridad fintech." />
         <meta name="keywords" content="fintech, pagos seguros, MXNB, Kustodia, acceso anticipado, blockchain, custodia, smart contracts, LATAM" />
