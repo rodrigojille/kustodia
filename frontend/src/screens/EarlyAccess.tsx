@@ -100,8 +100,8 @@ export default function EarlyAccess() {
         `}</script>
       </Helmet>
       <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-0 overflow-x-hidden">
-        <div className="w-full max-w-full sm:max-w-xl mx-auto flex flex-col items-center justify-center">
-          <div className="w-full rounded-3xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
+        <div className="max-w-screen-xl w-full mx-auto flex flex-col gap-10 px-2 sm:px-6">
+          <div className="flex-1 flex flex-col justify-center bg-white/70 rounded-3xl shadow-2xl border border-indigo-100 p-10 mb-10 lg:mb-0">
             <img src="/logo.svg" alt="Kustodia Logo" className="w-16 mb-5 drop-shadow-lg" />
             <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
             <p className="text-center text-indigo-700/90 font-medium mb-6">
@@ -113,7 +113,7 @@ export default function EarlyAccess() {
               ¡Cupos limitados! Regístrate ahora para asegurar tu acceso anticipado.
             </div>
             {step === 'form' && (
-              <form ref={formRef} onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2">
+              <form ref={formRef} onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2 max-w-md mx-auto">
                 <div className="relative">
                   <input
                     type="text"
@@ -163,7 +163,7 @@ export default function EarlyAccess() {
             )}
 
             {step === 'success' && (
-              <div className="text-center mt-8">
+              <div className="text-center mt-8 max-w-md mx-auto">
                 <h2 className="text-xl font-semibold text-green-700 mb-2">¡Gracias por registrarte!</h2>
                 <p className="text-gray-700">Te avisaremos cuando Kustodia esté disponible para early access.</p>
               </div>
@@ -171,39 +171,36 @@ export default function EarlyAccess() {
           </div>
 
           {/* Quick Facts Section */}
-          <section style={{ marginTop: 38, marginBottom: 12, width: '100%' }}>
-            <h2 style={{ color: '#1A73E8', fontWeight: 700, fontSize: 22, textAlign: 'center', marginBottom: 18 }}>
-              ¿Por qué elegir Kustodia?
-            </h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 18 }}>
+          <section className="w-full mt-10 mb-3">
+            <h2 className="text-indigo-700 font-bold text-2xl text-center mb-6">¿Por qué elegir Kustodia?</h2>
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
               {benefits.map((b, i) => (
-                <div key={i} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px #E3EAFD', padding: 18, margin: 8, minWidth: 180, maxWidth: 220, flex: '1 1 180px', textAlign: 'center' }}>
+                <div key={i} className="bg-white rounded-xl shadow p-6 flex flex-col items-center text-center">
                   {b.icon}
-                  <h4 style={{ color: '#1A73E8', fontWeight: 700, fontSize: 17, margin: '8px 0' }}>{b.title}</h4>
-                  <p style={{ color: '#333', fontSize: 15, margin: 0 }}>{b.description}</p>
+                  <h4 className="text-indigo-700 font-bold mt-2">{b.title}</h4>
+                  <p className="text-gray-600 text-sm">{b.description}</p>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* ¿Qué es MXNB? Section */}
-          <section className="max-w-xl mx-auto mt-10 bg-white/80 rounded-2xl shadow-lg p-7 w-full">
-            <h2 className="text-indigo-700 font-bold text-2xl text-center mb-4">¿Qué es MXNB?</h2>
-            <p className="text-gray-700 text-base text-center mb-3">
-              <strong>MXNB</strong> es dinero digital que siempre vale lo mismo que un peso mexicano.<br/>
-              Puedes enviar, recibir y guardar MXNB de forma rápida y segura usando la tecnología blockchain.
-            </p>
-            <p className="text-center mb-4">
+          {/* Info & Features Section */}
+          <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-10 mt-16">
+            {/* Left: MXNB Info */}
+            <section className="flex-1 bg-white/80 rounded-2xl shadow-lg p-8 mb-8 lg:mb-0">
+              <h2 className="text-indigo-700 font-bold text-2xl mb-4">¿Qué es MXNB?</h2>
+              <p className="text-gray-700 mb-3"><strong>MXNB</strong> es dinero digital que siempre vale lo mismo que un peso mexicano.<br/>Puedes enviar, recibir y guardar MXNB de forma rápida y segura usando la tecnología blockchain.</p>
               <a href="https://mxnb.mx/es-MX" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-semibold">Más información sobre MXNB</a>
-            </p>
-            <div className="bg-indigo-50 rounded-xl p-4 mb-1">
-              <h3 className="text-indigo-700 font-bold text-lg text-center mb-2">¿Por qué usamos smart contracts?</h3>
-              <ul className="text-gray-700 text-base list-disc list-inside space-y-1 max-w-md mx-auto mb-2">
+            </section>
+            {/* Right: Why Smart Contracts */}
+            <section className="flex-1 bg-white/80 rounded-2xl shadow-lg p-8">
+              <h3 className="text-indigo-700 font-bold text-xl mb-2">¿Por qué usamos smart contracts?</h3>
+              <ul className="list-disc list-inside text-gray-700 mb-4">
                 <li>Tu dinero queda seguro en custodia.</li>
                 <li>Las reglas se cumplen solas, sin personas de por medio.</li>
                 <li>No hay trucos ni sorpresas: todo es automático y transparente.</li>
               </ul>
-              {/* Payment Flow Diagram */}
+              {/* Payment flow diagram here */}
               <div className="flex flex-row justify-center items-end gap-2 sm:gap-6 py-3 bg-indigo-100 rounded-lg max-w-md mx-auto mt-2 overflow-x-auto">
                 <div className="flex flex-col items-center min-w-0 min-w-[72px]">
                   <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaUser size={28} className="text-indigo-600" /></span>
@@ -230,8 +227,8 @@ export default function EarlyAccess() {
                   <span className="font-bold text-indigo-700 text-sm">Liberado</span>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
 
           {/* Demo Video Section */}
           <section className="w-full max-w-2xl mx-auto my-12">
