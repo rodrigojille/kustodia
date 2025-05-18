@@ -99,8 +99,8 @@ export default function EarlyAccess() {
           gtag('config', 'G-5X4H87YHLT');
         `}</script>
       </Helmet>
-      <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-2">
-        <div className="w-full max-w-xl flex flex-col items-center justify-center">
+      <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-0">
+        <div className="w-full max-w-full sm:max-w-xl mx-auto flex flex-col items-center justify-center">
           <div className="w-full rounded-3xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
             <img src="/logo.svg" alt="Kustodia Logo" className="w-16 mb-5 drop-shadow-lg" />
             <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
@@ -211,9 +211,16 @@ export default function EarlyAccess() {
                 </div>
                 <span className="text-2xl text-indigo-600">→</span>
                 <div className="flex flex-col items-center min-w-0 min-w-[92px]">
-                  <a href="https://arbiscan.io/address/0xcee0890216d71e58ee97807857aa6b2b786075d9" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block' }}>
-                    <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaLock size={28} className="text-indigo-600" /></span>
-                  </a>
+                  <a
+  href="https://arbiscan.io/address/0xcee0890216d71e58ee97807857aa6b2b786075d9"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Ver contrato en Arbiscan"
+  className="inline-flex items-center justify-center bg-blue-200 hover:bg-blue-300 border-2 border-indigo-400 shadow-lg rounded-full w-10 h-10 mb-1 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+  title="Ver contrato en Arbitrum"
+>
+  <FaLock size={20} className="text-indigo-700" />
+</a>
                   <span className="font-bold text-indigo-700 text-sm">En custodia</span>
                   <span className="text-indigo-500 text-xs">(Smart Contract)</span>
                 </div>
