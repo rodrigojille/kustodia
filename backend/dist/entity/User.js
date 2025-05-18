@@ -41,7 +41,11 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ nullable: true, length: 18 }),
     __metadata("design:type", String)
-], User.prototype, "clabe", void 0);
+], User.prototype, "deposit_clabe", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    __metadata("design:type", String)
+], User.prototype, "payout_clabe", void 0);
 __decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)

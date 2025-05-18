@@ -29,6 +29,14 @@ __decorate([
     __metadata("design:type", String)
 ], Escrow.prototype, "smart_contract_escrow_id", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Escrow.prototype, "blockchain_tx_hash", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Escrow.prototype, "release_tx_hash", void 0);
+__decorate([
     (0, typeorm_1.Column)("decimal", { precision: 5, scale: 2 }),
     __metadata("design:type", Number)
 ], Escrow.prototype, "custody_percent", void 0);
@@ -48,6 +56,22 @@ __decorate([
     (0, typeorm_1.Column)({ default: 'none' }),
     __metadata("design:type", String)
 ], Escrow.prototype, "dispute_status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Escrow.prototype, "dispute_reason", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Escrow.prototype, "dispute_details", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Escrow.prototype, "dispute_evidence", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Array)
+], Escrow.prototype, "dispute_history", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Date)

@@ -20,9 +20,15 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
       html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
         <img src='https://kustodia.app/logo.svg' alt='Kustodia Logo' style='width:56px;margin-bottom:1rem;'>
         <h2 style='color:#2e7ef7;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
-        <p>¡Gracias por tu interés en Kustodia! Ya puedes acceder a la plataforma y descubrir la forma más segura de gestionar tus pagos y custodias en LATAM.</p>
-        <p><a href='https://kustodia.app/early-access' style='display:inline-block;padding:10px 18px;background:#1A73E8;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;'>Accede a Kustodia</a></p>
-        <p style='color:#888;'>¿Tienes dudas? Responde este correo y te ayudamos.</p>
+        <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access. Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
+<p style='margin-top:1.5rem;'><b>Código de Early Access:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
+<p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</p>
+<p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
+<p>
+  <a href='https://twitter.com/kustodiaapp' style='margin-right:16px;text-decoration:none;color:#1DA1F2;' target='_blank' rel='noopener noreferrer'>Twitter</a>
+  <a href='https://www.linkedin.com/company/kustodia' style='text-decoration:none;color:#0077b5;' target='_blank' rel='noopener noreferrer'>LinkedIn</a>
+</p>
+        <p style='color:#888;'>¿Tienes dudas? Envía un correo a <a href='mailto:info@kustodia.mx' style='color:#2e7ef7;text-decoration:none;'>info@kustodia.mx</a> y te ayudamos.</p>
         <br><p style='font-size:13px;color:#999;'>Equipo Kustodia</p>
       </div>`
     });
@@ -53,9 +59,15 @@ export const inviteLead = async (req: Request, res: Response): Promise<void> => 
       html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
         <img src='https://kustodia.app/logo.svg' alt='Kustodia Logo' style='width:56px;margin-bottom:1rem;'>
         <h2 style='color:#2e7ef7;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
-        <p>¡Gracias por tu interés en Kustodia! Ya puedes acceder a la plataforma y descubrir la forma más segura de gestionar tus pagos y custodias en LATAM.</p>
-        <p><a href='https://kustodia.app/early-access' style='display:inline-block;padding:10px 18px;background:#1A73E8;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;'>Accede a Kustodia</a></p>
-        <p style='color:#888;'>¿Tienes dudas? Responde este correo y te ayudamos.</p>
+        <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access. Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
+<p style='margin-top:1.5rem;'><b>Código de Early Access:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
+<p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</p>
+<p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
+<p>
+  <a href='https://twitter.com/kustodiaapp' style='margin-right:16px;text-decoration:none;color:#1DA1F2;' target='_blank' rel='noopener noreferrer'>Twitter</a>
+  <a href='https://www.linkedin.com/company/kustodia' style='text-decoration:none;color:#0077b5;' target='_blank' rel='noopener noreferrer'>LinkedIn</a>
+</p>
+        <p style='color:#888;'>¿Tienes dudas? Envía un correo a <a href='mailto:info@kustodia.mx' style='color:#2e7ef7;text-decoration:none;'>info@kustodia.mx</a> y te ayudamos.</p>
         <br><p style='font-size:13px;color:#999;'>Equipo Kustodia</p>
       </div>`
     });

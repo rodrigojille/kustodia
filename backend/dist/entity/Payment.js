@@ -44,7 +44,31 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
+], Payment.prototype, "reference", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
 ], Payment.prototype, "transaction_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Payment.prototype, "blockchain_tx_hash", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Payment.prototype, "bitso_tracking_number", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "jsonb", nullable: true }),
+    __metadata("design:type", Object)
+], Payment.prototype, "travel_rule_data", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    __metadata("design:type", String)
+], Payment.prototype, "deposit_clabe", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    __metadata("design:type", String)
+], Payment.prototype, "payout_clabe", void 0);
 __decorate([
     (0, typeorm_1.Column)({ default: 'pending' }),
     __metadata("design:type", String)

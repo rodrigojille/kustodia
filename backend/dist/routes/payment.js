@@ -1,12 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const authenticateJWT_1 = require("../authenticateJWT");
 const paymentController_1 = require("../controllers/paymentController");
 const getUserPaymentsController_1 = require("../controllers/getUserPaymentsController");
 const getPaymentByIdController_1 = require("../controllers/getPaymentByIdController");
 const router = (0, express_1.Router)();
 router.post("/initiate", paymentController_1.initiatePayment);
 router.post("/webhook/juno", paymentController_1.junoWebhook);
-router.get("/user-payments", getUserPaymentsController_1.getUserPayments);
+router.get("/user-payments", authenticateJWT_1.authenticateJWT, getUserPaymentsController_1.getUserPayments);
 router.get("/:id", getPaymentByIdController_1.getPaymentById);
 exports.default = router;

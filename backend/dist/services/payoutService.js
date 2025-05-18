@@ -28,12 +28,12 @@ async function releaseEscrowAndPayout(escrowId) {
     if (!payment)
         throw new Error('Payment not found');
     const seller = await userRepo.findOne({ where: { id: payment.user.id } });
-    if (!seller || !seller.clabe)
+    if (!seller || !seller.payout_clabe)
         throw new Error('Seller or CLABE not found');
     // Prepare payout
     const amount = Number(escrow.release_amount);
     const currency = payment.currency || 'MXN';
-    const destination_clabe = seller.clabe;
+    const destination_clabe = seller.payout_clabe;
     // Validate and sanitize references
     let reference = `escrow-${escrow.id}`;
     let notesRef = payment.description || "Pago Kustodia";
@@ -57,7 +57,7 @@ async function releaseEscrowAndPayout(escrowId) {
         junoResult = await (0, junoClient_1.sendJunoPayout)({
             amount,
             beneficiary: seller.full_name || seller.email || "Beneficiario Kustodia",
-            clabe: seller.clabe,
+            clabe: seller.payout_clabe,
             notes_ref: notesRef,
             numeric_ref: numericRef,
             rfc: "XAXX010101000",
