@@ -3,13 +3,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.verifyEmail = exports.resetPassword = exports.requestPasswordReset = exports.register = void 0;
+exports.login = exports.verifyEmail = exports.resetPassword = exports.requestPasswordReset = exports.register = exports.getRecipientClabe = void 0;
 exports.resendVerificationEmail = resendVerificationEmail;
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const User_1 = require("../entity/User");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const emailTokenUtil_1 = require("./emailTokenUtil");
 const emailService_1 = require("../utils/emailService");
+const junoService_1 = require("../services/junoService");
+// Get recipient's deposit CLABE by email
+const getRecipientClabe = async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        res.status(400).json({ error: 'Missing email' });
+        return;
+    }
+    const userRepo = ormconfig_1.default.getRepository(User_1.User);
+    const user = await userRepo.findOne({ where: { email } });
+    if (!user || !user.deposit_clabe) {
+        res.status(404).json({ error: 'Recipient CLABE not found' });
+        return;
+    }
+    res.json({ deposit_clabe: user.deposit_clabe });
+};
+exports.getRecipientClabe = getRecipientClabe;
 const register = async (req, res) => {
     const { email, password, full_name } = req.body;
     if (!email || !password) {
@@ -27,6 +44,17 @@ const register = async (req, res) => {
         const email_verification_token = (0, emailTokenUtil_1.generateToken)(24);
         const user = userRepo.create({ email, password_hash, full_name, email_verification_token, email_verified: false });
         await userRepo.save(user);
+        // Create deposit CLABE for pay-ins and save to user
+        try {
+            const depositClabe = await (0, junoService_1.createJunoClabe)();
+            user.deposit_clabe = depositClabe;
+            await userRepo.save(user);
+        }
+        catch (clabeErr) {
+            console.error('Deposit CLABE creation failed:', clabeErr);
+            // Continue registration even if CLABE creation fails
+            // Optionally, you can add a field to track CLABE creation failure for retry
+        }
         // Send verification email
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const verifyUrl = `${frontendUrl}/verify-email?token=${email_verification_token}`;
@@ -35,7 +63,7 @@ const register = async (req, res) => {
             subject: "Verifica tu correo electrónico | Kustodia",
             html: `<p>Hola,</p><p>Por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Si no creaste esta cuenta, puedes ignorar este mensaje.</p>`
         });
-        res.status(201).json({ message: "User registered. Verification email sent.", user: { id: user.id, email: user.email } });
+        res.status(201).json({ message: "User registered. Verification email sent.", user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
         return;
     }
     catch (err) {
@@ -188,6 +216,7 @@ const verifyEmail = async (req, res) => {
     }
 };
 exports.verifyEmail = verifyEmail;
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const login = async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -205,8 +234,21 @@ const login = async (req, res) => {
             res.status(403).json({ error: "Correo no verificado. Por favor verifica tu correo.", unverified: true });
             return;
         }
-        // For demo: return user info (add JWT in production)
-        res.json({ message: "Login successful", user: { id: user.id, email: user.email } });
+        // Ensure deposit_clabe exists for authenticated users
+        if (!user.deposit_clabe) {
+            try {
+                const depositClabe = await (0, junoService_1.createJunoClabe)();
+                user.deposit_clabe = depositClabe;
+                await userRepo.save(user);
+            }
+            catch (clabeErr) {
+                console.error('Deposit CLABE creation on login failed:', clabeErr);
+                // Continue login even if CLABE creation fails
+            }
+        }
+        // Generate JWT
+        const token = jsonwebtoken_1.default.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || 'your_secret_key', { expiresIn: '7d' });
+        res.json({ message: "Login successful", token, user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
         return;
     }
     catch (err) {

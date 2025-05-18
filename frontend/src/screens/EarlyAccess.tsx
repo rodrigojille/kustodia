@@ -99,7 +99,7 @@ export default function EarlyAccess() {
           gtag('config', 'G-5X4H87YHLT');
         `}</script>
       </Helmet>
-      <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-0">
+      <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-0 overflow-x-hidden">
         <div className="w-full max-w-full sm:max-w-xl mx-auto flex flex-col items-center justify-center">
           <div className="w-full rounded-3xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
             <img src="/logo.svg" alt="Kustodia Logo" className="w-16 mb-5 drop-shadow-lg" />
@@ -204,13 +204,13 @@ export default function EarlyAccess() {
                 <li>No hay trucos ni sorpresas: todo es automático y transparente.</li>
               </ul>
               {/* Payment Flow Diagram */}
-              <div className="flex flex-row justify-center items-end gap-6 py-3 bg-indigo-100 rounded-lg max-w-md mx-auto mt-2">
+              <div className="flex flex-row justify-center items-end gap-2 sm:gap-6 py-3 bg-indigo-100 rounded-lg max-w-md mx-auto mt-2 overflow-x-auto">
                 <div className="flex flex-col items-center min-w-0 min-w-[72px]">
                   <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaUser size={28} className="text-indigo-600" /></span>
                   <span className="font-bold text-indigo-700 text-sm">Tú</span>
                 </div>
                 <span className="text-2xl text-indigo-600">→</span>
-                <div className="flex flex-col items-center min-w-0 min-w-[92px]">
+                <div className="flex flex-col items-center min-w-0 sm:min-w-[92px]">
                   <a
   href="https://arbiscan.io/address/0xcee0890216d71e58ee97807857aa6b2b786075d9"
   target="_blank"
@@ -225,7 +225,7 @@ export default function EarlyAccess() {
                   <span className="text-indigo-500 text-xs">(Smart Contract)</span>
                 </div>
                 <span className="text-2xl text-indigo-600">→</span>
-                <div className="flex flex-col items-center min-w-0 min-w-[92px]">
+                <div className="flex flex-col items-center min-w-0 sm:min-w-[92px]">
                   <span className="bg-indigo-100 rounded-full p-2 mb-1"><FaMoneyBillWave size={28} className="text-indigo-600" /></span>
                   <span className="font-bold text-indigo-700 text-sm">Liberado</span>
                 </div>
