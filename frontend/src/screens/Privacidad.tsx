@@ -9,7 +9,7 @@ const Privacidad: React.FC = () => (
       </a>
     </div>
     <h2 style={{ color: '#1A73E8', fontFamily: 'Montserrat, Arial, sans-serif' }}>Aviso de Privacidad</h2>
-    <div style={{ background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px #E3EAFD', fontFamily: 'Montserrat, Arial, sans-serif', color: '#222', margin: '0 auto', maxWidth: 700, fontSize: 16, textAlign: 'left' }}>
+    <div className="max-w-screen-xl w-full mx-auto bg-white rounded-3xl shadow-2xl border border-indigo-100 p-10 text-gray-900 text-base text-left" style={{fontFamily: 'Montserrat, Arial, sans-serif'}}>
       <p>En Kustodia, la protección de tus datos personales es prioritaria y cumplimos con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).</p>
       <h3>1. Responsable</h3>
       <p>Kustodia es responsable del tratamiento de tus datos personales.</p>
@@ -25,7 +25,7 @@ const Privacidad: React.FC = () => (
       <p>Implementamos medidas para proteger tus datos contra acceso no autorizado.</p>
       <h3>7. Cambios al Aviso</h3>
       <p>Podemos actualizar este aviso. Notificaremos cambios importantes a través de la plataforma.</p>
-      <div style={{ marginTop: 32, textAlign: 'center' }}>
+      <div className="mt-8 text-center">
         <a href="/terminos" style={{ color: '#1A73E8', textDecoration: 'underline', fontWeight: 500 }}>Términos y Condiciones</a>
       </div>
     </div>
