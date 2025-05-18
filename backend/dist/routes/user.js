@@ -4,17 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const authenticateJWT_1 = require("../authenticateJWT");
 const userController_1 = require("../controllers/userController");
 const kycController_1 = require("../controllers/kycController");
 const verifyRecipientController_1 = require("../controllers/verifyRecipientController");
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const User_1 = require("../entity/User");
 const router = (0, express_1.Router)();
-// Demo: stub auth, always userId=1
-const getUser = async () => {
-    const repo = ormconfig_1.default.getRepository(User_1.User);
-    return repo.findOne({ where: { id: 1 } });
-};
 router.post("/register", userController_1.register);
 router.post("/login", userController_1.login);
 router.post("/verify-email", userController_1.verifyEmail);
@@ -22,32 +18,44 @@ router.post("/request-password-reset", userController_1.requestPasswordReset);
 router.post("/reset-password", userController_1.resetPassword);
 router.post("/resend-verification", userController_1.resendVerificationEmail);
 // Get current user info
-router.get("/me", async (req, res) => {
-    const user = await getUser();
+router.get("/me", authenticateJWT_1.authenticateJWT, async (req, res) => {
+    const authReq = req;
+    if (!authReq.user || !authReq.user.id) {
+        res.status(401).json({ error: "Not authenticated" });
+        return;
+    }
+    const user = await ormconfig_1.default.getRepository(User_1.User).findOne({ where: { id: authReq.user.id } });
     if (!user) {
         res.status(404).json({ error: "No user found" });
         return;
     }
-    res.json({ user: { id: user.id, email: user.email, clabe: user.clabe, kyc_status: user.kyc_status } });
+    res.json({ user: { id: user.id, email: user.email, full_name: user.full_name, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe, kyc_status: user.kyc_status } });
 });
-// Update CLABE
-router.post("/update-clabe", async (req, res) => {
-    const { clabe } = req.body;
-    if (!clabe || typeof clabe !== 'string' || clabe.length !== 18) {
+// Update payout CLABE
+router.post("/update-payout-clabe", authenticateJWT_1.authenticateJWT, async (req, res) => {
+    const authReq = req;
+    const { payout_clabe } = req.body;
+    if (!authReq.user || !authReq.user.id) {
+        res.status(401).json({ error: "Not authenticated" });
+        return;
+    }
+    if (!payout_clabe || typeof payout_clabe !== 'string' || payout_clabe.length !== 18) {
         res.status(400).json({ error: "CLABE inválida" });
         return;
     }
-    const user = await getUser();
+    const user = await ormconfig_1.default.getRepository(User_1.User).findOne({ where: { id: authReq.user.id } });
     if (!user) {
         res.status(404).json({ error: "No user found" });
         return;
     }
-    user.clabe = clabe;
+    user.payout_clabe = payout_clabe;
     await ormconfig_1.default.getRepository(User_1.User).save(user);
-    res.json({ message: "CLABE guardada" });
+    res.json({ message: "Payout CLABE guardada" });
 });
 // KYC status endpoint
 router.get("/kyc-status", kycController_1.getKYCStatus);
 // Verify recipient email exists and is verified
 router.post("/verify-recipient", verifyRecipientController_1.verifyRecipient);
+// Get recipient deposit CLABE by email
+router.post('/recipient-clabe', userController_1.getRecipientClabe);
 exports.default = router;

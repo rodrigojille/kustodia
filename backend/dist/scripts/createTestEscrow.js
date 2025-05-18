@@ -15,7 +15,7 @@ async function main() {
         user = ormconfig_1.default.getRepository(User_1.User).create({
             email: 'test-seller@kustodia.mx',
             password_hash: 'testhash', // Not used for login
-            clabe: '710969000047317763',
+            deposit_clabe: '710969000047317763', // Use correct property name if User entity has it
             full_name: 'Test Seller',
             email_verified: true,
             kyc_status: 'approved',
