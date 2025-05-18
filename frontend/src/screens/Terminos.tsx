@@ -9,7 +9,7 @@ const Terminos: React.FC = () => (
       </a>
     </div>
     <h2 style={{ color: '#1A73E8', fontFamily: 'Montserrat, Arial, sans-serif' }}>Términos y Condiciones</h2>
-    <div style={{ background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px #E3EAFD', fontFamily: 'Montserrat, Arial, sans-serif', color: '#222', margin: '0 auto', maxWidth: 700, fontSize: 16, textAlign: 'left' }}>
+    <div className="max-w-screen-xl w-full mx-auto bg-white rounded-3xl shadow-2xl border border-indigo-100 p-10 text-gray-900 text-base text-left" style={{fontFamily: 'Montserrat, Arial, sans-serif'}}>
       <p>Bienvenido a Kustodia. Al utilizar nuestros servicios, aceptas los siguientes términos y condiciones conforme a la legislación mexicana.</p>
       <h3>1. Aceptación</h3>
       <p>El acceso y uso de Kustodia implica la aceptación de estos términos. Si no estás de acuerdo, no utilices nuestros servicios.</p>
@@ -25,7 +25,7 @@ const Terminos: React.FC = () => (
       <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Las modificaciones serán notificadas a través de la plataforma.</p>
       <h3>7. Ley Aplicable</h3>
       <p>Estos términos se rigen por las leyes de los Estados Unidos Mexicanos.</p>
-      <div style={{ marginTop: 32, textAlign: 'center' }}>
+      <div className="mt-8 text-center">
         <a href="/privacidad" style={{ color: '#1A73E8', textDecoration: 'underline', fontWeight: 500 }}>Aviso de Privacidad</a>
       </div>
     </div>
