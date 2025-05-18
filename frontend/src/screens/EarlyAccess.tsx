@@ -84,12 +84,12 @@ export default function EarlyAccess() {
         <title>Acceso Anticipado a Kustodia | Pagos Seguros con MXNB</title>
         <meta name="description" content="Regístrate para acceso anticipado a Kustodia, la plataforma líder en pagos y custodia segura con MXNB y smart contracts. Protege tu dinero y disfruta de la máxima seguridad fintech." />
         <meta name="keywords" content="fintech, pagos seguros, MXNB, Kustodia, acceso anticipado, blockchain, custodia, smart contracts, LATAM" />
-        <link rel="canonical" href="https://kustodia.com/early-access" />
+        <link rel="canonical" href="https://kustodia.mx/early-access" />
         <meta property="og:title" content="Acceso Anticipado a Kustodia" />
         <meta property="og:description" content="Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM. Únete al acceso anticipado de Kustodia." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://kustodia.com/early-access" />
-        <meta property="og:image" content="https://kustodia.com/og-image.jpg" />
+        <meta property="og:url" content="https://kustodia.mx/early-access" />
+        <meta property="og:image" content="https://kustodia.mx/og-image.jpg" />
         {/* Google Analytics gtag.js */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-5X4H87YHLT"></script>
         <script>{`
