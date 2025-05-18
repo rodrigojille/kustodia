@@ -1,4 +1,11 @@
-import { useState } from 'react';
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
+import { useState, useRef } from 'react';
+import { ArcadeEmbed } from '../components/ArcadeEmbed';
 import { authFetch } from '../authFetch';
 import { Helmet } from 'react-helmet';
 
@@ -29,6 +36,12 @@ const benefits = [
 ];
 
 export default function EarlyAccess() {
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const scrollToForm = () => {
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
   const [step, setStep] = useState<'form'|'success'>('form');
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [error, setError] = useState('');
@@ -51,6 +64,12 @@ export default function EarlyAccess() {
         body: JSON.stringify(form),
       });
       setStep('success');
+      if (window.gtag) {
+        window.gtag('event', 'early_access_form_submit', {
+          event_category: 'lead',
+          event_label: form.email,
+        });
+      }
     } catch (err: any) {
       setError(err.message || 'Error al registrar lead');
     }
@@ -71,6 +90,14 @@ export default function EarlyAccess() {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://kustodia.com/early-access" />
         <meta property="og:image" content="https://kustodia.com/og-image.jpg" />
+        {/* Google Analytics gtag.js */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-5X4H87YHLT"></script>
+        <script>{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-5X4H87YHLT');
+        `}</script>
       </Helmet>
       <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-2">
         <div className="w-full max-w-xl flex flex-col items-center justify-center">
@@ -81,8 +108,12 @@ export default function EarlyAccess() {
               Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM.
             </p>
 
+            {/* Urgency Banner */}
+            <div className="w-full bg-red-100 text-red-800 text-center rounded-xl py-2 px-4 mb-4 font-semibold text-lg animate-pulse shadow">
+              ¡Cupos limitados! Regístrate ahora para asegurar tu acceso anticipado.
+            </div>
             {step === 'form' && (
-              <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2">
+              <form ref={formRef} onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2">
                 <div className="relative">
                   <input
                     type="text"
@@ -195,13 +226,33 @@ export default function EarlyAccess() {
             </div>
           </section>
 
+          {/* Demo Video Section */}
+          <section className="w-full max-w-2xl mx-auto my-12">
+            <h2 className="text-2xl font-bold text-center text-indigo-800 mb-4">Mira cómo funciona Kustodia</h2>
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-indigo-200 bg-white">
+              <ArcadeEmbed />
+            </div>
+            {/* Urgency Banner after video */}
+            <div className="w-full bg-yellow-100 text-yellow-900 text-center rounded-xl py-2 px-4 mt-6 mb-4 font-semibold text-lg shadow animate-pulse">
+              ¡No te quedes fuera! El registro anticipado estará disponible por tiempo limitado.
+            </div>
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={scrollToForm}
+                className="bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg text-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              >
+                Solicitar Acceso Anticipado
+              </button>
+            </div>
+          </section>
+
           {/* Footer */}
           <footer className="bg-indigo-700 text-white text-center py-6 mt-10 rounded-none w-full">
             <div className="mb-2">
               <a href="/terminos" className="text-white underline mr-6">Términos y Condiciones</a>
               <a href="/privacidad" className="text-white underline">Aviso de Privacidad</a>
             </div>
-            &copy; {new Date().getFullYear()} Kustodia. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} Tecnologías Avanzadas Centrales SAPI de CV. Todos los derechos reservados.
           </footer>
         </div>
       </div>
