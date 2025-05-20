@@ -41,8 +41,9 @@ export default function EarlyAccess() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="Kustodia Early Access" />
         <meta property="og:description" content="Regístrate para acceso anticipado a Kustodia: pagos seguros, sin fraudes." />
-        <meta property="og:image" content="/kustodia-og.png" />
+        <meta property="og:image" content="https://kustodia.mx/kustodia-og.png" />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kustodia.mx/early-access" />
         <link rel="canonical" href="https://kustodia.mx/early-access" />
       
       <script type="application/ld+json">
