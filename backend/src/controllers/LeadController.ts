@@ -30,8 +30,8 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
       to: lead.email,
       subject: '¡Estás invitado a Kustodia Early Access!',
       html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
-        <div style='text-align:center;margin-bottom:1rem;'>
-          <img src='https://kustodia.mx/kustodia-logo.svg' alt='Kustodia Logo' style='width:80px;height:80px;margin:auto;display:block;'>
+        <div style='text-align:left;margin-bottom:1rem;'>
+          <img src='https://kustodia.mx/kustodia-logo.svg' alt='Kustodia Logo' style='width:80px;height:80px;'>
         </div>
         <h2 style='color:#2e7ef7;text-align:center;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
         <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access.<br>Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
@@ -39,7 +39,7 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
         <p style='margin-top:1.5rem;'><b>¡Felicidades!</b> ${zeroFee ? 'Tienes 0% fees de por vida por ser de los primeros 100 registros.' : 'Regístrate pronto para obtener beneficios exclusivos.'}</p>
         <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</p>
         <p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
-<p style='text-align:center;margin:12px 0 0 0;'>
+<p style='text-align:left;margin:12px 0 0 0;'>
   <a href='https://x.com/Kustodia_mx' style='margin:0 10px;text-decoration:underline;color:#1DA1F2;font-weight:bold;' target='_blank' rel='noopener noreferrer'>X (antes Twitter)</a>
   <a href='https://instagram.com/kustodia.mx' style='margin:0 10px;text-decoration:underline;color:#E1306C;font-weight:bold;' target='_blank' rel='noopener noreferrer'>Instagram</a>
   <a href='https://www.linkedin.com/company/kustodia' style='margin:0 10px;text-decoration:underline;color:#0077b5;font-weight:bold;' target='_blank' rel='noopener noreferrer'>LinkedIn</a>
@@ -75,15 +75,15 @@ export const inviteLead = async (req: Request, res: Response): Promise<void> => 
       to: lead.email,
       subject: '¡Estás invitado a Kustodia Early Access!',
       html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
-        <div style='text-align:center;margin-bottom:1rem;'>
-          <img src='https://kustodia.mx/kustodia-logo.svg' alt='Kustodia Logo' style='width:80px;height:80px;margin:auto;display:block;'>
+        <div style='text-align:left;margin-bottom:1rem;'>
+          <img src='https://kustodia.mx/kustodia-logo.svg' alt='Kustodia Logo' style='width:80px;height:80px;'>
         </div>
         <h2 style='color:#2e7ef7;text-align:center;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
         <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access.<br>Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
         <p style='margin-top:1.5rem;'><b>Código de Early Access:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
         <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</p>
         <p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
-<p style='text-align:center;margin:12px 0 0 0;'>
+<p style='text-align:left;margin:12px 0 0 0;'>
   <a href='https://x.com/Kustodia_mx' style='margin:0 10px;text-decoration:underline;color:#1DA1F2;font-weight:bold;' target='_blank' rel='noopener noreferrer'>X (antes Twitter)</a>
   <a href='https://instagram.com/kustodia.mx' style='margin:0 10px;text-decoration:underline;color:#E1306C;font-weight:bold;' target='_blank' rel='noopener noreferrer'>Instagram</a>
   <a href='https://www.linkedin.com/company/kustodia' style='margin:0 10px;text-decoration:underline;color:#0077b5;font-weight:bold;' target='_blank' rel='noopener noreferrer'>LinkedIn</a>
