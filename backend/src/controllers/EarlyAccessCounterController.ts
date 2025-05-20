@@ -9,7 +9,7 @@ export const getSlots = async (req: Request, res: Response): Promise<void> => {
     const repo = connection.getRepository(EarlyAccessCounter);
     let counter;
     try {
-      counter = await repo.findOne({});
+      counter = await repo.findOne({ where: {} });
     } catch (err) {
       console.error("DB error in getSlots:", err);
       res.status(500).json({ error: 'Database error', details: err instanceof Error ? err.message : err });
