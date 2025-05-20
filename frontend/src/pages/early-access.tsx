@@ -45,9 +45,28 @@ export default function EarlyAccess() {
         <meta property="og:type" content="website" />
         <link rel="canonical" href="https://kustodia.mx/early-access" />
       
+      <script type="application/ld+json">
+        {`
+        {
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Acceso Anticipado a Kustodia",
+          "description": "Regístrate para acceso anticipado a Kustodia: la plataforma de pagos y custodia más segura de LATAM.",
+          "url": "https://kustodia.mx/early-access",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Kustodia",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://kustodia.mx/kustodia-logo.svg"
+            }
+          }
+        }
+        `}
+      </script>
       <main className="min-h-screen bg-gradient-to-br from-blue-100/70 via-indigo-100/80 to-indigo-200/90 flex items-center justify-center py-12 px-4">
   <section className="w-full max-w-md rounded-2xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
-    <img src="/kustodia-logo.svg" alt="Kustodia logo" className="mx-auto h-14 mb-4 drop-shadow-lg" />
+    <img src="/kustodia-logo.svg" alt="Logo de Kustodia, plataforma de pagos y custodia blockchain" className="mx-auto h-14 mb-4 drop-shadow-lg" />
     <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
     <p className="text-center text-indigo-700/90 font-medium mb-6">Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM.</p>
 
@@ -115,7 +134,7 @@ export default function EarlyAccess() {
           />
           <label htmlFor="message" className="absolute left-4 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">¿Por qué te interesa Kustodia? (opcional)</label>
         </div>
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+        {error && <p className="text-red-500 text-sm mb-2" role="alert">{error}</p>}
         <button
           type="submit"
           className="w-full bg-gradient-to-r from-indigo-500 to-blue-400 text-white py-3 rounded-lg font-semibold text-lg shadow hover:from-indigo-600 hover:to-blue-500 transition mt-2"
@@ -126,11 +145,15 @@ export default function EarlyAccess() {
     )}
 
     {step === 'success' && (
-      <div className="text-center space-y-4 mt-4">
+      <div className="text-center space-y-4 mt-4" role="alert">
         <h2 className="text-xl font-semibold text-green-700">¡Gracias por registrarte!</h2>
         <p className="text-gray-600">Te avisaremos cuando Kustodia esté disponible para early access.</p>
       </div>
     )}
+    {/* Privacy Statement */}
+    <p className="text-xs text-gray-500 mt-6 text-center" style={{maxWidth:'350px'}}>
+      Al registrarte, aceptas nuestra <a href="/privacidad" className="underline text-indigo-700 hover:text-indigo-900" tabIndex={0}>Política de Privacidad</a>. Tus datos serán usados únicamente para notificarte sobre el acceso anticipado y novedades de Kustodia.
+    </p>
   </section>
 </main>
 
