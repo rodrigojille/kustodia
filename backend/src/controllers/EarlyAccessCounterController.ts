@@ -7,14 +7,19 @@ export const getSlots = async (req: Request, res: Response): Promise<void> => {
   try {
     const connection: Connection = ormconfig;
     const repo = connection.getRepository(EarlyAccessCounter);
-    let counter = await repo.findOne({});
-    if (!counter) {
-      counter = repo.create({ slots: 100 });
-      await repo.save(counter);
+    let counter;
+    try {
+      counter = await repo.findOne({});
+    } catch (err) {
+      return res.status(500).json({ error: 'Database error', details: err instanceof Error ? err.message : err });
     }
-    res.json({ slots: counter.slots });
+    if (!counter) {
+      // Counter row not found, return 404 and default slots value
+      return res.status(404).json({ slots: 0, message: 'No early access counter found' });
+    }
+    return res.json({ slots: counter.slots });
   } catch (err) {
-    res.status(500).json({ error: 'Error fetching slots.' });
+    return res.status(500).json({ error: 'Error fetching slots.', details: err instanceof Error ? err.message : err });
   }
 };
 
