@@ -11,6 +11,7 @@ export const getSlots = async (req: Request, res: Response): Promise<void> => {
     try {
       counter = await repo.findOne({});
     } catch (err) {
+      console.error("DB error in getSlots:", err);
       res.status(500).json({ error: 'Database error', details: err instanceof Error ? err.message : err });
       return;
     }
@@ -22,6 +23,7 @@ export const getSlots = async (req: Request, res: Response): Promise<void> => {
     res.json({ slots: counter.slots });
     return;
   } catch (err) {
+    console.error("General error in getSlots:", err);
     res.status(500).json({ error: 'Error fetching slots.', details: err instanceof Error ? err.message : err });
     return;
   }
