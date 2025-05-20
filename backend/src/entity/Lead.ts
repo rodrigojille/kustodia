@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import EarlyAccessCounter from './EarlyAccessCounter';
 
 @Entity()
 export class Lead {
@@ -19,6 +20,10 @@ export class Lead {
 
   @Column({ default: false })
   invited!: boolean;
+
+  @ManyToOne(() => EarlyAccessCounter)
+  @JoinColumn({ name: 'early_access_counter_id' })
+  earlyAccessCounter?: EarlyAccessCounter;
 }
 
 export default Lead;
