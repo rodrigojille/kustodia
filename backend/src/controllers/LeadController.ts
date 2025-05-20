@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import ormconfig from '../ormconfig';
 import Lead from '../entity/Lead';
 import { sendEmail } from '../utils/emailService';
+import { decrementSlot } from './EarlyAccessCounterController';
 
 export const createLead = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -10,8 +11,19 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
       res.status(400).json({ error: 'Nombre y correo son obligatorios.' });
       return;
     }
+    // Fetch EarlyAccessCounter
+    const counterRepo = ormconfig.getRepository(require('../entity/EarlyAccessCounter').default);
+    let counter = await counterRepo.findOneBy({});
+    let slots = counter ? counter.slots : 0;
+    let zeroFee = false;
+    if (counter && counter.slots > 0) {
+      counter.slots -= 1;
+      await counterRepo.save(counter);
+      slots = counter.slots;
+      zeroFee = slots >= 0 && slots < 100;
+    }
     const repo = ormconfig.getRepository(Lead);
-    const lead = repo.create({ name, email, message });
+    const lead = repo.create({ name, email, message, earlyAccessCounter: counter ?? undefined });
     await repo.save(lead);
     // Send invitation email immediately
     await sendEmail({
@@ -22,6 +34,7 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
         <h2 style='color:#2e7ef7;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
         <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access. Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
 <p style='margin-top:1.5rem;'><b>Código de Early Access:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
+<p style='margin-top:1.5rem;'><b>¡Felicidades!</b> ${zeroFee ? 'Tienes 0% fees de por vida por ser de los primeros 100 registros.' : 'Regístrate pronto para obtener beneficios exclusivos.'}</p>
 <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</p>
 <p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
 <p>
@@ -34,7 +47,7 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
     });
     lead.invited = true;
     await repo.save(lead);
-    res.status(201).json({ success: true });
+    res.status(201).json({ success: true, slots, zeroFee } );
     return;
   } catch (err) {
     console.error('Error al guardar el lead:', err);

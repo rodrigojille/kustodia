@@ -46,8 +46,8 @@ console.log('[escrowService] Starting import');
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS:', process.env.ESCROW_CONTRACT_ADDRESS);
 console.log('[escrowService] ENV.ESCROW_PRIVATE_KEY:', process.env.ESCROW_PRIVATE_KEY ? '***set***' : '***missing***');
 // Artifact paths
-const escrowArtifactPath = path.join(__dirname, '../../../contracts/artifacts/contracts/KustodiaEscrow.sol/KustodiaEscrow.json');
-const erc20ArtifactPath = path.join(__dirname, "../../../contracts/artifacts/contracts/ERC20.json");
+const escrowArtifactPath = path.join(__dirname, '../../artifacts/contracts/KustodiaEscrow.sol/KustodiaEscrow.json');
+const erc20ArtifactPath = path.join(__dirname, '../../artifacts/contracts/ERC20.json');
 console.log('[escrowService] Resolved KustodiaEscrow.json path:', escrowArtifactPath);
 console.log('[escrowService] Resolved ERC20.json path:', erc20ArtifactPath);
 console.log('[escrowService] KustodiaEscrow.json exists:', fs.existsSync(escrowArtifactPath));
@@ -62,9 +62,7 @@ const signer = new ethers_1.ethers.Wallet(PRIVATE_KEY, provider);
 const ESCROW_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS;
 const TOKEN_ADDRESS = "0xF197FFC28c23E0309B5559e7a166f2c6164C80aA";
 // Load ABIs
-const artifactPath = path.join(__dirname, '../../../contracts/artifacts/contracts/KustodiaEscrow.sol/KustodiaEscrow.json');
-console.log('Resolved KustodiaEscrow.json path:', artifactPath);
-const KustodiaEscrowArtifact = require(artifactPath);
+const KustodiaEscrowArtifact = require(escrowArtifactPath);
 const ESCROW_ABI = KustodiaEscrowArtifact.abi;
 // MXNB is a proxy contract. Merge proxy ABI with ERC20 ABI for full functionality.
 const PROXY_ABI = [
@@ -81,7 +79,7 @@ const PROXY_ABI = [
 // Load ERC20 ABI from artifact if available, otherwise use minimal ERC20 ABI
 let ERC20_ABI = [];
 try {
-    ERC20_ABI = JSON.parse(fs.readFileSync(path.join(__dirname, "../../../contracts/artifacts/contracts/ERC20.json"), "utf8")).abi;
+    ERC20_ABI = JSON.parse(fs.readFileSync(erc20ArtifactPath, "utf8")).abi;
 }
 catch (e) {
     // Fallback: minimal ERC20 ABI

@@ -35,6 +35,8 @@ const benefits = [
   }
 ];
 
+import { useEffect } from 'react';
+
 export default function EarlyAccess() {
   const formRef = useRef<HTMLFormElement | null>(null);
   const scrollToForm = () => {
@@ -45,6 +47,15 @@ export default function EarlyAccess() {
   const [step, setStep] = useState<'form'|'success'>('form');
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [error, setError] = useState('');
+  const [slots, setSlots] = useState<number | null>(null);
+  const [zeroFee, setZeroFee] = useState<boolean>(false);
+
+  useEffect(() => {
+    fetch('/api/early-access-counter/slots')
+      .then(res => res.json())
+      .then(data => setSlots(data.slots))
+      .catch(() => setSlots(null));
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -58,12 +69,15 @@ export default function EarlyAccess() {
       return;
     }
     try {
-      await authFetch('/api/leads', {
+      const response = await authFetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
+      const result = await response.json();
       setStep('success');
+      if (typeof result.slots === 'number') setSlots(result.slots);
+      if (result.zeroFee) setZeroFee(true);
       if (window.gtag) {
         window.gtag('event', 'early_access_form_submit', {
           event_category: 'lead',
@@ -74,8 +88,6 @@ export default function EarlyAccess() {
       setError(err.message || 'Error al registrar lead');
     }
   };
-
-
 
   return (
     <>
@@ -102,8 +114,18 @@ export default function EarlyAccess() {
       <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-0 overflow-x-hidden">
         <div className="max-w-screen-xl w-full mx-auto flex flex-col gap-10 px-2 sm:px-6">
           <div className="flex-1 flex flex-col justify-center bg-white/70 rounded-3xl shadow-2xl border border-indigo-100 p-10 mb-10 lg:mb-0">
-            <img src="/logo.svg" alt="Kustodia Logo" className="w-16 mb-5 drop-shadow-lg" />
-            <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
+            {/* Main message */}
+            <div className="w-full bg-indigo-800 text-white text-center rounded-xl py-4 px-5 mb-6 font-semibold text-lg shadow">
+  Kustodia automatiza el escrow y pagos condicionales usando blockchain + SPEI. Integramos la tecnología directamente sobre el sistema bancario tradicional, sin fricción para el usuario. Es una capa de confianza para cualquier transacción.
+</div>
+            {/* Counter banner */}
+            <div className="w-full bg-indigo-100 text-indigo-900 text-center rounded-xl py-2 px-4 mb-4 font-bold text-lg flex flex-col items-center shadow">
+  <span>Quedan <span className="inline-block bg-white text-indigo-900 font-extrabold px-3 py-1 rounded-lg text-xl mx-1 border border-indigo-300">{slots !== null ? slots : '--'}</span> lugares de acceso anticipado.</span>
+  <span className="text-xs mt-1 text-indigo-800">Los primeros 100 registros tendrán <b>0% comisión de por vida</b>.</span>
+</div>
+            
+            <img src="/logo.svg" alt="Kustodia Logo" className="w-16 h-16 mb-3 mx-auto drop-shadow-lg" style={{ display: 'block' }} />
+<h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
             <p className="text-center text-indigo-700/90 font-medium mb-6">
               Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM.
             </p>
@@ -113,59 +135,73 @@ export default function EarlyAccess() {
               ¡Cupos limitados! Regístrate ahora para asegurar tu acceso anticipado.
             </div>
             {step === 'form' && (
-              <form ref={formRef} onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2 max-w-md mx-auto">
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="name"
-                    id="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
-                    placeholder="Nombre completo"
-                    required
-                  />
-                  <label htmlFor="name" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Nombre completo</label>
-                </div>
-                <div className="relative">
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
-                    placeholder="Correo electrónico"
-                    required
-                  />
-                  <label htmlFor="email" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Correo electrónico</label>
-                </div>
-                <div className="relative">
-                  <textarea
-                    name="message"
-                    id="message"
-                    value={form.message}
-                    onChange={handleChange}
-                    className="peer w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow resize-none min-h-[60px]"
-                    placeholder="¿Por qué te interesa Kustodia? (opcional)"
-                    rows={3}
-                  />
-                  <label htmlFor="message" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">¿Por qué te interesa Kustodia? (opcional)</label>
-                </div>
-                {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-indigo-500 to-blue-400 text-white py-3 rounded-full font-semibold text-lg shadow hover:from-indigo-600 hover:to-blue-500 transition mt-2"
-                >
-                  Registrarme
-                </button>
-              </form>
+              <>
+                {slots === 0 && (
+                  <div className="w-full bg-red-200 text-red-800 text-center rounded-xl py-2 px-4 mb-4 font-bold text-lg shadow">
+                    ¡Todos los lugares de acceso anticipado han sido tomados!
+                  </div>
+                )}
+                <form ref={formRef} onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2 max-w-md mx-auto">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="name"
+                      id="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
+                      placeholder="Nombre completo"
+                      required
+                    />
+                    <label htmlFor="name" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Nombre completo</label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      name="email"
+                      id="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
+                      placeholder="Correo electrónico"
+                      required
+                    />
+                    <label htmlFor="email" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Correo electrónico</label>
+                  </div>
+                  <div className="relative">
+                    <textarea
+                      name="message"
+                      id="message"
+                      value={form.message}
+                      onChange={handleChange}
+                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow resize-none min-h-[60px]"
+                      placeholder="¿Por qué te interesa Kustodia? (opcional)"
+                      rows={3}
+                    />
+                    <label htmlFor="message" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">¿Por qué te interesa Kustodia? (opcional)</label>
+                  </div>
+                  {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+                  {slots !== 0 && (
+                    <button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-indigo-500 to-blue-400 text-white py-3 rounded-lg font-semibold text-lg shadow hover:from-indigo-600 hover:to-blue-500 transition mt-2"
+                    >
+                      Registrarme
+                    </button>
+                  )}
+                </form>
+              </>
             )}
 
             {step === 'success' && (
-              <div className="text-center mt-8 max-w-md mx-auto">
-                <h2 className="text-xl font-semibold text-green-700 mb-2">¡Gracias por registrarte!</h2>
-                <p className="text-gray-700">Te avisaremos cuando Kustodia esté disponible para early access.</p>
+              <div className="text-center space-y-4 mt-4">
+                <h2 className="text-xl font-semibold text-green-700">¡Gracias por registrarte!</h2>
+                <p className="text-gray-600">Te avisaremos cuando Kustodia esté disponible para early access.</p>
+                {zeroFee && (
+                  <div className="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full font-bold text-lg shadow mt-4">
+                    ¡Tienes 0% comisión de por vida!
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -6,6 +6,7 @@ import ormconfig from "./ormconfig";
 
 import mainRouter from "./routes";
 import leadRoutes from './routes/lead';
+import earlyAccessCounterRoutes from './routes/earlyAccessCounter';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ ormconfig.initialize()
     // Mount all API routes
     app.use("/api", mainRouter);
     app.use('/api/leads', leadRoutes);
+    app.use('/api/early-access-counter', earlyAccessCounterRoutes);
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`Server started on port ${PORT}`);

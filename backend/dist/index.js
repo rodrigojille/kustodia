@@ -10,6 +10,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const ormconfig_1 = __importDefault(require("./ormconfig"));
 const routes_1 = __importDefault(require("./routes"));
 const lead_1 = __importDefault(require("./routes/lead"));
+const earlyAccessCounter_1 = __importDefault(require("./routes/earlyAccessCounter"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -38,6 +39,7 @@ ormconfig_1.default.initialize()
     // Mount all API routes
     app.use("/api", routes_1.default);
     app.use('/api/leads', lead_1.default);
+    app.use('/api/early-access-counter', earlyAccessCounter_1.default);
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
         console.log(`Server started on port ${PORT}`);
