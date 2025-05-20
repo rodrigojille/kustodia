@@ -11,15 +11,19 @@ export const getSlots = async (req: Request, res: Response): Promise<void> => {
     try {
       counter = await repo.findOne({});
     } catch (err) {
-      return res.status(500).json({ error: 'Database error', details: err instanceof Error ? err.message : err });
+      res.status(500).json({ error: 'Database error', details: err instanceof Error ? err.message : err });
+      return;
     }
     if (!counter) {
       // Counter row not found, return 404 and default slots value
-      return res.status(404).json({ slots: 0, message: 'No early access counter found' });
+      res.status(404).json({ slots: 0, message: 'No early access counter found' });
+      return;
     }
-    return res.json({ slots: counter.slots });
+    res.json({ slots: counter.slots });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: 'Error fetching slots.', details: err instanceof Error ? err.message : err });
+    res.status(500).json({ error: 'Error fetching slots.', details: err instanceof Error ? err.message : err });
+    return;
   }
 };
 
