@@ -142,44 +142,44 @@ export default function EarlyAccess() {
                   </div>
                 )}
                 <form ref={formRef} onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2 max-w-md mx-auto">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      value={form.name}
-                      onChange={handleChange}
-                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
-                      placeholder="Nombre completo"
-                      required
-                    />
-                    <label htmlFor="name" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Nombre completo</label>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      name="email"
-                      id="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
-                      placeholder="Correo electrónico"
-                      required
-                    />
-                    <label htmlFor="email" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Correo electrónico</label>
-                  </div>
-                  <div className="relative">
-                    <textarea
-                      name="message"
-                      id="message"
-                      value={form.message}
-                      onChange={handleChange}
-                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow resize-none min-h-[60px]"
-                      placeholder="¿Por qué te interesa Kustodia? (opcional)"
-                      rows={3}
-                    />
-                    <label htmlFor="message" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">¿Por qué te interesa Kustodia? (opcional)</label>
-                  </div>
+                  <div className="flex flex-col gap-1">
+  <label htmlFor="name" className="text-indigo-700 font-semibold text-base mb-1">Nombre completo</label>
+  <input
+    type="text"
+    name="name"
+    id="name"
+    value={form.name}
+    onChange={handleChange}
+    className="w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 text-base shadow"
+    placeholder="Nombre completo"
+    required
+  />
+</div>
+                  <div className="flex flex-col gap-1">
+  <label htmlFor="email" className="text-indigo-700 font-semibold text-base mb-1">Correo electrónico</label>
+  <input
+    type="email"
+    name="email"
+    id="email"
+    value={form.email}
+    onChange={handleChange}
+    className="w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 text-base shadow"
+    placeholder="Correo electrónico"
+    required
+  />
+</div>
+                  <div className="flex flex-col gap-1">
+  <label htmlFor="message" className="text-indigo-700 font-semibold text-base mb-1">¿Por qué te interesa Kustodia? (opcional)</label>
+  <textarea
+    name="message"
+    id="message"
+    value={form.message}
+    onChange={handleChange}
+    className="w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 text-base shadow resize-none min-h-[60px]"
+    placeholder="¿Por qué te interesa Kustodia? (opcional)"
+    rows={3}
+  />
+</div>
                   {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
                   {slots !== 0 && (
                     <button

@@ -2,13 +2,6 @@ import { useState } from 'react';
 
 const PAGE_PASSWORD = 'kustodia2025'; // Change this for production!
 
-export default function EarlyAccess() {
-  const [step, setStep] = useState<'password'|'form'|'success'>('password');
-  const [password, setPassword] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [error, setError] = useState('');
-
-  const checkPassword = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === PAGE_PASSWORD) {
       setStep('form');
