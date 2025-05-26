@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import ormconfig from "../ormconfig";
 import { PaymentEvent } from "../entity/PaymentEvent";
 
-export const getPaymentEvents = async (req: Request, res: Response) => {
+export const getPaymentEvents = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -13,8 +13,8 @@ export const getPaymentEvents = async (req: Request, res: Response) => {
       where: { paymentId: Number(id) },
       order: { created_at: "ASC" }
     });
-    return res.json({ events });
+    res.json({ events });
   } catch (err) {
-    return res.status(500).json({ error: "Failed to fetch payment events", details: err instanceof Error ? err.message : err });
+    res.status(500).json({ error: "Failed to fetch payment events", details: err instanceof Error ? err.message : err });
   }
 };
