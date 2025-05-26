@@ -8,6 +8,7 @@ const logoUrl = '/logo.svg';
 
 const PaymentTracker: React.FC = () => {
   const [payment, setPayment] = useState<any>(null);
+  const [paymentEvents, setPaymentEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDispute, setShowDispute] = useState(false);
@@ -27,7 +28,6 @@ const PaymentTracker: React.FC = () => {
     })
       .then(res => res.json())
       .then(data => {
-        console.log('Fetched payment data:', data);
         if (data && data.payment) {
           setPayment(data.payment);
         } else {
@@ -39,6 +39,21 @@ const PaymentTracker: React.FC = () => {
         setError('Error al cargar el pago.');
         setLoading(false);
         console.error('Error fetching payment:', err);
+      });
+    // Fetch payment events
+    authFetch(`http://localhost:4000/api/payments/${id}/events`, {
+      headers: {
+        Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : ''
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data.events)) {
+          setPaymentEvents(data.events);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching payment events:', err);
       });
   }, []);
 
@@ -85,25 +100,36 @@ const PaymentTracker: React.FC = () => {
           <div style={{ marginTop: 24 }}>
             <strong>Línea de tiempo:</strong>
             <ul style={{ margin: '12px 0 0 16px', padding: 0 }}>
-              {payment.escrow?.blockchain_tx_hash && (
-                <li>
-                  Hash de creación de escrow: <a href={`https://arbiscan.io/tx/${payment.escrow.blockchain_tx_hash}`} target="_blank" rel="noopener noreferrer" style={{ color: '#1A73E8', fontFamily: 'monospace' }}>{payment.escrow.blockchain_tx_hash}</a>
-                </li>
+              {paymentEvents.length === 0 && (
+                <li style={{ color: '#888' }}>Sin eventos registrados.</li>
               )}
-              {payment.escrow?.release_tx_hash && (
-                <li>
-                  Hash de liberación de custodia: <a href={`https://arbiscan.io/tx/${payment.escrow.release_tx_hash}`} target="_blank" rel="noopener noreferrer" style={{ color: '#1A73E8', fontFamily: 'monospace' }}>{payment.escrow.release_tx_hash}</a>
-                </li>
-              )}
-              {payment.bitso_tracking_number && (
-                <li>
-                  Bitso Tracking #: <span style={{ color: '#222', background: '#e8f0fe', padding: '2px 8px', borderRadius: 6, fontFamily: 'monospace' }}>{payment.bitso_tracking_number}</span>
-                </li>
-              )}
-              <li>{payment.created_at ? new Date(payment.created_at).toLocaleDateString() : ''} - Pago iniciado</li>
-              {payment.escrow?.created_at && (
-                <li>{new Date(payment.escrow.created_at).toLocaleDateString()} - Escrow/custodia creado</li>
-              )}
+              {paymentEvents.map(event => {
+  // Mapeo de tipos a español, estilos y emoji
+  const typeMap: Record<string, { label: string; color: string; icon: string }> = {
+    initiated: { label: 'Pago iniciado', color: '#1976d2', icon: '💸' },
+    escrow_created: { label: 'Custodia creada', color: '#388e3c', icon: '🔒' },
+    deposit_received: { label: 'Depósito recibido', color: '#0288d1', icon: '🏦' },
+    payout_released: { label: 'Monto liberado al vendedor', color: '#6d4c41', icon: '✅' },
+    redemption_failed: { label: 'Redención fallida', color: '#d32f2f', icon: '❌' },
+    dispute_opened: { label: 'Disputa abierta', color: '#fbc02d', icon: '⚠️' },
+    dispute_resolved: { label: 'Disputa resuelta', color: '#388e3c', icon: '🤝' },
+    // Puedes agregar más tipos aquí...
+  };
+  const typeInfo = typeMap[event.type] || { label: event.type, color: '#888', icon: '📝' };
+  return (
+    <li key={event.id} style={{ marginBottom: 8, display: 'flex', alignItems: 'center' }}>
+      <span style={{ color: '#222', fontWeight: 600, minWidth: 90 }}>{new Date(event.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+      <span style={{
+        display: 'inline-flex', alignItems: 'center', background: typeInfo.color,
+        color: '#fff', borderRadius: 6, padding: '2px 10px', marginLeft: 10,
+        fontWeight: 700, fontSize: 14, fontFamily: 'Montserrat, Arial, sans-serif', letterSpacing: 0.3
+      }}>
+        <span style={{ marginRight: 7 }}>{typeInfo.icon}</span>{typeInfo.label}
+      </span>
+
+    </li>
+  );
+})}
             </ul>
           </div>
           {/* Dispute Button at the bottom */}
