@@ -6,7 +6,8 @@ export const getPaymentEvents = async (req: Request, res: Response): Promise<voi
   try {
     const { id } = req.params;
     if (!id) {
-      return res.status(400).json({ error: "Missing payment id" });
+      res.status(400).json({ error: "Missing payment id" });
+      return;
     }
     const paymentEventRepo = ormconfig.getRepository(PaymentEvent); // Usar solo una vez por request
     const events = await paymentEventRepo.find({

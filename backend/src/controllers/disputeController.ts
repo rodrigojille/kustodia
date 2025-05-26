@@ -7,12 +7,13 @@ import { ethers } from "ethers";
 import contractInstance from "../contractInstance";
 
 // User raises a dispute or reapplies before custody ends
-export const raiseDispute = async (req: Request, res: Response) => {
+export const raiseDispute = async (req: Request, res: Response): Promise<void> => {
   const { escrowId } = req.params;
   const { reason, details, evidence } = req.body;
   const userId = (req as any).user?.id;
   if (!reason || !details) {
-    return res.status(400).json({ error: "Reason and details are required." });
+    res.status(400).json({ error: "Reason and details are required." });
+    return;
   }
   const escrowRepo = ormconfig.getRepository(Escrow);
   const disputeRepo = ormconfig.getRepository(Dispute);
@@ -20,21 +21,29 @@ export const raiseDispute = async (req: Request, res: Response) => {
 
   // Parse escrowId to number
   const escrow = await escrowRepo.findOne({ where: { id: Number(escrowId) } });
-  if (!escrow) return res.status(404).json({ error: "Escrow not found" });
+  if (!escrow) {
+  res.status(404).json({ error: "Escrow not found" });
+  return;
+}
   const user = await userRepo.findOne({ where: { id: userId } });
-  if (!user) return res.status(404).json({ error: "User not found" });
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
 
   // Call smart contract to raise dispute (assume contract instance is imported)
   let contractTxHash = null;
   if (!escrow.smart_contract_escrow_id) {
-    return res.status(400).json({ error: "Escrow is missing smart_contract_escrow_id." });
+    res.status(400).json({ error: "Escrow is missing smart_contract_escrow_id." });
+    return;
   }
   // Use platform wallet for contract call
   try {
     // Use smart_contract_escrow_id and platform wallet (no user.wallet_address)
     const platformWallet = process.env.ESCROW_CONTRACT_ADDRESS;
     if (!platformWallet) {
-      return res.status(500).json({ error: "Platform wallet address not configured." });
+      res.status(500).json({ error: "Platform wallet address not configured." });
+      return;
     }
     const tx = await contractInstance.raiseDispute(
       escrow.smart_contract_escrow_id,
@@ -43,7 +52,8 @@ export const raiseDispute = async (req: Request, res: Response) => {
     await tx.wait();
     contractTxHash = tx.hash;
   } catch (err) {
-    return res.status(500).json({ error: "Failed to call smart contract: " + (err as Error).message });
+    res.status(500).json({ error: "Failed to call smart contract: " + (err as Error).message });
+    return;
   }
 
   // Create Dispute entity
@@ -69,11 +79,10 @@ export const raiseDispute = async (req: Request, res: Response) => {
   ];
   await escrowRepo.save(escrow);
   res.json({ success: true, message: "Dispute submitted.", dispute: { status: escrow.dispute_status } });
-  return;
-};
+}
 
 // Get dispute timeline/tracking (combined from Dispute entity and Escrow legacy history)
-export const getDisputeTimeline = async (req: Request, res: Response) => {
+export const getDisputeTimeline = async (req: Request, res: Response): Promise<void> => {
   const { escrowId } = req.params;
   const escrowRepo = ormconfig.getRepository(Escrow);
   const disputeRepo = ormconfig.getRepository(Dispute);
@@ -99,21 +108,26 @@ export const getDisputeTimeline = async (req: Request, res: Response) => {
     }))
   ];
   res.json({ timeline });
-  return;
-};
+}
 
 // Admin resolves dispute
-export const adminResolveDispute = async (req: Request, res: Response) => {
+export const adminResolveDispute = async (req: Request, res: Response): Promise<void> => {
   const { escrowId } = req.params;
   const { resolution, adminNotes } = req.body;
   const escrowRepo = ormconfig.getRepository(Escrow);
   const disputeRepo = ormconfig.getRepository(Dispute);
   const escrow = await escrowRepo.findOne({ where: { id: Number(escrowId) } });
-  if (!escrow) return res.status(404).json({ error: "Escrow not found" });
+  if (!escrow) {
+    res.status(404).json({ error: "Escrow not found" });
+    return;
+  }
 
   // Find latest dispute for this escrow
   const dispute = await disputeRepo.findOne({ where: { escrow }, order: { created_at: "DESC" } });
-  if (!dispute) return res.status(404).json({ error: "Dispute not found" });
+  if (!dispute) {
+    res.status(404).json({ error: "Dispute not found" });
+    return;
+  }
 
   // Call smart contract to resolve dispute (assume contract instance is imported)
   let contractTxHash = null;
@@ -124,7 +138,8 @@ export const adminResolveDispute = async (req: Request, res: Response) => {
     // contractTxHash = tx.hash;
     contractTxHash = "MOCK_RESOLVE_TX_HASH";
   } catch (err) {
-    return res.status(500).json({ error: "Failed to resolve dispute on smart contract: " + (err as Error).message });
+    res.status(500).json({ error: "Failed to resolve dispute on smart contract: " + (err as Error).message });
+    return;
   }
 
   if (resolution === "approved") {
@@ -150,5 +165,4 @@ export const adminResolveDispute = async (req: Request, res: Response) => {
   await disputeRepo.save(dispute);
   await escrowRepo.save(escrow);
   res.json({ success: true, status: escrow.dispute_status, contractTxHash });
-  return;
-};
+}
