@@ -4,7 +4,7 @@ import { escrowContract } from '../services/escrowService';
 
 async function main() {
   const escrowId = Number(process.argv[2]);
-  if (!escrowId) {
+  if (isNaN(escrowId)) {
     console.error('Usage: ts-node manualReleaseCustody.ts <escrowId>');
     process.exit(1);
   }

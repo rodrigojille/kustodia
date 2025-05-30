@@ -10,7 +10,7 @@ import { authFetch } from '../authFetch';
 import { Helmet } from 'react-helmet';
 
 
-import { FaShieldAlt, FaEye, FaHeadset, FaRocket, FaUser, FaLock, FaMoneyBillWave } from 'react-icons/fa';
+import { FaShieldAlt, FaEye, FaHeadset, FaRocket, FaUser, FaLock, FaMoneyBillWave, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
 
 const benefits = [
   {
@@ -267,7 +267,7 @@ export default function EarlyAccess() {
           </div>
 
           {/* Demo Video Section */}
-          <section className="w-full max-w-2xl mx-auto my-12">
+          <section className="w-full max-w-3xl mx-auto my-12">
             <h2 className="text-2xl font-bold text-center text-indigo-800 mb-4">Mira cómo funciona Kustodia</h2>
             <div className="rounded-2xl overflow-hidden shadow-xl border border-indigo-200 bg-white">
               <ArcadeEmbed />
@@ -285,6 +285,25 @@ export default function EarlyAccess() {
               </button>
             </div>
           </section>
+
+          {/* Social Section Title */}
+          <div className="w-full flex flex-col items-center mt-12 mb-2">
+            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-blue-500 to-indigo-400 text-center mb-2 tracking-tight drop-shadow-sm">Conoce más aquí</h3>
+            <div className="w-16 h-1 bg-gradient-to-r from-indigo-400 via-blue-300 to-indigo-200 rounded-full mb-4"></div>
+          </div>
+
+          {/* Social Icons */}
+          <div className="flex flex-row justify-center gap-6 mb-4" aria-label="Redes sociales de Kustodia">
+            <a href="https://x.com/Kustodia_mx" target="_blank" rel="noopener noreferrer" aria-label="Twitter Kustodia" className="text-indigo-400 hover:text-indigo-700 transition-colors text-2xl focus:outline-none focus:ring-2 focus:ring-indigo-300 rounded-full">
+              <FaTwitter />
+            </a>
+            <a href="https://www.linkedin.com/company/kustodia-mx" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Kustodia" className="text-indigo-400 hover:text-indigo-700 transition-colors text-2xl focus:outline-none focus:ring-2 focus:ring-indigo-300 rounded-full">
+              <FaLinkedin />
+            </a>
+            <a href="https://www.instagram.com/kustodia.mx/#" target="_blank" rel="noopener noreferrer" aria-label="Instagram Kustodia" className="text-indigo-400 hover:text-indigo-700 transition-colors text-2xl focus:outline-none focus:ring-2 focus:ring-indigo-300 rounded-full">
+              <FaInstagram />
+            </a>
+          </div>
 
           {/* Footer */}
           <footer className="bg-indigo-700 text-white text-center py-6 mt-10 rounded-none w-full">

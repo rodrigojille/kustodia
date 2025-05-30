@@ -11,23 +11,23 @@ const JUNO_API_SECRET = process.env.JUNO_API_SECRET;
 const JUNO_BASE_URL = process.env.JUNO_BASE_URL || 'https://api.juno.com';
 
 // --- Dispute Management ---
-export const getAllDisputes = async (req: Request, res: Response) => {
+export const getAllDisputes = async (req: Request, res: Response): Promise<void> => {
   const disputeRepo = ormconfig.getRepository(Dispute);
   const userRepo = ormconfig.getRepository(User);
   const escrowRepo = ormconfig.getRepository(Escrow);
   const disputes = await disputeRepo.find({ relations: ["escrow", "raisedBy"] });
   res.json({ disputes });
-};
+}
 
 // --- User Management ---
-export const getAllUsersWithDetails = async (req: Request, res: Response) => {
+export const getAllUsersWithDetails = async (req: Request, res: Response): Promise<void> => {
   const userRepo = ormconfig.getRepository(User);
   const users = await userRepo.find();
   // Optionally, fetch balances and clabes here
   res.json({ users });
-};
+}
 
-export const getUserClabes = async (req: Request, res: Response) => {
+export const getUserClabes = async (req: Request, res: Response): Promise<void> => {
   const { userId } = req.params;
   // Fetch CLABEs from DB and Juno API
   // DB fetch (assume User has clabe field or related entity)
@@ -50,9 +50,9 @@ export const getUserClabes = async (req: Request, res: Response) => {
     }
   }
   res.json({ dbClabes, junoClabes });
-};
+}
 
-export const getUserDeposits = async (req: Request, res: Response) => {
+export const getUserDeposits = async (req: Request, res: Response): Promise<void> => {
   const { userId } = req.params;
   // Fetch deposits from DB and Juno API
   // DB fetch (assume Escrow has deposits or related entity)
@@ -76,11 +76,11 @@ export const getUserDeposits = async (req: Request, res: Response) => {
     }
   }
   res.json({ dbDeposits, junoDeposits });
-};
+}
 
 // --- Payment Management ---
-export const getAllPayments = async (req: Request, res: Response) => {
+export const getAllPayments = async (req: Request, res: Response): Promise<void> => {
   const paymentRepo = ormconfig.getRepository(require("../entity/Payment").Payment);
   const payments = await paymentRepo.find({ relations: ["user", "escrow"] });
   res.json({ payments });
-};
+}
