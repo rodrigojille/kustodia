@@ -31,7 +31,7 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
       subject: '¡Estás invitado a Kustodia Early Access!',
       html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
         <div style='text-align:left;margin-bottom:1rem;'>
-          <img src='https://kustodia.mx/kustodia-logo.svg' alt='Kustodia Logo' style='width:80px;height:80px;'>
+          <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='80' height='80' style='display:block;'>
         </div>
         <h2 style='color:#2e7ef7;text-align:center;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
         <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access.<br>Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
@@ -76,7 +76,7 @@ export const inviteLead = async (req: Request, res: Response): Promise<void> => 
       subject: '¡Estás invitado a Kustodia Early Access!',
       html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
         <div style='text-align:left;margin-bottom:1rem;'>
-          <img src='https://kustodia.mx/kustodia-logo.svg' alt='Kustodia Logo' style='width:80px;height:80px;'>
+          <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='80' height='80' style='display:block;'>
         </div>
         <h2 style='color:#2e7ef7;text-align:center;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
         <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access.<br>Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
