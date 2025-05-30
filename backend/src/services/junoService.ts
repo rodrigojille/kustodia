@@ -2,10 +2,10 @@ import axios from 'axios';
 import crypto from 'crypto';
 
 // Select API keys based on environment
-const JUNO_ENV = process.env.JUNO_ENV || process.env.NODE_ENV || 'production';
+const JUNO_ENV = process.env.JUNO_ENV || 'stage';
 const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY! : process.env.JUNO_API_KEY!;
 const JUNO_API_SECRET = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_SECRET! : process.env.JUNO_API_SECRET!;
-const JUNO_BASE_URL = 'https://api.bitso.com/api/v3'; // Bitso/Juno endpoint
+const JUNO_BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
 
 console.log(`[JUNO] Using environment: ${JUNO_ENV}`);
 console.log(`[JUNO] Using API key: ${JUNO_API_KEY?.slice(0, 4)}... (stage: ${JUNO_ENV === 'stage'})`);
@@ -95,6 +95,33 @@ export async function redeemMXNbForMXN(amountMXNb: string | number, travelRuleDa
   }
 }
 
+export async function getJunoTxHashFromTimeline(transactionId: string, isStage = true): Promise<string | null> {
+  const baseUrl = isStage
+    ? 'https://stage.buildwithjuno.com'
+    : 'https://buildwithjuno.com';
+  const requestPath = `/mint_platform/v1/transactions/${transactionId}`;
+  const url = `${baseUrl}${requestPath}`;
+  const method = 'GET';
+  const nonce = Date.now().toString();
+  const body = '';
+  const dataToSign = nonce + method + requestPath + body;
+  const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+  };
+  try {
+    const response = await axios.get(url, { headers });
+    const timeline = response.data?.payload?.timeline || [];
+    const tokensTransferred = timeline.find((step: any) => step.step === 'Tokens transferred');
+    return tokensTransferred?.receipt || null;
+  } catch (err: any) {
+    console.error('Error fetching transaction timeline from Juno:', err?.response?.data || err?.message || err);
+    return null;
+  }
+}
+
+
 export async function sendJunoPayment(clabe: string, amount: number, description: string) {
   const endpoint = '/withdrawals/';
   const url = `${JUNO_BASE_URL}${endpoint}`;
@@ -127,4 +154,32 @@ export async function sendJunoPayment(clabe: string, amount: number, description
     console.error('Juno payout error:', err?.response?.data || err?.message || err);
     throw err;
   }
+}
+/**
+ * Lista todas las transacciones de la cuenta Juno.
+ * @param isStage Si es true usa el endpoint de stage, si no el de producción
+ * @returns Array de transacciones Juno
+ */
+export async function listJunoTransactions(isStage = true) {
+  const baseUrl = isStage
+    ? 'https://stage.buildwithjuno.com'
+    : 'https://buildwithjuno.com';
+  const url = `${baseUrl}/mint_platform/v1/transactions`;
+  const requestPath = '/mint_platform/v1/transactions';
+  const method = 'GET';
+  const nonce = Date.now().toString();
+  const body = '';
+  const dataToSign = nonce + method + requestPath + body;
+  const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+  };
+  const response = await axios.get(url, { headers });
+  // LOG para depuración:
+  console.log('[JUNO] listJunoTransactions response:', JSON.stringify(response.data));
+  if (response.data && response.data.payload && Array.isArray(response.data.payload.content)) {
+    return response.data.payload.content;
+  }
+  return [];
 }

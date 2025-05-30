@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaTwitter, FaLinkedin, FaWhatsapp } from 'react-icons/fa';
 
 const PAGE_PASSWORD = 'kustodia2025'; // Change this for production!
 
@@ -66,7 +67,7 @@ export default function EarlyAccess() {
         `}
       </script>
       <main className="min-h-screen bg-gradient-to-br from-blue-100/70 via-indigo-100/80 to-indigo-200/90 flex items-center justify-center py-12 px-4">
-  <section className="w-full max-w-md rounded-2xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
+  <section className="w-full max-w-md md:max-w-xl rounded-2xl shadow-2xl bg-white/70 backdrop-blur-lg border border-indigo-100 p-10 flex flex-col items-center">
     <img src="/kustodia-logo.svg" alt="Logo de Kustodia, plataforma de pagos y custodia blockchain" className="mx-auto h-14 mb-4 drop-shadow-lg" />
     <h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
     <p className="text-center text-indigo-700/90 font-medium mb-6">Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM.</p>
@@ -155,8 +156,28 @@ export default function EarlyAccess() {
     <p className="text-xs text-gray-500 mt-6 text-center" style={{maxWidth:'350px'}}>
       Al registrarte, aceptas nuestra <a href="/privacidad" className="underline text-indigo-700 hover:text-indigo-900" tabIndex={0}>Política de Privacidad</a>. Tus datos serán usados únicamente para notificarte sobre el acceso anticipado y novedades de Kustodia.
     </p>
+    {/* Social Icons */}
+    <div className="flex flex-row justify-center gap-6 mt-6 mb-2" aria-label="Redes sociales de Kustodia">
+      <a href="https://twitter.com/kustodia_mx" target="_blank" rel="noopener noreferrer" aria-label="Twitter Kustodia" className="text-indigo-400 hover:text-indigo-700 transition-colors text-2xl focus:outline-none focus:ring-2 focus:ring-indigo-300 rounded-full">
+        <FaTwitter />
+      </a>
+      <a href="https://www.linkedin.com/company/kustodia/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Kustodia" className="text-indigo-400 hover:text-indigo-700 transition-colors text-2xl focus:outline-none focus:ring-2 focus:ring-indigo-300 rounded-full">
+        <FaLinkedin />
+      </a>
+      <a href="https://wa.me/5215530950165" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp Kustodia" className="text-indigo-400 hover:text-indigo-700 transition-colors text-2xl focus:outline-none focus:ring-2 focus:ring-indigo-300 rounded-full">
+        <FaWhatsapp />
+      </a>
+    </div>
   </section>
 </main>
+
+<footer className="bg-indigo-700 text-white text-center py-6 mt-10 rounded-none w-full">
+  <div className="mb-2">
+    <a href="/terminos" className="text-white underline mr-6">Términos y Condiciones</a>
+    <a href="/privacidad" className="text-white underline">Aviso de Privacidad</a>
+  </div>
+  2025 Tecnologías Avanzadas Centrales SAPI de CV. Todos los derechos reservados.
+</footer>
 
     </> 
   );

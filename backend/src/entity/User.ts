@@ -26,6 +26,9 @@ export class User {
   @Column({ nullable: true, length: 18 })
   payout_clabe?: string; // User's real CLABE for payouts (withdrawals)
 
+  @Column({ nullable: true, length: 64 })
+  juno_bank_account_id?: string; // Juno UUID for payout bank account
+
   @Column({ default: false })
   email_verified!: boolean;
 

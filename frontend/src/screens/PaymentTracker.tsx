@@ -110,12 +110,17 @@ const PaymentTracker: React.FC = () => {
     escrow_created: { label: 'Custodia creada', color: '#388e3c', icon: '🔒' },
     deposit_received: { label: 'Depósito recibido', color: '#0288d1', icon: '🏦' },
     payout_released: { label: 'Monto liberado al vendedor', color: '#6d4c41', icon: '✅' },
+    redemption_initiated: { label: 'Redención iniciada', color: '#757575', icon: '🔄' },
+    redemption_success: { label: 'Redención exitosa', color: '#388e3c', icon: '💱' },
     redemption_failed: { label: 'Redención fallida', color: '#d32f2f', icon: '❌' },
+    payout_completed: { label: 'Pago completado', color: '#1976d2', icon: '💵' },
+    payout_initiated: { label: 'Pago iniciado', color: '#1e88e5', icon: '🏁' },
     dispute_opened: { label: 'Disputa abierta', color: '#fbc02d', icon: '⚠️' },
     dispute_resolved: { label: 'Disputa resuelta', color: '#388e3c', icon: '🤝' },
-    // Puedes agregar más tipos aquí...
+    // Agrega aquí otros tipos de eventos según sea necesario
   };
   const typeInfo = typeMap[event.type] || { label: event.type, color: '#888', icon: '📝' };
+
   return (
     <li key={event.id} style={{ marginBottom: 8, display: 'flex', alignItems: 'center' }}>
       <span style={{ color: '#222', fontWeight: 600, minWidth: 90 }}>{new Date(event.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
