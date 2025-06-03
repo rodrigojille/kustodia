@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaHome, FaHandshake, FaCar, FaIndustry, FaTools, FaBolt, FaBuilding, FaShieldAlt, FaGavel } from 'react-icons/fa';
+import { FaHome, FaHandshake, FaCar, FaIndustry } from 'react-icons/fa';
 
 const useCases = [
   {
