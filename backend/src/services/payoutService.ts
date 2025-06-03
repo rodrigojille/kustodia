@@ -29,7 +29,9 @@ export async function releaseEscrowAndPayout(escrowId: number) {
   if (!seller || !seller.payout_clabe) throw new Error('Seller or CLABE not found');
 
   // Prepare payout
-  const amount = Number(escrow.release_amount);
+  const totalAmount = Number(escrow.release_amount);
+  const commissionAmount = payment.commission_amount ? Number(payment.commission_amount) : 0;
+  const netSellerAmount = totalAmount - commissionAmount;
   const currency = payment.currency || 'MXN';
   const destination_clabe = seller.payout_clabe;
 
@@ -53,11 +55,11 @@ export async function releaseEscrowAndPayout(escrowId: number) {
     throw new Error('Reference, notesRef, or numericRef became empty after sanitization.');
   }
 
-  // Call Juno
-  let junoResult, junoStatus = 'pending', tx_hash = undefined, junoReference = undefined;
+  // --- 1. Payout to Seller ---
+  let sellerJunoResult, sellerJunoStatus = 'pending', sellerTxHash = undefined, sellerJunoReference = undefined;
   try {
-    junoResult = await sendJunoPayout({
-      amount,
+    sellerJunoResult = await sendJunoPayout({
+      amount: netSellerAmount,
       beneficiary: seller.full_name || seller.email || "Beneficiario Kustodia",
       clabe: seller.payout_clabe,
       notes_ref: notesRef,
@@ -65,35 +67,89 @@ export async function releaseEscrowAndPayout(escrowId: number) {
       rfc: "XAXX010101000",
       origin_id: `kustodia_${payment.id}`
     });
-    junoStatus = 'success';
-    junoReference = junoResult?.id;
-    // Obtener el hash blockchain (Tokens transferred) usando el UUID
-    tx_hash = junoReference ? await getJunoTxHashFromTimeline(junoReference) : undefined;
+    sellerJunoStatus = 'success';
+    sellerJunoReference = sellerJunoResult?.id;
+    sellerTxHash = sellerJunoReference ? await getJunoTxHashFromTimeline(sellerJunoReference) : undefined;
   } catch (err: any) {
-    junoStatus = 'failed';
-    junoResult = err?.response?.data || err?.message || err;
+    sellerJunoStatus = 'failed';
+    sellerJunoResult = err?.response?.data || err?.message || err;
   }
 
-  // Log Juno transaction
-  const junoTx = junoTxRepo.create({
+  // Log Seller Juno transaction
+  const sellerJunoTx = junoTxRepo.create({
     type: 'payout',
-    reference: (junoReference ?? reference) ?? undefined, // never null
-    amount,
-    status: junoStatus,
-    tx_hash: tx_hash ?? undefined,
+    reference: (sellerJunoReference ?? reference) ?? undefined,
+    amount: netSellerAmount,
+    status: sellerJunoStatus,
+    tx_hash: sellerTxHash ?? undefined,
   });
-  await junoTxRepo.save(junoTx);
+  await junoTxRepo.save(sellerJunoTx);
 
-  // Update escrow/payment status if payout succeeded
-  if (junoStatus === 'success') {
+  // --- 2. Payout to Commission Beneficiary (if any) ---
+  let commissionJunoTx = null;
+  let commissionJunoResult = null;
+  let commissionJunoStatus = null;
+  let commissionTxHash = null;
+  let commissionJunoReference = null;
+
+  if (
+    commissionAmount > 0 &&
+    payment.commission_beneficiary_email &&
+    payment.commission_beneficiary_email.trim() !== ''
+  ) {
+    // Find commission beneficiary user by email
+    const commissionUser = await userRepo.findOne({ where: { email: payment.commission_beneficiary_email } });
+    if (!commissionUser || !commissionUser.payout_clabe) {
+      throw new Error('Commission beneficiary or CLABE not found');
+    }
+    try {
+      commissionJunoResult = await sendJunoPayout({
+        amount: commissionAmount,
+        beneficiary: commissionUser.full_name || commissionUser.email || "Beneficiario Comisión",
+        clabe: commissionUser.payout_clabe,
+        notes_ref: `Comisión Kustodia - ${notesRef}`,
+        numeric_ref: numericRef,
+        rfc: "XAXX010101000",
+        origin_id: `kustodia_commission_${payment.id}`
+      });
+      commissionJunoStatus = 'success';
+      commissionJunoReference = commissionJunoResult?.id;
+      commissionTxHash = commissionJunoReference ? await getJunoTxHashFromTimeline(commissionJunoReference) : undefined;
+    } catch (err: any) {
+      commissionJunoStatus = 'failed';
+      commissionJunoResult = err?.response?.data || err?.message || err;
+    }
+    // Log Commission Juno transaction
+    commissionJunoTx = junoTxRepo.create({
+      type: 'commission_payout',
+      reference: (commissionJunoReference ?? reference) ?? undefined,
+      amount: commissionAmount,
+      status: commissionJunoStatus,
+      tx_hash: commissionTxHash ?? undefined,
+    });
+    await junoTxRepo.save(commissionJunoTx);
+  }
+
+  // Update escrow/payment status if both payouts succeeded (or only seller if no commission)
+  const allSuccess = sellerJunoStatus === 'success' && (commissionAmount === 0 || commissionJunoStatus === 'success');
+  if (allSuccess) {
     escrow.status = 'released';
     payment.status = 'paid';
     await escrowRepo.save(escrow);
     await paymentRepo.save(payment);
   }
 
-  return { escrow, payment, seller, junoTx, junoResult };
+  return {
+    escrow,
+    payment,
+    seller,
+    sellerJunoTx,
+    sellerJunoResult,
+    commissionJunoTx,
+    commissionJunoResult
+  };
 }
+
 
 /**
  * Logs a payment event for traceability

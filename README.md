@@ -83,6 +83,48 @@ Fecha/hora fin (UTC):      2025-05-30T23:59:08.000Z
 
 ### Explicación paso a paso
 
+---
+
+## Flujo de Payout con Comisión (Backend)
+
+Cuando se libera la custodia, el backend realiza el split y payout de la siguiente forma:
+
+1. El backend libera la custodia en el smart contract (los fondos van a la wallet puente).
+2. El backend calcula el monto neto para el vendedor y el monto de comisión.
+3. El backend realiza dos pagos vía Juno:
+    - Uno al vendedor (neto)
+    - Uno al beneficiario de la comisión (comisión)
+4. Se actualiza el estado de la transacción en la base de datos.
+
+### Diagrama de Secuencia: Payout con Comisión
+
+```mermaid
+sequenceDiagram
+    participant Backend
+    participant SmartContract
+    participant PlatformBridge as Wallet Puente
+    participant Juno
+    participant Vendedor
+    participant BeneficiarioComision as Beneficiario Comisión
+    participant DB as Base de Datos
+
+    Backend->>SmartContract: 1. Solicita liberación de custodia
+    SmartContract-->>PlatformBridge: 2. Libera fondos a wallet puente
+    Backend->>PlatformBridge: 3. Detecta fondos recibidos
+    Backend->>Backend: 4. Calcula split: vendedor vs comisión
+    Backend->>Juno: 5a. Payout neto al vendedor
+    Backend->>Juno: 5b. Payout comisión al beneficiario
+    Juno-->>Vendedor: 6a. Transfiere MXN (SPEI)
+    Juno-->>BeneficiarioComision: 6b. Transfiere MXN (SPEI)
+    Backend->>DB: 7. Actualiza estado y logs de payout
+```
+
+### Notas
+- Todo el split y payout se realiza en el backend, nunca en el smart contract.
+- El beneficiario de la comisión puede ser cualquier CLABE registrada.
+- Si no hay comisión, solo se realiza el payout al vendedor.
+- Todo el flujo queda registrado en la base de datos para auditoría.
+
 1. **El comprador realiza un pago en MXN** a la CLABE de depósito proporcionada por Juno.
 2. **Juno notifica al backend** vía webhook que se ha recibido el pago.
 3. **El backend registra el evento** `deposit_received` en la base de datos.
