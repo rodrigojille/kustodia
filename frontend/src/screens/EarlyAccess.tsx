@@ -8,6 +8,7 @@ import { useState, useRef } from 'react';
 import { ArcadeEmbed } from '../components/ArcadeEmbed';
 import { authFetch } from '../authFetch';
 import { Helmet } from 'react-helmet';
+import KustodiaUseCases from './KustodiaUseCases';
 
 
 import { FaShieldAlt, FaEye, FaHeadset, FaRocket, FaUser, FaLock, FaMoneyBillWave, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
@@ -134,6 +135,10 @@ export default function EarlyAccess() {
             <div className="w-full bg-red-100 text-red-800 text-center rounded-xl py-2 px-4 mb-4 font-semibold text-lg animate-pulse shadow">
               ¡Cupos limitados! Regístrate ahora para asegurar tu acceso anticipado.
             </div>
+
+            {/* Use Cases Cards */}
+            <KustodiaUseCases />
+
             {step === 'form' && (
               <>
                 {slots === 0 && (
@@ -141,50 +146,57 @@ export default function EarlyAccess() {
                     ¡Todos los lugares de acceso anticipado han sido tomados!
                   </div>
                 )}
-                <form ref={formRef} onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2 max-w-md mx-auto">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      value={form.name}
-                      onChange={handleChange}
-                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
-                      placeholder="Nombre completo"
-                      required
-                    />
-                    <label htmlFor="name" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Nombre completo</label>
+                <form ref={formRef} onSubmit={handleSubmit} className="w-full flex flex-col gap-5 mt-2 max-w-md mx-auto bg-white/90 rounded-2xl shadow-xl border border-indigo-100 p-8">
+                  <div className="flex flex-col items-center mb-4">
+                    <span className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-blue-400 text-white px-6 py-3 rounded-full text-base font-bold">
+                      <FaLock className="text-yellow-300" />
+                      Pagos y cobros 100% controlados
+                    </span>
                   </div>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      name="email"
-                      id="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-full bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow"
-                      placeholder="Correo electrónico"
-                      required
-                    />
-                    <label htmlFor="email" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">Correo electrónico</label>
-                  </div>
-                  <div className="relative">
-                    <textarea
-                      name="message"
-                      id="message"
-                      value={form.message}
-                      onChange={handleChange}
-                      className="peer w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 placeholder-transparent text-base shadow resize-none min-h-[60px]"
-                      placeholder="¿Por qué te interesa Kustodia? (opcional)"
-                      rows={3}
-                    />
-                    <label htmlFor="message" className="absolute left-5 top-3 text-indigo-400 text-base transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-xs peer-focus:text-indigo-700 bg-white/80 px-1 pointer-events-none">¿Por qué te interesa Kustodia? (opcional)</label>
-                  </div>
-                  {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+                  <div className="flex flex-col gap-1">
+  <label htmlFor="name" className="block text-indigo-700 font-semibold mb-1">Nombre completo</label>
+  <input
+    type="text"
+    name="name"
+    id="name"
+    value={form.name}
+    onChange={handleChange}
+    className="w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 text-base shadow"
+    placeholder="Nombre completo"
+    required
+  />
+</div>
+                  <div className="flex flex-col gap-1">
+  <label htmlFor="email" className="block text-indigo-700 font-semibold mb-1">Correo electrónico</label>
+  <input
+    type="email"
+    name="email"
+    id="email"
+    value={form.email}
+    onChange={handleChange}
+    className="w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 text-base shadow"
+    placeholder="Correo electrónico"
+    required
+  />
+</div>
+                  <div className="flex flex-col gap-1">
+  <label htmlFor="message" className="block text-indigo-700 font-semibold mb-1">¿Por qué te interesa Kustodia? (opcional)</label>
+  <textarea
+    name="message"
+    id="message"
+    value={form.message}
+    onChange={handleChange}
+    className="w-full px-5 py-3 border border-indigo-200 rounded-2xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-indigo-900 text-base shadow resize-none min-h-[60px]"
+    placeholder="¿Por qué te interesa Kustodia? (opcional)"
+    rows={3}
+  />
+</div>
+                  {error && <p className="text-red-500 text-base font-semibold mb-2 text-center bg-red-50 border border-red-200 rounded-lg p-2 animate-pulse">{error}</p>}
+
                   {slots !== 0 && (
                     <button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-indigo-500 to-blue-400 text-white py-3 rounded-lg font-semibold text-lg shadow hover:from-indigo-600 hover:to-blue-500 transition mt-2"
+                      className="w-full bg-gradient-to-r from-indigo-500 to-blue-400 text-white py-3 rounded-full font-semibold text-lg shadow hover:from-indigo-600 hover:to-blue-500 transition mt-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                     >
                       Registrarme
                     </button>
@@ -245,7 +257,7 @@ export default function EarlyAccess() {
                 <span className="text-2xl text-indigo-600">→</span>
                 <div className="flex flex-col items-center min-w-0 sm:min-w-[92px]">
                   <a
-  href="https://arbiscan.io/address/0xcee0890216d71e58ee97807857aa6b2b786075d9"
+  href="https://sepolia.arbiscan.io/token/0x82b9e52b26a2954e113f94ff26647754d5a4247d?a=0xc09b02ddb3bbcc78fc47446d8d74e677ba8db3e8"
   target="_blank"
   rel="noopener noreferrer"
   aria-label="Ver contrato en Arbiscan"
