@@ -9,11 +9,24 @@ const PaymentInitiate: React.FC = () => {
   const [description, setDescription] = useState('');
   const [warrantyPercent, setWarrantyPercent] = useState<number | ''>('');
   const [custodyDays, setCustodyDays] = useState<number | ''>('');
+  const [commissionPercent, setCommissionPercent] = useState<number | ''>('');
+  const [commissionBeneficiaryName, setCommissionBeneficiaryName] = useState('');
+  const [commissionBeneficiaryEmail, setCommissionBeneficiaryEmail] = useState('');
+  const [commissionerValid, setCommissionerValid] = useState<null | boolean>(null);
+  const [commissionerVerified, setCommissionerVerified] = useState<null | boolean>(null);
+  const [commissionerLoading, setCommissionerLoading] = useState(false);
+  const [commissionerError, setCommissionerError] = useState<string | null>(null);
+
   const [recipientValid, setRecipientValid] = useState<null | boolean>(null);
   const [recipientVerified, setRecipientVerified] = useState<null | boolean>(null);
   const [recipientLoading, setRecipientLoading] = useState(false);
   const [recipientError, setRecipientError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Calculate commission amount
+  const commissionAmount = amount && commissionPercent !== ''
+    ? Number(((Number(amount) * Number(commissionPercent)) / 100).toFixed(2))
+    : '';
 
   const validateRecipient = async (email: string) => {
     setRecipientLoading(true);
@@ -44,11 +57,45 @@ const PaymentInitiate: React.FC = () => {
     if (recipient) validateRecipient(recipient);
   };
 
+  // Validate commission beneficiary (commissioner)
+  const validateCommissioner = async (email: string) => {
+    setCommissionerLoading(true);
+    setCommissionerError(null);
+    setCommissionerValid(null);
+    setCommissionerVerified(null);
+    try {
+      const res = await authFetch('/api/users/verify-recipient', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      setCommissionerValid(data.exists);
+      setCommissionerVerified(data.verified);
+      if (!data.exists) setCommissionerError('El beneficiario no está registrado en Kustodia.');
+      else if (!data.verified) setCommissionerError('El beneficiario no ha verificado su correo.');
+      else setCommissionerError(null);
+    } catch {
+      setCommissionerError('Error validando beneficiario. Intenta de nuevo.');
+      setCommissionerValid(null);
+      setCommissionerVerified(null);
+    }
+    setCommissionerLoading(false);
+  };
+
+  const handleCommissionerBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
+    if (commissionBeneficiaryEmail) validateCommissioner(commissionBeneficiaryEmail);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!recipient || !amount || warrantyPercent === '' || custodyDays === '') return;
     await validateRecipient(recipient);
     if (!recipientValid || !recipientVerified) return;
+    if (commissionBeneficiaryEmail) {
+      await validateCommissioner(commissionBeneficiaryEmail);
+      if (!commissionerValid || !commissionerVerified) return;
+    }
 
     // Get current user info (for user_id)
     let user_id: number | null = null;
@@ -88,7 +135,11 @@ const PaymentInitiate: React.FC = () => {
           currency: 'MXN',
           description,
           custody_percent: Number(warrantyPercent),
-          custody_period: Number(custodyDays)
+          custody_period: Number(custodyDays),
+          commission_percent: commissionPercent === '' ? null : Number(commissionPercent),
+          commission_amount: commissionAmount === '' ? null : Number(commissionAmount),
+          commission_beneficiary_name: commissionBeneficiaryName || null,
+          commission_beneficiary_email: commissionBeneficiaryEmail || null
         })
       });
       const data = await res.json();
@@ -262,6 +313,87 @@ const PaymentInitiate: React.FC = () => {
           onFocus={e => (e.target.style.borderColor = '#1A73E8')}
           onBlur={e => (e.target.style.borderColor = '#ddd')}
         />
+
+        {/* Commission Section */}
+        <div style={{ margin: '18px 0 0 0', padding: 0 }}>
+          <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 16 }}>Comisión (opcional)</div>
+          <input
+            type="number"
+            placeholder="% de comisión (ej. 5)"
+            min={0}
+            max={100}
+            value={commissionPercent}
+            onChange={e => setCommissionPercent(e.target.value === '' ? '' : Number(e.target.value))}
+            style={{
+              width: '100%',
+              padding: 14,
+              borderRadius: 8,
+              border: '1.5px solid #ddd',
+              fontSize: 16,
+              background: '#fff',
+              color: '#222',
+              fontFamily: 'Montserrat, Arial, sans-serif',
+              transition: 'border-color 0.2s',
+              outline: 'none',
+              marginBottom: 8
+            }}
+            onFocus={e => (e.target.style.borderColor = '#1A73E8')}
+            onBlur={e => (e.target.style.borderColor = '#ddd')}
+          />
+          <input
+            type="text"
+            placeholder="Nombre del beneficiario de la comisión"
+            value={commissionBeneficiaryName}
+            onChange={e => setCommissionBeneficiaryName(e.target.value)}
+            style={{
+              width: '100%',
+              padding: 14,
+              borderRadius: 8,
+              border: '1.5px solid #ddd',
+              fontSize: 16,
+              background: '#fff',
+              color: '#222',
+              fontFamily: 'Montserrat, Arial, sans-serif',
+              transition: 'border-color 0.2s',
+              outline: 'none',
+              marginBottom: 8
+            }}
+            onFocus={e => (e.target.style.borderColor = '#1A73E8')}
+            onBlur={e => (e.target.style.borderColor = '#ddd')}
+          />
+          <input
+            type="email"
+            placeholder="Email del beneficiario de la comisión"
+            value={commissionBeneficiaryEmail}
+            onChange={e => setCommissionBeneficiaryEmail(e.target.value)}
+            style={{
+              width: '100%',
+              padding: 14,
+              borderRadius: 8,
+              border: '1.5px solid #ddd',
+              fontSize: 16,
+              background: '#fff',
+              color: '#222',
+              fontFamily: 'Montserrat, Arial, sans-serif',
+              transition: 'border-color 0.2s',
+              outline: 'none',
+              marginBottom: 8
+            }}
+            onFocus={e => (e.target.style.borderColor = '#1A73E8')}
+            onBlur={e => { e.target.style.borderColor = '#ddd'; handleCommissionerBlur(e); }}
+            autoComplete="off"
+          />
+          {commissionBeneficiaryEmail && commissionerLoading && <div style={{ color: '#888', fontSize: 14, marginBottom: 8 }}>Validando beneficiario...</div>}
+          {commissionBeneficiaryEmail && commissionerValid && commissionerVerified && !commissionerError && (
+            <div style={{ color: '#2e7d32', fontWeight: 500, fontSize: 17, marginBottom: 8 }}>
+              Beneficiario válido y verificado.
+            </div>
+          )}
+          {commissionBeneficiaryEmail && commissionerError && <div style={{ color: '#D32F2F', fontSize: 15, fontWeight: 500, marginBottom: 8 }}>{commissionerError}</div>}
+          <div style={{ marginTop: 4, color: '#555', fontWeight: 500 }}>
+            Monto comisión: <strong>{commissionAmount !== '' ? `$${commissionAmount}` : 'N/A'}</strong>
+          </div>
+        </div>
 
         <button
           type="submit"

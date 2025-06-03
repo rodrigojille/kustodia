@@ -61,6 +61,18 @@ export class Payment {
   @Column({ nullable: true, length: 18 })
   payout_clabe?: string; // Seller's payout CLABE at time of payment creation
 
+  @Column({ nullable: true, type: "decimal", precision: 5, scale: 2 })
+  commission_percent?: number;
+
+  @Column({ nullable: true, type: "decimal", precision: 18, scale: 2 })
+  commission_amount?: number;
+
+  @Column({ nullable: true, length: 255 })
+  commission_beneficiary_name?: string;
+
+  @Column({ nullable: true, length: 255 })
+  commission_beneficiary_email?: string;
+
   @Column({ default: 'pending' })
   status!: string;
 

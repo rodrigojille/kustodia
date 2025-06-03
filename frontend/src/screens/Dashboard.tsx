@@ -385,9 +385,15 @@ const Dashboard: React.FC = () => {
     </div>
     <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 8 }}>
       {(kycStatus === "approved" && clabe) ? (
-        <a href="/payment/initiate" style={{ background: '#1A73E8', color: '#fff', padding: '16px 32px', borderRadius: 28, fontSize: 18, textDecoration: 'none', fontWeight: 700, fontFamily: 'Montserrat, Arial, sans-serif', boxShadow: '0 2px 8px #E3EAFD', cursor: 'pointer', opacity: 1, transition: 'box-shadow 0.2s, background 0.2s' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 4px 18px #B3C7F9'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 2px 8px #E3EAFD'}>Iniciar pago</a>
+        <>
+          <a href="/payment/initiate" style={{ background: '#1A73E8', color: '#fff', padding: '16px 32px', borderRadius: 28, fontSize: 18, textDecoration: 'none', fontWeight: 700, fontFamily: 'Montserrat, Arial, sans-serif', boxShadow: '0 2px 8px #E3EAFD', cursor: 'pointer', opacity: 1, transition: 'box-shadow 0.2s, background 0.2s' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 4px 18px #B3C7F9'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 2px 8px #E3EAFD'}>Iniciar pago</a>
+          <a href="/payment/request" style={{ background: '#43a047', color: '#fff', padding: '16px 32px', borderRadius: 28, fontSize: 18, textDecoration: 'none', fontWeight: 700, fontFamily: 'Montserrat, Arial, sans-serif', boxShadow: '0 2px 8px #E3EAFD', cursor: 'pointer', opacity: 1, transition: 'box-shadow 0.2s, background 0.2s' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 4px 18px #B3F9B3'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 2px 8px #E3EAFD'}>Iniciar cobro</a>
+        </>
       ) : (
-        <a href="#" style={{ background: '#ccc', color: '#fff', padding: '14px 28px', borderRadius: 24, fontSize: 16, textDecoration: 'none', fontWeight: 600, fontFamily: 'Montserrat, Arial, sans-serif', boxShadow: '0 1px 4px #E3EAFD', pointerEvents: 'none', opacity: 0.6 }}>Iniciar pago</a>
+        <>
+          <a href="#" style={{ background: '#ccc', color: '#fff', padding: '14px 28px', borderRadius: 24, fontSize: 16, textDecoration: 'none', fontWeight: 600, fontFamily: 'Montserrat, Arial, sans-serif', boxShadow: '0 1px 4px #E3EAFD', pointerEvents: 'none', opacity: 0.6 }}>Iniciar pago</a>
+          <a href="#" style={{ background: '#ccc', color: '#fff', padding: '14px 28px', borderRadius: 24, fontSize: 16, textDecoration: 'none', fontWeight: 600, fontFamily: 'Montserrat, Arial, sans-serif', boxShadow: '0 1px 4px #E3EAFD', pointerEvents: 'none', opacity: 0.6 }}>Iniciar cobro</a>
+        </>
       )}
     </div>
     </ResponsiveLayout>
