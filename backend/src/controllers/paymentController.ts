@@ -5,6 +5,7 @@ import { Escrow } from "../entity/Escrow";
 import { User } from "../entity/User";
 import { PaymentEvent } from "../entity/PaymentEvent";
 import { createEscrow as createEscrowOnChain } from "../services/escrowService";
+import { JunoTransaction } from "../entity/JunoTransaction";
 
 export const initiatePayment = async (req: Request, res: Response): Promise<void> => {
   const paymentEventRepo = ormconfig.getRepository(PaymentEvent);
@@ -297,9 +298,21 @@ export const junoWebhook = async (req: Request, res: Response): Promise<void> =>
       type: 'deposit_received',
       description: ' Depósito recibido'
     }));
-    // Update payment status and transaction_id
+    // Update payment status and link to JunoTransaction
     payment.status = 'funded';
-    payment.transaction_id = transaction_id;
+    // Find or create JunoTransaction
+    const junoTransactionRepo = ormconfig.getRepository(JunoTransaction);
+    let junoTransaction = await junoTransactionRepo.findOne({ where: { reference: transaction_id } });
+    if (!junoTransaction) {
+      junoTransaction = junoTransactionRepo.create({
+        reference: transaction_id,
+        type: 'deposit',
+        amount: Number(webhookAmount),
+        status: status || 'completed',
+      });
+      await junoTransactionRepo.save(junoTransaction);
+    }
+    payment.junoTransaction = junoTransaction;
     await paymentRepo.save(payment);
     // Send notification emails to buyer and seller
     try {

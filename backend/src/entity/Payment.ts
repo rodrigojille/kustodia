@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToOne, JoinColumn } from "typeorm";
 import { User } from "./User";
 import { Escrow } from "./Escrow";
+import { JunoTransaction } from "./JunoTransaction";
 
 @Entity()
 export class Payment {
@@ -26,8 +27,13 @@ export class Payment {
   @Column({ nullable: true })
   reference!: string;
 
-  @Column({ nullable: true })
-  transaction_id!: string;
+  // Relación explícita con la transacción Juno
+  @ManyToOne(() => JunoTransaction, { nullable: true })
+  @JoinColumn({ name: "juno_transaction_id" })
+  junoTransaction?: JunoTransaction;
+  // Si quieres mantener transaction_id como legacy, puedes dejarlo comentado o deprecado:
+  // @Column({ nullable: true })
+  // transaction_id!: string;
 
   @Column({ nullable: true })
   blockchain_tx_hash?: string;

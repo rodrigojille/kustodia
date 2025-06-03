@@ -4,8 +4,22 @@ dist/
 
 # Environment variables
 .env
+.env.*
+*.env
+*.env.*
+**/.env
+**/.env.*
+**/*.env
+**/*.env.*
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+.env.example
 backend/.env
 frontend/.env
+contracts/.env
 
 # Logs
 *.log

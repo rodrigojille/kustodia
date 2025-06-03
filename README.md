@@ -103,9 +103,37 @@ Fecha/hora fin (UTC):      2025-05-30T23:59:08.000Z
 
 ---
 
+## Integración Bancaria y Autenticación
+
+| Paso                   | Integración Técnica                                | Autenticación/Autorización                |
+|------------------------|---------------------------------------------------|-------------------------------------------|
+| Alta de cuenta CLABE   | API REST Juno (`/bank-accounts`)                  | API Key (Bearer) + Validación KYC         |
+| Recepción de pagos     | Webhook Juno (`/webhook/payment`)                 | Webhook secret + Validación de payload     |
+| Emisión/redención MXNB | API REST Juno (`/mxnb/issue`, `/mxnb/redeem`)     | API Key (Bearer) + UUID de cuenta Juno    |
+| Payout SPEI            | API REST Juno (`/payouts`)                        | API Key (Bearer) + Validación de saldo    |
+| Trigger de eventos     | Webhook + Polling                                 | Webhook secret + JWT interno              |
+
+---
+
+## Ejemplo de autenticación a Juno
+
+```http
+POST /mxnb/issue HTTP/1.1
+Host: api.juno.com.mx
+Authorization: Bearer TU_JUNO_API_KEY
+Content-Type: application/json
+```
+
+---
+
 ## Diagrama End-to-End: Pago, Custodia, Redención y Payout
 
 ```mermaid
+%% Todas las llamadas a Juno usan API Key (Bearer) en header HTTP.
+%% Los webhooks de Juno se validan usando el secreto compartido.
+%% La autorización de payout/redención requiere el UUID de la cuenta bancaria registrada.
+%% El backend verifica la identidad del usuario y el estado KYC antes de autorizar la transacción.
+
 sequenceDiagram
     participant Comprador
     participant Backend
@@ -390,3 +418,226 @@ Cada endpoint y payload está diseñado para facilitar la integración y automat
 
 ## Contacto y soporte
 Para dudas o soporte, contactar al equipo de desarrollo Kustodia.
+
+---
+
+## Diagrama de Relaciones de Tablas (ERD)
+
+```mermaid
+erDiagram
+    USER {
+        int id PK
+        string email
+    }
+    PAYMENT {
+        int id PK
+        int user_id FK
+        int escrow_id FK
+        int juno_transaction_id FK
+        string blockchain_tx_hash
+    }
+    ESCROW {
+        int id PK
+        int payment_id FK
+        string smart_contract_escrow_id
+        string blockchain_tx_hash
+        string release_tx_hash
+    }
+    DISPUTE {
+        int id PK
+        int escrow_id FK
+        int raised_by FK
+        string contract_dispute_raised_tx
+        string contract_dispute_resolved_tx
+    }
+    PAYMENT_EVENT {
+        int id PK
+        int paymentId FK
+    }
+    JUNOTRANSACTION {
+        int id PK
+        string tx_hash
+    }
+
+    USER ||--o{ PAYMENT : "hace"
+    PAYMENT ||--|| ESCROW : "tiene"
+    ESCROW ||--o{ DISPUTE : "puede tener"
+    USER ||--o{ DISPUTE : "puede levantar"
+    PAYMENT ||--o{ PAYMENT_EVENT : "genera"
+    PAYMENT }o--|| JUNOTRANSACTION : "usa"
+```
+
+---
+
+
+erDiagram
+    USER {
+        int id PK
+        string email
+        string password_hash
+        string full_name
+        string kyc_status
+        string wallet_address
+        string deposit_clabe
+        string payout_clabe
+        string juno_bank_account_id
+        boolean email_verified
+        string email_verification_token
+        string password_reset_token
+        string truora_process_id
+        datetime password_reset_expires
+        datetime created_at
+        datetime updated_at
+    }
+    PAYMENT {
+        int id PK
+        int user_id FK
+        string recipient_email
+        decimal amount
+        string currency
+        string description
+        string reference
+        int juno_transaction_id FK
+        string blockchain_tx_hash
+        string bitso_tracking_number
+        jsonb travel_rule_data
+        string deposit_clabe
+        string payout_clabe
+        string status
+        int escrow_id FK
+        datetime created_at
+        datetime updated_at
+    }
+    ESCROW {
+        int id PK
+        int payment_id FK
+        string smart_contract_escrow_id
+        string blockchain_tx_hash
+        string release_tx_hash
+        decimal custody_percent
+        decimal custody_amount
+        decimal release_amount
+        string status
+        string dispute_status
+        string dispute_reason
+        string dispute_details
+        string dispute_evidence
+        jsonb dispute_history
+        datetime custody_end
+        datetime created_at
+        datetime updated_at
+    }
+    DISPUTE {
+        int id PK
+        int escrow_id FK
+        int raised_by FK
+        string reason
+        string details
+        string evidence_url
+        string status
+        string admin_notes
+        string contract_dispute_raised_tx
+        string contract_dispute_resolved_tx
+        datetime created_at
+        datetime updated_at
+    }
+    PAYMENT_EVENT {
+        int id PK
+        int paymentId FK
+        string type
+        string description
+        datetime created_at
+    }
+    JUNOTRANSACTION {
+        int id PK
+        string type
+        string reference
+        decimal amount
+        string status
+        string tx_hash
+        datetime created_at
+        datetime updated_at
+    }
+
+    USER ||--o{ PAYMENT : "hace"
+    PAYMENT ||--|| ESCROW : "tiene"
+    ESCROW ||--o{ DISPUTE : "puede tener"
+    USER ||--o{ DISPUTE : "puede levantar"
+    PAYMENT ||--o{ PAYMENT_EVENT : "genera"
+    PAYMENT }o--|| JUNOTRANSACTION : "usa"
+```
+
+---
+
+## Diagrama End-to-End: Onboarding, Pagos, Custodia, Payout y Autenticación Bancaria
+
+```mermaid
+sequenceDiagram
+    participant Usuario
+    participant Frontend
+    participant Backend
+    participant KYC as Proveedor KYC
+    participant Juno
+    participant PlatformBridge as Wallet Platform Bridge
+    participant SmartContract
+    participant DB as Base de Datos
+    participant Admin
+
+    %% --- Onboarding y KYC ---
+    Usuario->>Frontend: 1. Registro y envío de datos personales
+    Frontend->>Backend: 2. POST /user/onboard (datos usuario)
+    Backend->>KYC: 3. Llama API KYC para verificación
+    KYC-->>Backend: 4. Respuesta KYC (aprobado/rechazado)
+    Backend->>DB: 5. Guarda estado KYC y usuario
+
+    %% --- Alta de cuenta bancaria (CLABE) ---
+    Backend->>Juno: 6. POST /bank-accounts (alta CLABE)
+    Juno-->>Backend: 7. Retorna CLABE y bank_account_id
+    Backend->>DB: 8. Guarda CLABE y UUID Juno
+    Backend-->>Frontend: 9. Retorna CLABE a usuario
+
+    %% --- Pago y fondeo ---
+    Usuario->>Juno: 10. Transfiere MXN a CLABE
+    Juno-->>Backend: 11. Webhook notifica pago recibido
+    Backend->>DB: 12. Registra evento 'deposit_received'
+    %% Juno emite MXNBs automáticamente
+    Juno-->>PlatformBridge: 13. Emite MXNBs a Platform Bridge (auto)
+    %% Backend inicia TX en Arbitrum
+    Backend->>PlatformBridge: 14. Instruye envío de MXNBs a smart contract (escrow)
+    PlatformBridge->>SmartContract: 15. TX: Envía MXNBs a smart contract (escrow)
+    SmartContract-->>Backend: 16. Confirma bloqueo y escrowId
+    Backend->>DB: 17. Registra evento 'escrow_created'
+
+    %% --- Split y payout inmediato ---
+    alt Split con payout inmediato
+        Backend->>Juno: 18a. Redime MXNB a MXN (payout inmediato) usando juno_bank_account_id
+        Juno-->>Backend: 19a. Confirma redención y transferencia SPEI
+        Backend->>DB: 20a. Registra eventos 'redemption_initiated', 'redemption_success', 'payout_completed'
+        Backend-->>Usuario: 21a. Notifica fondos recibidos
+    end
+
+    %% --- Custodia y liberación ---
+    SmartContract-->>Backend: 22. Fin de periodo de custodia, liberación posible
+    Backend->>SmartContract: 23. TX: Solicita liberación de MXNBs
+    SmartContract-->>PlatformBridge: 24. TX: Libera MXNBs a Platform Bridge
+    PlatformBridge->>Juno: 25. Transfiere MXNBs a wallet Juno para redención
+    Backend->>Juno: 26. Solicita redención final de MXNBs a MXN al vendedor
+    Juno-->>Backend: 27. Confirma redención y transferencia SPEI final
+    Backend->>DB: 28. Registra toda la trazabilidad
+
+    %% --- Disputa (opcional) ---
+    Usuario->>Frontend: 29. Puede levantar disputa (si aplica)
+    Frontend->>Backend: 30. POST /dispute/:escrowId/raise
+    Backend->>SmartContract: 31. TX: Marca escrow como 'en disputa'
+    SmartContract-->>Backend: 32. Confirma disputa
+    Backend->>DB: 33. Crea entidad Dispute
+    Admin->>Backend: 34. POST /dispute/:escrowId/admin-resolve
+    Backend->>SmartContract: 35. TX: Llama a resolución
+    SmartContract-->>Backend: 36. Confirma resolución
+    Backend->>DB: 37. Actualiza estado de Dispute y Escrow
+
+    Note over Backend,Juno: Todas las llamadas a Juno usan API Key (Bearer) en header HTTP.
+    Note over Backend,Juno: Los webhooks de Juno se validan usando el secreto compartido.
+    Note over Backend,Juno: El payout/redención requiere el UUID de la cuenta bancaria registrada.
+    Note over Backend,Juno: El backend verifica identidad y KYC antes de autorizar la transacción.
+```

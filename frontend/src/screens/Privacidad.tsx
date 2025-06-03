@@ -11,19 +11,21 @@ const Privacidad: React.FC = () => (
     <h2 style={{ color: '#1A73E8', fontFamily: 'Montserrat, Arial, sans-serif' }}>Aviso de Privacidad</h2>
     <div className="max-w-screen-xl w-full mx-auto bg-white rounded-3xl shadow-2xl border border-indigo-100 p-10 text-gray-900 text-base text-left" style={{fontFamily: 'Montserrat, Arial, sans-serif'}}>
       <p>En Kustodia, la protección de tus datos personales es prioritaria y cumplimos con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).</p>
-      <h3>1. Responsable</h3>
-      <p>Kustodia es responsable del tratamiento de tus datos personales.</p>
-      <h3>2. Datos Recabados</h3>
-      <p>Recabamos datos como nombre, correo electrónico, CLABE y otros necesarios para ofrecer nuestros servicios.</p>
-      <h3>3. Finalidad</h3>
-      <p>Utilizamos tus datos para proveer servicios, procesar pagos y cumplir obligaciones legales.</p>
-      <h3>4. Derechos ARCO</h3>
-      <p>Puedes ejercer tus derechos de acceso, rectificación, cancelación y oposición enviando una solicitud a soporte@kustodia.mx.</p>
-      <h3>5. Transferencias</h3>
-      <p>No compartimos tus datos con terceros sin tu consentimiento, salvo obligación legal.</p>
-      <h3>6. Seguridad</h3>
-      <p>Implementamos medidas para proteger tus datos contra acceso no autorizado.</p>
-      <h3>7. Cambios al Aviso</h3>
+      <h3>1. Responsable y Modelo Legal</h3>
+      <p>Kustodia, operada por una S.A.P.I. de C.V., es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).</p>
+      <h3>2. Datos que Recabamos</h3>
+      <p>Recabamos datos como nombre, correo electrónico, CLABE, datos bancarios, y los estrictamente necesarios para operar la plataforma y cumplir obligaciones legales.</p>
+      <h3>3. Finalidad y Proveedores</h3>
+      <p>Utilizamos tus datos para crear tu cuenta, operar pagos condicionales, validar identidad y cumplir obligaciones legales. Tus datos pueden ser compartidos únicamente con proveedores tecnológicos como MXNB, STP u otros bancos para procesar pagos, nunca para fines comerciales.</p>
+      <h3>4. No Venta ni Transferencia Comercial</h3>
+      <p>No vendemos, rentamos ni transferimos tus datos a terceros con fines comerciales. Solo compartimos información con autoridades cuando existe requerimiento legal.</p>
+      <h3>5. Derechos ARCO</h3>
+      <p>Puedes ejercer tus derechos de acceso, rectificación, cancelación y oposición enviando una solicitud a <a href="mailto:soporte@kustodia.mx" className="underline text-indigo-700">soporte@kustodia.mx</a>.</p>
+      <h3>6. Consentimiento Explícito</h3>
+      <p>Al registrarte y usar Kustodia, otorgas tu consentimiento explícito para el tratamiento de tus datos conforme a este aviso.</p>
+      <h3>7. Seguridad</h3>
+      <p>Implementamos medidas técnicas y administrativas para proteger tus datos contra acceso no autorizado.</p>
+      <h3>8. Cambios al Aviso</h3>
       <p>Podemos actualizar este aviso. Notificaremos cambios importantes a través de la plataforma.</p>
       <div className="mt-8 text-center">
         <a href="/terminos" style={{ color: '#1A73E8', textDecoration: 'underline', fontWeight: 500 }}>Términos y Condiciones</a>
