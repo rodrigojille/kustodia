@@ -9,7 +9,6 @@ export default function EarlyAccess() {
   );
 }
 
-
   const [step, setStep] = useState<'password'|'form'|'success'>('password');
   const [password, setPassword] = useState('');
   const [form, setForm] = useState({ name: '', email: '', message: '' });

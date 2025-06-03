@@ -27,6 +27,9 @@ export class Payment {
   @Column({ nullable: true })
   reference!: string;
 
+  @Column({ nullable: true })
+  transaction_id?: string;
+
   // Relación explícita con la transacción Juno
   @ManyToOne(() => JunoTransaction, { nullable: true })
   @JoinColumn({ name: "juno_transaction_id" })
