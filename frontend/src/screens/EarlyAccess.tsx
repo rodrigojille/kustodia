@@ -304,6 +304,30 @@ export default function EarlyAccess() {
             </div>
           </section>
 
+          {/* Sneak Peek API Section */}
+          <section className="w-full max-w-2xl mx-auto my-12 rounded-2xl shadow-xl border border-indigo-200 bg-white p-8 flex flex-col items-center">
+            <h2 className="text-2xl font-bold text-indigo-800 mb-2">Sneak peek: integra Kustodia vía API</h2>
+            <p className="text-indigo-700 mb-4 text-center">¿Tienes un marketplace o plataforma? Pronto podrás automatizar pagos protegidos y comisiones para brokers/intermediarios con nuestra API REST.</p>
+            <pre className="bg-gray-100 rounded-md p-4 text-xs text-left w-full overflow-x-auto mb-2">
+              <code>{`POST /api/payment-requests
+{
+  "amount": 1500.00,
+  "currency": "MXN",
+  "payer": { "email": "cliente@email.com" },
+  "payee": { "email": "inmobiliaria@email.com" },
+  "broker": { "email": "broker@email.com", "commission": 100.00 },
+  "callback_url": "https://tuapp.com/webhook/kustodia"
+}`}</code>
+            </pre>
+            <ul className="text-sm text-indigo-800 mb-2 list-disc list-inside">
+              <li>Pagos protegidos tipo escrow</li>
+              <li>Notificaciones en tiempo real (webhooks)</li>
+              <li>Comisiones automáticas para brokers/intermediarios</li>
+              <li>Fácil integración vía REST</li>
+            </ul>
+            <span className="inline-block bg-yellow-200 text-yellow-900 px-3 py-1 rounded-full text-xs font-semibold mt-2">Muy pronto en Kustodia</span>
+          </section>
+
           {/* Social Section Title */}
           <div className="w-full flex flex-col items-center mt-12 mb-2">
             <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-blue-500 to-indigo-400 text-center mb-2 tracking-tight drop-shadow-sm">Conoce más aquí</h3>
