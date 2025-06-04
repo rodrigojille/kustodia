@@ -305,10 +305,10 @@ export default function EarlyAccess() {
           </section>
 
           {/* Sneak Peek API Section */}
-          <section className="w-full max-w-2xl mx-auto my-12 rounded-2xl shadow-xl border border-indigo-200 bg-white p-8 flex flex-col items-center">
+          <section className="w-full max-w-full sm:max-w-2xl mx-auto my-12 rounded-2xl shadow-xl border border-indigo-200 bg-white p-8 px-2 flex flex-col items-center">
             <h2 className="text-2xl font-bold text-indigo-800 mb-2">Sneak peek: integra Kustodia vía API</h2>
-            <p className="text-indigo-700 mb-4 text-center">¿Tienes un marketplace o plataforma? Pronto podrás automatizar pagos protegidos y comisiones para brokers/intermediarios con nuestra API REST.</p>
-            <pre className="bg-gray-100 rounded-md p-4 text-xs text-left w-full overflow-x-auto mb-2">
+            <p className="text-indigo-700 mb-4 text-center">¿Tienes un marketplace de servicios, una plataforma o app? Pronto podrás automatizar pagos protegidos y comisiones para brokers, intermediarios y marketplaces de servicios con nuestra API REST.</p>
+            <pre className="bg-gray-100 rounded-md p-4 text-xs text-left max-w-full overflow-x-auto mb-2 whitespace-pre-wrap break-words">
               <code>{`POST /api/payment-requests
 {
   "amount": 1500.00,
