@@ -6,6 +6,7 @@ import Registration from './screens/Registration';
 import Dashboard from './screens/Dashboard';
 import PaymentInitiate from './screens/PaymentInitiate';
 import PaymentRequest from './screens/PaymentRequest';
+import PaymentRequestSummary from './screens/PaymentRequestSummary';
 import TransferInstructions from './screens/TransferInstructions';
 import PaymentSummary from './screens/PaymentSummary';
 import SellerAcceptance from './screens/SellerAcceptance';
@@ -33,6 +34,7 @@ export default function AppRoutes() {
         <Route path="/auth" element={<AuthChoice />} />
         <Route path="/register" element={<Registration />} />
         <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/payment-request-summary/:paymentId" element={<PaymentRequestSummary />} />
         <Route path="/dashboard/kyc-completed" element={<KYCCompleted />} />
         <Route path="/payment/initiate" element={<PaymentInitiate />} />
         <Route path="/payment/request" element={<PaymentRequest />} />

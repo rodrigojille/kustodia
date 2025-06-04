@@ -227,16 +227,32 @@ const Dashboard: React.FC = () => {
       <ClabeSection />
     </div>
     <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 4px 18px #E3EAFD', fontFamily: 'Montserrat, Arial, sans-serif', color: '#222', marginTop: 24, marginBottom: 24, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto', transition: 'box-shadow 0.2s' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 6px 24px #B3C7F9'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 4px 18px #E3EAFD'}>
-      <div style={{ marginBottom: 16, display: 'flex', gap: 32 }}>
-        <div>
-          <strong>Pagos enviados:</strong> <span style={{ color: '#D32F2F', fontWeight: 600 }}>
-            ${payments && currentUser ? payments.filter(p => p.status !== 'cancelled' && p.user?.email === currentUser.email).reduce((sum, p) => sum + Number(p.amount || 0), 0).toLocaleString('es-MX', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} MXN
-          </span>
-        </div>
-        <div>
-          <strong>Pagos recibidos:</strong> <span style={{ color: '#27ae60', fontWeight: 600 }}>
-            ${payments && currentUser ? payments.filter(p => p.status !== 'cancelled' && p.recipient_email === currentUser.email).reduce((sum, p) => sum + Number(p.amount || 0), 0).toLocaleString('es-MX', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} MXN
-          </span>
+      {/* Pending Payment Requests to Approve */}
+    <div style={{ background: '#fffbe8', border: '1.5px solid #ffe082', borderRadius: 12, padding: 18, marginBottom: 18 }}>
+      <div style={{ fontWeight: 700, fontSize: 18, color: '#c49000', marginBottom: 8 }}>Solicitudes de cobro pendientes</div>
+      {payments && currentUser && payments.filter(p => p.payer_email === currentUser.email && p.status === 'requested').length > 0 ? (
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+          {payments.filter(p => p.payer_email === currentUser.email && p.status === 'requested').map(p => (
+            <li key={p.id} style={{ marginBottom: 10, padding: 10, background: '#fffde7', borderRadius: 8, border: '1px solid #ffe082', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div><strong>Solicitante:</strong> {p.recipient_email}</div>
+              <div><strong>Monto:</strong> ${p.amount} {p.currency}</div>
+              {p.description && <div><strong>Descripción:</strong> {p.description}</div>}
+              <div><strong>Fecha:</strong> {new Date(p.created_at).toLocaleString()}</div>
+              <div style={{ marginTop: 8 }}>
+                <a href={`/payment-request-summary/${p.id}`} style={{ background: '#43a047', color: '#fff', padding: '7px 18px', borderRadius: 16, fontWeight: 600, textDecoration: 'none', marginRight: 8 }}>Ver y aprobar</a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div style={{ color: '#bfa900', fontWeight: 500 }}>No tienes solicitudes de cobro pendientes.</div>
+      )}
+    </div>
+    <div style={{ marginBottom: 16, display: 'flex', gap: 32 }}>
+      <div>
+        <strong>Pagos enviados:</strong> <span style={{ color: '#D32F2F', fontWeight: 600 }}>
+          ${payments && currentUser ? payments.filter(p => p.user?.email === currentUser.email).reduce((sum, p) => sum + Number(p.amount || 0), 0).toLocaleString('es-MX', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} MXN
+        </span>
         </div>
       </div>
       {/* Payment status sections */}

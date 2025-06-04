@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authFetch } from '../authFetch';
 import ResponsiveLayout from '../components/ResponsiveLayout';
 
@@ -22,6 +23,7 @@ const PaymentRequest: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // Validate commission beneficiary (commissioner)
   const validateCommissioner = async (email: string) => {
@@ -122,13 +124,7 @@ const PaymentRequest: React.FC = () => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setSuccess(true);
-        setPayerEmail('');
-        setAmount('');
-        setDescription('');
-        setCommissionPercent('');
-        setCommissionBeneficiaryName('');
-        setCommissionBeneficiaryEmail('');
+        navigate(`/payment-request-summary/${data.payment.id}`, { state: { payment: data.payment } });
       } else {
         setError(data.error || 'No se pudo solicitar el pago.');
       }
