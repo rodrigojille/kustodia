@@ -15,24 +15,24 @@ import { FaShieldAlt, FaEye, FaHeadset, FaRocket, FaUser, FaLock, FaMoneyBillWav
 
 const benefits = [
   {
-    title: 'Protege tus pagos',
-    description: 'Kustodia asegura que tu dinero esté protegido hasta que el servicio o producto sea entregado. Sin riesgos, sin fraudes.',
+    title: 'Fácil y rápido',
+    description: 'Envía o recibe pagos solo dando instrucciones, como en una transferencia SPEI.',
+    icon: <FaRocket size={38} color="#1A73E8" style={{ marginBottom: 12 }} />
+  },
+  {
+    title: 'Control total',
+    description: 'Tú decides cuándo se libera el dinero. Protege cada paso de tu operación.',
     icon: <FaShieldAlt size={38} color="#1A73E8" style={{ marginBottom: 12 }} />
   },
   {
-    title: 'Escrow inteligente',
-    description: 'El dinero se libera solo después del periodo de custodia y si no hay disputas.',
-    icon: <FaEye size={38} color="#1A73E8" style={{ marginBottom: 12 }} />
+    title: 'Seguridad real',
+    description: 'Tu dinero queda en custodia y solo se libera si todo sale bien.',
+    icon: <FaLock size={38} color="#1A73E8" style={{ marginBottom: 12 }} />
   },
   {
-    title: 'Soporte experto',
-    description: 'Nuestro equipo de soporte está disponible para ayudarte en cada paso del proceso.',
+    title: 'Soporte humano',
+    description: 'Te acompañamos en cada paso. Cualquier duda, estamos aquí.',
     icon: <FaHeadset size={38} color="#1A73E8" style={{ marginBottom: 12 }} />
-  },
-  {
-    title: 'Rápido y sencillo',
-    description: 'Regístrate y disfruta de una experiencia segura en minutos.',
-    icon: <FaRocket size={38} color="#1A73E8" style={{ marginBottom: 12 }} />
   }
 ];
 
@@ -126,10 +126,13 @@ export default function EarlyAccess() {
 </div>
             
             <img src="/logo.svg" alt="Kustodia Logo" className="w-16 h-16 mb-3 mx-auto drop-shadow-lg" style={{ display: 'block' }} />
-<h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">Acceso Anticipado a Kustodia</h1>
-            <p className="text-center text-indigo-700/90 font-medium mb-6">
-              Sé de los primeros en probar la plataforma de pagos y custodia más segura de LATAM.
-            </p>
+<h1 className="text-3xl font-extrabold text-center text-indigo-900 tracking-tight mb-2">
+  Pagos SPEI inteligentes y seguros
+</h1>
+<p className="text-center text-indigo-700/90 font-medium mb-6">
+  Haz tus pagos y cobros tan fácil como enviar una transferencia SPEI.<br />
+  Solo das instrucciones, nosotros protegemos tu dinero.
+</p>
 
             {/* Urgency Banner */}
             <div className="w-full bg-red-100 text-red-800 text-center rounded-xl py-2 px-4 mb-4 font-semibold text-lg animate-pulse shadow">
@@ -280,13 +283,16 @@ export default function EarlyAccess() {
 
           {/* Demo Video Section */}
           <section className="w-full max-w-3xl mx-auto my-12">
-            <h2 className="text-2xl font-bold text-center text-indigo-800 mb-4">Mira cómo funciona Kustodia</h2>
+            <h2 className="text-2xl font-bold text-center text-indigo-800 mb-4">Así de fácil es usar Kustodia</h2>
             <div className="rounded-2xl overflow-hidden shadow-xl border border-indigo-200 bg-white">
               <ArcadeEmbed />
             </div>
-            {/* Urgency Banner after video */}
+            <p className="text-center text-indigo-700 my-4 text-lg">
+              Descubre cómo puedes pagar o cobrar solo dando instrucciones, como en un SPEI, pero con protección y control total.<br />
+              ¡Olvídate de complicaciones y fraudes!
+            </p>
             <div className="w-full bg-yellow-100 text-yellow-900 text-center rounded-xl py-2 px-4 mt-6 mb-4 font-semibold text-lg shadow animate-pulse">
-              ¡No te quedes fuera! El registro anticipado estará disponible por tiempo limitado.
+              ¡Regístrate hoy! Es tan fácil como enviar un SPEI y tu dinero siempre está protegido.
             </div>
             <div className="flex justify-center mt-4">
               <button
