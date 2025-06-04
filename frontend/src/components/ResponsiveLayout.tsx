@@ -14,11 +14,14 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children }) => (
     style={{
       minHeight: '100vh',
       width: '100vw',
+      overflowX: 'hidden',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       background: '#F7F9FB',
       fontFamily: 'Montserrat, Arial, sans-serif',
+      padding: '0 16px', // Padding horizontal para evitar que el card quede pegado al borde en mobile
+      boxSizing: 'border-box',
     }}
   >
     <div
