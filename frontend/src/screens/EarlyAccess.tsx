@@ -11,7 +11,7 @@ import { Helmet } from 'react-helmet';
 import KustodiaUseCases from './KustodiaUseCases';
 
 
-import { FaShieldAlt, FaEye, FaHeadset, FaRocket, FaUser, FaLock, FaMoneyBillWave, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
+import { FaShieldAlt, FaHeadset, FaRocket, FaLock, FaUser, FaMoneyBillWave, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
 
 const benefits = [
   {
