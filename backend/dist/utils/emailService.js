@@ -15,7 +15,7 @@ async function sendWelcomeEmail(to, userName) {
         to,
         subject: "¡Bienvenido a Kustodia!",
         html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
-      <img src='https://kustodia.app/logo.svg' alt='Kustodia Logo' style='width:56px;margin-bottom:1rem;'>
+      <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='56' height='56' style='display:block;margin-bottom:1rem;'>
       <h2 style='color:#2e7ef7;'>¡Hola${userName ? ` ${userName}` : ''}!</h2>
       <p>Tu registro en <b>Kustodia</b> fue exitoso. Ya puedes comenzar a disfrutar de nuestros servicios de protección financiera y pagos seguros.</p>
       <p style='color:#888;'>¿Tienes dudas? Responde este correo y te ayudamos.</p>
@@ -26,7 +26,7 @@ async function sendWelcomeEmail(to, userName) {
 async function sendKYCStatusEmail(to, status, reason) {
     let subject = 'Actualización de tu verificación KYC';
     let html = `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
-    <img src='https://kustodia.app/logo.svg' alt='Kustodia Logo' style='width:56px;margin-bottom:1rem;'>`;
+    <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='56' height='56' style='display:block;margin-bottom:1rem;'>`;
     if (status === 'approved') {
         html += `<h2 style='color:#27ae60;'>¡Verificación KYC aprobada!</h2>
       <p>Tu identidad ha sido verificada exitosamente. Ya puedes operar sin restricciones en Kustodia.</p>`;

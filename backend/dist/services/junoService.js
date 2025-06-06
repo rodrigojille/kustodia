@@ -5,14 +5,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createJunoClabe = createJunoClabe;
 exports.redeemMXNbForMXN = redeemMXNbForMXN;
+exports.getJunoTxHashFromTimeline = getJunoTxHashFromTimeline;
 exports.sendJunoPayment = sendJunoPayment;
+exports.listJunoTransactions = listJunoTransactions;
 const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
 // Select API keys based on environment
-const JUNO_ENV = process.env.JUNO_ENV || process.env.NODE_ENV || 'production';
+const JUNO_ENV = process.env.JUNO_ENV || 'stage';
 const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY : process.env.JUNO_API_KEY;
 const JUNO_API_SECRET = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_SECRET : process.env.JUNO_API_SECRET;
-const JUNO_BASE_URL = 'https://api.bitso.com/api/v3'; // Bitso/Juno endpoint
+const JUNO_BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
 console.log(`[JUNO] Using environment: ${JUNO_ENV}`);
 console.log(`[JUNO] Using API key: ${JUNO_API_KEY?.slice(0, 4)}... (stage: ${JUNO_ENV === 'stage'})`);
 /**
@@ -94,6 +96,32 @@ async function redeemMXNbForMXN(amountMXNb, travelRuleData) {
         throw err;
     }
 }
+async function getJunoTxHashFromTimeline(transactionId, isStage = true) {
+    const baseUrl = isStage
+        ? 'https://stage.buildwithjuno.com'
+        : 'https://buildwithjuno.com';
+    const requestPath = `/mint_platform/v1/transactions/${transactionId}`;
+    const url = `${baseUrl}${requestPath}`;
+    const method = 'GET';
+    const nonce = Date.now().toString();
+    const body = '';
+    const dataToSign = nonce + method + requestPath + body;
+    const signature = crypto_1.default.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+    };
+    try {
+        const response = await axios_1.default.get(url, { headers });
+        const timeline = response.data?.payload?.timeline || [];
+        const tokensTransferred = timeline.find((step) => step.step === 'Tokens transferred');
+        return tokensTransferred?.receipt || null;
+    }
+    catch (err) {
+        console.error('Error fetching transaction timeline from Juno:', err?.response?.data || err?.message || err);
+        return null;
+    }
+}
 async function sendJunoPayment(clabe, amount, description) {
     const endpoint = '/withdrawals/';
     const url = `${JUNO_BASE_URL}${endpoint}`;
@@ -126,4 +154,32 @@ async function sendJunoPayment(clabe, amount, description) {
         console.error('Juno payout error:', err?.response?.data || err?.message || err);
         throw err;
     }
+}
+/**
+ * Lista todas las transacciones de la cuenta Juno.
+ * @param isStage Si es true usa el endpoint de stage, si no el de producción
+ * @returns Array de transacciones Juno
+ */
+async function listJunoTransactions(isStage = true) {
+    const baseUrl = isStage
+        ? 'https://stage.buildwithjuno.com'
+        : 'https://buildwithjuno.com';
+    const url = `${baseUrl}/mint_platform/v1/transactions`;
+    const requestPath = '/mint_platform/v1/transactions';
+    const method = 'GET';
+    const nonce = Date.now().toString();
+    const body = '';
+    const dataToSign = nonce + method + requestPath + body;
+    const signature = crypto_1.default.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+    };
+    const response = await axios_1.default.get(url, { headers });
+    // LOG para depuración:
+    console.log('[JUNO] listJunoTransactions response:', JSON.stringify(response.data));
+    if (response.data && response.data.payload && Array.isArray(response.data.payload.content)) {
+        return response.data.payload.content;
+    }
+    return [];
 }

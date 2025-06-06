@@ -4,13 +4,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.releaseEscrowAndPayout = releaseEscrowAndPayout;
+exports.redeemMXNBToMXNAndPayout = redeemMXNBToMXNAndPayout;
+exports.redeemAndPayout = redeemAndPayout;
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const Payment_1 = require("../entity/Payment");
 const Escrow_1 = require("../entity/Escrow");
 const User_1 = require("../entity/User");
 const JunoTransaction_1 = require("../entity/JunoTransaction");
+const PaymentEvent_1 = require("../entity/PaymentEvent");
 const junoClient_1 = require("../utils/junoClient");
 const referenceValidation_1 = require("../utils/referenceValidation");
+const junoService_1 = require("../services/junoService");
+const axios_1 = __importDefault(require("axios"));
+const crypto_1 = __importDefault(require("crypto"));
 /**
  * Releases escrow and pays out to the seller's CLABE using Juno.
  * @param escrowId The ID of the escrow to release
@@ -31,7 +37,9 @@ async function releaseEscrowAndPayout(escrowId) {
     if (!seller || !seller.payout_clabe)
         throw new Error('Seller or CLABE not found');
     // Prepare payout
-    const amount = Number(escrow.release_amount);
+    const totalAmount = Number(escrow.release_amount);
+    const commissionAmount = payment.commission_amount ? Number(payment.commission_amount) : 0;
+    const netSellerAmount = totalAmount - commissionAmount;
     const currency = payment.currency || 'MXN';
     const destination_clabe = seller.payout_clabe;
     // Validate and sanitize references
@@ -51,11 +59,11 @@ async function releaseEscrowAndPayout(escrowId) {
     if (!reference || !notesRef || !numericRef) {
         throw new Error('Reference, notesRef, or numericRef became empty after sanitization.');
     }
-    // Call Juno
-    let junoResult, junoStatus = 'pending', tx_hash = undefined;
+    // --- 1. Payout to Seller ---
+    let sellerJunoResult, sellerJunoStatus = 'pending', sellerTxHash = undefined, sellerJunoReference = undefined;
     try {
-        junoResult = await (0, junoClient_1.sendJunoPayout)({
-            amount,
+        sellerJunoResult = await (0, junoClient_1.sendJunoPayout)({
+            amount: netSellerAmount,
             beneficiary: seller.full_name || seller.email || "Beneficiario Kustodia",
             clabe: seller.payout_clabe,
             notes_ref: notesRef,
@@ -63,28 +71,239 @@ async function releaseEscrowAndPayout(escrowId) {
             rfc: "XAXX010101000",
             origin_id: `kustodia_${payment.id}`
         });
-        junoStatus = 'success';
-        tx_hash = junoResult?.id || undefined;
+        sellerJunoStatus = 'success';
+        sellerJunoReference = sellerJunoResult?.id;
+        sellerTxHash = sellerJunoReference ? await (0, junoService_1.getJunoTxHashFromTimeline)(sellerJunoReference) : undefined;
     }
     catch (err) {
-        junoStatus = 'failed';
-        junoResult = err?.response?.data || err?.message || err;
+        sellerJunoStatus = 'failed';
+        sellerJunoResult = err?.response?.data || err?.message || err;
     }
-    // Log Juno transaction
-    const junoTx = junoTxRepo.create({
+    // Log Seller Juno transaction
+    const sellerJunoTx = junoTxRepo.create({
         type: 'payout',
-        reference,
-        amount,
-        status: junoStatus,
-        tx_hash,
+        reference: (sellerJunoReference ?? reference) ?? undefined,
+        amount: netSellerAmount,
+        status: sellerJunoStatus,
+        tx_hash: sellerTxHash ?? undefined,
     });
-    await junoTxRepo.save(junoTx);
-    // Update escrow/payment status if payout succeeded
-    if (junoStatus === 'success') {
+    await junoTxRepo.save(sellerJunoTx);
+    // --- 2. Payout to Commission Beneficiary (if any) ---
+    let commissionJunoTx = null;
+    let commissionJunoResult = null;
+    let commissionJunoStatus = null;
+    let commissionTxHash = null;
+    let commissionJunoReference = null;
+    if (commissionAmount > 0 &&
+        payment.commission_beneficiary_email &&
+        payment.commission_beneficiary_email.trim() !== '') {
+        // Find commission beneficiary user by email
+        const commissionUser = await userRepo.findOne({ where: { email: payment.commission_beneficiary_email } });
+        if (!commissionUser || !commissionUser.payout_clabe) {
+            throw new Error('Commission beneficiary or CLABE not found');
+        }
+        try {
+            commissionJunoResult = await (0, junoClient_1.sendJunoPayout)({
+                amount: commissionAmount,
+                beneficiary: commissionUser.full_name || commissionUser.email || "Beneficiario Comisión",
+                clabe: commissionUser.payout_clabe,
+                notes_ref: `Comisión Kustodia - ${notesRef}`,
+                numeric_ref: numericRef,
+                rfc: "XAXX010101000",
+                origin_id: `kustodia_commission_${payment.id}`
+            });
+            commissionJunoStatus = 'success';
+            commissionJunoReference = commissionJunoResult?.id;
+            commissionTxHash = commissionJunoReference ? await (0, junoService_1.getJunoTxHashFromTimeline)(commissionJunoReference) : undefined;
+        }
+        catch (err) {
+            commissionJunoStatus = 'failed';
+            commissionJunoResult = err?.response?.data || err?.message || err;
+        }
+        // Log Commission Juno transaction
+        commissionJunoTx = junoTxRepo.create({
+            type: 'commission_payout',
+            reference: (commissionJunoReference ?? reference) ?? undefined,
+            amount: commissionAmount,
+            status: commissionJunoStatus,
+            tx_hash: commissionTxHash ?? undefined,
+        });
+        await junoTxRepo.save(commissionJunoTx);
+    }
+    // Update escrow/payment status if both payouts succeeded (or only seller if no commission)
+    const allSuccess = sellerJunoStatus === 'success' && (commissionAmount === 0 || commissionJunoStatus === 'success');
+    if (allSuccess) {
         escrow.status = 'released';
         payment.status = 'paid';
         await escrowRepo.save(escrow);
         await paymentRepo.save(payment);
     }
-    return { escrow, payment, seller, junoTx, junoResult };
+    return {
+        escrow,
+        payment,
+        seller,
+        sellerJunoTx,
+        sellerJunoResult,
+        commissionJunoTx,
+        commissionJunoResult
+    };
+}
+/**
+ * Logs a payment event for traceability
+ */
+async function logPaymentEvent(paymentId, type, description) {
+    const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
+    const event = paymentEventRepo.create({ paymentId, type, description });
+    await paymentEventRepo.save(event);
+}
+/**
+ * Redeems MXNB from Juno (crypto withdrawal to platform wallet), then triggers payout to seller.
+ * Logs all actions as PaymentEvent.
+ * @param escrowId The ID of the escrow to process
+ * @param destAddress The platform wallet address to receive MXNB (from .env or config)
+ */
+/**
+ * Redeems MXNB to MXN and pays out to the seller's bank account via Juno redemption API.
+ * Logs all actions for traceability.
+ * @param escrowId The ID of the escrow to process
+ * @param amountMXNB The amount of MXNB to redeem (human, not base units)
+ */
+async function redeemMXNBToMXNAndPayout(escrowId, amountMXNB) {
+    const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
+    const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
+    const userRepo = ormconfig_1.default.getRepository(User_1.User);
+    const junoTxRepo = ormconfig_1.default.getRepository(JunoTransaction_1.JunoTransaction);
+    // Fetch escrow, payment, and seller
+    const escrow = await escrowRepo.findOne({ where: { id: escrowId }, relations: ['payment'] });
+    if (!escrow)
+        throw new Error('Escrow not found');
+    const payment = await paymentRepo.findOne({ where: { id: escrow.payment.id }, relations: ['user'] });
+    if (!payment)
+        throw new Error('Payment not found');
+    const seller = await userRepo.findOne({ where: { id: payment.user.id } });
+    if (!seller || !seller.juno_bank_account_id)
+        throw new Error('Seller or juno_bank_account_id not found. Please register the Juno bank account UUID for this user.');
+    // 1. Initiate MXNB redemption (to MXN in seller's account)
+    await logPaymentEvent(payment.id, 'redemption_initiated', `Initiating MXNB redemption to seller Juno bank account UUID: ${seller.juno_bank_account_id}`);
+    // Prepare redemption body
+    const bodyObj = {
+        amount: amountMXNB, // Juno expects MXNB in human units
+        destination_bank_account_id: seller.juno_bank_account_id,
+        asset: 'mxn',
+    };
+    // Prepare headers/signature
+    const JUNO_ENV = process.env.JUNO_ENV || 'stage';
+    const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY : process.env.JUNO_API_KEY;
+    const JUNO_API_SECRET = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_SECRET : process.env.JUNO_API_SECRET;
+    const BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
+    const endpoint = '/mint_platform/v1/redemptions';
+    const url = `${BASE_URL}${endpoint}`;
+    const body = JSON.stringify(bodyObj);
+    const nonce = Date.now().toString();
+    const method = 'POST';
+    const requestPath = endpoint;
+    const dataToSign = nonce + method + requestPath + body;
+    const signature = crypto_1.default.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+    };
+    let redemptionResult, redemptionStatus = 'pending', redemptionReference = undefined;
+    try {
+        const response = await axios_1.default.post(url, bodyObj, { headers });
+        redemptionResult = response.data;
+        redemptionStatus = 'success';
+        redemptionReference = redemptionResult?.payload?.id;
+        await logPaymentEvent(payment.id, 'redemption_success', `MXNB redemption successful. Juno ref: ${redemptionReference}`);
+    }
+    catch (err) {
+        redemptionStatus = 'failed';
+        // Enhanced error logging for debugging
+        const safeError = {
+            responseData: err?.response?.data,
+            message: err?.message,
+            stack: err?.stack
+        };
+        redemptionResult = safeError;
+        await logPaymentEvent(payment.id, 'redemption_failed', `MXNB redemption failed: ${JSON.stringify(safeError)}`);
+        // Log failed JunoTransaction
+        const junoTx = junoTxRepo.create({ type: 'redemption', reference: redemptionReference ?? undefined, amount: amountMXNB, status: redemptionStatus });
+        await junoTxRepo.save(junoTx);
+        console.error('Full Juno redemption error:', safeError);
+        throw new Error('MXNB redemption failed: ' + JSON.stringify(safeError));
+    }
+    // Log successful JunoTransaction
+    const junoTx = junoTxRepo.create({ type: 'redemption', reference: redemptionReference ?? undefined, amount: amountMXNB, status: redemptionStatus });
+    await junoTxRepo.save(junoTx);
+    await logPaymentEvent(payment.id, 'payout_completed', 'Redemption and payout to seller completed.');
+    return { escrow, payment, seller, redemptionResult };
+}
+// (legacy) Redeems MXNB from Juno (crypto withdrawal to platform wallet), then triggers payout to seller.
+// Logs all actions as PaymentEvent.
+// @param escrowId The ID of the escrow to process
+// @param destAddress The platform wallet address to receive MXNB (from .env or config)
+async function redeemAndPayout(escrowId, destAddress) {
+    const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
+    const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
+    const junoTxRepo = ormconfig_1.default.getRepository(JunoTransaction_1.JunoTransaction);
+    // Fetch escrow and payment
+    const escrow = await escrowRepo.findOne({ where: { id: escrowId }, relations: ['payment'] });
+    if (!escrow)
+        throw new Error('Escrow not found');
+    const payment = await paymentRepo.findOne({ where: { id: escrow.payment.id }, relations: ['user'] });
+    if (!payment)
+        throw new Error('Payment not found');
+    // 1. Initiate MXNB withdrawal (redemption) from Juno
+    const amount = Number(escrow.release_amount);
+    const asset = 'MXNB';
+    const blockchain = 'ARBITRUM';
+    const address = destAddress;
+    await logPaymentEvent(payment.id, 'redemption_initiated', `Initiating MXNB withdrawal to platform wallet: ${address}`);
+    // Prepare withdrawal body
+    const bodyObj = { amount, asset, blockchain, address };
+    // Optionally add compliance if needed (future)
+    // Prepare headers/signature (same as junoWithdrawOnchain.ts)
+    const JUNO_ENV = process.env.JUNO_ENV || 'stage';
+    const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY : process.env.JUNO_API_KEY;
+    const JUNO_API_SECRET = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_SECRET : process.env.JUNO_API_SECRET;
+    const BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
+    const endpoint = '/mint_platform/v1/withdrawals';
+    const url = `${BASE_URL}${endpoint}`;
+    const body = JSON.stringify(bodyObj);
+    const nonce = Date.now().toString();
+    const method = 'POST';
+    const requestPath = endpoint;
+    const dataToSign = nonce + method + requestPath + body;
+    const signature = crypto_1.default.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+    };
+    let redemptionResult, redemptionStatus = 'pending', redemptionReference = undefined;
+    try {
+        const response = await axios_1.default.post(url, bodyObj, { headers });
+        redemptionResult = response.data;
+        redemptionStatus = 'success';
+        redemptionReference = redemptionResult?.id;
+        await logPaymentEvent(payment.id, 'redemption_success', `MXNB withdrawal successful. Juno ref: ${redemptionReference}`);
+    }
+    catch (err) {
+        redemptionStatus = 'failed';
+        redemptionResult = err?.response?.data || err?.message || err;
+        await logPaymentEvent(payment.id, 'redemption_failed', `MXNB withdrawal failed: ${JSON.stringify(redemptionResult)}`);
+        // Log failed JunoTransaction
+        const junoTx = junoTxRepo.create({ type: 'redemption', reference: redemptionReference, amount, status: redemptionStatus });
+        await junoTxRepo.save(junoTx);
+        throw new Error('MXNB withdrawal failed: ' + JSON.stringify(redemptionResult));
+    }
+    // Log successful JunoTransaction
+    const junoTx = junoTxRepo.create({ type: 'redemption', reference: redemptionReference, amount, status: redemptionStatus });
+    await junoTxRepo.save(junoTx);
+    // 2. After redemption, trigger payout to seller
+    await logPaymentEvent(payment.id, 'payout_initiated', 'Triggering payout to seller after redemption.');
+    // Use existing payout logic
+    // We assume releaseEscrowAndPayout logs its own events and status
+    const payoutResult = await releaseEscrowAndPayout(escrowId);
+    await logPaymentEvent(payment.id, 'payout_completed', 'Payout to seller completed.');
+    return { escrow, payment, redemptionResult, payoutResult };
 }

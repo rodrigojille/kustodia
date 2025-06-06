@@ -1,6 +1,7 @@
 [build]
+  base = "kustodia-next"
+  publish = "kustodia-next/.next"
   command = "npm run build"
-  publish = "dist"
 
 [dev]
   command = "npm run dev"

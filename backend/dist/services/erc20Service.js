@@ -5,7 +5,7 @@ const ethers_1 = require("ethers");
 const provider = new ethers_1.ethers.providers.JsonRpcProvider("https://arb1.arbitrum.io/rpc");
 const privateKey = process.env.ESCROW_PRIVATE_KEY;
 const wallet = new ethers_1.ethers.Wallet(privateKey, provider);
-const contractAddress = "0xF197FFC28c23E0309B5559e7a166f2c6164C80aA";
+const contractAddress = process.env.MOCK_ERC20_ADDRESS;
 // const mockERC20 = new ethers.Contract(contractAddress, MockERC20ABI.abi, wallet);
 // export async function mintToEscrow(to: string, amount: string) {
 //   // amount should be in wei (string)

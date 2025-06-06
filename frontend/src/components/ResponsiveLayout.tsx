@@ -22,17 +22,19 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children }) => (
       fontFamily: 'Montserrat, Arial, sans-serif',
       padding: '0 16px', // Padding horizontal para evitar que el card quede pegado al borde en mobile
       boxSizing: 'border-box',
+      position: 'relative',
     }}
   >
     <div
       style={{
-        maxWidth: 460,
+
         width: '100%',
         background: '#fff',
         borderRadius: 16,
         boxShadow: '0 2px 16px #E3EAFD',
         padding: 32,
-        margin: 24,
+        marginLeft: 'auto',
+        marginRight: 'auto',
         boxSizing: 'border-box',
       }}
     >

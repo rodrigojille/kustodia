@@ -22,7 +22,8 @@ export const getUserPayments = async (req: Request, res: Response): Promise<void
     const payments = await paymentRepo.find({
       where: [
         { user: { id: Number(authUser.id) } },
-        { recipient_email: authUser.email }
+        { recipient_email: authUser.email },
+        { payer_email: authUser.email }
       ],
       order: { created_at: "DESC" },
       relations: ["user", "escrow"]

@@ -203,33 +203,34 @@ const Dashboard: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button onClick={handleLogout} style={{ background: '#D32F2F', color: '#fff', border: 'none', borderRadius: 16, padding: '8px 20px', fontWeight: 600, cursor: 'pointer', fontFamily: 'Montserrat, Arial, sans-serif' }}>
-          Cerrar sesión
-        </button>
-      </div>
-      <h2 style={{ fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 700, fontSize: 26, marginBottom: 0, color: '#1A73E8' }}>Dashboard</h2>
-      <div style={{ marginBottom: 18, fontSize: 18, color: '#222', fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 600 }}>
-        Bienvenido{currentUser?.full_name ? `, ${currentUser.full_name}` : ''} a tu panel de Kustodia.
-      </div>
-    {/* KYC and CLABE checks */}
-    <div style={{ marginBottom: 18 }}>
-      {/* Dynamic KYC status check */}
-      {kycStatus !== "approved" && (
-        <div style={{ background: '#fff8e1', color: '#FFC107', padding: 12, borderRadius: 8, marginBottom: 10, fontWeight: 600, fontFamily: 'Montserrat, Arial, sans-serif' }}>
-          Verificación de identidad pendiente.
-          <button onClick={handleStartKYC} style={{ background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 16, padding: '6px 24px', marginLeft: 16, cursor: 'pointer', fontWeight: 600 }}>
-            Iniciar KYC
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, width: '100%' }}>
+          <button onClick={handleLogout} style={{ background: '#D32F2F', color: '#fff', border: 'none', borderRadius: 16, padding: '8px 20px', fontWeight: 600, cursor: 'pointer', fontFamily: 'Montserrat, Arial, sans-serif' }}>
+            Cerrar sesión
           </button>
         </div>
-      )}
-      {/* CLABE logic */}
-      <ClabeSection />
-    </div>
-    <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 4px 18px #E3EAFD', fontFamily: 'Montserrat, Arial, sans-serif', color: '#222', marginTop: 24, marginBottom: 24, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto', transition: 'box-shadow 0.2s' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 6px 24px #B3C7F9'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 4px 18px #E3EAFD'}>
-      {/* Pending Payment Requests to Approve */}
-    <div style={{ background: '#fffbe8', border: '1.5px solid #ffe082', borderRadius: 12, padding: 18, marginBottom: 18 }}>
-      <div style={{ fontWeight: 700, fontSize: 18, color: '#c49000', marginBottom: 8 }}>Solicitudes de cobro pendientes</div>
+        <h2 style={{ fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 700, fontSize: 26, marginBottom: 0, color: '#1A73E8', textAlign: 'center' }}>Dashboard</h2>
+        <div style={{ marginBottom: 18, fontSize: 18, color: '#222', fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 600, textAlign: 'center' }}>
+          Bienvenido{currentUser?.full_name ? `, ${currentUser.full_name}` : ''} a tu panel de Kustodia.
+        </div>
+        {/* KYC and CLABE checks */}
+        <div style={{ marginBottom: 18, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {/* Dynamic KYC status check */}
+          {kycStatus !== "approved" && (
+            <div style={{ background: '#fff8e1', color: '#FFC107', padding: 12, borderRadius: 8, marginBottom: 10, fontWeight: 600, fontFamily: 'Montserrat, Arial, sans-serif', textAlign: 'center' }}>
+              Verificación de identidad pendiente.
+              <button onClick={handleStartKYC} style={{ background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 16, padding: '6px 24px', marginLeft: 16, cursor: 'pointer', fontWeight: 600 }}>
+                Iniciar KYC
+              </button>
+            </div>
+          )}
+          {/* CLABE logic */}
+          <ClabeSection />
+        </div>
+        <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 4px 18px #E3EAFD', fontFamily: 'Montserrat, Arial, sans-serif', color: '#222', marginTop: 24, marginBottom: 24, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto', transition: 'box-shadow 0.2s', width: '100%' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 6px 24px #B3C7F9'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 4px 18px #E3EAFD'}>
+          {/* Pending Payment Requests to Approve */}
+          <div style={{ background: '#fffbe8', border: '1.5px solid #ffe082', borderRadius: 12, padding: 18, marginBottom: 18 }}>
+            <div style={{ fontWeight: 700, fontSize: 18, color: '#c49000', marginBottom: 8 }}>Solicitudes de cobro pendientes</div>
       {payments && currentUser && payments.filter(p => p.payer_email === currentUser.email && p.status === 'requested').length > 0 ? (
         <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
           {payments.filter(p => p.payer_email === currentUser.email && p.status === 'requested').map(p => (
@@ -412,8 +413,9 @@ const Dashboard: React.FC = () => {
         </>
       )}
     </div>
-    </ResponsiveLayout>
-  );
+  </div>
+</ResponsiveLayout>
+);
 };
 
 export default Dashboard;

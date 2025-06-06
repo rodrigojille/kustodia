@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.escrowContract = void 0;
+exports.transferMXNBToJunoWallet = transferMXNBToJunoWallet;
 exports.createEscrow = createEscrow;
 exports.releaseCustody = releaseCustody;
 exports.raiseDispute = raiseDispute;
@@ -52,15 +53,15 @@ console.log('[escrowService] Resolved KustodiaEscrow.json path:', escrowArtifact
 console.log('[escrowService] Resolved ERC20.json path:', erc20ArtifactPath);
 console.log('[escrowService] KustodiaEscrow.json exists:', fs.existsSync(escrowArtifactPath));
 console.log('[escrowService] ERC20.json exists:', fs.existsSync(erc20ArtifactPath));
-// Arbitrum mainnet
-const RPC_URL = "https://arb1.arbitrum.io/rpc";
+// Arbitrum testnet/configurable
+const RPC_URL = process.env.ETH_RPC_URL;
 const provider = new ethers_1.ethers.providers.JsonRpcProvider(RPC_URL);
 // Use mainnet deployer/escrow key from env
 const PRIVATE_KEY = process.env.ESCROW_PRIVATE_KEY;
 const signer = new ethers_1.ethers.Wallet(PRIVATE_KEY, provider);
 // Mainnet contract addresses
 const ESCROW_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS;
-const TOKEN_ADDRESS = "0xF197FFC28c23E0309B5559e7a166f2c6164C80aA";
+const TOKEN_ADDRESS = process.env.MOCK_ERC20_ADDRESS;
 // Load ABIs
 const KustodiaEscrowArtifact = require(escrowArtifactPath);
 const ESCROW_ABI = KustodiaEscrowArtifact.abi;
@@ -94,6 +95,24 @@ catch (e) {
 const TOKEN_ABI = [...PROXY_ABI, ...ERC20_ABI];
 exports.escrowContract = new ethers_1.ethers.Contract(ESCROW_ADDRESS, ESCROW_ABI, signer);
 const tokenContract = new ethers_1.ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
+/**
+ * Transfers MXNB from the platform bridge wallet to the platform Juno wallet.
+ * @param amount Amount of MXNB to transfer (as string, in token decimals)
+ * @param to Destination address (platform Juno wallet)
+ * @returns Transaction hash
+ */
+async function transferMXNBToJunoWallet(amount, to) {
+    try {
+        const tx = await tokenContract.transfer(to, amount);
+        const receipt = await tx.wait();
+        console.log(`[MXNB Transfer] Success. Tx hash: ${tx.hash}`);
+        return tx.hash;
+    }
+    catch (err) {
+        console.error('[MXNB Transfer] Error:', err);
+        throw err;
+    }
+}
 async function createEscrow({ seller, custodyAmount, custodyPeriod }) {
     // Check current allowance
     const currentAllowance = await tokenContract.allowance(signer.address, ESCROW_ADDRESS);

@@ -13,6 +13,7 @@ exports.Payment = void 0;
 const typeorm_1 = require("typeorm");
 const User_1 = require("./User");
 const Escrow_1 = require("./Escrow");
+const JunoTransaction_1 = require("./JunoTransaction");
 let Payment = class Payment {
 };
 exports.Payment = Payment;
@@ -29,6 +30,10 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Payment.prototype, "recipient_email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 255 }),
+    __metadata("design:type", String)
+], Payment.prototype, "payer_email", void 0);
 __decorate([
     (0, typeorm_1.Column)("decimal", { precision: 18, scale: 2 }),
     __metadata("design:type", Number)
@@ -50,6 +55,11 @@ __decorate([
     __metadata("design:type", String)
 ], Payment.prototype, "transaction_id", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => JunoTransaction_1.JunoTransaction, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: "juno_transaction_id" }),
+    __metadata("design:type", JunoTransaction_1.JunoTransaction)
+], Payment.prototype, "junoTransaction", void 0);
+__decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Payment.prototype, "blockchain_tx_hash", void 0);
@@ -69,6 +79,30 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], Payment.prototype, "payout_clabe", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 5, scale: 2 }),
+    __metadata("design:type", Number)
+], Payment.prototype, "commission_percent", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 18, scale: 2 }),
+    __metadata("design:type", Number)
+], Payment.prototype, "commission_amount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 255 }),
+    __metadata("design:type", String)
+], Payment.prototype, "commission_beneficiary_name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 255 }),
+    __metadata("design:type", String)
+], Payment.prototype, "commission_beneficiary_email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    __metadata("design:type", String)
+], Payment.prototype, "commission_beneficiary_clabe", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    __metadata("design:type", String)
+], Payment.prototype, "payer_clabe", void 0);
 __decorate([
     (0, typeorm_1.Column)({ default: 'pending' }),
     __metadata("design:type", String)

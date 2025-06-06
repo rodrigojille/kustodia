@@ -37,6 +37,16 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
       return;
     }
 
+    // Buscar payout_clabe del beneficiario de comisión si aplica
+    let commission_beneficiary_clabe = undefined;
+    if (req.body.commission_beneficiary_email) {
+      const beneficiaryUser = await userRepo.findOne({ where: { email: req.body.commission_beneficiary_email } });
+      if (!beneficiaryUser || !beneficiaryUser.payout_clabe) {
+        res.status(400).json({ error: 'El beneficiario de comisión debe estar registrado y tener CLABE de retiro' });
+        return;
+      }
+      commission_beneficiary_clabe = beneficiaryUser.payout_clabe;
+    }
     // Create Payment record, associate deposit_clabe and payout_clabe
     const payment = paymentRepo.create({
       user: user as any, // typeorm expects entity or id
@@ -48,6 +58,9 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
       reference: '', // will update after save
       deposit_clabe: recipientUser.deposit_clabe,
       payout_clabe: recipientUser.payout_clabe || undefined,
+      commission_beneficiary_name: req.body.commission_beneficiary_name,
+      commission_beneficiary_email: req.body.commission_beneficiary_email,
+      commission_beneficiary_clabe,
       // Store Travel Rule compliance data if provided
       travel_rule_data: travel_rule_data || null,
     });

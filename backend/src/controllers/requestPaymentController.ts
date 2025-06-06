@@ -45,8 +45,18 @@ export const requestPayment = async (req: Request, res: Response): Promise<void>
     }
 
     const paymentRepo = ormconfig.getRepository(Payment);
+    let beneficiaryClabe: string | undefined = undefined;
+    if (commission_beneficiary_email) {
+      const beneficiaryUser = await userRepo.findOne({ where: { email: commission_beneficiary_email } });
+      if (!beneficiaryUser || !beneficiaryUser.payout_clabe) {
+        res.status(400).json({ error: 'El beneficiario de comisión debe estar registrado y tener CLABE de retiro' });
+        return;
+      }
+      beneficiaryClabe = beneficiaryUser.payout_clabe;
+    }
     const payment = paymentRepo.create({
       recipient_email: tokenUser.email,
+      payer_email, // <--- ensure payer_email is saved
       amount,
       currency,
       description,
@@ -54,6 +64,7 @@ export const requestPayment = async (req: Request, res: Response): Promise<void>
       commission_amount,
       commission_beneficiary_name,
       commission_beneficiary_email,
+      commission_beneficiary_clabe: beneficiaryClabe,
       status: 'requested'
     });
     await paymentRepo.save(payment);

@@ -35,16 +35,50 @@ export const truoraWebhook = async (req: Request, res: Response): Promise<void> 
 
 export const startKYC = async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!TRUORA_API_KEY) {
-      res.status(500).json({ error: "Truora API key not configured" });
+    if (!TRUORA_API_KEY || !TRUORA_FLOW_ID || !TRUORA_ACCOUNT_ID) {
+      res.status(500).json({ error: "Truora API key, flow ID, or account ID not configured" });
       return;
     }
-    // Construye la URL de KYC para Truora
-    const kycUrl = `https://identity.truora.com/?token=${TRUORA_API_KEY}`;
+    // Extract user info from request (customize as needed)
+    const { email, phone, country = 'ALL', redirect_url } = req.body;
+    // You may want to generate a unique account_id per user/session for traceability
+    const userAccountId = req.body.account_id || TRUORA_ACCOUNT_ID;
+    // Prepare params for Truora web integration token
+    const params = new URLSearchParams();
+    params.append('key_type', 'web');
+    params.append('grant', 'digital-identity');
+    params.append('api_key_version', '1');
+    params.append('country', country);
+    params.append('redirect_url', redirect_url || process.env.TRUORA_REDIRECT_URL || 'https://kustodia.mx/login');
+    params.append('flow_id', TRUORA_FLOW_ID);
+    params.append('account_id', userAccountId);
+    if (email) params.append('emails', email);
+    if (phone) params.append('phone', phone);
+    // Optionally add more metadata as needed
+    // params.append('start_variables.metadata.name', req.body.name || '');
+    const response = await axios.post(
+      'https://api.account.truora.com/v1/api-keys',
+      params,
+      {
+        headers: {
+          'Truora-API-Key': TRUORA_API_KEY,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+    const apiKey = response.data?.api_key;
+    if (!apiKey) {
+      res.status(500).json({ error: 'Failed to obtain Truora web integration token', details: response.data });
+      return;
+    }
+    // Optionally: store process_id (apiKey) in DB for tracking
+    // const userRepo = getRepository(User);
+    // await userRepo.update({ id: req.user.id }, { truora_process_id: apiKey });
+    const kycUrl = `https://identity.truora.com/?token=${apiKey}`;
     res.json({ url: kycUrl });
   } catch (err: any) {
-    console.error("Truora startKYC error:", err.message || err);
-    res.status(500).json({ error: "Failed to generate Truora KYC URL", details: err.message || err });
+    console.error('Truora startKYC error:', err.response?.data || err.message || err);
+    res.status(500).json({ error: 'Failed to generate Truora KYC URL', details: err.response?.data || err.message || err });
   }
 };
 

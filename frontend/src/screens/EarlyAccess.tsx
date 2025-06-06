@@ -112,7 +112,7 @@ export default function EarlyAccess() {
           gtag('config', 'G-5X4H87YHLT');
         `}</script>
       </Helmet>
-      <div className="font-sans bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 min-h-screen flex flex-col justify-center items-center px-0 overflow-x-hidden">
+      <div className="font-sans min-h-screen w-full bg-gradient-to-br from-blue-50 via-indigo-100 to-indigo-200 flex flex-col justify-center items-center px-0 overflow-x-hidden">
         <div className="max-w-screen-xl w-full mx-auto flex flex-col gap-10 px-2 sm:px-6">
           <div className="flex-1 flex flex-col justify-center bg-white/70 rounded-3xl shadow-2xl border border-indigo-100 p-10 mb-10 lg:mb-0">
             {/* Main message */}

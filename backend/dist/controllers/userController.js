@@ -61,7 +61,7 @@ const register = async (req, res) => {
         await (0, emailService_1.sendEmail)({
             to: email,
             subject: "Verifica tu correo electrónico | Kustodia",
-            html: `<p>Hola,</p><p>Por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Si no creaste esta cuenta, puedes ignorar este mensaje.</p>`
+            text: `Hola,\nPor favor verifica tu correo electrónico ingresando al siguiente enlace: ${verifyUrl}\nSi no creaste esta cuenta, puedes ignorar este mensaje.`
         });
         res.status(201).json({ message: "User registered. Verification email sent.", user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
         return;
@@ -207,7 +207,8 @@ const verifyEmail = async (req, res) => {
         await userRepo.save(user);
         // Send welcome email
         await (0, emailService_2.sendWelcomeEmail)(user.email, user.full_name);
-        res.json({ success: true, message: "Correo verificado exitosamente." });
+        // Redirect to login page after successful verification
+        res.redirect(302, 'https://kustodia.mx/login');
         return;
     }
     catch (err) {

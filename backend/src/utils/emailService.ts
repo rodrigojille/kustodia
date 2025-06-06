@@ -5,17 +5,48 @@ const EMAIL_FROM = process.env.EMAIL_FROM!;
 
 sgMail.setApiKey(SENDGRID_API_KEY);
 
-export async function sendWelcomeEmail(to: string, userName?: string) {
+export async function sendWelcomeEmail(to: string, userName?: string, accessCode?: string) {
   return sendEmail({
     to,
     subject: "¡Bienvenido a Kustodia!",
-    html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
-      <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='56' height='56' style='display:block;margin-bottom:1rem;'>
-      <h2 style='color:#2e7ef7;'>¡Hola${userName ? ` ${userName}` : ''}!</h2>
-      <p>Tu registro en <b>Kustodia</b> fue exitoso. Ya puedes comenzar a disfrutar de nuestros servicios de protección financiera y pagos seguros.</p>
-      <p style='color:#888;'>¿Tienes dudas? Responde este correo y te ayudamos.</p>
-      <br><p style='font-size:13px;color:#999;'>Equipo Kustodia</p>
-    </div>`
+    html: `
+      <div style="font-family:Montserrat,Arial,sans-serif;background:#fff;padding:2rem;max-width:420px;margin:2rem auto;border-radius:16px;box-shadow:0 2px 12px #0001;">
+        <div style="text-align:center;">
+          <img src="https://kustodia.mx/kustodia-logo.png" alt="Kustodia Logo" width="72" height="72" style="display:block;margin:0 auto 1rem auto;">
+        </div>
+        <h2 style="color:#2e7ef7;text-align:center;margin-top:0;">¡Hola${userName ? ` ${userName}` : ''}!</h2>
+        <p style="text-align:center;">¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access.<br>Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
+        ${accessCode ? `<div style="background:#f6f8fc;padding:1rem;border-radius:8px;margin:1.5rem 0;text-align:center;">
+          <div style="font-weight:bold;color:#222;">Código de Acceso Anticipado:</div>
+          <div style="font-family:monospace;color:#2e7ef7;font-size:1.1rem;margin-top:4px;">${accessCode}</div>
+        </div>` : ''}
+        <p style="text-align:center;"><b>¡Felicidades!</b> Tienes 0% fee de por vida por ser de los primeros 100 registros.<br><span style="font-size:13px;color:#666;">Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</span></p>
+        <div style="margin:1.5rem 0;text-align:center;">
+          <span style="color:#222;">¿Por qué Kustodia?</span>
+          <div style="display:flex;justify-content:center;gap:16px;margin-top:10px;">
+            <div style="min-width:90px;padding:10px 0;">
+              <div style="font-weight:bold;color:#2e7ef7;">Transparencia</div>
+              <div style="font-size:12px;color:#333;">Verifica la existencia y respaldo de MXNB.</div>
+            </div>
+            <div style="min-width:90px;padding:10px 0;">
+              <div style="font-weight:bold;color:#2e7ef7;">Automatización</div>
+              <div style="font-size:12px;color:#333;">Pagos solo se liberan al cumplir condiciones pactadas.</div>
+            </div>
+            <div style="min-width:90px;padding:10px 0;">
+              <div style="font-weight:bold;color:#2e7ef7;">Seguridad</div>
+              <div style="font-size:12px;color:#333;">Fondos protegidos y custodiados.</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin:1.5rem 0;text-align:center;">
+          <span style="color:#222;">Síguenos en redes sociales para estar al tanto de las novedades:</span><br>
+          <a href="https://x.com/Kustodia_mx" style="color:#1da1f2;text-decoration:none;font-weight:bold;margin:0 6px;">X (antes Twitter)</a>
+          <a href="https://www.instagram.com/kustodia.mx/" style="color:#e1306c;text-decoration:none;font-weight:bold;margin:0 6px;">Instagram</a>
+          <a href="https://www.linkedin.com/company/kustodia-mx" style="color:#0077b5;text-decoration:none;font-weight:bold;margin:0 6px;">LinkedIn</a>
+        </div>
+        <p style="font-size:13px;color:#999;text-align:center;">Equipo Kustodia</p>
+      </div>
+    `
   });
 }
 

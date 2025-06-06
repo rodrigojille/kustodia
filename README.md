@@ -85,6 +85,51 @@ Fecha/hora fin (UTC):      2025-05-30T23:59:08.000Z
 
 ---
 
+## Solicitud de Pago y Aceptación (Payment Request Flow)
+
+### Resumen
+- Un usuario puede solicitar un pago a otro usuario registrado y verificado.
+- El pagador recibe la solicitud y puede aceptarla desde la plataforma.
+- Al aceptar, se dispara el flujo estándar de pago, custodia y payout.
+- Toda la trazabilidad queda registrada en la base de datos y la timeline.
+
+### Endpoints
+
+#### Crear solicitud de pago
+```
+POST /api/payments/request
+{
+  "payer_email": "pagador@kustodia.mx",
+  "amount": 1000,
+  "currency": "MXN",
+  "description": "Pago por servicios",
+  "commission_percent": 2,
+  "commission_beneficiary_email": "comisionista@kustodia.mx"
+}
+```
+
+#### Aceptar solicitud de pago (nuevo)
+```
+POST /api/request-payments/:id/accept
+Headers: Authorization: Bearer <token>
+```
+- Solo el usuario designado como pagador puede aceptar la solicitud.
+- Al aceptar, el backend actualiza el estado y dispara el flujo de escrow/pago.
+- Se registra el evento `request_accepted` en la timeline.
+
+### Secuencia resumida
+1. Usuario A solicita pago a Usuario B.
+2. Usuario B recibe notificación y accede a la solicitud.
+3. Usuario B acepta la solicitud (POST /api/request-payments/:id/accept).
+4. El backend actualiza el estado y ejecuta el flujo de pago y custodia.
+5. Se registran eventos y se notifican ambas partes.
+
+### Trazabilidad y eventos
+- La solicitud, aceptación, fondeo, custodia y payout quedan registrados en la base de datos y la timeline del pago.
+- Todos los eventos relevantes se reflejan en el dashboard y pueden ser auditados.
+
+---
+
 ## Flujo de Payout con Comisión (Backend)
 
 Cuando se libera la custodia, el backend realiza el split y payout de la siguiente forma:

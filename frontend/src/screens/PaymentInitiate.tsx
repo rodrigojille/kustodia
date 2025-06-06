@@ -397,10 +397,38 @@ const PaymentInitiate: React.FC = () => {
 
         <button
           type="submit"
-          style={{ background: '#1A73E8', color: '#fff', padding: '14px 0', borderRadius: 24, fontSize: 18, border: 'none', marginTop: 18, cursor: 'pointer', fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 600 }}
+          aria-label="Enviar pago"
+          disabled={
+            recipientLoading ||
+            !recipient ||
+            !amount ||
+            warrantyPercent === '' ||
+            custodyDays === '' ||
+            recipientValid !== true ||
+            recipientVerified !== true
+          }
+          style={{
+            background: (recipientValid && recipientVerified && recipient && amount && warrantyPercent !== '' && custodyDays !== '' && !recipientLoading) ? '#1A73E8' : '#ccc',
+            color: '#fff',
+            padding: '14px 0',
+            borderRadius: 24,
+            fontSize: 18,
+            border: 'none',
+            marginTop: 18,
+            cursor: (recipientValid && recipientVerified && recipient && amount && warrantyPercent !== '' && custodyDays !== '' && !recipientLoading) ? 'pointer' : 'not-allowed',
+            fontFamily: 'Montserrat, Arial, sans-serif',
+            fontWeight: 600,
+            width: '100%',
+            transition: 'background 0.2s, box-shadow 0.2s',
+            boxShadow: '0 2px 8px #E3EAFD',
+          }}
         >
-          Enviar pago
+          {recipientLoading ? 'Validando destinatario...' : 'Enviar pago'}
         </button>
+        {recipientError && <div style={{ color: '#D32F2F', marginTop: 10, fontWeight: 600, textAlign: 'center' }}>{recipientError}</div>}
+        {/* Success message placeholder */}
+        {/* You can add a state like 'success' and show a message here after payment is sent */}
+
       </form>
     </ResponsiveLayout>
   );

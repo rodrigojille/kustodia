@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import ResponsiveLayout from '../components/ResponsiveLayout';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -67,87 +66,170 @@ const Login: React.FC = () => {
 
 
 
+  // Styles for the modern login card
+  const containerStyle: React.CSSProperties = {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(120deg, #f6f9fc 0%, #e9f0fb 100%)',
+  };
+  const cardStyle: React.CSSProperties = {
+    width: '100%',
+    maxWidth: 420,
+    minWidth: 340,
+    padding: '40px 32px 32px 32px',
+    borderRadius: 24,
+    background: '#fff',
+    boxShadow: '0 8px 32px 0 rgba(60, 80, 180, 0.10), 0 1.5px 8px 0 rgba(60, 80, 180, 0.07)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    border: '1.5px solid #e0e7ef',
+  };
+  const logoStyle: React.CSSProperties = {
+    width: 72,
+    height: 72,
+    marginBottom: 18,
+    display: 'block',
+    borderRadius: 16,
+    boxShadow: '0 2px 8px 0 rgba(26, 115, 232, 0.10)',
+    background: '#f2f7fd',
+    objectFit: 'contain',
+  };
+  const titleStyle: React.CSSProperties = {
+    color: '#1A73E8',
+    fontFamily: 'Montserrat, Arial, sans-serif',
+    fontWeight: 800,
+    fontSize: 28,
+    margin: '0 0 22px 0',
+    letterSpacing: '-0.5px',
+    textAlign: 'center',
+  };
+  const inputStyle: React.CSSProperties = {
+    padding: 16,
+    borderRadius: 10,
+    border: '1.5px solid #d3d9e2',
+    fontSize: 17,
+    background: '#fafdff',
+    color: '#222',
+    marginBottom: 14,
+    fontFamily: 'Montserrat, Arial, sans-serif',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+    width: '100%',
+    boxSizing: 'border-box',
+  };
+  const buttonStyle: React.CSSProperties = {
+    background: 'linear-gradient(90deg, #1A73E8 60%, #4285F4 100%)',
+    color: '#fff',
+    padding: '16px 0',
+    borderRadius: 22,
+    fontSize: 18,
+    border: 'none',
+    marginTop: 12,
+    marginBottom: 6,
+    cursor: 'pointer',
+    fontFamily: 'Montserrat, Arial, sans-serif',
+    fontWeight: 700,
+    boxShadow: '0 1.5px 8px 0 rgba(60, 80, 180, 0.07)',
+    width: '100%',
+    letterSpacing: '0.5px',
+  };
+  const errorStyle: React.CSSProperties = {
+    background: '#e74c3c',
+    color: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    width: '100%',
+    textAlign: 'center',
+    fontWeight: 700,
+    fontSize: 15,
+    letterSpacing: '0.2px',
+  };
+  const resendMsgStyle: React.CSSProperties = {
+    marginTop: 8,
+    color: resendMsg && resendMsg.startsWith('Correo') ? '#27ae60' : '#fff',
+    background: resendMsg && resendMsg.startsWith('Correo') ? '#d4f7e2' : '#e74c3c',
+    padding: 10,
+    borderRadius: 8,
+    fontWeight: 700,
+    fontSize: 15,
+    width: '100%',
+    textAlign: 'center',
+  };
+  const linkStyle: React.CSSProperties = {
+    color: '#1A73E8',
+    textDecoration: 'underline',
+    fontWeight: 600,
+    fontFamily: 'Montserrat, Arial, sans-serif',
+    fontSize: 15,
+  };
+  const secondaryText: React.CSSProperties = {
+    color: '#444',
+    fontFamily: 'Montserrat, Arial, sans-serif',
+    fontSize: 15,
+  };
+
   return (
-    <ResponsiveLayout>
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+    <div style={containerStyle}>
+      <div style={cardStyle}>
         <a href="/">
-          <img src="/logo.svg" alt="Kustodia Logo" style={{ width: 56, height: 56, margin: '0 auto', display: 'block' }} />
+          <img src="/logo.svg" alt="Kustodia Logo" style={logoStyle} />
         </a>
+        <div style={titleStyle}>Iniciar Sesión</div>
+        <form style={{ width: '100%' }} onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="Correo electrónico"
+            required
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={inputStyle}
+            autoFocus
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            required
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={inputStyle}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            style={buttonStyle}
+          >
+            {loading ? 'Ingresando...' : 'Iniciar Sesión'}
+          </button>
+          {error && <div style={errorStyle}>{error}</div>}
+          {showResend && (
+            <div style={{ marginTop: 16, width: '100%', textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendLoading}
+                style={{ ...buttonStyle, background: '#1A73E8', marginTop: 0, fontSize: 16, padding: '12px 0', borderRadius: 16 }}
+              >
+                {resendLoading ? 'Reenviando...' : 'Reenviar correo de verificación'}
+              </button>
+              {resendMsg && <div style={resendMsgStyle}>{resendMsg}</div>}
+            </div>
+          )}
+        </form>
+        <div style={{ marginTop: 18, width: '100%', textAlign: 'center' }}>
+          <a href="/reset-password" style={linkStyle}>
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+        <div style={{ marginTop: 12, width: '100%', textAlign: 'center' }}>
+          <span style={secondaryText}>¿No tienes cuenta? </span>
+          <a href="/register" style={linkStyle}>Regístrate</a>
+        </div>
       </div>
-      <h2 style={{ color: '#1A73E8', marginTop: 0, fontFamily: 'Montserrat, Arial, sans-serif' }}>Iniciar Sesión</h2>
-      <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }} onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          required
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={{
-            padding: 14,
-            borderRadius: 8,
-            border: '1.5px solid #ddd',
-            fontSize: 16,
-            background: '#fff',
-            color: '#222',
-            fontFamily: 'Montserrat, Arial, sans-serif',
-            transition: 'border-color 0.2s',
-            outline: 'none',
-          }}
-          onFocus={e => (e.target.style.borderColor = '#1A73E8')}
-          onBlur={e => (e.target.style.borderColor = '#ddd')}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          required
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={{
-            padding: 14,
-            borderRadius: 8,
-            border: '1.5px solid #ddd',
-            fontSize: 16,
-            background: '#fff',
-            color: '#222',
-            fontFamily: 'Montserrat, Arial, sans-serif',
-            transition: 'border-color 0.2s',
-            outline: 'none',
-          }}
-          onFocus={e => (e.target.style.borderColor = '#1A73E8')}
-          onBlur={e => (e.target.style.borderColor = '#ddd')}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ background: '#1A73E8', color: '#fff', padding: '14px 0', borderRadius: 24, fontSize: 18, border: 'none', marginTop: 18, cursor: 'pointer', fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 600 }}
-        >
-          {loading ? 'Ingresando...' : 'Iniciar Sesión'}
-        </button>
-        {error && <div style={{ background: '#c0392b', color: '#fff', padding: 10, borderRadius: 8, marginTop: 10, textAlign: 'center', fontWeight: 600 }}>{error}</div>}
-        {showResend && (
-          <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resendLoading}
-              style={{ background: '#1A73E8', color: '#fff', padding: '10px 18px', borderRadius: 16, border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'Montserrat, Arial, sans-serif', fontSize: 16 }}
-            >
-              {resendLoading ? 'Reenviando...' : 'Reenviar correo de verificación'}
-            </button>
-            {resendMsg && <div style={{ marginTop: 8, color: resendMsg.startsWith('Correo') ? '#27ae60' : '#fff', background: resendMsg.startsWith('Correo') ? '#27ae60' : '#c0392b', padding: 8, borderRadius: 8, fontWeight: 600 }}>{resendMsg}</div>}
-          </div>
-        )}
-      </form>
-      <div style={{ marginTop: 18, textAlign: 'center' }}>
-        <a href="/reset-password" style={{ color: '#1A73E8', textDecoration: 'underline', fontWeight: 500 }}>
-          ¿Olvidaste tu contraseña?
-        </a>
-      </div>
-      <div style={{ marginTop: 12, textAlign: 'center' }}>
-        <span style={{ color: '#444', fontFamily: 'Montserrat, Arial, sans-serif' }}>¿No tienes cuenta? </span>
-        <a href="/register" style={{ color: '#1A73E8', textDecoration: 'underline', fontWeight: 500 }}>Regístrate</a>
-      </div>
-    </ResponsiveLayout>
+    </div>
   );
 };
 

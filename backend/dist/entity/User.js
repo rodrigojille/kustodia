@@ -47,6 +47,10 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "payout_clabe", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 64 }),
+    __metadata("design:type", String)
+], User.prototype, "juno_bank_account_id", void 0);
+__decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], User.prototype, "email_verified", void 0);

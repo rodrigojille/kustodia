@@ -347,25 +347,40 @@ const PaymentRequest: React.FC = () => {
           </div>
           <button
             type="submit"
-            disabled={loading}
+            aria-label="Solicitar pago"
+            disabled={
+              loading ||
+              !payerEmail ||
+              !amount ||
+              warrantyPercent === '' ||
+              custodyDays === '' ||
+              payerValid !== true ||
+              payerVerified !== true
+            }
             style={{
               width: '100%',
-              background: '#43a047',
+              background: (payerValid && payerVerified && payerEmail && amount && warrantyPercent !== '' && custodyDays !== '' && !loading) ? '#43a047' : '#ccc',
               color: '#fff',
               padding: '14px 0',
               borderRadius: 24,
               fontSize: 18,
               border: 'none',
               marginTop: 18,
-              cursor: 'pointer',
+              cursor: (payerValid && payerVerified && payerEmail && amount && warrantyPercent !== '' && custodyDays !== '' && !loading) ? 'pointer' : 'not-allowed',
               fontFamily: 'Montserrat, Arial, sans-serif',
               fontWeight: 600,
               display: 'block',
-              textAlign: 'center'
+              textAlign: 'center',
+              transition: 'background 0.2s, box-shadow 0.2s',
+              boxShadow: '0 2px 8px #E3EAFD',
             }}
           >
             {loading ? 'Solicitando...' : 'Solicitar pago'}
           </button>
+          {payerError && <div style={{ color: '#D32F2F', marginTop: 10, fontWeight: 600, textAlign: 'center' }}>{payerError}</div>}
+          {/* Success message placeholder */}
+          {/* You can add a state like 'success' and show a message here after payment is requested */}
+
           {success && <div style={{ color: '#27ae60', marginTop: 12, fontWeight: 600, textAlign: 'center' }}>Solicitud de pago enviada correctamente.</div>}
           {error && <div style={{ color: '#D32F2F', marginTop: 12, fontWeight: 600, textAlign: 'center' }}>{error}</div>}
         </form>

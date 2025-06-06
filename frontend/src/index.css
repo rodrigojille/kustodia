@@ -10,6 +10,7 @@ html {
 }
 body {
   overflow-x: hidden;
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe 40%, #f1f5f9 100%);
 }
 
 /*

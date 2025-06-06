@@ -15,6 +15,10 @@ export class Payment {
   @Column()
   recipient_email!: string;
 
+  // The user expected to pay a payment request (for request/accept flows)
+  @Column({ nullable: true, length: 255 })
+  payer_email?: string;
+
   @Column("decimal", { precision: 18, scale: 2 })
   amount!: number;
 
@@ -72,6 +76,12 @@ export class Payment {
 
   @Column({ nullable: true, length: 255 })
   commission_beneficiary_email?: string;
+
+  @Column({ nullable: true, length: 18 })
+  commission_beneficiary_clabe?: string;
+
+  @Column({ nullable: true, length: 18 })
+  payer_clabe?: string;
 
   @Column({ default: 'pending' })
   status!: string;

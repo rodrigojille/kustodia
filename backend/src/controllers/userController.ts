@@ -57,7 +57,7 @@ export const register = async (req: Request, res: Response) => {
     await sendEmail({
       to: email,
       subject: "Verifica tu correo electrónico | Kustodia",
-      html: `<p>Hola,</p><p>Por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Si no creaste esta cuenta, puedes ignorar este mensaje.</p>`
+      text: `Hola,\nPor favor verifica tu correo electrónico ingresando al siguiente enlace: ${verifyUrl}\nSi no creaste esta cuenta, puedes ignorar este mensaje.`
     });
     res.status(201).json({ message: "User registered. Verification email sent.", user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
     return;
@@ -201,7 +201,8 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
     await userRepo.save(user);
     // Send welcome email
     await sendWelcomeEmail(user.email, user.full_name);
-    res.json({ success: true, message: "Correo verificado exitosamente." });
+    // Redirect to login page after successful verification
+    res.redirect(302, 'https://kustodia.mx/login');
     return;
   } catch (err) {
     res.status(500).json({ error: "No se pudo verificar el correo.", details: err instanceof Error ? err.message : err });
@@ -247,6 +248,13 @@ export const login = async (req: Request, res: Response) => {
       process.env.JWT_SECRET || 'your_secret_key',
       { expiresIn: '7d' }
     );
+    // Set JWT as httpOnly cookie for SSR and API use
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
     res.json({ message: "Login successful", token, user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
     return;
   } catch (err) {
