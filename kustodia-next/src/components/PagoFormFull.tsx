@@ -25,22 +25,22 @@ export default function PagoFormFull() {
   const [success, setSuccess] = useState(false);
 
   // Recipient validation
-  const [recipientValid, setRecipientValid] = useState<null | boolean>(null);
-  const [recipientVerified, setRecipientVerified] = useState<null | boolean>(null);
+  const [recipientValid, setRecipientValid] = useState<boolean | undefined>(undefined);
+  const [recipientVerified, setRecipientVerified] = useState<boolean | undefined>(undefined);
   const [recipientLoading, setRecipientLoading] = useState(false);
   const [recipientError, setRecipientError] = useState<string | null>(null);
 
   // Commission beneficiary validation
-  const [commissionerValid, setCommissionerValid] = useState<null | boolean>(null);
-  const [commissionerVerified, setCommissionerVerified] = useState<null | boolean>(null);
+  const [commissionerValid, setCommissionerValid] = useState<boolean | undefined>(undefined);
+  const [commissionerVerified, setCommissionerVerified] = useState<boolean | undefined>(undefined);
   const [commissionerLoading, setCommissionerLoading] = useState(false);
   const [commissionerError, setCommissionerError] = useState<string | null>(null);
 
   const validateRecipient = async (email: string) => {
     setRecipientLoading(true);
     setRecipientError(null);
-    setRecipientValid(null);
-    setRecipientVerified(null);
+    setRecipientValid(undefined);
+    setRecipientVerified(undefined);
     try {
       const res = await authFetch('/api/users/verify-recipient', {
         method: 'POST',
@@ -55,8 +55,8 @@ export default function PagoFormFull() {
       else setRecipientError(null);
     } catch {
       setRecipientError('Error validando destinatario. Intenta de nuevo.');
-      setRecipientValid(null);
-      setRecipientVerified(null);
+      setRecipientValid(undefined);
+      setRecipientVerified(undefined);
     }
     setRecipientLoading(false);
   };
@@ -68,8 +68,8 @@ export default function PagoFormFull() {
   const validateCommissioner = async (email: string) => {
     setCommissionerLoading(true);
     setCommissionerError(null);
-    setCommissionerValid(null);
-    setCommissionerVerified(null);
+    setCommissionerValid(undefined);
+    setCommissionerVerified(undefined);
     try {
       const res = await authFetch('/api/users/verify-recipient', {
         method: 'POST',
@@ -84,8 +84,8 @@ export default function PagoFormFull() {
       else setCommissionerError(null);
     } catch {
       setCommissionerError('Error validando beneficiario. Intenta de nuevo.');
-      setCommissionerValid(null);
-      setCommissionerVerified(null);
+      setCommissionerValid(undefined);
+      setCommissionerVerified(undefined);
     }
     setCommissionerLoading(false);
   };
@@ -192,15 +192,15 @@ export default function PagoFormFull() {
         }`}
         style={{ boxShadow: '0 2px 8px #E3EAFD' }}
         disabled={
-          loading ||
-          recipientLoading ||
-          !recipient ||
-          !amount ||
-          warrantyPercent === '' ||
-          custodyDays === '' ||
+          !!loading ||
+          !!recipientLoading ||
+          !Boolean(recipient) ||
+          !Boolean(amount) ||
+          !Boolean(warrantyPercent) ||
+          !Boolean(custodyDays) ||
           !Boolean(recipientValid) ||
           !Boolean(recipientVerified) ||
-          (commissionBeneficiaryEmail && (!Boolean(commissionerValid) || !Boolean(commissionerVerified)))
+          (Boolean(commissionBeneficiaryEmail) && (!Boolean(commissionerValid) || !Boolean(commissionerVerified)))
         }
         aria-label="Enviar pago"
       >
