@@ -47,10 +47,10 @@ export default function LandingPage() {
   return (
     <>
        <Head>
-        <title>Kustodia - Pagos Inteligentes y Seguros en México</title>
-        <meta name="description" content="Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien. ¡Regístrate gratis!" />
-        <meta property="og:title" content="Kustodia - Pagos Inteligentes y Seguros en México" />
-        <meta property="og:description" content="Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien." />
+        <title>Kustodia - Pagos Inteligentes, Custodia y SPEI Seguro con Blockchain</title>
+        <meta name="description" content="Kustodia: pagos inteligentes, custodia y SPEI seguro con tecnología blockchain. Protege tus operaciones y paga solo cuando todo sale bien. ¡Regístrate gratis!" />
+        <meta property="og:title" content="Kustodia - Pagos Inteligentes, Custodia y SPEI Seguro con Blockchain" />
+        <meta property="og:description" content="Kustodia: pagos inteligentes, custodia y SPEI seguro con tecnología blockchain. Protege tus operaciones y paga solo cuando todo sale bien." />
         <meta property="og:image" content="/kustodia-og.png" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://kustodia.mx/" />
@@ -82,8 +82,8 @@ export default function LandingPage() {
         <section className="w-full max-w-screen-xl px-4 mx-auto mb-16 mt-10">
   <div className="bg-white rounded-3xl shadow-2xl border border-indigo-100 p-10 flex flex-col items-center max-w-2xl mx-auto text-center">
     <h1 className="text-4xl sm:text-5xl font-extrabold text-black mb-6 leading-tight">Pagos <span className="text-blue-700">inteligentes y seguros</span> para todos</h1>
-    <p className="text-lg sm:text-xl text-black mb-8">Tan facil y rapido como un SPEI , pero con una capa de seguridad e inteligencia adicional. Paga o cobra con la misma sencillez de siempre, pero con la protección de la tecnologia blockchain.</p>
-    <a href="#early-access" className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition">Regístrate gratis</a>
+    <p className="text-lg sm:text-xl text-black mb-8">Tan fácil y rápido como un SPEI, pero con una capa de seguridad e inteligencia adicional. Paga o cobra con la misma sencillez de siempre, pero con la protección de la tecnología blockchain. Solución de pagos inteligentes, custodia y SPEI seguro con tecnología blockchain.</p>
+    <a href="#early-access" className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition w-full max-w-xs sm:max-w-none sm:w-auto text-center">Regístrate gratis</a>
   </div>
         </section>
 
@@ -113,6 +113,7 @@ export default function LandingPage() {
             <p className="text-gray-700 mb-2">Únete a la lista de espera y sé de los primeros en probar Kustodia.</p>
             <EarlyAccessCounter />
             <EarlyAccessForm />
+            <a href="#early-access" className="mt-6 inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition w-full max-w-xs sm:max-w-none sm:w-auto text-center">Regístrate gratis</a>
           </div>
         </section>
 
@@ -155,6 +156,9 @@ export default function LandingPage() {
             <span className="text-xs text-black text-center">Cumple con normativas</span>
           </div>
         </div>
+      </section>
+      <section className="w-full flex flex-col items-center my-8">
+        <a href="#early-access" className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition w-full max-w-xs sm:max-w-none sm:w-auto text-center">Regístrate gratis</a>
       </section>
       <Footer />
     </>
