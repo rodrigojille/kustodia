@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function VerifyEmailPage() {
+function VerifyEmailInner() {
   const params = useSearchParams();
   const token = params.get("token");
   const [status, setStatus] = useState<"pending" | "success" | "error">("pending");
@@ -48,5 +48,13 @@ export default function VerifyEmailPage() {
         <Link href="/login" className="inline-block bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-700 transition mt-4">Iniciar sesión</Link>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense>
+      <VerifyEmailInner />
+    </Suspense>
   );
 }
