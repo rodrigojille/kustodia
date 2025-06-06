@@ -14,7 +14,11 @@ const app = express();
 app.use(express.json());
 
 // Enable CORS for frontend dev server
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000'];
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://kustodia.mx'
+];
 app.use(cors({
   origin: function(origin, callback) {
     // allow requests with no origin (like mobile apps, curl, etc.)
