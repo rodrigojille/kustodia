@@ -198,9 +198,9 @@ export default function PagoFormFull() {
           !amount ||
           warrantyPercent === '' ||
           custodyDays === '' ||
-          recipientValid !== true && recipientValid !== undefined ||
-          recipientVerified !== true && recipientVerified !== undefined ||
-          (commissionBeneficiaryEmail && (commissionerValid !== true && commissionerValid !== undefined || commissionerVerified !== true && commissionerVerified !== undefined))
+          !recipientValid ||
+          !recipientVerified ||
+          (commissionBeneficiaryEmail && (!commissionerValid || !commissionerVerified))
         }
         aria-label="Enviar pago"
       >
