@@ -10,7 +10,7 @@ interface HeaderProps {
 
 export default function Header({ className = "", isAuthenticated, userName }: HeaderProps) {
   return (
-    <header className={`sticky top-0 z-30 bg-white shadow-sm px-4 sm:px-8 py-3 flex items-center justify-between border-b border-black ${className}`}>
+    <header className={`sticky top-0 z-30 bg-white shadow-sm px-4 sm:px-8 py-3 flex items-center justify-between ${className}`}>
       <div className="font-bold text-xl tracking-tight text-blue-700 flex items-center gap-2">
         <Link href="/">
   <Image src="/kustodia-logo.png" alt="Kustodia Logo" width={40} height={40} className="h-10 w-10 mr-2 cursor-pointer" priority />

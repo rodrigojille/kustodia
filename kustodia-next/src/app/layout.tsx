@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   title: "Kustodia - Pagos Inteligentes y Seguros en México",
   description: "Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien. ¡Regístrate gratis!",
   icons: {
-    icon: "/kustodia-logo.png",
-  },
+    icon: "/favicon.svg",
+  }
   openGraph: {
     title: "Kustodia - Pagos Inteligentes y Seguros en México",
     description: "Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien.",
@@ -50,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className={`${inter.variable} antialiased`}>
         {children}
