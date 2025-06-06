@@ -14,7 +14,8 @@ const EarlyAccessModal: React.FC<EarlyAccessModalProps> = ({ open, onClose }) =>
   const [zeroFee, setZeroFee] = useState<boolean>(false);
   useEffect(() => {
     if (open) {
-      fetch('/api/early-access-counter/slots')
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://kustodia-backend-f991a7cb1824.herokuapp.com";
+      fetch(`${API_BASE}/api/early-access-counter/slots`)
         .then(res => res.json())
         .then(data => setSlots(data.slots))
         .catch(() => setSlots(null));
