@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: "Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien. ¡Regístrate gratis!",
   icons: {
     icon: "/favicon.svg",
-  }
+  },
   openGraph: {
     title: "Kustodia - Pagos Inteligentes y Seguros en México",
     description: "Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien.",
