@@ -113,7 +113,6 @@ export default function LandingPage() {
             <p className="text-gray-700 mb-2">Únete a la lista de espera y sé de los primeros en probar Kustodia.</p>
             <EarlyAccessCounter />
             <EarlyAccessForm />
-            <a href="#early-access" className="mt-6 inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition w-full max-w-xs sm:max-w-none sm:w-auto text-center">Regístrate gratis</a>
           </div>
         </section>
 
