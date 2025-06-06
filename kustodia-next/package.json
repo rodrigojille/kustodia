@@ -22,6 +22,7 @@
     "@emnapi/wasi-threads": "1.0.2",
     "@eslint/eslintrc": "^3",
     "@napi-rs/wasm-runtime": "0.2.10",
+    "@netlify/plugin-nextjs": "^5.11.2",
     "@tailwindcss/postcss": "^4",
     "@tybys/wasm-util": "0.9.0",
     "@types/node": "^20",
