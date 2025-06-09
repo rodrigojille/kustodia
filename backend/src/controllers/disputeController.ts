@@ -78,6 +78,20 @@ export const raiseDispute = async (req: Request, res: Response): Promise<void> =
     { action: "raised", by: userId, reason, details, evidence, at: new Date() }
   ];
   await escrowRepo.save(escrow);
+
+  // Add PaymentEvent for dispute raised (for timeline)
+  try {
+    const paymentEventRepo = ormconfig.getRepository(require("../entity/PaymentEvent").PaymentEvent);
+    await paymentEventRepo.save(paymentEventRepo.create({
+      paymentId: escrow.payment.id,
+      type: 'dispute_raised',
+      description: `Disputa levantada por el usuario. Motivo: ${reason}`,
+    }));
+  } catch (e) {
+    // Log but don't block dispute creation
+    console.error('Failed to create PaymentEvent for dispute:', e);
+  }
+
   res.json({ success: true, message: "Dispute submitted.", dispute: { status: escrow.dispute_status } });
 }
 

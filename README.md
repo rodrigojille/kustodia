@@ -85,6 +85,28 @@ Fecha/hora fin (UTC):      2025-05-30T23:59:08.000Z
 
 ---
 
+## Scripts y Automatización: Mapeo Paso a Paso
+
+| Paso                          | Script/Proceso           | Cambio de Estado         | Eventos/Logging               |
+|-------------------------------|--------------------------|--------------------------|-------------------------------|
+| Creación de pago              | Backend API              | pending                  | payment_created               |
+| Detección de depósito SPEI    | sync_juno_deposits.ts    | pending → funded         | funded                        |
+| Fondeo de escrow on-chain     | sendEscrowFunds.ts       | funded → active          | escrow_funded_onchain         |
+| Periodo de custodia           | (no script)              | active                   |                               |
+| Liberación de escrow          | releaseEscrowFunds.ts    | active → released        | escrow_released               |
+| Redención y payout            | redeemAndPayout.ts       | released → paid          | redemption/payout events      |
+| Acciones manuales/admin       | manual* scripts          | cualquiera               | cualquiera                    |
+
+### Descripción de Scripts Principales
+
+- **sync_juno_deposits.ts**: Sincroniza depósitos SPEI detectados por Juno, hace match con pagos pendientes y actualiza el estado y eventos.
+- **sendEscrowFunds.ts**: Toma un escrow fondeado y realiza la transacción on-chain para bloquear MXNBs en el smart contract, actualizando hashes y eventos.
+- **releaseEscrowFunds.ts**: Automatiza la liberación de fondos en el smart contract al terminar la custodia, actualiza el estado y registra eventos.
+- **redeemAndPayout.ts**: Redime MXNBs liberados vía Juno y realiza payout SPEI al vendedor, registrando todos los eventos relevantes.
+- **manualEscrowEventUpdate.ts, manualEscrowOnchainUpdate.ts**: Scripts utilitarios para corrección o logging retroactivo por parte de admin.
+
+---
+
 ## Solicitud de Pago y Aceptación (Payment Request Flow)
 
 ### Resumen

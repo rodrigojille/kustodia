@@ -63,6 +63,27 @@ const PaymentTracker: React.FC = () => {
         <img src={logoUrl} alt="Kustodia Logo" style={{ width: 64, height: 64, display: 'block', margin: '0 auto', borderRadius: 12, boxShadow: '0 2px 8px #E3EAFD' }} />
       </a>
       <h2 style={{ color: '#1A73E8', marginTop: 0, marginBottom: 28, fontFamily: 'Montserrat, Arial, sans-serif', textAlign: 'center', fontWeight: 800, fontSize: 28, letterSpacing: 0.5 }}>Seguimiento de pago</h2>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          style={{
+            background: '#1976d2',
+            color: '#fff',
+            padding: '10px 28px',
+            borderRadius: 20,
+            fontSize: 16,
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'Montserrat, Arial, sans-serif',
+            fontWeight: 600,
+            boxShadow: '0 2px 8px #E3EAFD',
+            marginBottom: 0
+          }}
+        >
+          Imprimir
+        </button>
+      </div>
       {loading ? (
         <div style={{ margin: '32px 0', color: '#888' }}>Cargando información del pago...</div>
       ) : error ? (
@@ -103,38 +124,46 @@ const PaymentTracker: React.FC = () => {
               {paymentEvents.length === 0 && (
                 <li style={{ color: '#888' }}>Sin eventos registrados.</li>
               )}
-              {paymentEvents.map(event => {
-  // Mapeo de tipos a español, estilos y emoji
-  const typeMap: Record<string, { label: string; color: string; icon: string }> = {
-    initiated: { label: 'Pago iniciado', color: '#1976d2', icon: '💸' },
-    escrow_created: { label: 'Custodia creada', color: '#388e3c', icon: '🔒' },
-    deposit_received: { label: 'Depósito recibido', color: '#0288d1', icon: '🏦' },
-    payout_released: { label: 'Monto liberado al vendedor', color: '#6d4c41', icon: '✅' },
-    redemption_initiated: { label: 'Redención iniciada', color: '#757575', icon: '🔄' },
-    redemption_success: { label: 'Redención exitosa', color: '#388e3c', icon: '💱' },
-    redemption_failed: { label: 'Redención fallida', color: '#d32f2f', icon: '❌' },
-    payout_completed: { label: 'Pago completado', color: '#1976d2', icon: '💵' },
-    payout_initiated: { label: 'Pago iniciado', color: '#1e88e5', icon: '🏁' },
-    dispute_opened: { label: 'Disputa abierta', color: '#fbc02d', icon: '⚠️' },
-    dispute_resolved: { label: 'Disputa resuelta', color: '#388e3c', icon: '🤝' },
-    // Agrega aquí otros tipos de eventos según sea necesario
-  };
-  const typeInfo = typeMap[event.type] || { label: event.type, color: '#888', icon: '📝' };
-
-  return (
-    <li key={event.id} style={{ marginBottom: 8, display: 'flex', alignItems: 'center' }}>
-      <span style={{ color: '#222', fontWeight: 600, minWidth: 90 }}>{new Date(event.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-      <span style={{
-        display: 'inline-flex', alignItems: 'center', background: typeInfo.color,
-        color: '#fff', borderRadius: 6, padding: '2px 10px', marginLeft: 10,
-        fontWeight: 700, fontSize: 14, fontFamily: 'Montserrat, Arial, sans-serif', letterSpacing: 0.3
-      }}>
-        <span style={{ marginRight: 7 }}>{typeInfo.icon}</span>{typeInfo.label}
-      </span>
-
-    </li>
-  );
-})}
+              {(() => {
+                const typeMap: Record<string, { label: string; color: string; icon: string }> = {
+                  initiated: { label: 'Pago iniciado', color: '#1976d2', icon: '💸' },
+                  escrow_create: { label: 'MXNB bloqueados en escrow on-chain', color: '#ffb300', icon: '🔒' },
+                  spei_payout_initiated: { label: 'Pago SPEI al vendedor iniciado', color: '#43a047', icon: '🏦' },
+                  mxnb_redeemed: { label: 'Redención MXNB iniciada', color: '#0288d1', icon: '🔄' },
+                  dispute_raised: { label: 'Disputa iniciada', color: '#d32f2f', icon: '⚠️' },
+                  dispute_resolved: { label: 'Disputa resuelta', color: '#388e3c', icon: '✅' },
+                  deposit_received: { label: 'Depósito recibido', color: '#0288d1', icon: '🏦' },
+                  payout_released: { label: 'Monto liberado al vendedor', color: '#6d4c41', icon: '✅' },
+                  redemption_initiated: { label: 'Redención iniciada', color: '#757575', icon: '🔄' },
+                  redemption_success: { label: 'Redención exitosa', color: '#388e3c', icon: '💱' },
+                  redemption_failed: { label: 'Redención fallida', color: '#d32f2f', icon: '❌' },
+                  payout_completed: { label: 'Pago completado', color: '#1976d2', icon: '💵' },
+                  payout_initiated: { label: 'Pago iniciado', color: '#1e88e5', icon: '🏁' },
+                  dispute_opened: { label: 'Disputa abierta', color: '#fbc02d', icon: '⚠️' },
+                };
+                return paymentEvents.map(event => {
+                  const typeInfo = typeMap[event.type] || { label: event.type, color: '#888', icon: '📝' };
+                  return (
+                    <li key={event.id} style={{ marginBottom: 8, display: 'flex', alignItems: 'center' }}>
+                      <span style={{ color: '#222', fontWeight: 600, minWidth: 90 }}>{new Date(event.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', background: typeInfo.color,
+                        color: '#fff', borderRadius: 6, padding: '2px 10px', marginLeft: 10,
+                        fontWeight: 700, fontSize: 14, fontFamily: 'Montserrat, Arial, sans-serif', letterSpacing: 0.3
+                      }}>
+                        <span style={{ marginRight: 7 }}>{typeInfo.icon}</span>{typeInfo.label}
+                      </span>
+                      {/* Show dispute reason/details if available */}
+                      {['dispute_raised', 'dispute_resolved'].includes(event.type) && event.data && (
+                        <span style={{ marginLeft: 12, color: '#d84315', fontWeight: 500 }}>
+                          {event.data.reason && <span>Motivo: {event.data.reason}. </span>}
+                          {event.data.details && <span>Detalles: {event.data.details}</span>}
+                        </span>
+                      )}
+                    </li>
+                  );
+                });
+              })()}
             </ul>
           </div>
           {/* Dispute Button at the bottom */}
@@ -205,10 +234,21 @@ const PaymentTracker: React.FC = () => {
                 <div style={{ marginBottom: 12 }}>
                   <strong>Porcentaje en custodia:</strong> {payment.escrow?.custody_percent ? payment.escrow.custody_percent + '%' : 'N/A'}
                 </div>
-                {/* Días en custodia */}
+                {/* Días en custodia y Fin de custodia */}
                 <div style={{ marginBottom: 12 }}>
-                  <strong>Días en custodia:</strong> {payment.escrow?.custody_end && payment.escrow?.created_at ? Math.round((new Date(payment.escrow.custody_end).getTime() - new Date(payment.escrow.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'}
+                  <strong>Días en custodia:</strong> {payment.escrow?.custody_end && payment.escrow?.created_at
+                    ? Math.round((new Date(payment.escrow.custody_end).getTime() - new Date(payment.escrow.created_at).getTime()) / (1000 * 60 * 60 * 24))
+                    : 'N/A'}
+                  <br />
+                  <strong>Fin de custodia:</strong> {payment.escrow?.custody_end
+                    ? new Date(payment.escrow.custody_end).toLocaleString('es-MX')
+                    : 'N/A'}
                 </div>
+                {/* Countdown tiempo restante en custodia (on-chain) */}
+                {payment.escrow?.onchain_deadline && (
+                  <EscrowCountdown deadline={payment.escrow.onchain_deadline} />
+                )}
+
                 {/* Monto en custodia */}
                 <div style={{ marginBottom: 12 }}>
                   <strong>Monto a mantener en custodia:</strong> ${['released', 'completed', 'paid'].includes(payment.escrow.status) ? '0.00' : Number(payment.escrow.custody_amount).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
@@ -233,8 +273,73 @@ const PaymentTracker: React.FC = () => {
             </React.Fragment>
           )}
         </div>
+        {/* Disputar button logic */}
+        {payment && payment.escrow &&
+          !['released', 'completed', 'paid'].includes(payment.escrow.status) &&
+          !['pending', 'resolved'].includes(payment.escrow.dispute_status) && (
+            <div style={{ textAlign: 'center', marginTop: 28 }}>
+              <button
+                type="button"
+                style={{
+                  background: '#D32F2F',
+                  color: '#fff',
+                  padding: '14px 32px',
+                  borderRadius: 24,
+                  fontSize: 18,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'Montserrat, Arial, sans-serif',
+                  fontWeight: 600,
+                  boxShadow: '0 2px 8px #FEE',
+                  marginBottom: 12
+                }}
+                onClick={() => setShowDispute(true)}
+              >
+                Disputar pago
+              </button>
+              <div style={{ color: '#D32F2F', fontSize: 14, marginTop: 8 }}>
+                ¿Tienes un problema con este pago? Haz clic para iniciar una disputa y detendremos la liberación automática de fondos.
+              </div>
+            </div>
+          )}
+        <DisputeModal
+          open={showDispute}
+          onClose={() => setShowDispute(false)}
+          escrowId={payment?.escrow?.id}
+        />
       )}
     </ResponsiveLayout>
+  );
+};
+
+// Countdown component for escrow custody period
+const EscrowCountdown: React.FC<{ deadline: number }> = ({ deadline }) => {
+  const [timeLeft, setTimeLeft] = useState(deadline - Math.floor(Date.now() / 1000));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft(deadline - Math.floor(Date.now() / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [deadline]);
+
+  if (timeLeft <= 0) {
+    return (
+      <div style={{ marginBottom: 12, background: '#e0f7fa', color: '#00796b', padding: '8px 12px', borderRadius: 8, fontWeight: 600, fontFamily: 'Montserrat, Arial, sans-serif', fontSize: 15 }}>
+        ¡Custodia finalizada! Los fondos pueden ser liberados.
+      </div>
+    );
+  }
+
+  const days = Math.floor(timeLeft / 86400);
+  const hours = Math.floor((timeLeft % 86400) / 3600);
+  const minutes = Math.floor((timeLeft % 3600) / 60);
+  const seconds = timeLeft % 60;
+
+  return (
+    <div style={{ marginBottom: 12, background: '#e8f0fe', color: '#1A73E8', padding: '8px 12px', borderRadius: 8, fontWeight: 600, fontFamily: 'Montserrat, Arial, sans-serif', fontSize: 15 }}>
+      Tiempo restante en custodia: {days}d {hours}h {minutes}m {seconds}s
+    </div>
   );
 };
 

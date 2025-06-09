@@ -68,6 +68,21 @@ export const requestPayment = async (req: Request, res: Response): Promise<void>
       status: 'requested'
     });
     await paymentRepo.save(payment);
+
+    // Notificación por email a pagador, vendedor y beneficiario de comisión (si existe)
+    const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
+    const recipients = [
+      { email: payer_email, role: 'payer' },
+      { email: tokenUser.email, role: 'seller' }
+    ];
+    await sendPaymentEventNotification({
+      eventType: 'payment_created',
+      paymentId: payment.id.toString(),
+      paymentDetails: payment,
+      recipients,
+      commissionBeneficiaryEmail: commission_beneficiary_email || undefined
+    });
+
     res.json({ success: true, payment });
   } catch (err) {
     res.status(500).json({ error: 'Error al solicitar pago', details: err instanceof Error ? err.message : err });

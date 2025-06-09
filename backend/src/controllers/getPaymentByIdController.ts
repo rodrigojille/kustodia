@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import ormconfig from "../ormconfig";
 import { Payment } from "../entity/Payment";
+import { generatePaymentHMAC } from "../utils/hmac";
+
+import { fetchJunoTxDetails } from '../utils/junoTxDetails';
 
 export const getPaymentById = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -11,6 +14,7 @@ export const getPaymentById = async (req: Request, res: Response): Promise<void>
     }
     const paymentRepo = ormconfig.getRepository(Payment);
     const userRepo = ormconfig.getRepository(require("../entity/User").User);
+    const paymentEventRepo = ormconfig.getRepository(require("../entity/PaymentEvent").PaymentEvent);
     const payment = await paymentRepo.findOne({ where: { id: Number(id) }, relations: ["user", "escrow"] });
     if (!payment) {
       res.status(404).json({ error: "Payment not found" });
@@ -26,9 +30,45 @@ export const getPaymentById = async (req: Request, res: Response): Promise<void>
         recipient_full_name = recipient.full_name;
       }
     }
+    const hmac = generatePaymentHMAC({
+      id: payment.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      payer_email: payment.payer_email || '',
+      recipient_email: payment.recipient_email || '',
+      created_at: payment.created_at,
+    });
+    let junoIssuanceTxHash: string | undefined = undefined;
+    let junoTimeline: any[] | undefined = undefined;
+    if (payment.transaction_id) {
+      try {
+        const junoTx = await fetchJunoTxDetails(payment.transaction_id);
+        junoTimeline = junoTx.timeline;
+        const issuanceStep = junoTimeline?.find((step: any) => step.step === 'Tokens issued');
+        if (issuanceStep && issuanceStep.receipt && issuanceStep.receipt.startsWith('0x')) {
+          junoIssuanceTxHash = issuanceStep.receipt;
+        }
+      } catch (e) {
+        // If Juno API fails, skip but do not block payment details
+        junoTimeline = undefined;
+        junoIssuanceTxHash = undefined;
+      }
+    }
     res.json({
       payment: {
-        ...payment,
+        id: payment.id,
+        status: payment.status,
+        payer_email: payment.payer_email,
+        recipient_email: payment.recipient_email,
+        amount: payment.amount,
+        currency: payment.currency,
+        description: payment.description,
+        deposit_clabe: payment.deposit_clabe,
+        payout_clabe: payment.payout_clabe,
+        reference: payment.reference,
+        created_at: payment.created_at,
+        transaction_id: payment.transaction_id, // Juno deposit ID for traceability
+        blockchain_tx_hash: payment.blockchain_tx_hash, // On-chain tx hash if available
         escrow: payment.escrow
           ? {
               id: payment.escrow.id,
@@ -47,10 +87,23 @@ export const getPaymentById = async (req: Request, res: Response): Promise<void>
               dispute_details: payment.escrow.dispute_details,
               dispute_evidence: payment.escrow.dispute_evidence,
               dispute_history: payment.escrow.dispute_history,
+              // Add on-chain deadline if available
+              onchain_deadline: payment.escrow.smart_contract_escrow_id
+                ? (await require('../services/escrowService').getEscrow(Number(payment.escrow.smart_contract_escrow_id))).deadline?.toNumber?.() ?? null
+                : null
             }
           : undefined,
         recipient_deposit_clabe,
-        recipient_full_name
+        recipient_full_name,
+        hmac,
+        events: (await paymentEventRepo.find({ where: { paymentId: payment.id }, order: { created_at: 'ASC' } })).map(ev => ({
+          type: ev.type,
+          description: ev.description,
+          created_at: ev.created_at,
+        })),
+        juno_issuance_tx_hash: junoIssuanceTxHash,
+        juno_transaction_id: payment.transaction_id,
+        juno_timeline: junoTimeline
       }
     });
   } catch (err) {

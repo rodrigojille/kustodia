@@ -51,6 +51,7 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
     const payment = paymentRepo.create({
       user: user as any, // typeorm expects entity or id
       recipient_email,
+      payer_email: req.body.payer_email || user.email, // guarda el email del pagador si viene, si no el del usuario
       amount: Math.trunc(Number(amount)),
       currency,
       description,
@@ -91,12 +92,7 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
       custody_end: new Date(Date.now() + custodyPeriod * 24 * 60 * 60 * 1000)
     });
     await escrowRepo.save(escrow);
-    // Registrar evento: Custodia creada
-    await paymentEventRepo.save(paymentEventRepo.create({
-      paymentId: payment.id,
-      type: 'escrow_created',
-      description: '🔒 Custodia creada'
-    }));
+    // NO crear evento de custodia aquí. Se creará cuando se fondeen los fondos.
     payment.status = "pending";
     payment.escrow = escrow;
     await paymentRepo.save(payment);
@@ -311,6 +307,29 @@ export const junoWebhook = async (req: Request, res: Response): Promise<void> =>
       type: 'deposit_received',
       description: ' Depósito recibido'
     }));
+    // Registrar evento: Custodia creada (cuando los fondos ya están)
+    await paymentEventRepo.save(paymentEventRepo.create({
+      paymentId: payment.id,
+      type: 'escrow_created',
+      description: '🔒 Custodia creada'
+    }));
+    // Notificación por email a pagador, vendedor y beneficiario de comisión (si existe)
+    try {
+      const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
+      const recipients = [
+        { email: payment.payer_email, role: 'payer' },
+        { email: payment.recipient_email, role: 'seller' }
+      ];
+      await sendPaymentEventNotification({
+        eventType: 'escrow_created',
+        paymentId: payment.id.toString(),
+        paymentDetails: payment,
+        recipients,
+        commissionBeneficiaryEmail: payment.commission_beneficiary_email || undefined
+      });
+    } catch (err) {
+      console.error('Error enviando notificación de escrow_created:', err);
+    }
     // Update payment status and link to JunoTransaction
     payment.status = 'funded';
     // Find or create JunoTransaction

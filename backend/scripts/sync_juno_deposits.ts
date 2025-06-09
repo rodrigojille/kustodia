@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import ormconfig from '../src/ormconfig';
 import { Payment } from '../src/entity/Payment';
 import { JunoTransaction } from '../src/entity/JunoTransaction';
+import { PaymentEvent } from '../src/entity/PaymentEvent';
 import crypto from 'crypto';
 import 'dotenv/config';
 import { sendEmail } from '../src/utils/emailService';
@@ -79,6 +80,7 @@ async function syncJunoDeposits() {
   const dataSource = await ormconfig.initialize();
   const depositRepo = dataSource.getRepository(JunoTransaction);
   const paymentRepo = dataSource.getRepository(Payment);
+  const paymentEventRepo = dataSource.getRepository(PaymentEvent);
 
   const deposits = await fetchDeposits();
   const unmatched: any[] = [];
@@ -110,11 +112,32 @@ async function syncJunoDeposits() {
       payment.status = 'funded';
       payment.transaction_id = dep.fid;
       await paymentRepo.save(payment);
+
+      // Create a PaymentEvent for traceability
+      await paymentEventRepo.save(paymentEventRepo.create({
+        paymentId: payment.id,
+        type: 'funded',
+        description: `Pago fondeado vía depósito SPEI Juno. Deposit ID: ${dep.fid}`
+      }));
     } else {
       unmatched.push(dep);
     }
   }
-  await notifyAdmin(unmatched);
+  // await notifyAdmin(unmatched);
+
+  // Retroactively add funded events for already-funded payments missing the event
+  const fundedPayments = await paymentRepo.find({ where: { status: 'funded' } });
+  for (const payment of fundedPayments) {
+    const hasFundedEvent = await paymentEventRepo.findOne({ where: { paymentId: payment.id, type: 'funded' } });
+    if (!hasFundedEvent) {
+      await paymentEventRepo.save(paymentEventRepo.create({
+        paymentId: payment.id,
+        type: 'funded',
+        description: `Evento retroactivo: Pago fondeado (sincronización SPEI)`
+      }));
+    }
+  }
+
   console.log(`[${new Date().toISOString()}] Sync Juno deposits completed`);
 }
 
