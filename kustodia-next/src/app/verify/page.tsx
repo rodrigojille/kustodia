@@ -1,7 +1,7 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 function PaymentTimeline({ events }: { events: any[] }) {
@@ -64,38 +64,40 @@ export default function VerifyPage() {
   }, [paymentId]);
 
   return (
-    <div className="min-h-screen bg-blue-50 flex items-center justify-center py-8 px-2">
-      <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-blue-100 p-8">
-        <h1 className="text-2xl font-bold text-blue-700 mb-4 text-center">Verificación de pago</h1>
-        {loading ? (
-          <div className="text-center text-blue-600">Cargando información...</div>
-        ) : error ? (
-          <div className="bg-red-100 text-red-700 p-4 rounded text-center mb-4">{error}</div>
-        ) : payment ? (
-          <>
-            <div className="mb-4 text-center">
-              <span className={`inline-block px-3 py-1 rounded-full text-white text-sm font-semibold ${payment.status === 'completed' ? 'bg-green-600' : payment.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-400'}`}>{payment.status === 'completed' ? 'Pagado' : payment.status === 'pending' ? 'Pendiente' : payment.status}</span>
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">ID del pago:</span> {payment.id}
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">Pagador:</span> {payment.payer_email}
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">Monto:</span> {Number(payment.amount).toLocaleString('es-MX', { style: 'currency', currency: payment.currency })}
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">Descripción:</span> {payment.description}
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">CLABE de depósito:</span> {payment.deposit_clabe}
-            </div>
-            <PaymentTimeline events={events} />
-            <div className="mt-6 text-center text-xs text-gray-500">Esta página es pública y no requiere iniciar sesión.</div>
-          </>
-        ) : null}
+    <Suspense fallback={<div className="text-center text-blue-600">Cargando información...</div>}>
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center py-8 px-2">
+        <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-blue-100 p-8">
+          <h1 className="text-2xl font-bold text-blue-700 mb-4 text-center">Verificación de pago</h1>
+          {loading ? (
+            <div className="text-center text-blue-600">Cargando información...</div>
+          ) : error ? (
+            <div className="bg-red-100 text-red-700 p-4 rounded text-center mb-4">{error}</div>
+          ) : payment ? (
+            <>
+              <div className="mb-4 text-center">
+                <span className={`inline-block px-3 py-1 rounded-full text-white text-sm font-semibold ${payment.status === 'completed' ? 'bg-green-600' : payment.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-400'}`}>{payment.status === 'completed' ? 'Pagado' : payment.status === 'pending' ? 'Pendiente' : payment.status}</span>
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">ID del pago:</span> {payment.id}
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Pagador:</span> {payment.payer_email}
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Monto:</span> {Number(payment.amount).toLocaleString('es-MX', { style: 'currency', currency: payment.currency })}
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Descripción:</span> {payment.description}
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">CLABE de depósito:</span> {payment.deposit_clabe}
+              </div>
+              <PaymentTimeline events={events} />
+              <div className="mt-6 text-center text-xs text-gray-500">Esta página es pública y no requiere iniciar sesión.</div>
+            </>
+          ) : null}
+        </div>
       </div>
-    </div>
+    </Suspense>
   );
 }
