@@ -93,8 +93,10 @@ export default function PaymentsTable() {
           <option value="paid">Pagado</option>
           <option value="pending">Pendiente</option>
           <option value="requested">Solicitado</option>
-          <option value="funded">En progreso</option>
-<option value="dispute">En disputa</option>
+          <option value="funded">Fondeado</option>
+          <option value="in_dispute">En disputa</option>
+          <option value="cancelled">Cancelado</option>
+          <option value="refunded">Reembolsado</option>
         </select>
         <input
           type="date"
@@ -141,17 +143,30 @@ export default function PaymentsTable() {
                   <td className="py-2 px-2 text-black">
                     <span className={
                       `inline-block px-2 py-1 rounded text-xs font-bold ` +
-                      (p.status === 'paid' || p.status === 'Completado'
+                      (p.status === 'paid'
                         ? 'bg-green-100 text-green-700'
-                        : p.status === 'pending' || p.status === 'requested'
+                        : p.status === 'pending'
                         ? 'bg-yellow-100 text-yellow-700'
+                        : p.status === 'requested'
+                        ? 'bg-green-100 text-green-700'
                         : p.status === 'funded'
+                        ? 'bg-blue-100 text-blue-700'
+                        : p.status === 'in_dispute'
                         ? 'bg-red-100 text-red-700'
+                        : p.status === 'cancelled'
+                        ? 'bg-gray-100 text-gray-600'
+                        : p.status === 'refunded'
+                        ? 'bg-purple-100 text-purple-700'
                         : 'bg-gray-100 text-gray-600')
                     }>
-                      {p.status === 'paid' || p.status === 'Completado' ? 'Pagado' :
-                       p.status === 'pending' || p.status === 'requested' ? 'Pendiente' :
-                       p.status === 'funded' ? 'En progreso' : p.status === 'dispute' ? 'En disputa' : p.status}
+                      {p.status === 'paid' ? 'Pagado' :
+                       p.status === 'pending' ? 'Pendiente' :
+                       p.status === 'requested' ? 'Solicitado' :
+                       p.status === 'funded' ? 'Fondeado' :
+                       p.status === 'in_dispute' ? 'En disputa' :
+                       p.status === 'cancelled' ? 'Cancelado' :
+                       p.status === 'refunded' ? 'Reembolsado' :
+                       p.status}
                     </span>
                   </td>
                   <td className="py-2 px-2 text-black max-w-[160px] truncate" title={p.description || ''}>{p.description || '-'}</td>

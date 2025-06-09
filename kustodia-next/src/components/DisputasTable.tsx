@@ -1,19 +1,47 @@
 "use client";
-import React, { useState } from "react";
-
-const MOCK_DISPUTAS = [
-  { id: "d1", fecha: "2025-06-01", estado: "abierta", descripcion: "Pago no recibido" },
-  { id: "d2", fecha: "2025-06-02", estado: "resuelta", descripcion: "Disputa resuelta a favor" },
-  { id: "d3", fecha: "2025-06-03", estado: "en proceso", descripcion: "En revisión" },
-];
+import React, { useState, useEffect } from "react";
 
 export default function DisputasTable() {
+  const [disputas, setDisputas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
-  const filtered = MOCK_DISPUTAS.filter(d =>
-    (!search || d.descripcion.toLowerCase().includes(search.toLowerCase()) || d.id.includes(search)) &&
-    (!status || d.estado === status)
-  );
+
+  useEffect(() => {
+    setLoading(true);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    fetch("/api/admin/disputes", {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Error al cargar disputas");
+        return res.json();
+      })
+      .then(data => {
+        setDisputas(data.disputes || []);
+        setLoading(false);
+      })
+      .catch(e => {
+        setError(e.message);
+        setLoading(false);
+      });
+  }, []);
+
+  // Map backend fields to expected frontend fields
+  const mappedDisputas = disputas.map(d => ({
+    id: d.id,
+    fecha: d.created_at ? new Date(d.created_at).toLocaleDateString() : '',
+    estado: d.status || '',
+    descripcion: d.description || d.details || d.reason || '',
+  }));
+
+  const filtered = mappedDisputas.filter(d => {
+    const desc = d.descripcion || '';
+    const id = d.id?.toString() || '';
+    return (!search || desc.toLowerCase().includes(search.toLowerCase()) || id.includes(search)) &&
+      (!status || d.estado === status);
+  });
   function exportCSV() {
     const headers = ["Fecha", "ID", "Estado", "Descripción"];
     const rows = filtered.map(d => [d.fecha, d.id, d.estado, d.descripcion]);

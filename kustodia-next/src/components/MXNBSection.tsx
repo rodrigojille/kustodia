@@ -20,7 +20,7 @@ const MXNBSection: React.FC = () => (
       <li><span className="font-semibold text-blue-700">Automatización:</span> Los smart contracts aseguran que los pagos se liberen solo cuando se cumplen las condiciones pactadas.</li>
       <li><span className="font-semibold text-blue-700">Seguridad:</span> Tus fondos están protegidos y custodiados hasta que ambas partes estén de acuerdo.</li>
       <li><span className="font-semibold text-blue-700">Autonomía:</span> Las reglas se cumplen solas, sin personas de por medio.</li>
-      <li><span className="font-semibold text-blue-700">Claridad:</span> No hay trucos ni sorpresas: todo es automático y transparente.</li>
+      <li><span className="font-semibold text-blue-700">Fiabilidad:</span> No hay trucos ni sorpresas: todo es automático y transparente.</li>
     </ul>
   </section>
 );

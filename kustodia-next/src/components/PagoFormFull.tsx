@@ -20,6 +20,7 @@ export default function PagoFormFull() {
   const [commissionBeneficiaryName, setCommissionBeneficiaryName] = useState("");
   const [commissionBeneficiaryEmail, setCommissionBeneficiaryEmail] = useState("");
   const [commissionAmount, setCommissionAmount] = useState("N/A");
+  const [showCommission, setShowCommission] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -94,8 +95,6 @@ export default function PagoFormFull() {
     if (commissionBeneficiaryEmail) validateCommissioner(commissionBeneficiaryEmail);
   };
 
-  // Duplicate state declarations removed below this line
-
   React.useEffect(() => {
     if (amount && commissionPercent) {
       const calc = Number(amount) * Number(commissionPercent) / 100;
@@ -111,19 +110,55 @@ export default function PagoFormFull() {
     setError(null);
     setSuccess(false);
     try {
-      const res = await authFetch("/api/payments/initiate", {
+      // Solo incluir campos de comisión si hay porcentaje de comisión
+      const commissionFields = commissionPercent
+        ? {
+            commission_percent: Number(commissionPercent),
+            commission_amount: commissionAmount !== '' && commissionAmount !== 'N/A' ? Number(commissionAmount) : undefined,
+            commission_beneficiary_name: commissionBeneficiaryName || undefined,
+            commission_beneficiary_email: commissionBeneficiaryEmail || undefined,
+          }
+        : {};
+      // Obtener user_id antes de enviar el pago
+      let user_id = null;
+      let payer_email = null;
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const resUser = await authFetch(`${process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000"}/api/users/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const userData = await resUser.json();
+        if (resUser.ok && userData.user && userData.user.id && userData.user.email) {
+          user_id = userData.user.id;
+          payer_email = userData.user.email;
+        } else {
+          setError("No se pudo obtener el usuario actual.");
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setError("Error de conexión al obtener usuario actual.");
+        setLoading(false);
+        return;
+      }
+      const payload = {
+        user_id,
+        payer_email,
+        recipient_email: recipient,
+        amount: Number(amount),
+        currency: 'MXN',
+        description,
+        custody_percent: warrantyPercent ? Number(warrantyPercent) : null,
+        custody_period: custodyDays ? Number(custodyDays) : null,
+        ...commissionFields,
+      };
+
+      console.log('Payload enviado a /api/payments/initiate:', payload);
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+      const res = await authFetch(`${apiBase}/api/payments/initiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipient,
-          amount: Number(amount),
-          description,
-          warranty_percent: warrantyPercent ? Number(warrantyPercent) : undefined,
-          custody_days: custodyDays ? Number(custodyDays) : undefined,
-          commission_percent: commissionPercent ? Number(commissionPercent) : undefined,
-          commission_beneficiary_name: commissionBeneficiaryName || undefined,
-          commission_beneficiary_email: commissionBeneficiaryEmail || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -165,28 +200,65 @@ export default function PagoFormFull() {
       <input type="text" className="input w-full text-black placeholder-black" placeholder="Descripción o propósito del pago (opcional)" value={description} onChange={e => setDescription(e.target.value)} />
       <input type="number" className="input w-full text-black placeholder-black" placeholder="% bajo garantía (0-100)" value={warrantyPercent} onChange={e => setWarrantyPercent(e.target.value)} min={0} max={100} />
       <input type="number" className="input w-full text-black placeholder-black" placeholder="Días en custodia (mínimo 1)" value={custodyDays} onChange={e => setCustodyDays(e.target.value)} min={1} />
-      <div className="mt-4 mb-2 font-semibold text-black">Comisión (opcional)</div>
-      <input type="number" className="input w-full text-black placeholder-black" placeholder="% de comisión (ej. 5)" value={commissionPercent} onChange={e => setCommissionPercent(e.target.value)} min={0} max={100} />
-      <input type="text" className="input w-full text-black placeholder-black" placeholder="Nombre del beneficiario de la comisión" value={commissionBeneficiaryName} onChange={e => setCommissionBeneficiaryName(e.target.value)} />
-      <input
-        type="email"
-        className="input w-full text-black placeholder-black"
-        placeholder="Email del beneficiario de la comisión"
-        value={commissionBeneficiaryEmail}
-        onChange={e => setCommissionBeneficiaryEmail(e.target.value)}
-        onBlur={handleCommissionerBlur}
-        autoComplete="off"
-      />
-      {commissionBeneficiaryEmail && commissionerLoading && <div className="text-gray-500 text-sm mt-1">Validando beneficiario...</div>}
-      {commissionBeneficiaryEmail && commissionerValid && commissionerVerified && !commissionerError && (
-        <div className="text-green-700 font-semibold text-sm mt-1">Beneficiario válido y verificado.</div>
+      <div className="mt-4 mb-2 font-semibold text-black">
+        <button
+          type="button"
+          className="w-full flex items-center justify-between py-2 px-4 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors font-semibold"
+          onClick={() => setShowCommission(v => !v)}
+        >
+          Comisión (opcional)
+          <span>{showCommission ? '▲' : '▼'}</span>
+        </button>
+      </div>
+      {showCommission && (
+        <div className="space-y-2">
+          <input
+            type="number"
+            className="input w-full text-black placeholder-black"
+            placeholder="% de comisión (ej. 5)"
+            value={commissionPercent}
+            onChange={e => setCommissionPercent(e.target.value)}
+            min={0}
+            max={100}
+          />
+          <input
+            type="text"
+            className="input w-full text-black placeholder-black"
+            placeholder="Nombre del beneficiario de la comisión"
+            value={commissionBeneficiaryName}
+            onChange={e => setCommissionBeneficiaryName(e.target.value)}
+            disabled={!commissionPercent}
+          />
+          <input
+            type="email"
+            className="input w-full text-black placeholder-black"
+            placeholder="Email del beneficiario de la comisión"
+            value={commissionBeneficiaryEmail}
+            onChange={e => setCommissionBeneficiaryEmail(e.target.value)}
+            onBlur={handleCommissionerBlur}
+            autoComplete="off"
+            disabled={!commissionPercent}
+          />
+          {commissionPercent && commissionBeneficiaryEmail && commissionerLoading && (
+            <div className="text-gray-500 text-sm mt-1">Validando beneficiario...</div>
+          )}
+          {commissionPercent && commissionBeneficiaryEmail && commissionerValid && commissionerVerified && !commissionerError && (
+            <div className="text-green-700 font-semibold text-sm mt-1">Beneficiario válido y verificado.</div>
+          )}
+          {commissionPercent && commissionBeneficiaryEmail && commissionerError && (
+            <div className="text-red-600 text-sm mt-1 font-semibold">{commissionerError}</div>
+          )}
+          <div className="text-sm mt-1 text-black">Monto comisión: <b>{commissionAmount !== "N/A" ? `$${commissionAmount}` : "N/A"}</b></div>
+        </div>
       )}
-      {commissionBeneficiaryEmail && commissionerError && <div className="text-red-600 text-sm mt-1 font-semibold">{commissionerError}</div>} 
-      <div className="text-sm mt-1 text-black">Monto comisión: <b>{commissionAmount !== "N/A" ? `$${commissionAmount}` : "N/A"}</b></div>
       <button
         type="submit"
         className={`w-full mt-4 text-white rounded-2xl py-3 px-2 text-lg font-semibold shadow transition-all ${
-          (recipientValid && recipientVerified && recipient && amount && warrantyPercent !== '' && custodyDays !== '' && !recipientLoading && (!commissionBeneficiaryEmail || (commissionerValid && commissionerVerified)))
+          (recipientValid && recipientVerified && recipient && amount && warrantyPercent !== '' && custodyDays !== '' && !recipientLoading && (
+            !commissionPercent || (
+              commissionBeneficiaryEmail && commissionerValid && commissionerVerified
+            )
+          ))
             ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
             : 'bg-gray-300 cursor-not-allowed'
         }`}
@@ -200,7 +272,7 @@ export default function PagoFormFull() {
           !Boolean(custodyDays) ||
           !Boolean(recipientValid) ||
           !Boolean(recipientVerified) ||
-          (Boolean(commissionBeneficiaryEmail) && (!Boolean(commissionerValid) || !Boolean(commissionerVerified)))
+          (Boolean(commissionPercent) && (!Boolean(commissionBeneficiaryEmail) || !Boolean(commissionerValid) || !Boolean(commissionerVerified)))
         }
         aria-label="Enviar pago"
       >

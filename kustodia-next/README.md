@@ -66,3 +66,37 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## Security Checklist & Plan
+
+### Smart Contract Security
+- [ ] Schedule a full external smart contract audit before mainnet or major upgrades.
+- [ ] Review for reentrancy, overflow/underflow, and access control vulnerabilities.
+- [ ] Ensure all payout/release functions use checks-effects-interactions pattern.
+- [ ] Emit events for all state-changing actions.
+- [ ] Remove or secure any test or admin backdoors.
+- [ ] Document all upgradeability and admin key logic.
+
+### Backend Security
+- [ ] Enforce JWT or session authentication for all sensitive endpoints.
+- [ ] Role-based access control for admin and dispute actions.
+- [ ] Validate and sanitize all user input (including file uploads).
+- [ ] Log all critical actions (dispute, payout, refund, admin changes) with timestamp and user.
+- [ ] Restrict manual/retroactive scripts to admin users only.
+- [ ] Secure evidence file storage (scan for malware, restrict file types).
+- [ ] Monitor for double-spend/double-payout conditions.
+
+### Frontend Security
+- [ ] Never expose private keys or sensitive config in the client.
+- [ ] Use HTTPS and secure cookies for all sessions.
+- [ ] Validate file uploads and user inputs before sending to backend.
+- [ ] Hide admin and dispute actions from unauthorized users.
+
+### General Security Plan
+1. **Audit**: Schedule and complete a smart contract audit. Review all critical backend and admin scripts.
+2. **Penetration Testing**: Perform regular pentests against both frontend and backend.
+3. **Monitoring**: Enable logging and alerting for all payout/dispute/admin actions.
+4. **Incident Response**: Document a process for responding to and rolling back from security incidents.
+5. **Continuous Review**: Revisit this checklist before every major release.
