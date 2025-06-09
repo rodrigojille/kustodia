@@ -17,13 +17,19 @@ app.use(express.json());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://kustodia.mx'
+  'https://kustodia.mx',
+  'https://www.kustodia.mx'
 ];
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return true;
+  const normalizedOrigin = origin.toLowerCase();
+  return allowedOrigins.some(o => normalizedOrigin === o.toLowerCase());
+}
+
 app.use(cors({
   origin: function(origin, callback) {
-    // allow requests with no origin (like mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     } else {
       return callback(new Error('Not allowed by CORS'));
@@ -37,8 +43,7 @@ app.use(cors({
 // Explicit preflight handler for all routes
 app.options('*', cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     } else {
       return callback(new Error('Not allowed by CORS'));
