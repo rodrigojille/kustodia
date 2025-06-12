@@ -23,6 +23,16 @@ const links = [
     ),
   },
   {
+    href: '/dashboard/nuevo-flujo',
+    label: 'Nuevo flujo de pago',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.262 4.879a2.121 2.121 0 1 1 3 3L7.5 19.64l-4 1 1-4 13.762-13.761z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 6l3 3" />
+      </svg>
+    ),
+  },
+  {
     href: '/dashboard/disputas',
     label: 'Disputas',
     icon: (

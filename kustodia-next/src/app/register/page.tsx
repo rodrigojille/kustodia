@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "", acceptTerms: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -30,7 +30,7 @@ export default function RegisterPage() {
       const data = await res.json();
       if (res.ok) {
         setSuccess("¡Registro exitoso! Revisa tu correo para verificar tu cuenta.");
-        setForm({ name: "", email: "", password: "", confirm: "" });
+        setForm({ name: "", email: "", password: "", confirm: "", acceptTerms: false });
       } else {
         setError(data.message || "Error al registrar. Intenta de nuevo.");
       }
@@ -81,6 +81,20 @@ export default function RegisterPage() {
           onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))}
           disabled={loading}
         />
+        <div className="flex items-start mb-4">
+          <input
+            type="checkbox"
+            id="acceptTerms"
+            className="mt-1 mr-2"
+            checked={form.acceptTerms || false}
+            onChange={e => setForm(f => ({ ...f, acceptTerms: e.target.checked }))}
+            disabled={loading}
+            required
+          />
+          <label htmlFor="acceptTerms" className="text-xs text-gray-700 select-none">
+            Acepto los <Link href="/terminos" className="underline text-blue-700" target="_blank">Términos y Condiciones</Link> y el <Link href="/privacidad" className="underline text-blue-700" target="_blank">Aviso de Privacidad</Link>.
+          </label>
+        </div>
         <button
           type="submit"
           className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition mb-4 disabled:bg-gray-300 disabled:cursor-not-allowed"

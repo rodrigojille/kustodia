@@ -6,7 +6,6 @@ import { ArcadeEmbed } from '../components/ArcadeEmbed';
 import ApiSneakPeek from '../components/ApiSneakPeek';
 import CasosDeUso from '../components/CasosDeUso';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
 import MXNBSection from '../components/MXNBSection';
 import SmartContractInfo from '../components/SmartContractInfo';
 import EarlyAccessCounter from '../components/EarlyAccessCounter';
@@ -159,7 +158,7 @@ export default function LandingPage() {
       <section className="w-full flex flex-col items-center my-8">
         <a href="#early-access" className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition w-full max-w-xs sm:max-w-none sm:w-auto text-center">Regístrate gratis</a>
       </section>
-      <Footer />
+
     </>
   );
 }
