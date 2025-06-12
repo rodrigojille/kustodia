@@ -82,15 +82,15 @@ export default function RootLayout({
       <Link href="/seguridad" className="hover:underline text-green-700 mx-1">Seguridad</Link>
     </div>
     <div className="flex items-center justify-center md:justify-end gap-4 mt-4 md:mt-0 w-full md:w-auto">
-      <a href="https://twitter.com/kustodiaapp" target="_blank" rel="noopener noreferrer" aria-label="Twitter" title="Twitter">
-        <FaTwitter className="w-6 h-6 text-blue-500 hover:text-blue-700 transition" />
-      </a>
-      <a href="https://linkedin.com/company/kustodia" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn">
-        <FaLinkedin className="w-6 h-6 text-blue-700 hover:text-blue-900 transition" />
-      </a>
-      <a href="https://instagram.com/kustodia" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
-        <FaInstagram className="w-6 h-6 text-pink-500 hover:text-pink-700 transition" />
-      </a>
+      <a href="https://x.com/Kustodia_mx" target="_blank" rel="noopener noreferrer" aria-label="X" title="X (antes Twitter)">
+  <FaTwitter className="w-6 h-6 text-blue-500 hover:text-blue-700 transition" />
+</a>
+<a href="https://www.linkedin.com/company/kustodia-mx" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn">
+  <FaLinkedin className="w-6 h-6 text-blue-700 hover:text-blue-900 transition" />
+</a>
+<a href="https://www.instagram.com/kustodia.mx/#" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
+  <FaInstagram className="w-6 h-6 text-pink-500 hover:text-pink-700 transition" />
+</a>
     </div>
   </div>
 
