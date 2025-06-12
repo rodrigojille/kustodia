@@ -16,7 +16,7 @@ export default function Riesgos() {
           <li>El MXNB y otros activos virtuales <b>no son moneda de curso legal</b> en México ni están garantizados por el Gobierno Federal ni por el Banco de México.</li>
           <li>El MXNB está diseñado para mantener paridad 1:1 con el peso mexicano y su valor no fluctúa, sujeto a la robustez del mecanismo de respaldo y auditoría.</li>
           <li>Las operaciones con activos virtuales pueden estar sujetas a cambios regulatorios o restricciones futuras.</li>
-          <li>El uso de contratos inteligentes y plataformas descentralizadas puede implicar riesgos tecnológicos, errores de código o pérdida de acceso.</li>
+          <li>Los contratos inteligentes y las plataformas basadas en blockchain ofrecen mayor seguridad, transparencia y automatización en las transacciones, eliminando intermediarios y reduciendo el riesgo de fraude o manipulación. Todas las operaciones quedan registradas de forma inmutable y auditable.</li>
         </ul>
         <p>Antes de operar en Kustodia.mx, evalúa tu tolerancia al riesgo y consulta fuentes oficiales sobre la regulación y funcionamiento de activos virtuales en México.</p>
         <div className="mt-8 text-center">
