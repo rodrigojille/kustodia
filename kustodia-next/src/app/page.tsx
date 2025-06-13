@@ -79,11 +79,19 @@ export default function LandingPage() {
       />
       <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-20">
         <section className="w-full max-w-screen-xl px-4 mx-auto mb-16 mt-10">
-  <div className="bg-white rounded-3xl shadow-2xl border border-indigo-100 p-10 flex flex-col items-center max-w-2xl mx-auto text-center">
-    <h1 className="text-4xl sm:text-5xl font-extrabold text-black mb-6 leading-tight">Pagos <span className="text-blue-700">inteligentes y seguros</span> para todos</h1>
-    <p className="text-lg sm:text-xl text-black mb-8">Tan fácil y rápido como un SPEI, pero con una capa de seguridad e inteligencia adicional. Paga o cobra con la misma sencillez de siempre, pero con la protección de la tecnología blockchain. Solución de pagos inteligentes, custodia y SPEI seguro con tecnología blockchain.</p>
-    <a href="#early-access" className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition w-full max-w-xs sm:max-w-none sm:w-auto text-center">Regístrate gratis</a>
-  </div>
+          <div className="flex flex-col items-center justify-center w-full">
+            <div className="flex flex-col items-center justify-center text-center w-full max-w-2xl">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-7 text-black leading-[1.18] max-w-3xl mx-auto drop-shadow-sm text-center">
+                Pagos en Kustodia seguros: tu dinero solo se libera cuando se cumple el trato.
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-2xl mx-auto font-medium leading-relaxed text-center">
+                Protege compras, ventas o servicios con tecnología blockchain.<br />
+                <span className="text-gray-500">Sin riesgos de fraudes.</span>
+              </p>
+              <a href="#early-access" className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition w-full max-w-xs sm:max-w-none sm:w-auto text-center mb-3">Probar gratis</a>
+              <span className="block text-base text-gray-400 mt-2 max-w-xl mx-auto text-center font-normal">Kustodia es un servicio digital de custodia de pagos (escrow) para proteger transacciones entre personas y empresas en México.</span>
+            </div>
+          </div>
         </section>
 
         <section className="w-full max-w-screen-xl px-4 mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-20">

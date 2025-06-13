@@ -11,8 +11,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Kustodia - Pagos Inteligentes y Seguros en México",
-  description: "Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien. ¡Regístrate gratis!",
+  title: "Kustodia México | Pagos en custodia seguros",
+  description: "Kustodia es un servicio digital de custodia de pagos (escrow) en México. Protege tus compras, ventas y servicios con tecnología blockchain. Tu dinero solo se libera cuando se cumple el trato. Sin fraudes, sin riesgos.",
+  keywords: [
+    "custodia de pagos",
+    "escrow México",
+    "seguridad digital",
+    "Kustodia seguridad",
+    "blockchain pagos",
+    "pagos seguros México",
+    "protección de dinero",
+    "pagos protegidos",
+    "Kustodia México"
+  ],
   icons: {
     icon: "/favicon.svg",
   },

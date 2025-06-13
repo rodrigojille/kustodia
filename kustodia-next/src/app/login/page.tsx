@@ -37,6 +37,14 @@ export default function LoginPage() {
       }
       if (data.token) {
         localStorage.setItem("token", data.token);
+        // Ensure Portal wallet exists for user
+        try {
+          const { ensurePortalWallet } = await import("@/utils/portalWallet");
+          await ensurePortalWallet(data.token);
+        } catch (e) {
+          // If wallet creation fails, continue
+          console.error("Portal wallet creation failed", e);
+        }
       }
       setSuccess("¡Ingreso exitoso! Redirigiendo...");
       setTimeout(() => router.push("/dashboard"), 1200);

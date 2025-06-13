@@ -2,6 +2,8 @@
 // import { cookies } from 'next/headers'; // Removed for client component compatibility
 import FintechDashboardCards from '../../components/FintechDashboardCards';
 import ClabeSection from '../../components/ClabeSection';
+import { ethers } from 'ethers';
+import PreparingDashboardModal from '../../components/PreparingDashboardModal';
 import KYCStatus from '../../components/KYCStatus';
 import PaymentsByMonthChart from '../../components/PaymentsByMonthChart';
 import PaymentsByStageChart from '../../components/PaymentsByStageChart';
@@ -17,6 +19,8 @@ export default function DashboardHomePage() {
   const [user, setUser] = useState<any>(null);
   const [userLoading, setUserLoading] = useState(true);
   const [userError, setUserError] = useState<string | null>(null);
+
+  const [mxnbsBalance, setMxnbsBalance] = useState<string | null>(null);
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -39,9 +43,37 @@ export default function DashboardHomePage() {
       .catch(err => setUserError(err.message))
       .finally(() => setUserLoading(false));
   }, []);
+
+  // Fetch balances when user.wallet_address is available
+  useEffect(() => {
+    const fetchMxnbsBalance = async () => {
+      if (!user || !user.wallet_address) return;
+      try {
+        // MXNBS Arbitrum Sepolia (ERC20)
+        const arbProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL);
+        const mxnbAddress = process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS;
+        if (!mxnbAddress) {
+          setMxnbsBalance(null);
+          return;
+        }
+        const erc20Abi = ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)"];
+        const mxnb = new ethers.Contract(mxnbAddress, erc20Abi, arbProvider);
+        const bal = await mxnb.balanceOf(user.wallet_address);
+        let decimals = 18;
+        try { decimals = await mxnb.decimals(); } catch {}
+        setMxnbsBalance(ethers.formatUnits(bal, decimals));
+      } catch (e) {
+        setMxnbsBalance(null);
+      }
+    };
+    fetchMxnbsBalance();
+  }, [user]);
+
   return (
-    <div className="min-h-screen bg-gray-50 px-2 pt-4 pb-16 sm:px-4 md:px-8">
-      <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-8 text-gray-900">Dashboard</h1>
+    <>
+      <PreparingDashboardModal open={userLoading} />
+      <div className="min-h-screen bg-gray-50 px-2 pt-4 pb-16 sm:px-4 md:px-8" style={{ filter: userLoading ? 'blur(2px)' : undefined, pointerEvents: userLoading ? 'none' : undefined }}>
+        <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-8 text-gray-900">Dashboard</h1>
       <FintechDashboardCards />
       {/* CLABE Module */}
       <section className="flex flex-col md:flex-row gap-4 mt-6 md:mt-8 w-full">
@@ -57,7 +89,7 @@ export default function DashboardHomePage() {
         ) : userError ? (
           <span className="text-red-500">{userError}</span>
         ) : user ? (
-          <ClabeSection payoutClabe={user.payout_clabe} depositClabe={user.deposit_clabe} />
+          <ClabeSection payoutClabe={user.payout_clabe} depositClabe={user.deposit_clabe} walletAddress={user.wallet_address} mxnbsBalance={mxnbsBalance} />
         ) : null}
       </div>
     </div>
@@ -103,6 +135,7 @@ export default function DashboardHomePage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
