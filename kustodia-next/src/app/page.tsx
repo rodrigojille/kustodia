@@ -7,6 +7,7 @@ import ApiSneakPeek from '../components/ApiSneakPeek';
 import CasosDeUso from '../components/CasosDeUso';
 import Header from '../components/Header';
 import MXNBSection from '../components/MXNBSection';
+import InstagramSection from '../components/InstagramSection';
 import SmartContractInfo from '../components/SmartContractInfo';
 import EarlyAccessCounter from '../components/EarlyAccessCounter';
 import EarlyAccessForm from '../components/EarlyAccessForm';
@@ -167,6 +168,7 @@ export default function LandingPage() {
         <a href="#early-access" className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition w-full max-w-xs sm:max-w-none sm:w-auto text-center">Regístrate gratis</a>
       </section>
 
+      <InstagramSection />
     </>
   );
 }
