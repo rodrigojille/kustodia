@@ -1,7 +1,7 @@
 import Header from '../../../components/Header';
 import { FaHandshake, FaShieldAlt, FaRegSmile } from 'react-icons/fa';
 import Link from 'next/link';
-import SocialShare from '@/components/SocialShare';
+import SocialShare from '../../../../components/SocialShare';
 
 export default function BlogEvitarFraudesCompraVenta() {
   return (
