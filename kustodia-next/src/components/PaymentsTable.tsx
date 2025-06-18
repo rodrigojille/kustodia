@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fetchPayments } from "../fetchPayments";
+
+function getDisplayAmount(amount: number | string, currency: string | undefined) {
+  // Siempre mostrar como pesos mexicanos, sin importar el token
+  return Number(amount).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
+
 type Payment = {
   id: string;
   created_at: string;
@@ -138,7 +144,7 @@ export default function PaymentsTable() {
                   <td className="py-2 px-2 text-black whitespace-nowrap">{p.payer_email || '-'}</td>
                   <td className="py-2 px-2 text-black whitespace-nowrap">{p.recipient_email || '-'}</td>
                   <td className="py-2 px-2 text-black whitespace-nowrap">
-                    {Number(p.amount).toLocaleString('es-MX', { style: 'currency', currency: p.currency || 'MXN' })}
+                    {getDisplayAmount(p.amount, p.currency)}
                   </td>
                   <td className="py-2 px-2 text-black">
                     <span className={
@@ -186,7 +192,7 @@ export default function PaymentsTable() {
               <tr className="border-t bg-gray-50 font-bold">
                 <td className="py-2 px-2 text-right" colSpan={3}>Total:</td>
                 <td className="py-2 px-2 text-black">
-                  {filtered.reduce((sum, p) => sum + Number(p.amount), 0).toLocaleString('es-MX', { style: 'currency', currency: filtered[0]?.currency || 'MXN' })}
+                  {getDisplayAmount(filtered.reduce((sum, p) => sum + Number(p.amount), 0), filtered[0]?.currency)}
                 </td>
                 <td colSpan={3}></td>
               </tr>

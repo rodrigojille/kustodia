@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 
+function getDisplayAmount(amount: number | string) {
+  return Number(amount).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
+
 import PaymentTimeline from "./PaymentTimeline";
 import QRCode from "qrcode.react";
 import ClabeSection from "./ClabeSection";
@@ -94,7 +98,7 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
                 <span className="font-semibold text-black">Receptor:</span> <span className="text-black">{payment?.recipient_email ?? '-'}</span>
               </div>
               <div>
-                <span className="font-semibold text-black">Monto:</span> <span className="text-black font-bold">{payment ? Number(payment.amount).toLocaleString('es-MX', { style: 'currency', currency: payment.currency }) : '-'}</span>
+                <span className="font-semibold text-black">Monto:</span> <span className="text-black font-bold">{payment ? getDisplayAmount(payment.amount) : '-'}</span>
               </div>
               <div>
                 <span className="font-semibold text-black">Descripción:</span> <span className="text-black">{payment?.description ?? '-'}</span>
@@ -109,7 +113,7 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
 </div>
                   <div className="mb-2 text-sm">
                     <span className="font-semibold text-black">Monto total del pago:</span>
-                    <span className="ml-2">{payment ? Number(payment.amount).toLocaleString('es-MX', { style: 'currency', currency: payment.currency }) : '-'}</span>
+                    <span className="ml-2">{payment ? getDisplayAmount(payment.amount) : '-'}</span>
                   </div>
                   <div className="mb-2 text-sm">
                     <span className="font-semibold text-black">Porcentaje en custodia:</span>
@@ -137,11 +141,11 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
                   )}
                   <div className="mb-2 text-sm">
                     <span className="font-semibold text-black">Monto a mantener en custodia:</span>
-                    <span className="ml-2">{payment?.escrow?.custody_amount !== undefined && payment?.escrow?.custody_amount !== null ? Number(payment.escrow.custody_amount).toLocaleString('es-MX', { style: 'currency', currency: payment.currency }) : '-'}</span>
+                    <span className="ml-2">{payment?.escrow?.custody_amount !== undefined && payment?.escrow?.custody_amount !== null ? getDisplayAmount(payment.escrow.custody_amount) : '-'}</span>
                   </div>
                   <div className="mb-2 text-sm">
                     <span className="font-semibold text-black">Monto por pagar:</span>
-                    <span className="ml-2">{payment?.escrow?.release_amount !== undefined && payment?.escrow?.release_amount !== null ? Number(payment.escrow.release_amount).toLocaleString('es-MX', { style: 'currency', currency: payment.currency }) : '-'}</span>
+                    <span className="ml-2">{payment?.escrow?.release_amount !== undefined && payment?.escrow?.release_amount !== null ? getDisplayAmount(payment.escrow.release_amount) : '-'}</span>
                   </div>
                 </div>
               </div>

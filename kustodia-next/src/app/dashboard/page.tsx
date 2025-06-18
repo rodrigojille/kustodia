@@ -73,6 +73,14 @@ export default function DashboardHomePage() {
     <>
       <PreparingDashboardModal open={userLoading} />
       <div className="min-h-screen bg-gray-50 px-2 pt-4 pb-16 sm:px-4 md:px-8" style={{ filter: userLoading ? 'blur(2px)' : undefined, pointerEvents: userLoading ? 'none' : undefined }}>
+        {/* Welcome message */}
+        <div className="w-full flex justify-center">
+          <div className="rounded-xl bg-blue-50 border border-blue-100 py-4 px-6 mb-6 mt-2 text-blue-800 text-xl md:text-2xl font-bold text-center shadow-sm max-w-2xl w-full">
+            {user && user.full_name
+              ? `¡Bienvenido, ${user.full_name}!`
+              : '¡Bienvenido/a a tu panel de Kustodia!'}
+          </div>
+        </div>
         <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-8 text-gray-900">Dashboard</h1>
       <FintechDashboardCards />
       {/* CLABE Module */}
