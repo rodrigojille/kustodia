@@ -150,7 +150,7 @@ const handleSubmit2 = async (e: React.FormEvent) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        paymentId: payment_id,
+        paymentId: paymentId,
         escrowTxHash,
         approveTxHash,
       }),
