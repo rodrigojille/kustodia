@@ -5,7 +5,7 @@ export async function getPortalInstance() {
   if (!portal) {
     const portalImport = await import("@portal-hq/web");
     console.log("[DEBUG] Portal import result:", portalImport);
-    const Portal = portalImport.default || portalImport.Portal || portalImport;
+    const Portal = portalImport.default || portalImport;
     portal = new Portal({
       apiKey: process.env.NEXT_PUBLIC_PORTAL_API_KEY!,
       rpcConfig: { default: process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL! },
