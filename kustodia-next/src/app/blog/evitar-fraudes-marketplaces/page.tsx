@@ -1,4 +1,5 @@
 import Header from '../../../components/Header';
+import SocialShare from '@/components/SocialShare';
 import { FaGlobe, FaShieldAlt, FaRegSmile } from 'react-icons/fa';
 import Link from 'next/link';
 

@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import Header from '../../../components/Header';
 import Link from 'next/link';
-import SocialShare from '../../../components/SocialShare';
+import SocialShare from '@/components/SocialShare';
 
 export default function BlogEvitarFraudesFreelancer() {
   return (

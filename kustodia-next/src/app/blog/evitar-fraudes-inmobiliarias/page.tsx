@@ -1,7 +1,7 @@
 import Header from '../../../components/Header';
 import { FaHome, FaShieldAlt, FaRegSmile, FaShareAlt } from 'react-icons/fa';
 import Link from 'next/link';
-import SocialShare from '../../../components/SocialShare';
+import SocialShare from '@/components/SocialShare';
 
 export default function BlogEvitarFraudesInmobiliarias() {
   return (
