@@ -10,12 +10,13 @@ async function main() {
   }
   await ormconfig.initialize();
   try {
-    const tx = await escrowContract.releaseCustody(escrowId);
+    // Updated for KustodiaEscrow2_0 API - use release() instead of releaseCustody()
+    const tx = await escrowContract.release(escrowId);
     let txHash = tx.hash;
     if (txHash && typeof txHash.then === 'function') {
       txHash = await txHash;
     }
-    console.log('Submitted releaseCustody transaction. Hash:', txHash);
+    console.log('Submitted release transaction. Hash:', txHash);
     try {
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);

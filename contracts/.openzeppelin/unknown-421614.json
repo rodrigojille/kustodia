@@ -1,0 +1,1110 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0x82Fc44836e73b2e811C37890b51D76c1E9a8D3C6",
+      "txHash": "0xa9165af935722c2bc33923fe9f3085f2c02cc34dc606f3b0a26654e365cab383",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x356904e4E124046016c3760cca0205786155691d",
+      "txHash": "0x1a557821d54e3317d69d37ca67b228d3da5c8cb2d732c5d9b6dacc9ea8d3af2b",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "06d892a69299bebd531a67c73c25d48e4a7dfe5459ae8134188f7c64d3721e0f": {
+      "address": "0xD4789D30EB18DfEe60703F1e0506e8b8C665D227",
+      "txHash": "0x5bde44df116ee550efd08ab1ba476077e219a6f668a272f53bca07df619d8475",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "nextEscrowId",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:26"
+          },
+          {
+            "label": "escrows",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_struct(Escrow)1870_storage)",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:27"
+          },
+          {
+            "label": "bridgeWallet",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:30"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(EscrowStatus)1852": {
+            "label": "enum KustodiaEscrow2_0.EscrowStatus",
+            "members": [
+              "Pending",
+              "Funded",
+              "Released",
+              "Disputed",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_struct(Escrow)1870_storage)": {
+            "label": "mapping(uint256 => struct KustodiaEscrow2_0.Escrow)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Escrow)1870_storage": {
+            "label": "struct KustodiaEscrow2_0.Escrow",
+            "members": [
+              {
+                "label": "payer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "payee",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "deadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "vertical",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "clabe",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(EscrowStatus)1852",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "conditions",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "256"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "9e747eeb96b332ac1b21084785f3bcfd1fdfc0eb442b235355e065534e4f161d": {
+      "address": "0xA8DD2ADE465D0bA08992279125D24fBebe3C2406",
+      "txHash": "0xa39af6578a054bba8719fa80e9354302d8bdd8db85e2377435e69cbeb71461a9",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "nextEscrowId",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:28"
+          },
+          {
+            "label": "escrows",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_struct(Escrow)786_storage)",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:29"
+          },
+          {
+            "label": "bridgeWallet",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(EscrowStatus)766": {
+            "label": "enum KustodiaEscrow2_0.EscrowStatus",
+            "members": [
+              "Pending",
+              "Funded",
+              "Released",
+              "Disputed",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_struct(Escrow)786_storage)": {
+            "label": "mapping(uint256 => struct KustodiaEscrow2_0.Escrow)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Escrow)786_storage": {
+            "label": "struct KustodiaEscrow2_0.Escrow",
+            "members": [
+              {
+                "label": "payer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "payee",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "deadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "vertical",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "clabe",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(EscrowStatus)766",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "conditions",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "929132e949f8d20b4b2dfe8ca54955010db1f598813e1216ff324b382a9e8aa5": {
+      "address": "0xa5B45Dc1cF2E44844EBA557dF29687D24F5d8543",
+      "txHash": "0x286a81ee4af04595fc4b9848d0bb960182191def3db31089172b0eb4a7d479b1",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "nextEscrowId",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:28"
+          },
+          {
+            "label": "escrows",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_struct(Escrow)1873_storage)",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:29"
+          },
+          {
+            "label": "bridgeWallet",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:31"
+          },
+          {
+            "label": "platformWallet",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(EscrowStatus)1853": {
+            "label": "enum KustodiaEscrow2_0.EscrowStatus",
+            "members": [
+              "Pending",
+              "Funded",
+              "Released",
+              "Disputed",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_struct(Escrow)1873_storage)": {
+            "label": "mapping(uint256 => struct KustodiaEscrow2_0.Escrow)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Escrow)1873_storage": {
+            "label": "struct KustodiaEscrow2_0.Escrow",
+            "members": [
+              {
+                "label": "payer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "payee",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "deadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "vertical",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "clabe",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(EscrowStatus)1853",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "conditions",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "5c17fda993674428d763f8b5330c46cfa5167317d3db22b7ec7a4ad926806e00": {
+      "address": "0x9e55ac1bfC68B83CD5358c4B43846B174C9Ad547",
+      "txHash": "0x0acfb90687b0342333c65698e20f96a9235d81688250b736c72a9712054a06e6",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "mxnbs",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IERC20Upgradeable)378",
+            "contract": "KustodiaEscrow3_0",
+            "src": "contracts\\KustodiaEscrow3_0.sol:22"
+          },
+          {
+            "label": "escrowCount",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_uint256",
+            "contract": "KustodiaEscrow3_0",
+            "src": "contracts\\KustodiaEscrow3_0.sol:23"
+          },
+          {
+            "label": "escrows",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_uint256,t_struct(Escrow)784_storage)",
+            "contract": "KustodiaEscrow3_0",
+            "src": "contracts\\KustodiaEscrow3_0.sol:24"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20Upgradeable)378": {
+            "label": "contract IERC20Upgradeable",
+            "numberOfBytes": "20"
+          },
+          "t_enum(Status)766": {
+            "label": "enum KustodiaEscrow3_0.Status",
+            "members": [
+              "Pending",
+              "Funded",
+              "Released",
+              "Disputed",
+              "Resolved",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_struct(Escrow)784_storage)": {
+            "label": "mapping(uint256 => struct KustodiaEscrow3_0.Escrow)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Escrow)784_storage": {
+            "label": "struct KustodiaEscrow3_0.Escrow",
+            "members": [
+              {
+                "label": "payer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "seller",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "commission",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "custodyAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "createdAt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "custodyPeriod",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(Status)766",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "256"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "7e682b25b105ef8cebea561a7739489234b6fd9e29a6c83dff88e610a66b1847": {
+      "address": "0x308594E615c7264b2f3a84439A162df05C41D250",
+      "txHash": "0x9122e40d21a56f7b8049d99e5d0039e8a445c4376620646cd2f56ae3520cc776",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "nextEscrowId",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:28"
+          },
+          {
+            "label": "escrows",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_struct(Escrow)786_storage)",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:29"
+          },
+          {
+            "label": "bridgeWallet",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:31"
+          },
+          {
+            "label": "platformWallet",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(EscrowStatus)766": {
+            "label": "enum KustodiaEscrow2_0.EscrowStatus",
+            "members": [
+              "Pending",
+              "Funded",
+              "Released",
+              "Disputed",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_struct(Escrow)786_storage)": {
+            "label": "mapping(uint256 => struct KustodiaEscrow2_0.Escrow)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Escrow)786_storage": {
+            "label": "struct KustodiaEscrow2_0.Escrow",
+            "members": [
+              {
+                "label": "payer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "payee",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "deadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "vertical",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "clabe",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(EscrowStatus)766",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "conditions",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "68079d5393a6403f649503e2c8f2d1f5f7cacff2ea4b890da2a6ecd9a4229248": {
+      "address": "0x7fD5DA25Ded541122a115FBbA671dd10A571618b",
+      "txHash": "0x3bb204db4876a5e418a09eab91930d561b2c8613a5f4a71f308106df70b769a9",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "nextEscrowId",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:28"
+          },
+          {
+            "label": "escrows",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_struct(Escrow)786_storage)",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:29"
+          },
+          {
+            "label": "bridgeWallet",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:31"
+          },
+          {
+            "label": "platformWallet",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "KustodiaEscrow2_0",
+            "src": "contracts\\KustodiaEscrow2_0.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(EscrowStatus)766": {
+            "label": "enum KustodiaEscrow2_0.EscrowStatus",
+            "members": [
+              "Pending",
+              "Funded",
+              "Released",
+              "Disputed",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_struct(Escrow)786_storage)": {
+            "label": "mapping(uint256 => struct KustodiaEscrow2_0.Escrow)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Escrow)786_storage": {
+            "label": "struct KustodiaEscrow2_0.Escrow",
+            "members": [
+              {
+                "label": "payer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "payee",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "deadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "vertical",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "clabe",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(EscrowStatus)766",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "conditions",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    }
+  }
+}

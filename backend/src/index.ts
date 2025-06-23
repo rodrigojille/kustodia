@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import ormconfig from "./ormconfig";
+import { PaymentAutomationService } from "./services/PaymentAutomationService";
 
 import mainRouter from "./routes";
 import leadRoutes from './routes/lead';
@@ -17,6 +18,7 @@ app.use(express.json());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://localhost:3001',
   'https://kustodia.mx',
   'https://www.kustodia.mx'
 ];
@@ -56,8 +58,13 @@ app.options('*', cors({
 
 // Connect to Postgres
 ormconfig.initialize()
-  .then(() => {
+  .then(async () => {
     console.log("Data Source has been initialized!");
+    
+    // Initialize Payment Automation Service
+    const paymentAutomation = new PaymentAutomationService();
+    await paymentAutomation.startAutomation();
+    
     // Basic health check
     app.get("/", (req, res) => {
       res.json({ status: "Kustodia backend running" });

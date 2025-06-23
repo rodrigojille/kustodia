@@ -54,11 +54,18 @@ async function main() {
   // Usar la platform wallet (misma que el private key del deployer/escrow)
   const platformWallet = process.env.ESCROW_BRIDGE_WALLET!;
   // ...
-const custodyAmount = ethers.utils.parseUnits('2000', 6).toString(); // 2000 MXNB con 6 decimales
+  const custodyAmount = ethers.utils.parseUnits('2000', 6).toString(); // 2000 MXNB con 6 decimales
+  
+  // Updated for KustodiaEscrow2_0 API
   const result = await createEscrow({
-    seller: platformWallet,
-    custodyAmount,
-    custodyPeriod: custodyTime
+    payer: platformWallet, // Platform wallet as payer
+    payee: platformWallet, // Same wallet as payee for this test
+    token: process.env.MOCK_ERC20_ADDRESS!, // MXNB token
+    amount: custodyAmount, // Amount to lock
+    deadline: Math.floor(Date.now() / 1000) + custodyTime, // Deadline in seconds
+    vertical: 'juno_update', // Business vertical
+    clabe: '', // No CLABE for this script
+    conditions: 'Juno transaction hash update escrow' // Escrow conditions
   });
   console.log('Escrow creado on-chain:', result);
 }

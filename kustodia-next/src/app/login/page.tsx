@@ -13,44 +13,55 @@ export default function LoginPage() {
   const [resendSuccess, setResendSuccess] = useState<string | null>(null);
   const router = useRouter();
 
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setError("");
+    setSuccess("");
+
+    console.log("=== LOGIN STARTED ===");
+    
     try {
-      const res = await fetch("http://localhost:4000/api/users/login", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000';
+      console.log("Calling backend API:", `${apiUrl}/api/users/login`);
+      
+      const res = await fetch(`${apiUrl}/api/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
+
+      console.log("Backend response status:", res.status);
       const data = await res.json();
+      console.log("Backend response data:", data);
+
       if (!res.ok) {
-        if (data.error && data.error.toLowerCase().includes("verifica")) {
-          setError("Tu correo no ha sido verificado. ");
-          setShowResend(true);
-        } else {
-          setError(data.error || "Error de autenticación");
-        }
+        setError(data.error || "Error en el inicio de sesión");
+        console.log("Login failed:", data.error);
         setLoading(false);
         return;
       }
+      
       if (data.token) {
+        console.log("Got token, storing in localStorage");
         localStorage.setItem("token", data.token);
-        // Ensure Portal wallet exists for user
-        try {
-          const { ensurePortalWallet } = await import("@/utils/portalWallet");
-          await ensurePortalWallet(data.token);
-        } catch (e) {
-          // If wallet creation fails, continue
-          console.error("Portal wallet creation failed", e);
-        }
+        
+        console.log("=== WALLET CHECK STARTED ===");
+        // Skip wallet complexity for now, just redirect
+        console.log("Skipping wallet check, proceeding to dashboard");
+        
+        setSuccess("¡Ingreso exitoso! Redirigiendo...");
+        console.log("About to redirect to dashboard");
+        setTimeout(() => {
+          console.log("Executing redirect now");
+          router.push("/dashboard");
+        }, 1200);
       }
-      setSuccess("¡Ingreso exitoso! Redirigiendo...");
-      setTimeout(() => router.push("/dashboard"), 1200);
     } catch (err: any) {
+      console.error("Login error:", err);
       setError(err.message || "Error desconocido");
     } finally {
+      console.log("=== LOGIN FINISHED ===");
       setLoading(false);
     }
   }

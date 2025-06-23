@@ -1,5 +1,9 @@
 import axios from 'axios';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Select API keys based on environment
 const JUNO_ENV = process.env.JUNO_ENV || 'stage';

@@ -11,6 +11,7 @@ const User_1 = require("../entity/User");
 const PaymentEvent_1 = require("../entity/PaymentEvent");
 const escrowService_1 = require("../services/escrowService");
 const JunoTransaction_1 = require("../entity/JunoTransaction");
+const junoService_1 = require("../services/junoService");
 const initiatePayment = async (req, res) => {
     const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
     try {
@@ -33,10 +34,21 @@ const initiatePayment = async (req, res) => {
             res.status(404).json({ error: "User not found" });
             return;
         }
-        // Fetch recipient user and their deposit_clabe
+        // Fetch recipient user for payout_clabe
         const recipientUser = await userRepo.findOne({ where: { email: recipient_email } });
-        if (!recipientUser || !recipientUser.deposit_clabe) {
-            res.status(404).json({ error: "Recipient or their deposit CLABE not found" });
+        if (!recipientUser) {
+            res.status(404).json({ error: "Recipient not found" });
+            return;
+        }
+        // **CREATE UNIQUE CLABE FOR THIS PAYMENT** - Key change for per-payment CLABE
+        let paymentClabe;
+        try {
+            paymentClabe = await (0, junoService_1.createJunoClabe)();
+            console.log(`✅ Created unique CLABE for payment: ${paymentClabe}`);
+        }
+        catch (clabeErr) {
+            console.error('❌ Failed to create payment CLABE:', clabeErr);
+            res.status(500).json({ error: "Failed to create payment CLABE", details: clabeErr });
             return;
         }
         // Buscar payout_clabe del beneficiario de comisión si aplica
@@ -49,16 +61,17 @@ const initiatePayment = async (req, res) => {
             }
             commission_beneficiary_clabe = beneficiaryUser.payout_clabe;
         }
-        // Create Payment record, associate deposit_clabe and payout_clabe
+        // Create Payment record with UNIQUE payment CLABE (not recipient's deposit_clabe)
         const payment = paymentRepo.create({
             user: user, // typeorm expects entity or id
             recipient_email,
+            payer_email: req.body.payer_email || user.email, // guarda el email del pagador si viene, si no el del usuario
             amount: Math.trunc(Number(amount)),
             currency,
             description,
             status: "pending",
             reference: '', // will update after save
-            deposit_clabe: recipientUser.deposit_clabe,
+            deposit_clabe: paymentClabe, // 🎯 UNIQUE CLABE PER PAYMENT
             payout_clabe: recipientUser.payout_clabe || undefined,
             commission_beneficiary_name: req.body.commission_beneficiary_name,
             commission_beneficiary_email: req.body.commission_beneficiary_email,
@@ -71,7 +84,7 @@ const initiatePayment = async (req, res) => {
         await paymentEventRepo.save(paymentEventRepo.create({
             paymentId: payment.id,
             type: 'initiated',
-            description: 'Pago iniciado'
+            description: `💳 Pago iniciado - CLABE única: ${paymentClabe}`
         }));
         // Set reference to payment.id (string) and update
         payment.reference = String(payment.id);
@@ -92,19 +105,24 @@ const initiatePayment = async (req, res) => {
             custody_end: new Date(Date.now() + custodyPeriod * 24 * 60 * 60 * 1000)
         });
         await escrowRepo.save(escrow);
-        // Registrar evento: Custodia creada
-        await paymentEventRepo.save(paymentEventRepo.create({
-            paymentId: payment.id,
-            type: 'escrow_created',
-            description: '🔒 Custodia creada'
-        }));
+        // NO crear evento de custodia aquí. Se creará cuando se fondeen los fondos.
         payment.status = "pending";
         payment.escrow = escrow;
         await paymentRepo.save(payment);
-        res.json({ success: true, payment, escrow });
+        console.log(`✅ Payment created with unique CLABE: ${paymentClabe} | Payment ID: ${payment.id}`);
+        res.json({
+            success: true,
+            payment: {
+                ...payment,
+                deposit_clabe: paymentClabe // Ensure CLABE is returned to frontend
+            },
+            escrow,
+            clabe: paymentClabe // Explicit CLABE for frontend
+        });
         return;
     }
     catch (err) {
+        console.error('❌ Payment initiation failed:', err);
         res.status(500).json({ error: "Payment initiation failed", details: String(err) });
         return;
     }
@@ -112,7 +130,7 @@ const initiatePayment = async (req, res) => {
 exports.initiatePayment = initiatePayment;
 const emailService_1 = require("../utils/emailService");
 // import { mintToEscrow } from '../services/erc20Service';
-const junoService_1 = require("../services/junoService");
+const junoService_2 = require("../services/junoService");
 const junoWebhook = async (req, res) => {
     console.log('==== Webhook recibido de Juno ====');
     console.log('Headers:', req.headers);
@@ -164,7 +182,7 @@ const junoWebhook = async (req, res) => {
         // 1. Release amount: send via Juno/Bisto
         if (escrow.release_amount > 0 && recipientClabe) {
             try {
-                const payoutResult = await (0, junoService_1.sendJunoPayment)(recipientClabe, Number(escrow.release_amount), 'Pago liberado (no custodia)');
+                const payoutResult = await (0, junoService_2.sendJunoPayment)(recipientClabe, Number(escrow.release_amount), 'Pago liberado (no custodia)');
                 console.log(`[JUNO] Sent release amount ${escrow.release_amount} to ${recipientClabe}`);
                 // Registrar evento: Monto liberado
                 await paymentEventRepo.save(paymentEventRepo.create({
@@ -218,10 +236,16 @@ const junoWebhook = async (req, res) => {
                 // Use createEscrowOnChain to lock custody amount
                 let escrowIdOrTx;
                 try {
+                    // Updated for KustodiaEscrow2_0 API
                     escrowIdOrTx = await (0, escrowService_1.createEscrow)({
-                        seller: sellerWallet,
-                        custodyAmount,
-                        custodyPeriod
+                        payer: process.env.ESCROW_BRIDGE_WALLET, // Bridge wallet acts as payer
+                        payee: sellerWallet, // Seller is the payee
+                        token: process.env.MOCK_ERC20_ADDRESS, // MXNB token address
+                        amount: custodyAmount.toString(), // Custody amount in wei
+                        deadline: Math.floor(escrow.custody_end.getTime() / 1000), // Unix timestamp
+                        vertical: 'payment', // Business vertical
+                        clabe: payment.deposit_clabe || '', // CLABE for reference
+                        conditions: `Payment ${payment.id} custody period` // Escrow conditions
                     });
                     console.log('[Escrow] createEscrowOnChain result:', escrowIdOrTx);
                 }
@@ -235,7 +259,7 @@ const junoWebhook = async (req, res) => {
                 let payoutError = null;
                 // Redeem MXNb for MXN before payout
                 try {
-                    const redemptionResponse = await (0, junoService_1.redeemMXNbForMXN)(releaseAmountStr, payment.travel_rule_data);
+                    const redemptionResponse = await (0, junoService_2.redeemMXNbForMXN)(releaseAmountStr, payment.travel_rule_data);
                     console.log('[Juno] Redemption response:', JSON.stringify(redemptionResponse));
                     if (!redemptionResponse.success) {
                         // Registrar evento: Redención fallida
@@ -263,7 +287,7 @@ const junoWebhook = async (req, res) => {
                     for (let attempt = 1; attempt <= 3; attempt++) {
                         try {
                             payoutAttempted = true;
-                            payoutResponse = await (0, junoService_1.sendJunoPayment)(payment.payout_clabe, Number(releaseAmountStr), 'Pago Kustodia - Inmediato');
+                            payoutResponse = await (0, junoService_2.sendJunoPayment)(payment.payout_clabe, Number(releaseAmountStr), 'Pago Kustodia - Inmediato');
                             console.log(`[Juno] Immediate payout of ${releaseAmountStr} to seller CLABE: ${payment.payout_clabe} | Attempt ${attempt}`);
                             console.log('[Juno] Payout response:', JSON.stringify(payoutResponse));
                             break; // Success, break out of retry loop
@@ -319,6 +343,30 @@ const junoWebhook = async (req, res) => {
             type: 'deposit_received',
             description: ' Depósito recibido'
         }));
+        // Registrar evento: Custodia creada (cuando los fondos ya están)
+        await paymentEventRepo.save(paymentEventRepo.create({
+            paymentId: payment.id,
+            type: 'escrow_created',
+            description: '🔒 Custodia creada'
+        }));
+        // Notificación por email a pagador, vendedor y beneficiario de comisión (si existe)
+        try {
+            const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
+            const recipients = [
+                { email: payment.payer_email, role: 'payer' },
+                { email: payment.recipient_email, role: 'seller' }
+            ];
+            await sendPaymentEventNotification({
+                eventType: 'escrow_created',
+                paymentId: payment.id.toString(),
+                paymentDetails: payment,
+                recipients,
+                commissionBeneficiaryEmail: payment.commission_beneficiary_email || undefined
+            });
+        }
+        catch (err) {
+            console.error('Error enviando notificación de escrow_created:', err);
+        }
         // Update payment status and link to JunoTransaction
         payment.status = 'funded';
         // Find or create JunoTransaction

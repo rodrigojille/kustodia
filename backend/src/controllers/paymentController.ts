@@ -6,6 +6,7 @@ import { User } from "../entity/User";
 import { PaymentEvent } from "../entity/PaymentEvent";
 import { createEscrow as createEscrowOnChain } from "../services/escrowService";
 import { JunoTransaction } from "../entity/JunoTransaction";
+import { createJunoClabe } from "../services/junoService";
 
 export const initiatePayment = async (req: Request, res: Response): Promise<void> => {
   const paymentEventRepo = ormconfig.getRepository(PaymentEvent);
@@ -30,10 +31,21 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    // Fetch recipient user and their deposit_clabe
+    // Fetch recipient user for payout_clabe
     const recipientUser = await userRepo.findOne({ where: { email: recipient_email } });
-    if (!recipientUser || !recipientUser.deposit_clabe) {
-      res.status(404).json({ error: "Recipient or their deposit CLABE not found" });
+    if (!recipientUser) {
+      res.status(404).json({ error: "Recipient not found" });
+      return;
+    }
+
+    // **CREATE UNIQUE CLABE FOR THIS PAYMENT** - Key change for per-payment CLABE
+    let paymentClabe: string;
+    try {
+      paymentClabe = await createJunoClabe();
+      console.log(`✅ Created unique CLABE for payment: ${paymentClabe}`);
+    } catch (clabeErr) {
+      console.error('❌ Failed to create payment CLABE:', clabeErr);
+      res.status(500).json({ error: "Failed to create payment CLABE", details: clabeErr });
       return;
     }
 
@@ -47,7 +59,8 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
       }
       commission_beneficiary_clabe = beneficiaryUser.payout_clabe;
     }
-    // Create Payment record, associate deposit_clabe and payout_clabe
+    
+    // Create Payment record with UNIQUE payment CLABE (not recipient's deposit_clabe)
     const payment = paymentRepo.create({
       user: user as any, // typeorm expects entity or id
       recipient_email,
@@ -57,7 +70,7 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
       description,
       status: "pending",
       reference: '', // will update after save
-      deposit_clabe: recipientUser.deposit_clabe,
+      deposit_clabe: paymentClabe, // 🎯 UNIQUE CLABE PER PAYMENT
       payout_clabe: recipientUser.payout_clabe || undefined,
       commission_beneficiary_name: req.body.commission_beneficiary_name,
       commission_beneficiary_email: req.body.commission_beneficiary_email,
@@ -66,12 +79,14 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
       travel_rule_data: travel_rule_data || null,
     });
     await paymentRepo.save(payment);
+    
     // Registrar evento: Pago iniciado
     await paymentEventRepo.save(paymentEventRepo.create({
       paymentId: payment.id,
       type: 'initiated',
-      description: 'Pago iniciado'
+      description: `💳 Pago iniciado - CLABE única: ${paymentClabe}`
     }));
+    
     // Set reference to payment.id (string) and update
     payment.reference = String(payment.id);
     await paymentRepo.save(payment);
@@ -92,13 +107,25 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
       custody_end: new Date(Date.now() + custodyPeriod * 24 * 60 * 60 * 1000)
     });
     await escrowRepo.save(escrow);
+    
     // NO crear evento de custodia aquí. Se creará cuando se fondeen los fondos.
     payment.status = "pending";
     payment.escrow = escrow;
     await paymentRepo.save(payment);
-    res.json({ success: true, payment, escrow });
+    
+    console.log(`✅ Payment created with unique CLABE: ${paymentClabe} | Payment ID: ${payment.id}`);
+    res.json({ 
+      success: true, 
+      payment: {
+        ...payment,
+        deposit_clabe: paymentClabe // Ensure CLABE is returned to frontend
+      }, 
+      escrow,
+      clabe: paymentClabe // Explicit CLABE for frontend
+    });
     return;
   } catch (err) {
+    console.error('❌ Payment initiation failed:', err);
     res.status(500).json({ error: "Payment initiation failed", details: String(err) });
     return;
   }
@@ -212,10 +239,16 @@ export const junoWebhook = async (req: Request, res: Response): Promise<void> =>
         // Use createEscrowOnChain to lock custody amount
         let escrowIdOrTx;
         try {
+          // Updated for KustodiaEscrow2_0 API
           escrowIdOrTx = await createEscrowOnChain({
-            seller: sellerWallet,
-            custodyAmount,
-            custodyPeriod
+            payer: process.env.ESCROW_BRIDGE_WALLET!, // Bridge wallet acts as payer
+            payee: sellerWallet, // Seller is the payee
+            token: process.env.MOCK_ERC20_ADDRESS!, // MXNB token address
+            amount: custodyAmount.toString(), // Custody amount in wei
+            deadline: Math.floor(escrow.custody_end.getTime() / 1000), // Unix timestamp
+            vertical: 'payment', // Business vertical
+            clabe: payment.deposit_clabe || '', // CLABE for reference
+            conditions: `Payment ${payment.id} custody period` // Escrow conditions
           });
           console.log('[Escrow] createEscrowOnChain result:', escrowIdOrTx);
         } catch (err) {

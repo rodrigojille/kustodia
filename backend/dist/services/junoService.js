@@ -10,6 +10,9 @@ exports.sendJunoPayment = sendJunoPayment;
 exports.listJunoTransactions = listJunoTransactions;
 const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
+const dotenv_1 = __importDefault(require("dotenv"));
+// Load environment variables
+dotenv_1.default.config();
 // Select API keys based on environment
 const JUNO_ENV = process.env.JUNO_ENV || 'stage';
 const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY : process.env.JUNO_API_KEY;

@@ -39,6 +39,14 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "wallet_address", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 128 }),
+    __metadata("design:type", String)
+], User.prototype, "portal_share", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 'user' }),
+    __metadata("design:type", String)
+], User.prototype, "role", void 0);
+__decorate([
     (0, typeorm_1.Column)({ nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], User.prototype, "deposit_clabe", void 0);

@@ -210,9 +210,11 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
         <h2 style={{ fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 700, fontSize: 26, marginBottom: 0, color: '#1A73E8', textAlign: 'center' }}>Dashboard</h2>
-        <div style={{ marginBottom: 18, fontSize: 18, color: '#222', fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 600, textAlign: 'center' }}>
-          Bienvenido{currentUser?.full_name ? `, ${currentUser.full_name}` : ''} a tu panel de Kustodia.
-        </div>
+        <div style={{ marginBottom: 24, marginTop: 8, fontSize: 24, color: '#1A73E8', fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 700, textAlign: 'center', letterSpacing: 0.5 }}>
+  {currentUser?.full_name
+    ? `¡Bienvenido, ${currentUser.full_name}!`
+    : '¡Bienvenido/a a tu panel de Kustodia!'}
+</div>
         {/* KYC and CLABE checks */}
         <div style={{ marginBottom: 18, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {/* Dynamic KYC status check */}

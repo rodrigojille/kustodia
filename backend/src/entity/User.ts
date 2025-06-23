@@ -20,6 +20,12 @@ export class User {
   @Column({ nullable: true })
   wallet_address!: string;
 
+  @Column({ nullable: true, length: 128 })
+  portal_share?: string; // Portal SDK share for wallet recovery
+
+  @Column({ default: 'user' })
+  role!: string; // user, admin, etc.
+
   @Column({ nullable: true, length: 18 })
   deposit_clabe?: string; // Juno-generated CLABE for deposits (pay-ins)
 

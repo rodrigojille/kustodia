@@ -29,7 +29,7 @@ export default function DashboardHomePage() {
       setUserLoading(false);
       return;
     }
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/users/me`, {
+    fetch('/api/users/me', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => {
@@ -146,4 +146,3 @@ export default function DashboardHomePage() {
     </>
   );
 }
-

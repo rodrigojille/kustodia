@@ -1,0 +1,3 @@
+UPDATE "user"
+SET wallet_address = '0x486b88ca87533294fb45247387169f081f3102ff'
+WHERE id = 2;

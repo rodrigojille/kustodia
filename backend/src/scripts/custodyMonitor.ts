@@ -1,7 +1,7 @@
 import { LessThanOrEqual, In } from "typeorm";
 import ormconfig from '../ormconfig';
 import { Escrow } from '../entity/Escrow';
-import { releaseCustody } from '../services/escrowService';
+import { releaseEscrow } from '../services/escrowService';
 import { releaseEscrowAndPayout } from '../services/payoutService';
 
 /**
@@ -46,7 +46,7 @@ async function processExpiredCustodies() {
   for (const escrow of expiredEscrows) {
     try {
       console.log(`[custodyMonitor] Releasing custody for escrowId=${escrow.id}`);
-      await releaseCustody(escrow.id);
+      await releaseEscrow(escrow.id);
       console.log(`[custodyMonitor] Custody released on-chain for escrowId=${escrow.id}`);
       await releaseEscrowAndPayout(escrow.id);
       console.log(`[custodyMonitor] Payout triggered for escrowId=${escrow.id}`);

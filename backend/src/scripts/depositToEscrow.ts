@@ -19,10 +19,16 @@ async function main() {
   console.log('Periodo de custodia (segundos):', custodyPeriod);
 
   try {
+    // Updated for KustodiaEscrow2_0 API
     const result = await createEscrow({
-      seller: sellerAddress,
-      custodyAmount,
-      custodyPeriod
+      payer: process.env.ESCROW_BRIDGE_WALLET || sellerAddress, // Bridge wallet as payer
+      payee: sellerAddress, // Seller as payee
+      token: process.env.MOCK_ERC20_ADDRESS!, // MXNB token
+      amount: custodyAmount, // Amount to lock
+      deadline: Math.floor(Date.now() / 1000) + custodyPeriod, // Deadline in seconds
+      vertical: 'deposit', // Business vertical
+      clabe: '', // No CLABE for direct deposit
+      conditions: 'Direct deposit escrow test' // Escrow conditions
     });
     console.log('Escrow creado exitosamente:', result);
   } catch (err: any) {

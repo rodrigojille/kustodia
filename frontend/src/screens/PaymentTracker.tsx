@@ -127,7 +127,13 @@ const PaymentTracker: React.FC = () => {
               {(() => {
                 const typeMap: Record<string, { label: string; color: string; icon: string }> = {
                   initiated: { label: 'Pago iniciado', color: '#1976d2', icon: '💸' },
+                  escrow_created: { label: 'Custodia creada en blockchain', color: '#ffb300', icon: '🔒' },
                   escrow_create: { label: 'MXNB bloqueados en escrow on-chain', color: '#ffb300', icon: '🔒' },
+                  funds_received: { label: 'Fondos recibidos', color: '#43a047', icon: '💰' },
+                  escrow_executing: { label: 'Custodia en ejecución', color: '#ff9800', icon: '⏳' },
+                  escrow_finished: { label: 'Custodia finalizada', color: '#388e3c', icon: '✅' },
+                  escrow_released: { label: 'Custodia liberada', color: '#4caf50', icon: '🔓' },
+                  payment_released: { label: 'Pago liberado', color: '#2e7d32', icon: '💸' },
                   spei_payout_initiated: { label: 'Pago SPEI al vendedor iniciado', color: '#43a047', icon: '🏦' },
                   mxnb_redeemed: { label: 'Redención MXNB iniciada', color: '#0288d1', icon: '🔄' },
                   dispute_raised: { label: 'Disputa iniciada', color: '#d32f2f', icon: '⚠️' },
@@ -140,6 +146,9 @@ const PaymentTracker: React.FC = () => {
                   payout_completed: { label: 'Pago completado', color: '#1976d2', icon: '💵' },
                   payout_initiated: { label: 'Pago iniciado', color: '#1e88e5', icon: '🏁' },
                   dispute_opened: { label: 'Disputa abierta', color: '#fbc02d', icon: '⚠️' },
+                  request_accepted: { label: 'Solicitud aceptada', color: '#4caf50', icon: '✅' },
+                  request_rejected: { label: 'Solicitud rechazada', color: '#f44336', icon: '❌' },
+                  commission_paid: { label: 'Comisión pagada', color: '#9c27b0', icon: '💎' },
                 };
                 return paymentEvents.map(event => {
                   const typeInfo = typeMap[event.type] || { label: event.type, color: '#888', icon: '📝' };
@@ -261,11 +270,7 @@ const PaymentTracker: React.FC = () => {
                 ) : (
                   <div style={{ marginBottom: 12 }}>
                     <strong>Monto por pagar:</strong> ${
-                      payment.escrow.paid_amount !== undefined
-                        ? Number(payment.escrow.paid_amount).toLocaleString('es-MX', { minimumFractionDigits: 2 })
-                        : Array.isArray(payment.escrow.payouts)
-                          ? payment.escrow.payouts.reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })
-                          : '0.00'
+                      Number((payment.escrow.custody_amount || 0) - (payment.escrow.release_amount || 0)).toLocaleString('es-MX', { minimumFractionDigits: 2 })
                     } MXN
                   </div>
                 )}

@@ -6,6 +6,7 @@ import disputeRoutes from "./dispute";
 import adminRoutes from "./admin";
 import evidenceRoutes from "./evidence";
 import junoRoutes from "./juno";
+import automationRoutes from "./automation";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/escrow", disputeRoutes);
 router.use("/admin", adminRoutes);
 router.use("/evidence", evidenceRoutes);
 router.use("/juno", junoRoutes);
+router.use("/automation", automationRoutes);
 
 export default router;

@@ -29,7 +29,7 @@ router.get("/me", authenticateJWT_1.authenticateJWT, async (req, res) => {
         res.status(404).json({ error: "No user found" });
         return;
     }
-    res.json({ user: { id: user.id, email: user.email, full_name: user.full_name, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe, kyc_status: user.kyc_status } });
+    res.json({ user: { id: user.id, email: user.email, full_name: user.full_name, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe, kyc_status: user.kyc_status, wallet_address: user.wallet_address } });
 });
 // Update payout CLABE
 router.post("/update-payout-clabe", authenticateJWT_1.authenticateJWT, async (req, res) => {

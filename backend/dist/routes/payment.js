@@ -12,6 +12,6 @@ router.post("/initiate", paymentController_1.initiatePayment);
 router.post("/request", authenticateJWT_1.authenticateJWT, requestPaymentController_1.requestPayment);
 router.post("/webhook/juno", paymentController_1.junoWebhook);
 router.get("/user-payments", authenticateJWT_1.authenticateJWT, getUserPaymentsController_1.getUserPayments);
-router.get("/:id/events", authenticateJWT_1.authenticateJWT, paymentEventController_1.getPaymentEvents);
+router.get("/:id/events", paymentEventController_1.getPaymentEvents);
 router.get("/:id", getPaymentByIdController_1.getPaymentById);
 exports.default = router;

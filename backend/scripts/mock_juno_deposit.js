@@ -1,12 +1,12 @@
-require('dotenv').config({ path: './backend/.env' });
+require('dotenv').config({ path: './.env' });
 const crypto = require('crypto');
 const axios = require('axios');
 
 const defaults = {
   amount: "2000",
-  receiver_clabe: "710969000000351106", // Test Seller's deposit CLABE
-  receiver_name: "Test Seller", // Receiver's full name
-  sender_name: "Rodrigo Jimenez" // Sender's full name
+  receiver_clabe: "710969000000364656", // Payment ID 83 correct CLABE
+  receiver_name: "test-seller@kustodia.mx", // Receiver's full name
+  sender_name: "rodrigojille6@gmail.com" // Sender's full name
 };
 
 console.log('--- MOCK DEPOSIT PAYLOAD ---');
@@ -14,6 +14,14 @@ console.log(defaults);
 
 const JUNO_API_KEY = process.env.JUNO_STAGE_API_KEY;
 const JUNO_API_SECRET = process.env.JUNO_STAGE_API_SECRET;
+
+if (!JUNO_API_KEY || !JUNO_API_SECRET) {
+  console.error('Missing Juno API credentials!');
+  console.error('JUNO_STAGE_API_KEY:', JUNO_API_KEY ? 'Set' : 'Missing');
+  console.error('JUNO_STAGE_API_SECRET:', JUNO_API_SECRET ? 'Set' : 'Missing');
+  process.exit(1);
+}
+
 const nonce = Date.now().toString();
 const method = 'POST';
 const requestPath = '/spei/test/deposits';

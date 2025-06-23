@@ -40,18 +40,20 @@ exports.releaseCustody = releaseCustody;
 exports.raiseDispute = raiseDispute;
 exports.resolveDispute = resolveDispute;
 exports.getEscrow = getEscrow;
+exports.releaseEscrow = releaseEscrow;
 const ethers_1 = require("ethers");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 console.log('[escrowService] Starting import');
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS:', process.env.ESCROW_CONTRACT_ADDRESS);
+console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS_2:', process.env.ESCROW_CONTRACT_ADDRESS_2);
 console.log('[escrowService] ENV.ESCROW_PRIVATE_KEY:', process.env.ESCROW_PRIVATE_KEY ? '***set***' : '***missing***');
-// Artifact paths
-const escrowArtifactPath = path.join(__dirname, '../../artifacts/contracts/KustodiaEscrow.sol/KustodiaEscrow.json');
+// Artifact paths - Updated to use KustodiaEscrow2_0
+const escrowArtifactPath = path.join(__dirname, '../../artifacts/contracts/KustodiaEscrow2_0.sol/KustodiaEscrow2_0.json');
 const erc20ArtifactPath = path.join(__dirname, '../../artifacts/contracts/ERC20.json');
-console.log('[escrowService] Resolved KustodiaEscrow.json path:', escrowArtifactPath);
+console.log('[escrowService] Resolved KustodiaEscrow2_0.json path:', escrowArtifactPath);
 console.log('[escrowService] Resolved ERC20.json path:', erc20ArtifactPath);
-console.log('[escrowService] KustodiaEscrow.json exists:', fs.existsSync(escrowArtifactPath));
+console.log('[escrowService] KustodiaEscrow2_0.json exists:', fs.existsSync(escrowArtifactPath));
 console.log('[escrowService] ERC20.json exists:', fs.existsSync(erc20ArtifactPath));
 // Arbitrum testnet/configurable
 const RPC_URL = process.env.ETH_RPC_URL;
@@ -59,8 +61,10 @@ const provider = new ethers_1.ethers.providers.JsonRpcProvider(RPC_URL);
 // Use mainnet deployer/escrow key from env
 const PRIVATE_KEY = process.env.ESCROW_PRIVATE_KEY;
 const signer = new ethers_1.ethers.Wallet(PRIVATE_KEY, provider);
+// Use ESCROW_CONTRACT_ADDRESS_2 for the new KustodiaEscrow2_0 contract
+const ESCROW_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS_2;
+console.log('[escrowService] Using ESCROW_CONTRACT_ADDRESS_2:', ESCROW_ADDRESS);
 // Mainnet contract addresses
-const ESCROW_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS;
 const TOKEN_ADDRESS = process.env.MOCK_ERC20_ADDRESS;
 // Load ABIs
 const KustodiaEscrowArtifact = require(escrowArtifactPath);
@@ -113,38 +117,60 @@ async function transferMXNBToJunoWallet(amount, to) {
         throw err;
     }
 }
-async function createEscrow({ seller, custodyAmount, custodyPeriod }) {
+// Updated createEscrow function to match KustodiaEscrow2_0 API
+async function createEscrow({ payer, payee, token, amount, deadline, vertical, clabe, conditions }) {
+    console.log('[escrowService] Creating escrow with KustodiaEscrow2_0:', {
+        payer, payee, token, amount, deadline, vertical, clabe
+    });
     // Check current allowance
     const currentAllowance = await tokenContract.allowance(signer.address, ESCROW_ADDRESS);
-    if (currentAllowance.lt(custodyAmount)) {
+    console.log('[escrowService] Current allowance:', currentAllowance.toString());
+    if (currentAllowance.lt(amount)) {
+        console.log('[escrowService] Insufficient allowance, approving token spend');
         if (!currentAllowance.isZero()) {
             const resetTx = await tokenContract.approve(ESCROW_ADDRESS, 0);
             await resetTx.wait();
         }
-        const approveTx = await tokenContract.approve(ESCROW_ADDRESS, custodyAmount);
+        const approveTx = await tokenContract.approve(ESCROW_ADDRESS, amount);
         await approveTx.wait();
+        console.log('[escrowService] Token approval completed');
     }
-    // Create escrow on-chain with the custody amount
-    const tx = await exports.escrowContract.createEscrow(seller, custodyAmount, custodyPeriod);
+    // Create escrow on-chain with the new contract parameters
+    const tx = await exports.escrowContract.createEscrow(payer, payee, token, amount, deadline, vertical, clabe, conditions);
     const receipt = await tx.wait();
+    console.log('[escrowService] Escrow creation transaction completed:', tx.hash);
     // Find EscrowCreated event
     const event = receipt.events?.find((e) => e.event === "EscrowCreated");
     const escrowId = event?.args?.escrowId;
+    console.log('[escrowService] Escrow created with ID:', escrowId?.toString());
     // Return both escrowId and transaction hash
     return { escrowId: escrowId?.toString(), txHash: tx.hash };
 }
+// Updated releaseCustody to use 'release' function from KustodiaEscrow2_0
 async function releaseCustody(escrowId) {
-    const tx = await exports.escrowContract.releaseCustody(escrowId);
+    console.log('[escrowService] Releasing escrow with ID:', escrowId);
+    const tx = await exports.escrowContract.release(escrowId); // Changed from releaseCustody to release
     await tx.wait();
+    console.log('[escrowService] Escrow release transaction completed:', tx.hash);
 }
-async function raiseDispute(escrowId) {
-    const tx = await exports.escrowContract.raiseDispute(escrowId);
+// Updated raiseDispute to use 'dispute' function from KustodiaEscrow2_0  
+async function raiseDispute(escrowId, reason) {
+    console.log('[escrowService] Raising dispute for escrow ID:', escrowId, 'with reason:', reason);
+    const tx = await exports.escrowContract.dispute(escrowId, reason); // Updated function signature
     await tx.wait();
+    console.log('[escrowService] Dispute raised transaction completed:', tx.hash);
 }
-async function resolveDispute(escrowId, releaseToSeller) {
-    const tx = await exports.escrowContract.resolveDispute(escrowId, releaseToSeller);
+// Updated resolveDispute to match KustodiaEscrow2_0 API
+async function resolveDispute(escrowId, inFavorOfSeller) {
+    console.log('[escrowService] Resolving dispute for escrow ID:', escrowId, 'in favor of seller:', inFavorOfSeller);
+    const tx = await exports.escrowContract.resolveDispute(escrowId, inFavorOfSeller); // Updated parameter name
     await tx.wait();
+    console.log('[escrowService] Dispute resolution transaction completed:', tx.hash);
 }
 async function getEscrow(escrowId) {
-    return exports.escrowContract.escrows(escrowId);
+    return await exports.escrowContract.escrows(escrowId);
+}
+// Alias for backward compatibility with existing scripts
+async function releaseEscrow(escrowId) {
+    return await releaseCustody(escrowId);
 }

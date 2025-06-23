@@ -1,10 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fetchPayments } from "../fetchPayments";
+import AutomationStatus from "./AutomationStatus";
+import { getStatusConfig, getStatusSpanish, PAYMENT_STATUSES } from '../config/paymentStatuses';
 
 function getDisplayAmount(amount: number | string, currency: string | undefined) {
   // Siempre mostrar como pesos mexicanos, sin importar el token
   return Number(amount).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
+
+function getStatusDisplay(status: string) {
+  const config = getStatusConfig(status);
+  return { label: config.spanish, color: config.textClass, icon: config.icon };
 }
 
 type Payment = {
@@ -18,7 +25,6 @@ type Payment = {
   description?: string;
 };
 
-
 export default function PaymentsTable() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,12 +33,23 @@ export default function PaymentsTable() {
   const [status, setStatus] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [automationActive, setAutomationActive] = useState(false);
 
   useEffect(() => {
     fetchPayments()
       .then(setPayments)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+
+    // Check automation status
+    fetch('http://localhost:4000/api/automation/status')
+      .then(res => res.json())
+      .then(data => {
+        setAutomationActive(data.success && data.status === 'running');
+      })
+      .catch(() => {
+        setAutomationActive(false);
+      });
   }, []);
 
   // Filtro avanzado
@@ -58,7 +75,7 @@ export default function PaymentsTable() {
       p.payer_email || '-',
       p.recipient_email || '-',
       Number(p.amount).toLocaleString('es-MX', { style: 'currency', currency: p.currency || 'MXN' }),
-      p.status === 'funded' ? 'En progreso' : p.status === 'dispute' ? 'En disputa' : p.status,
+      getStatusDisplay(p.status).label,
       p.description || '-'
     ]);
     const csv = [headers, ...rows].map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -73,15 +90,32 @@ export default function PaymentsTable() {
 
   return (
     <div className="bg-white rounded-lg shadow p-2 sm:p-4 overflow-x-auto w-full">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
-        <h3 className="text-lg font-bold text-black mb-2">Últimos pagos</h3>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <h3 className="text-lg font-bold text-black">Últimos pagos</h3>
+          <AutomationStatus compact={true} />
+        </div>
         <button
           onClick={exportCSV}
-          className="ml-auto bg-blue-600 text-white px-3 py-1 rounded text-xs font-semibold shadow hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-semibold shadow hover:bg-blue-700 transition"
         >
           Exportar CSV
         </button>
       </div>
+
+      {/* Automation Status Alert */}
+      {!automationActive && (
+        <div className="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-orange-600">⚠️</span>
+            <div>
+              <p className="text-orange-800 font-medium text-sm">Sistema de automatización inactivo</p>
+              <p className="text-orange-700 text-xs">Los pagos pueden requerir procesamiento manual.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2 mb-3">
         <input
           type="text"
@@ -96,13 +130,11 @@ export default function PaymentsTable() {
           className="border rounded px-2 py-1 text-sm w-32 focus:ring-2 focus:ring-blue-300"
         >
           <option value="">Todos los estados</option>
-          <option value="paid">Pagado</option>
-          <option value="pending">Pendiente</option>
-          <option value="requested">Solicitado</option>
-          <option value="funded">Fondeado</option>
-          <option value="in_dispute">En disputa</option>
-          <option value="cancelled">Cancelado</option>
-          <option value="refunded">Reembolsado</option>
+          {Object.values(PAYMENT_STATUSES).map(config => (
+            <option key={config.key} value={config.key}>
+              {config.spanish}
+            </option>
+          ))}
         </select>
         <input
           type="date"
@@ -147,33 +179,18 @@ export default function PaymentsTable() {
                     {getDisplayAmount(p.amount, p.currency)}
                   </td>
                   <td className="py-2 px-2 text-black">
-                    <span className={
-                      `inline-block px-2 py-1 rounded text-xs font-bold ` +
-                      (p.status === 'paid'
-                        ? 'bg-green-100 text-green-700'
-                        : p.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : p.status === 'requested'
-                        ? 'bg-green-100 text-green-700'
-                        : p.status === 'funded'
-                        ? 'bg-blue-100 text-blue-700'
-                        : p.status === 'in_dispute'
-                        ? 'bg-red-100 text-red-700'
-                        : p.status === 'cancelled'
-                        ? 'bg-gray-100 text-gray-600'
-                        : p.status === 'refunded'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'bg-gray-100 text-gray-600')
-                    }>
-                      {p.status === 'paid' ? 'Pagado' :
-                       p.status === 'pending' ? 'Pendiente' :
-                       p.status === 'requested' ? 'Solicitado' :
-                       p.status === 'funded' ? 'Fondeado' :
-                       p.status === 'in_dispute' ? 'En disputa' :
-                       p.status === 'cancelled' ? 'Cancelado' :
-                       p.status === 'refunded' ? 'Reembolsado' :
-                       p.status}
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${getStatusDisplay(p.status).color}`}>
+                      <span>{getStatusDisplay(p.status).icon}</span>
+                      {getStatusDisplay(p.status).label}
                     </span>
+                    {automationActive && ['processing', 'paid', 'completed'].includes(p.status) && (
+                      <div className="mt-1">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-green-50 text-green-600 border border-green-200">
+                          <span className="text-xs">🤖</span>
+                          Auto
+                        </span>
+                      </div>
+                    )}
                   </td>
                   <td className="py-2 px-2 text-black max-w-[160px] truncate" title={p.description || ''}>{p.description || '-'}</td>
                   <td className="py-2 px-2 text-black">

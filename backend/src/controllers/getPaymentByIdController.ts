@@ -88,8 +88,19 @@ export const getPaymentById = async (req: Request, res: Response): Promise<void>
               dispute_evidence: payment.escrow.dispute_evidence,
               dispute_history: payment.escrow.dispute_history,
               // Add on-chain deadline if available
-              onchain_deadline: payment.escrow.smart_contract_escrow_id
-                ? (await require('../services/escrowService').getEscrow(Number(payment.escrow.smart_contract_escrow_id))).deadline?.toNumber?.() ?? null
+              onchain_deadline: payment.escrow?.smart_contract_escrow_id
+                ? await (async () => {
+                    try {
+                      const escrowId = Number(payment.escrow!.smart_contract_escrow_id);
+                      if (isNaN(escrowId)) return null;
+                      const escrow = await require('../services/escrowService').getEscrow(escrowId);
+                      return escrow.deadline?.toNumber?.() ?? null;
+                    } catch (err: any) {
+                      // Handle corrupted smart_contract_escrow_id data
+                      console.warn(`Failed to get on-chain deadline for escrow ${payment.escrow!.id}:`, err.message);
+                      return null;
+                    }
+                  })()
                 : null
             }
           : undefined,
