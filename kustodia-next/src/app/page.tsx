@@ -87,7 +87,7 @@ export default function LandingPage() {
         <meta name="apple-mobile-web-app-title" content="Kustodia" />
         <meta property="og:title" content="Kustodia - Pagos Inteligentes, Custodia y SPEI Seguro con Blockchain" />
         <meta property="og:description" content="Kustodia: pagos inteligentes, custodia y SPEI seguro con tecnología blockchain. Protege tus operaciones y paga solo cuando todo sale bien." />
-        <meta property="og:image" content="/kustodia-og.png" />
+        <meta property="og:image" content="https://kustodia.mx/kustodia-og.png" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://kustodia.mx/" />
         <meta property="og:locale" content="es_MX" />
@@ -95,7 +95,7 @@ export default function LandingPage() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Kustodia - Pagos Inteligentes y Seguros en México" />
         <meta name="twitter:description" content="Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien." />
-        <meta name="twitter:image" content="/kustodia-og.png" />
+        <meta name="twitter:image" content="https://kustodia.mx/kustodia-og.png" />
         <meta name="twitter:creator" content="@kustodia_mx" />
         <meta name="twitter:site" content="@kustodia_mx" />
         <link rel="canonical" href="https://kustodia.mx/" />

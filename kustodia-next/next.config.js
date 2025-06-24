@@ -80,8 +80,12 @@ const nextConfig = {
   
   // Enable experimental features for better performance
   experimental: {
-    optimizeCss: true,
     scrollRestoration: true,
+  },
+  
+  // Metadata base URL for Open Graph images
+  env: {
+    NEXT_PUBLIC_METADATA_BASE: 'https://kustodia.mx',
   },
 };
 

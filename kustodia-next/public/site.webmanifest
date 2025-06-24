@@ -1,0 +1,41 @@
+{
+  "name": "Kustodia - Pagos Inteligentes y Seguros",
+  "short_name": "Kustodia",
+  "description": "Plataforma líder en pagos inteligentes, custodia digital y SPEI seguro con tecnología blockchain en México",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["finance", "business", "productivity"],
+  "lang": "es-MX",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Acceso Anticipado",
+      "short_name": "Early Access",
+      "description": "Registrarse para acceso anticipado a Kustodia",
+      "url": "/#early-access",
+      "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "Blog",
+      "short_name": "Blog",
+      "description": "Leer artículos sobre seguridad en pagos",
+      "url": "/blog/evitar-fraudes-marketplace",
+      "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32" }]
+    }
+  ]
+}
