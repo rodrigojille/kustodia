@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+<!-- Main Landing Page - Highest Priority -->
+<url>
+  <loc>https://kustodia.mx/</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>daily</changefreq>
+  <priority>1.0</priority>
+</url>
+
+<!-- Blog Pages - High Priority for SEO -->
+<url>
+  <loc>https://kustodia.mx/blog/evitar-fraudes-marketplace</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/blog/evitar-fraudes-freelancer</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/blog/evitar-fraudes-ecommerce</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/blog/evitar-fraudes-inmobiliarias</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/blog/evitar-fraudes-b2b</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/blog/evitar-fraudes-compra-venta</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/blog/evitar-fraudes-marketplaces</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/blog/contratos-empresariales-seguros</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/blog/como-integrar-pagos-seguros-marketplace</loc>
+  <lastmod>2025-06-23</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+</urlset>

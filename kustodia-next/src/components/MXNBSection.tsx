@@ -96,24 +96,24 @@ const MXNBSection: React.FC = () => (
         <h4 className="text-2xl md:text-3xl font-bold text-gray-900 mb-12 tracking-tight">¿Por qué es Revolucionario?</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
           <div className="flex flex-col items-center justify-center text-center">
-            <span className="text-4xl mb-4">💰</span>
-            <span className="text-xl font-bold text-gray-900 mb-2">Respaldo 1:1 con MXN</span>
+            <span className="text-4xl mb-4">🔗</span>
+            <span className="text-xl font-bold text-gray-900 mb-2">Blockchain + SPEI Unificado</span>
             <span className="text-base text-gray-600 font-light leading-relaxed">
-              Cada MXNB está respaldado por 1 peso mexicano real en bancos regulados
+              Primera plataforma que combina blockchain, stablecoins y SPEI tradicional en un solo lugar
+            </span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-center">
+            <span className="text-4xl mb-4">💰</span>
+            <span className="text-xl font-bold text-gray-900 mb-2">Reservas Auditadas</span>
+            <span className="text-base text-gray-600 font-light leading-relaxed">
+              MXNB respaldado por reservas auditadas trimestralmente que garantizan paridad 1:1 con MXN
             </span>
           </div>
           <div className="flex flex-col items-center justify-center text-center">
             <span className="text-4xl mb-4">🤖</span>
-            <span className="text-xl font-bold text-gray-900 mb-2">100% Automático</span>
+            <span className="text-xl font-bold text-gray-900 mb-2">Custodia Automática</span>
             <span className="text-base text-gray-600 font-light leading-relaxed">
-              Smart contracts ejecutan las transacciones sin intervención humana
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center text-center">
-            <span className="text-4xl mb-4">🔍</span>
-            <span className="text-xl font-bold text-gray-900 mb-2">Totalmente Transparente</span>
-            <span className="text-base text-gray-600 font-light leading-relaxed">
-              Todas las transacciones son auditables públicamente en blockchain
+              Smart contracts ejecutan automáticamente las condiciones sin intermediarios ni intervención manual
             </span>
           </div>
         </div>

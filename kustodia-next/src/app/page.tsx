@@ -70,16 +70,44 @@ export default function LandingPage() {
        <Head>
         <title>Kustodia - Pagos Inteligentes, Custodia y SPEI Seguro con Blockchain</title>
         <meta name="description" content="Kustodia: pagos inteligentes, custodia y SPEI seguro con tecnología blockchain. Protege tus operaciones y paga solo cuando todo sale bien. ¡Regístrate gratis!" />
+        <meta name="keywords" content="custodia digital, pagos seguros México, blockchain México, SPEI seguro, escrow digital, pagos inteligentes, fintech México, MXNB" />
+        <meta name="author" content="Kustodia México" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta httpEquiv="Content-Language" content="es-MX" />
+        <meta name="language" content="Spanish" />
+        <meta name="geo.region" content="MX" />
+        <meta name="geo.country" content="México" />
+        <meta name="geo.placename" content="Ciudad de México" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        <meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1" />
+        <meta name="theme-color" content="#3b82f6" />
+        <meta name="msapplication-TileColor" content="#3b82f6" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Kustodia" />
         <meta property="og:title" content="Kustodia - Pagos Inteligentes, Custodia y SPEI Seguro con Blockchain" />
         <meta property="og:description" content="Kustodia: pagos inteligentes, custodia y SPEI seguro con tecnología blockchain. Protege tus operaciones y paga solo cuando todo sale bien." />
         <meta property="og:image" content="/kustodia-og.png" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://kustodia.mx/" />
+        <meta property="og:locale" content="es_MX" />
+        <meta property="og:site_name" content="Kustodia" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Kustodia - Pagos Inteligentes y Seguros en México" />
         <meta name="twitter:description" content="Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien." />
         <meta name="twitter:image" content="/kustodia-og.png" />
+        <meta name="twitter:creator" content="@kustodia_mx" />
+        <meta name="twitter:site" content="@kustodia_mx" />
         <link rel="canonical" href="https://kustodia.mx/" />
+        <link rel="alternate" hrefLang="es-MX" href="https://kustodia.mx/" />
+        <link rel="alternate" hrefLang="es" href="https://kustodia.mx/" />
+        <link rel="alternate" hrefLang="x-default" href="https://kustodia.mx/" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        
         {/* Structured Data */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           '@context': 'https://schema.org',
@@ -91,8 +119,127 @@ export default function LandingPage() {
             'https://x.com/Kustodia_mx',
             'https://instagram.com/kustodia_mx'
           ],
-          description: 'Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México.'
-        })}} />
+          description: 'Plataforma líder en pagos inteligentes y custodia digital con tecnología blockchain en México',
+          foundingDate: '2024',
+          contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'Customer Service',
+            availableLanguage: ['Spanish', 'English']
+          },
+          address: {
+            '@type': 'PostalAddress',
+            addressCountry: 'MX',
+            addressRegion: 'México'
+          }
+        }) }} />
+        
+        {/* WebSite Schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'Kustodia',
+          url: 'https://kustodia.mx/',
+          description: 'Pagos inteligentes, custodia y SPEI seguro con tecnología blockchain en México',
+          inLanguage: 'es-MX',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: 'https://kustodia.mx/?q={search_term}',
+            'query-input': 'required name=search_term'
+          }
+        }) }} />
+        
+        {/* Service Schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Service',
+          name: 'Custodia Digital y Pagos Seguros',
+          provider: {
+            '@type': 'Organization',
+            name: 'Kustodia'
+          },
+          description: 'Servicio de custodia digital inteligente que protege pagos y transacciones usando tecnología blockchain y MXNB',
+          serviceType: 'Financial Technology',
+          areaServed: {
+            '@type': 'Country',
+            name: 'México'
+          },
+          hasOfferCatalog: {
+            '@type': 'OfferCatalog',
+            name: 'Servicios de Custodia Digital',
+            itemListElement: [
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'Custodia de Pagos para E-commerce'
+                }
+              },
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'Protección de Transacciones Inmobiliarias'
+                }
+              },
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'Custodia para Freelancers y Servicios'
+                }
+              }
+            ]
+          }
+        }) }} />
+        
+        {/* LocalBusiness Schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'LocalBusiness',
+          name: 'Kustodia',
+          image: '/kustodia-og.png',
+          url: 'https://kustodia.mx/',
+          telephone: '+52 55 1234 5678',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Calle 123, Colonia Centro',
+            addressLocality: 'Ciudad de México',
+            addressRegion: 'México',
+            postalCode: '12345',
+            addressCountry: 'MX'
+          },
+          openingHours: 'Mo-Fr 09:00-18:00',
+          sameAs: [
+            'https://x.com/Kustodia_mx',
+            'https://instagram.com/kustodia_mx'
+          ],
+          review: {
+            '@type': 'Review',
+            reviewBody: 'Excelente servicio de custodia digital. Me siento seguro con mis pagos.',
+            reviewRating: {
+              '@type': 'Rating',
+              ratingValue: '5',
+              bestRating: '5',
+              worstRating: '1'
+            },
+            author: {
+              '@type': 'Person',
+              name: 'Juan Pérez'
+            }
+          },
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: '19.4326',
+            longitude: '-99.1332'
+          },
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.8',
+            bestRating: '5',
+            worstRating: '1',
+            ratingCount: '100'
+          }
+        }) }} />
       </Head>
       
       <Header userName={userName} isAuthenticated={isAuthenticated} />

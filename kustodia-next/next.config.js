@@ -17,6 +17,72 @@ const nextConfig = {
       },
     ];
   },
+  
+  // SEO and Performance Optimizations
+  compress: true,
+  poweredByHeader: false,
+  
+  // Security Headers for better SEO ranking
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+    ];
+  },
+  
+  // SEO-friendly redirects
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/inicio',
+        destination: '/',
+        permanent: true,
+      },
+      // Blog redirects for old URLs
+      {
+        source: '/blog/fraudes-marketplace',
+        destination: '/blog/evitar-fraudes-marketplace',
+        permanent: true,
+      },
+    ];
+  },
+  
+  // Image optimization for better Core Web Vitals
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  
+  // Enable experimental features for better performance
+  experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
+  },
 };
 
 module.exports = nextConfig;

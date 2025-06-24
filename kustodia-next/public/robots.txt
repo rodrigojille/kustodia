@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Important pages for SEO
+Allow: /blog/*
+Allow: /api/early-access-counter/*
+
+# Sitemap location
+Sitemap: https://kustodia.mx/sitemap.xml
+
+# Block development/admin paths (if any exist)
+Disallow: /admin
+Disallow: /_next/
+Disallow: /api/admin
+
+# Crawl delay (optional - helps prevent server overload)
+Crawl-delay: 1
