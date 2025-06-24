@@ -22,7 +22,7 @@ export default function EarlyAccessForm() {
     }
     try {
       const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://kustodia-backend-f991a7cb1824.herokuapp.com";
-      const response = await fetch(`${API_BASE}/api/early-access-signup`, {
+      const response = await fetch(`${API_BASE}/api/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
