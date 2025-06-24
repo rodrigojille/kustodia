@@ -26,21 +26,42 @@ export default function CompraVentaUseCase() {
       </header>
       <Header isAuthenticated={false} userName={''} />
       <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-20">
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-12 mt-10">
-          <div className="bg-white rounded-3xl shadow-xl border border-blue-100 p-8 flex flex-col items-center text-center">
-            <FaHandshake className="text-blue-700 text-5xl mb-4" />
-            <h1 className="text-3xl font-extrabold text-blue-800 mb-2">Compra-venta entre particulares sin fraudes</h1>
-            <p className="text-lg text-gray-700 mb-4 max-w-xl">
-              ¿Vas a vender o comprar un auto, gadget, mueble o cualquier bien entre particulares? El mayor riesgo es que el dinero o el bien no se entreguen como lo acordado.<br /><br />
-              Con Kustodia, el dinero queda protegido en custodia blockchain hasta que ambas partes cumplen. Así, compras y vendes con total confianza.
-            </p>
-            <div className="text-blue-700 font-bold mt-2 mb-4">
-              El dinero solo se libera cuando se cumplen las condiciones de la compraventa, protegiendo a ambas partes.
-            </div>
-            <div className="w-full flex flex-col items-center mt-4">
+        {/* Hero Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32 mt-20" aria-labelledby="compra-venta-heading">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 flex flex-col items-center max-w-5xl w-full mx-auto text-center relative overflow-hidden">
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -mr-16 -mt-16 opacity-30" aria-hidden="true"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-100 rounded-full -ml-12 -mb-12 opacity-30" aria-hidden="true"></div>
+            
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-8 mx-auto">
+                <FaHandshake className="text-blue-700 text-4xl" />
+              </div>
+              
+              <h1 id="compra-venta-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+                Compra-venta segura entre particulares
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-gray-500 mb-8 max-w-4xl mx-auto leading-relaxed font-light">
+                ¿Vas a comprar o vender algo de valor entre particulares? Con Kustodia, el dinero queda protegido hasta que ambas partes cumplan lo acordado.
+              </p>
+              
+              <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+                Evita fraudes en Facebook Marketplace, MercadoLibre o cualquier plataforma de venta entre particulares.
+              </p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 mb-12 max-w-4xl mx-auto">
+                <p className="text-lg md:text-xl font-semibold text-blue-800 mb-4">
+                  El dinero solo se libera cuando ambas partes confirman que se cumplió lo acordado.
+                </p>
+                <p className="text-base md:text-lg text-blue-700">
+                  Producto entregado, pago liberado. <strong>Protección total para compradores y vendedores</strong>.
+                </p>
+              </div>
+              
               <a
                 href="/#early-access"
-                className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition"
+                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
               >
                 Solicitar Acceso Anticipado
               </a>
@@ -48,51 +69,100 @@ export default function CompraVentaUseCase() {
           </div>
         </section>
 
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-16">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6 text-center">¿Cómo funciona para compra-venta entre particulares?</h2>
-          <ol className="list-decimal list-inside bg-white rounded-2xl shadow p-8 text-gray-700 text-lg space-y-3">
-            <li>El comprador y vendedor acuerdan las condiciones y usan Kustodia como intermediario seguro.</li>
-            <li>El dinero se transfiere a un <b>smart contract en la blockchain</b>, bloqueado para ambas partes.</li>
-            <li>El bien o producto se entrega según lo acordado.</li>
-            <li>Cuando ambas partes confirman, Kustodia libera el pago automáticamente.</li>
-            <li>Si hay disputa, Kustodia puede intervenir y resolver según la evidencia.</li>
-          </ol>
-          <div className="mt-4 text-center text-blue-700 font-bold">
-            Compra y vende con confianza, incluso sin conocer a la otra parte.
+        {/* Benefits Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="benefits-heading">
+          <div className="text-center mb-20">
+            <h2 id="benefits-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+              Ventajas para compra-venta
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
+              Compra y vende con total seguridad y confianza
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaShieldAlt className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Cero estafas</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                El dinero solo se libera cuando ambas partes confirman que todo está bien.
+              </p>
+            </article>
+
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaRegSmile className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Tranquilidad total</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                Ideal para autos, electrónicos, muebles y cualquier artículo de valor.
+              </p>
+            </article>
+
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaHandshake className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Confianza mutua</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                Compradores y vendedores pueden hacer negocios sin miedo a fraudes.
+              </p>
+            </article>
           </div>
         </section>
 
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-16">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6 text-center">Ventajas para compradores y vendedores</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 shadow-lg mb-3">
-                <FaShieldAlt className="text-white text-3xl" />
+        {/* FAQ Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="faq-heading">
+          <div className="text-center mb-20">
+            <h2 id="faq-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+              Preguntas frecuentes
+            </h2>
+          </div>
+          
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-4xl mx-auto">
+            <div className="space-y-8">
+              <div className="border-b border-gray-200 pb-8">
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Cómo funciona para una compra-venta?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  El comprador deposita el dinero en custodia, el vendedor entrega el producto, y cuando ambos confirman, el pago se libera automáticamente.
+                </p>
               </div>
-              <div className="font-bold text-lg mb-1 text-blue-800">Sin fraudes ni sorpresas</div>
-              <div className="text-gray-700">El dinero solo se libera si el bien se entrega como se prometió.</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 shadow-lg mb-3">
-                <FaHandshake className="text-white text-3xl" />
+              
+              <div className="border-b border-gray-200 pb-8">
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Qué pasa si hay problemas con el producto?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  Si el producto no está como se describió, el dinero queda en custodia hasta resolver la situación entre las partes.
+                </p>
               </div>
-              <div className="font-bold text-lg mb-1 text-blue-800">Confianza en cada trato</div>
-              <div className="text-gray-700">Ideal para autos, gadgets, muebles y cualquier bien entre particulares.</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-200 shadow-lg mb-3">
-                <FaRegSmile className="text-blue-700 text-3xl" />
+              
+              <div>
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Es seguro para productos caros como autos?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  Sí, Kustodia es ideal para transacciones de alto valor. La blockchain garantiza la transparencia y seguridad del proceso.
+                </p>
               </div>
-              <div className="font-bold text-lg mb-1 text-blue-800">Tranquilidad para todos</div>
-              <div className="text-gray-700">Ambas partes ganan seguridad y evitan conflictos.</div>
             </div>
           </div>
         </section>
 
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-20 text-center">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6">¿Quieres saber más sobre cómo comprar y vender seguro entre particulares?</h2>
-          <p className="mb-4 text-lg text-gray-700">Lee nuestro blog: <Link href="/blog/evitar-fraudes-compra-venta" className="text-blue-600 underline hover:text-blue-800">Cómo evitar fraudes en compra-venta entre particulares</Link></p>
-          <Link href="/" className="inline-block bg-gray-100 text-blue-700 font-bold px-8 py-3 rounded-xl shadow hover:bg-blue-200 transition mt-2">Volver al inicio</Link>
+        {/* CTA Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-20 text-center" aria-labelledby="cta-heading">
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-4xl mx-auto">
+            <h2 id="cta-heading" className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+              ¿Quieres saber más sobre compra-venta segura?
+            </h2>
+            <p className="text-lg md:text-xl text-gray-600 mb-8">
+              Lee nuestro blog: <Link href="/blog/evitar-fraudes-marketplace" className="text-blue-600 underline hover:text-blue-800 font-semibold transition-colors">Cómo evitar fraudes en marketplaces</Link>
+            </p>
+            <Link 
+              href="/" 
+              className="inline-block bg-gray-100 text-blue-700 font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+            >
+              Volver al inicio
+            </Link>
+          </div>
         </section>
       </main>
     </>

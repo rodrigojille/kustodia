@@ -26,22 +26,42 @@ export default function FreelancerUseCase() {
       </header>
       <Header isAuthenticated={false} userName={''} />
       <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-20">
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-12 mt-10">
-          <div className="bg-white rounded-3xl shadow-xl border border-blue-100 p-8 flex flex-col items-center text-center">
-            <FaUserTie className="text-blue-700 text-5xl mb-4" />
-            <h1 className="text-3xl font-extrabold text-blue-800 mb-2">Pagos protegidos para freelancers</h1>
-            <p className="text-lg text-gray-700 mb-4 max-w-xl">
-              Sabemos lo que es dejarlo todo en tu trabajo, cumplir con entregas y, aun así, sentir la angustia de si vas a cobrar o no. Muchos freelancers han sufrido pagos incompletos, retrasos o, peor aún, clientes que desaparecen después de recibir el trabajo.<br /><br />
-              En Kustodia, queremos que nunca más trabajes con miedo. Aquí, tu esfuerzo y dedicación siempre tienen recompensa.
-            </p>
-            <div className="text-blue-700 font-bold mt-2 mb-4">
-              No es un SPEI normal: tu dinero queda protegido en un smart contract hasta que ambas partes cumplen.<br />
-              <span className="text-base text-blue-900 font-normal">Si entregas tu trabajo y subes la evidencia, y el cliente no responde, <b>la preferencia es para ti</b>. Kustodia protege tu pago y tu tranquilidad.</span>
-            </div>
-            <div className="w-full flex flex-col items-center mt-4">
+        {/* Hero Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32 mt-20" aria-labelledby="freelancer-heading">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 flex flex-col items-center max-w-5xl w-full mx-auto text-center relative overflow-hidden">
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -mr-16 -mt-16 opacity-30" aria-hidden="true"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-100 rounded-full -ml-12 -mb-12 opacity-30" aria-hidden="true"></div>
+            
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-8 mx-auto">
+                <FaUserTie className="text-blue-700 text-4xl" />
+              </div>
+              
+              <h1 id="freelancer-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+                Pagos protegidos para freelancers
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-gray-500 mb-8 max-w-4xl mx-auto leading-relaxed font-light">
+                Sabemos lo que es dejarlo todo en tu trabajo, cumplir con entregas y, aun así, sentir la angustia de si vas a cobrar o no.
+              </p>
+              
+              <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+                En Kustodia, queremos que nunca más trabajes con miedo. Aquí, tu esfuerzo y dedicación siempre tienen recompensa.
+              </p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 mb-12 max-w-4xl mx-auto">
+                <p className="text-lg md:text-xl font-semibold text-blue-800 mb-4">
+                  No es un SPEI normal: tu dinero queda protegido en un smart contract hasta que ambas partes cumplen.
+                </p>
+                <p className="text-base md:text-lg text-blue-700">
+                  Si entregas tu trabajo y subes la evidencia, y el cliente no responde, <strong>la preferencia es para ti</strong>. Kustodia protege tu pago y tu tranquilidad.
+                </p>
+              </div>
+              
               <a
                 href="/#early-access"
-                className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition"
+                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
               >
                 Solicitar Acceso Anticipado
               </a>
@@ -49,84 +69,110 @@ export default function FreelancerUseCase() {
           </div>
         </section>
 
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-16">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6 text-center">¿Cómo funciona para freelancers?</h2>
-          <ol className="list-decimal list-inside bg-white rounded-2xl shadow p-8 text-gray-700 text-lg space-y-3">
-            <li>
-              Tu cliente inicia un pago seguro en Kustodia y define el monto y condiciones del trabajo.
-            </li>
-            <li>
-              El dinero se transfiere a un <b>smart contract en la blockchain</b>, donde queda bloqueado y visible para ambas partes.
-            </li>
-            <li>
-              Puedes <b>verificar en tiempo real</b> que el pago está asegurado antes de empezar a trabajar.
-            </li>
-            <li>
-              Realizas el trabajo y subes la evidencia de entrega.
-            </li>
-            <li>
-              Cuando ambas partes confirman la entrega, <b>Kustodia libera el pago automáticamente desde el smart contract</b>. Si hay disputa, intervenimos para ayudarte.
-            </li>
-          </ol>
-          <div className="mt-4 text-center text-blue-700 font-bold">
-            Así, trabajas con la confianza de que tu pago está garantizado y protegido por tecnología blockchain.
+        {/* Benefits Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="benefits-heading">
+          <div className="text-center mb-20">
+            <h2 id="benefits-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+              Ventajas para freelancers
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
+              Trabaja con confianza, cobra con seguridad
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaShieldAlt className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Cero fraudes</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                El dinero queda protegido y solo se libera si ambas partes cumplen.
+              </p>
+            </article>
+            
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaLock className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Custodia transparente</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                Sigue el estado del pago en todo momento y sube evidencia de tu trabajo.
+              </p>
+            </article>
+            
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaRocket className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Pago rápido y seguro</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                Recibe tu dinero sin retrasos ni sorpresas.
+              </p>
+            </article>
           </div>
         </section>
 
         {/* FAQ Section */}
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-16">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6 text-center">Preguntas frecuentes</h2>
-          <div className="bg-white rounded-2xl shadow p-8 text-gray-700 text-lg space-y-6">
-            <div>
-              <b>¿Cómo sé que el dinero está seguro?</b>
-              <div>El dinero queda bloqueado en un smart contract en la blockchain. Puedes verificar la transacción y el saldo en todo momento, sin depender de terceros.</div>
-            </div>
-            <div>
-              <b>¿Qué pasa si el cliente no confirma la entrega?</b>
-              <div>Si ambas partes no confirman, Kustodia puede intervenir como mediador y resolver la disputa según la evidencia aportada.</div>
-            </div>
-            <div>
-              <b>¿Cuánto cuesta usar Kustodia?</b>
-              <div>Durante el acceso anticipado, los primeros usuarios tendrán 0% comisión de por vida. Aprovecha la oportunidad y regístrate.</div>
-            </div>
-            <div>
-              <b>¿Por qué es mejor que un pago SPEI tradicional?</b>
-              <div>Kustodia utiliza lo mejor de un SPEI pero <b>automatiza la confianza en el trato hecho</b>. Olvídate de que te vuelvan a dejar sin un pago: aquí, tu dinero queda protegido y solo se libera cuando el acuerdo se cumple. Así, nunca más trabajas con miedo a no cobrar.</div>
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="faq-heading">
+          <div className="text-center mb-20">
+            <h2 id="faq-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+              Preguntas frecuentes
+            </h2>
+          </div>
+          
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-4xl mx-auto">
+            <div className="space-y-8">
+              <div className="border-b border-gray-200 pb-8">
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Cómo sé que el dinero está seguro?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  El dinero queda bloqueado en un smart contract en la blockchain. Puedes verificar la transacción y el saldo en todo momento, sin depender de terceros.
+                </p>
+              </div>
+              
+              <div className="border-b border-gray-200 pb-8">
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Qué pasa si el cliente no confirma la entrega?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  Si ambas partes no confirman, Kustodia puede intervenir como mediador y resolver la disputa según la evidencia aportada.
+                </p>
+              </div>
+              
+              <div className="border-b border-gray-200 pb-8">
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Cuánto cuesta usar Kustodia?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  Durante el acceso anticipado, los primeros usuarios tendrán 0% comisión de por vida. Aprovecha la oportunidad y regístrate.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Por qué es mejor que un pago SPEI tradicional?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  Kustodia utiliza lo mejor de un SPEI pero <strong className="text-gray-900">automatiza la confianza en el trato hecho</strong>. Olvídate de que te vuelvan a dejar sin un pago: aquí, tu dinero queda protegido y solo se libera cuando el acuerdo se cumple. Así, nunca más trabajas con miedo a no cobrar.
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-16">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6 text-center">Ventajas para freelancers</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-  <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 shadow-lg mb-3">
-      <FaShieldAlt className="text-white text-3xl" />
-    </div>
-    <div className="font-bold text-lg mb-1 text-blue-800">Cero fraudes</div>
-    <div className="text-gray-700">El dinero queda protegido y solo se libera si ambas partes cumplen.</div>
-  </div>
-  <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 shadow-lg mb-3">
-      <FaLock className="text-white text-3xl" />
-    </div>
-    <div className="font-bold text-lg mb-1 text-blue-800">Custodia transparente</div>
-    <div className="text-gray-700">Sigue el estado del pago en todo momento y sube evidencia de tu trabajo.</div>
-  </div>
-  <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-200 shadow-lg mb-3">
-      <FaRocket className="text-blue-700 text-3xl" />
-    </div>
-    <div className="font-bold text-lg mb-1 text-blue-800">Pago rápido y seguro</div>
-    <div className="text-gray-700">Recibe tu dinero sin retrasos ni sorpresas.</div>
-  </div>
-</div>
-        </section>
-
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-20 text-center">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6">¿Quieres saber más sobre cómo evitar fraudes como freelancer?</h2>
-          <p className="mb-4 text-lg text-gray-700">Lee nuestro blog: <Link href="/blog/evitar-fraudes-freelancer" className="text-blue-600 underline hover:text-blue-800">Cómo evitar fraudes en pagos de servicios freelance</Link></p>
-          <Link href="/" className="inline-block bg-gray-100 text-blue-700 font-bold px-8 py-3 rounded-xl shadow hover:bg-blue-200 transition mt-2">Volver al inicio</Link>
+        {/* CTA Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-20 text-center">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+              ¿Quieres saber más sobre cómo evitar fraudes como freelancer?
+            </h2>
+            <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+              Lee nuestro blog: 
+              <Link href="/blog/evitar-fraudes-freelancer" className="text-blue-600 underline hover:text-blue-800 font-medium ml-2">
+                Cómo evitar fraudes en pagos de servicios freelance
+              </Link>
+            </p>
+            <Link 
+              href="/" 
+              className="inline-block bg-gray-200 text-gray-700 text-lg font-semibold px-8 py-4 rounded-2xl hover:bg-gray-300 transition-all duration-300 transform hover:scale-[1.02]"
+            >
+              Volver al inicio
+            </Link>
+          </div>
         </section>
       </main>
     </>

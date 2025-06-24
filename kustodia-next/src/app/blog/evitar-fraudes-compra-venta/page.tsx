@@ -26,76 +26,130 @@ export default function BlogEvitarFraudesCompraVenta() {
         <meta name="twitter:site" content="@kustodia_mx" />
       </header>
       <Header isAuthenticated={false} userName={''} />
-      <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center px-4 pt-10 pb-20">
-        <article className="w-full max-w-3xl bg-white rounded-3xl shadow-xl border border-blue-100 p-10 mx-auto mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <FaHandshake className="text-blue-700 text-3xl" />
-            <h1 className="text-2xl md:text-3xl font-extrabold text-blue-800">Cómo evitar fraudes en compra-venta entre particulares</h1>
-          </div>
-          <div className="text-gray-600 mb-6 text-base">Actualizado: Junio 2025 · Por Kustodia</div>
-
-          <p className="text-lg text-gray-800 mb-6">
-            Comprar o vender entre particulares (autos, gadgets, muebles, etc.) implica riesgos: pagos que no llegan, bienes que no se entregan, o disputas difíciles de resolver. Aquí te explicamos cómo protegerte y cerrar tratos sin miedo.
-          </p>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">¿Dónde ocurren más fraudes?</h2>
-          <ul className="list-disc ml-6 text-gray-700 mb-6">
-            <li><b>Ventas de autos:</b> El comprador paga y nunca recibe el auto, o el vendedor entrega y nunca recibe el dinero.</li>
-            <li><b>Gadgets y electrónicos:</b> Pagos por transferencia directa sin protección.</li>
-            <li><b>Muebles y bienes usados:</b> Tratos entre desconocidos donde no hay intermediario seguro.</li>
-          </ul>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">¿Cómo protegerte usando Kustodia?</h2>
-          <ol className="list-decimal list-inside bg-blue-50 rounded-xl p-6 border border-blue-100 mb-6 text-gray-800">
-            <li>Acuerden usar Kustodia para el pago seguro.</li>
-            <li>El dinero se bloquea en un smart contract en la blockchain.</li>
-            <li>Solo se libera cuando ambas partes confirman que el bien fue entregado como se acordó.</li>
-            <li>Si hay disputa, Kustodia puede intervenir y resolver según la evidencia.</li>
-          </ol>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 shadow mb-2">
-                <FaShieldAlt className="text-white text-2xl" />
+      <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-20">
+        <article className="w-full max-w-4xl bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 mx-auto relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100 rounded-full -mr-12 -mt-12 opacity-30" aria-hidden="true"></div>
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-indigo-100 rounded-full -ml-10 -mb-10 opacity-30" aria-hidden="true"></div>
+          
+          <div className="relative z-10">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 tracking-tight leading-tight">
+              Cómo evitar fraudes en compra-venta entre particulares
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-500 mb-12 leading-relaxed font-light">
+              Comprar y vender entre particulares puede ser riesgoso: desde artículos falsificados hasta estafas con pagos. Aquí te mostramos cómo protegerte y hacer transacciones seguras.
+            </p>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                ¿Dónde ocurren más fraudes?
+              </h2>
+              <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                <ul className="space-y-4 text-lg text-gray-600 leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">Facebook Marketplace:</strong> Sin protección al comprador, pagos directos sin mediación.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">Grupos de WhatsApp:</strong> Ventas por mensaje directo, sin verificación del vendedor.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">Sitios clasificados:</strong> Plataformas que conectan, pero no protegen la transacción.
+                    </div>
+                  </li>
+                </ul>
               </div>
-              <div className="font-bold text-blue-800">Sin fraudes ni sorpresas</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 shadow mb-2">
-                <FaHandshake className="text-white text-2xl" />
+            </section>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                ¿Cómo protegerte usando Kustodia?
+              </h2>
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8">
+                <ol className="space-y-4 text-lg text-gray-700 leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center mt-1">1</span>
+                    Propón al vendedor o comprador usar Kustodia para el pago seguro.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center mt-1">2</span>
+                    El dinero se bloquea en la blockchain hasta que ambos cumplan.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center mt-1">3</span>
+                    Solo se libera cuando el comprador recibe y verifica el artículo.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center mt-1">4</span>
+                    Si hay disputa, Kustodia interviene con evidencia para resolver.
+                  </li>
+                </ol>
               </div>
-              <div className="font-bold text-blue-800">Confianza en cada trato</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-200 shadow mb-2">
-                <FaRegSmile className="text-blue-700 text-2xl" />
+            </section>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                Tips para compra-venta segura
+              </h2>
+              <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                <ul className="space-y-4 text-lg text-gray-600 leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Verifica la reputación del vendedor y pide referencias.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    No envíes dinero directo sin protección.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Solicita usar pagos en custodia para proteger tu dinero.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Guarda toda la evidencia de la compra y la comunicación.
+                  </li>
+                </ul>
               </div>
-              <div className="font-bold text-blue-800">Tranquilidad para todos</div>
+            </section>
+            
+            <div className="text-center mb-12">
+              <Link 
+                href="/compra-venta" 
+                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                Ver cómo funciona para compra-venta
+              </Link>
+            </div>
+            
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
+              <p className="text-lg text-gray-700 mb-6 font-semibold">
+                ¿Te gustó este artículo? <span className="text-blue-700">¡Compártelo y ayuda a que las compras entre particulares sean más seguras!</span>
+              </p>
+              <SocialShare
+                url="https://kustodia.mx/blog/evitar-fraudes-compra-venta"
+                title="Descubre cómo comprar y vender seguro entre particulares con Kustodia — Evita fraudes en Facebook, WhatsApp y clasificados!"
+                summary="Tips para compra-venta segura entre particulares."
+              />
             </div>
           </div>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">Tips para comprar y vender seguro</h2>
-          <ul className="list-disc ml-6 text-gray-700 mb-6">
-            <li>Evita transferencias directas a desconocidos.</li>
-            <li>Deja por escrito las condiciones del trato.</li>
-            <li>Solicita usar pagos en custodia para proteger ambas partes.</li>
-            <li>Guarda toda la evidencia de la negociación y entrega.</li>
-          </ul>
-
-          <div className="flex flex-col md:flex-row gap-4 items-center mt-10 mb-4">
-            <Link href="/compra-venta" className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-xl shadow hover:bg-blue-700 transition text-center w-full md:w-auto">Ver cómo funciona para compra-venta</Link>
-            <a href="/#early-access" className="inline-block bg-white border border-blue-600 text-blue-700 font-bold px-6 py-3 rounded-xl shadow hover:bg-blue-50 transition text-center w-full md:w-auto">Solicitar acceso anticipado</a>
-          </div>
-
-          <SocialShare
-            url="https://kustodia.mx/blog/evitar-fraudes-compra-venta"
-            title="Descubre cómo proteger tu dinero en compra-venta entre particulares con Kustodia — Evita fraudes en ventas de autos, gadgets, muebles y más!"
-            summary="Tips para proteger tu dinero en ventas de autos, gadgets, muebles."
-          />
         </article>
-
-        <div className="w-full max-w-3xl mx-auto text-center mt-6">
-          <Link href="/" className="inline-block bg-gray-100 text-blue-700 font-bold px-8 py-3 rounded-xl shadow hover:bg-blue-200 transition mt-2">Volver al inicio</Link>
+        
+        <div className="w-full max-w-4xl mx-auto text-center mt-8">
+          <Link 
+            href="/" 
+            className="inline-block bg-gray-100 text-blue-700 font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+          >
+            Volver al inicio
+          </Link>
         </div>
       </main>
     </>

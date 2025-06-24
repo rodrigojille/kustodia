@@ -21,7 +21,8 @@ export default function EarlyAccessForm() {
       return;
     }
     try {
-      const response = await fetch('/api/leads', {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://kustodia-backend-f991a7cb1824.herokuapp.com";
+      const response = await fetch(`${API_BASE}/api/early-access-signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -76,7 +77,7 @@ export default function EarlyAccessForm() {
       />
       {error && <div className="text-red-600 font-semibold text-sm">{error}</div>}
       <button type="submit" className="bg-blue-700 text-white font-bold rounded-lg px-6 py-3 mt-2 hover:bg-blue-800 transition" disabled={loading}>
-        {loading ? 'Enviando...' : 'Solicitar Acceso Anticipado'}
+        {loading ? 'Enviando...' : 'Conseguir 0% comisión de por vida'}
       </button>
     </form>
   );

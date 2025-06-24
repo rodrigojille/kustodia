@@ -35,30 +35,56 @@ const casos = [
 
 export default function CasosDeUso() {
   return (
-    <section className="w-full max-w-5xl mx-auto my-20">
-      <h2 className="text-2xl sm:text-3xl font-extrabold text-black mb-10 text-center">Casos de uso</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {casos.map((c) => {
+    <section className="w-full max-w-7xl mx-auto px-6 mb-32" aria-labelledby="use-cases-heading">
+      <div className="text-center mb-20">
+        <h2 id="use-cases-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+          Casos de uso
+        </h2>
+        <p className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
+          Soluciones de custodia para cada industria y necesidad
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" role="list">
+        {casos.map((caso) => {
           let href = null;
-          if (c.title === "Freelancers y servicios") href = "/freelancer";
-          if (c.title === "Inmobiliarias y agentes") href = "/inmobiliarias";
-          if (c.title === "E-commerce y ventas online") href = "/ecommerce";
-          if (c.title === "Compra-venta entre particulares") href = "/compra-venta";
-          if (c.title === "Empresas B2B y control de entregas") href = "/b2b";
-          if (c.title === "Marketplaces de servicios") href = "/marketplaces";
+          if (caso.title === "Freelancers y servicios") href = "/freelancer";
+          if (caso.title === "Inmobiliarias y agentes") href = "/inmobiliarias";
+          if (caso.title === "E-commerce y ventas online") href = "/ecommerce";
+          if (caso.title === "Compra-venta entre particulares") href = "/compra-venta";
+          if (caso.title === "Empresas B2B y control de entregas") href = "/b2b";
+          if (caso.title === "Marketplaces de servicios") href = "/marketplaces";
+          
           return (
-            <div key={c.title} className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center text-center border border-blue-100 hover:shadow-xl transition h-full">
-              <div className="text-4xl mb-3">{c.icon}</div>
-              <div className="text-lg font-bold text-black mb-2">{c.title}</div>
-              <div className="text-black text-base mb-3 flex-1">{c.description}</div>
+            <article 
+              key={caso.title} 
+              className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group h-full"
+              role="listitem"
+            >
+              <div className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300" role="img" aria-hidden="true">
+                {caso.icon}
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">
+                {caso.title}
+              </h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light mb-8 flex-1">
+                {caso.description}
+              </p>
               <div className="flex w-full justify-center mt-auto">
                 {href ? (
-                  <a href={href} className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm shadow hover:bg-blue-700 transition">Saber más</a>
+                  <a 
+                    href={href} 
+                    className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-base font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] min-w-[140px]"
+                  >
+                    Saber más
+                  </a>
                 ) : (
-                  <span className="inline-block px-6 py-2 bg-blue-200 text-white rounded-lg font-semibold text-sm shadow opacity-60 cursor-not-allowed">Saber más</span>
+                  <span className="inline-block px-8 py-4 bg-gray-200 text-gray-500 rounded-2xl font-semibold text-base shadow opacity-60 cursor-not-allowed min-w-[140px]">
+                    Próximamente
+                  </span>
                 )}
               </div>
-            </div>
+            </article>
           );
         })}
       </div>

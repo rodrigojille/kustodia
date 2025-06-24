@@ -1,5 +1,5 @@
 import Header from '../../components/Header';
-import { FaBuilding, FaShieldAlt, FaRegSmile } from 'react-icons/fa';
+import { FaBuilding, FaShieldAlt, FaRegSmile, FaFileContract, FaHandshake } from 'react-icons/fa';
 import Link from 'next/link';
 
 export default function B2BUseCase() {
@@ -26,21 +26,42 @@ export default function B2BUseCase() {
       </header>
       <Header isAuthenticated={false} userName={''} />
       <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-20">
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-12 mt-10">
-          <div className="bg-white rounded-3xl shadow-xl border border-blue-100 p-8 flex flex-col items-center text-center">
-            <FaBuilding className="text-blue-700 text-5xl mb-4" />
-            <h1 className="text-3xl font-extrabold text-blue-800 mb-2">Pagos protegidos para empresas B2B y control de entregas</h1>
-            <p className="text-lg text-gray-700 mb-4 max-w-xl">
-              ¿Tu empresa compra o vende a otras empresas y necesita asegurar la entrega y calidad antes de liberar el pago? Kustodia protege el dinero en custodia blockchain hasta que ambas partes confirmen la entrega y conformidad.<br /><br />
-              Ideal para pagos por adelantado, compras con múltiples entregas o flujos tipo escrow.
-            </p>
-            <div className="text-blue-700 font-bold mt-2 mb-4">
-              El dinero solo se libera cuando la entrega y calidad han sido verificadas por ambas partes.
-            </div>
-            <div className="w-full flex flex-col items-center mt-4">
+        {/* Hero Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32 mt-20" aria-labelledby="b2b-heading">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 flex flex-col items-center max-w-5xl w-full mx-auto text-center relative overflow-hidden">
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -mr-16 -mt-16 opacity-30" aria-hidden="true"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-100 rounded-full -ml-12 -mb-12 opacity-30" aria-hidden="true"></div>
+            
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-8 mx-auto">
+                <FaBuilding className="text-blue-700 text-4xl" />
+              </div>
+              
+              <h1 id="b2b-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+                Transacciones B2B seguras
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-gray-500 mb-8 max-w-4xl mx-auto leading-relaxed font-light">
+                ¿Tu empresa necesita hacer transacciones comerciales seguras con otros negocios? Con Kustodia, el dinero queda protegido hasta que ambas empresas cumplan el acuerdo.
+              </p>
+              
+              <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+                Ideal para contratos de suministro, servicios empresariales y cualquier transacción comercial de alto valor.
+              </p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 mb-12 max-w-4xl mx-auto">
+                <p className="text-lg md:text-xl font-semibold text-blue-800 mb-4">
+                  El dinero solo se libera cuando ambas empresas confirman que se cumplieron los términos del contrato.
+                </p>
+                <p className="text-base md:text-lg text-blue-700">
+                  Servicios entregados, productos recibidos, pago liberado. <strong>Protección total para transacciones empresariales</strong>.
+                </p>
+              </div>
+              
               <a
                 href="/#early-access"
-                className="inline-block bg-blue-600 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition"
+                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
               >
                 Solicitar Acceso Anticipado
               </a>
@@ -48,51 +69,100 @@ export default function B2BUseCase() {
           </div>
         </section>
 
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-16">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6 text-center">¿Cómo funciona para empresas B2B?</h2>
-          <ol className="list-decimal list-inside bg-white rounded-2xl shadow p-8 text-gray-700 text-lg space-y-3">
-            <li>Las empresas acuerdan el pago protegido y las condiciones de entrega/calidad.</li>
-            <li>El dinero se transfiere a un <b>smart contract en la blockchain</b>, bloqueado para ambas partes.</li>
-            <li>La entrega y calidad se verifican según lo pactado.</li>
-            <li>Cuando ambas partes confirman, Kustodia libera el pago automáticamente.</li>
-            <li>Si hay disputa, Kustodia puede intervenir y resolver según la evidencia.</li>
-          </ol>
-          <div className="mt-4 text-center text-blue-700 font-bold">
-            Ideal para pagos por adelantado, entregas múltiples y acuerdos de alto valor.
+        {/* Benefits Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="benefits-heading">
+          <div className="text-center mb-20">
+            <h2 id="benefits-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+              Ventajas para empresas
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
+              Transacciones comerciales con total seguridad y confianza
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaShieldAlt className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Cero incumplimientos</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                El dinero solo se libera cuando ambas empresas confirman el cumplimiento del contrato.
+              </p>
+            </article>
+
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaFileContract className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Contratos inteligentes</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                Automatización transparente de pagos basada en el cumplimiento de condiciones.
+              </p>
+            </article>
+
+            <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FaHandshake className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight">Relaciones comerciales sólidas</h3>
+              <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                Fortalece la confianza entre empresas y reduce disputas comerciales.
+              </p>
+            </article>
           </div>
         </section>
 
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-16">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6 text-center">Ventajas para empresas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 shadow-lg mb-3">
-                <FaShieldAlt className="text-white text-3xl" />
+        {/* FAQ Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="faq-heading">
+          <div className="text-center mb-20">
+            <h2 id="faq-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+              Preguntas frecuentes
+            </h2>
+          </div>
+          
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-4xl mx-auto">
+            <div className="space-y-8">
+              <div className="border-b border-gray-200 pb-8">
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Cómo funciona para contratos empresariales?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  Las empresas acuerdan términos, el pago queda en custodia, y cuando ambas partes confirman el cumplimiento, el dinero se libera automáticamente.
+                </p>
               </div>
-              <div className="font-bold text-lg mb-1 text-blue-800">Sin fraudes ni sorpresas</div>
-              <div className="text-gray-700">El dinero solo se libera si la entrega y calidad se cumplen como se prometió.</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 shadow-lg mb-3">
-                <FaBuilding className="text-white text-3xl" />
+              
+              <div className="border-b border-gray-200 pb-8">
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Qué pasa si hay disputas entre empresas?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  Kustodia puede actuar como mediador imparcial, revisando evidencia y documentación para resolver la disputa según los términos acordados.
+                </p>
               </div>
-              <div className="font-bold text-lg mb-1 text-blue-800">Confianza en cada operación</div>
-              <div className="text-gray-700">Ideal para compras complejas, entregas múltiples y acuerdos de alto valor.</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-7 shadow hover:shadow-xl transition border border-blue-200">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-200 shadow-lg mb-3">
-                <FaRegSmile className="text-blue-700 text-3xl" />
+              
+              <div>
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Es adecuado para contratos de gran valor?</h3>
+                <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
+                  Sí, la blockchain garantiza transparencia y seguridad para transacciones de cualquier monto, especialmente las de alto valor empresarial.
+                </p>
               </div>
-              <div className="font-bold text-lg mb-1 text-blue-800">Tranquilidad para todos</div>
-              <div className="text-gray-700">Ambas partes ganan seguridad y evitan conflictos.</div>
             </div>
           </div>
         </section>
 
-        <section className="w-full max-w-screen-lg px-4 mx-auto mb-20 text-center">
-          <h2 className="text-2xl font-bold text-blue-800 mb-6">¿Quieres saber más sobre pagos protegidos B2B?</h2>
-          <p className="mb-4 text-lg text-gray-700">Lee nuestro blog: <Link href="/blog/evitar-fraudes-b2b" className="text-blue-600 underline hover:text-blue-800">Cómo evitar fraudes y asegurar entregas en compras B2B</Link></p>
-          <Link href="/" className="inline-block bg-gray-100 text-blue-700 font-bold px-8 py-3 rounded-xl shadow hover:bg-blue-200 transition mt-2">Volver al inicio</Link>
+        {/* CTA Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-20 text-center" aria-labelledby="cta-heading">
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-4xl mx-auto">
+            <h2 id="cta-heading" className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+              ¿Quieres saber más sobre transacciones B2B seguras?
+            </h2>
+            <p className="text-lg md:text-xl text-gray-600 mb-8">
+              Lee nuestro blog: <Link href="/blog/contratos-empresariales-seguros" className="text-blue-600 underline hover:text-blue-800 font-semibold transition-colors">Cómo asegurar contratos empresariales</Link>
+            </p>
+            <Link 
+              href="/" 
+              className="inline-block bg-gray-100 text-blue-700 font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+            >
+              Volver al inicio
+            </Link>
+          </div>
         </section>
       </main>
     </>

@@ -26,77 +26,130 @@ export default function BlogEvitarFraudesB2B() {
         <meta name="twitter:site" content="@kustodia_mx" />
       </header>
       <Header isAuthenticated={false} userName={''} />
-      <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center px-4 pt-10 pb-20">
-        <article className="w-full max-w-3xl bg-white rounded-3xl shadow-xl border border-blue-100 p-10 mx-auto mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <FaBuilding className="text-blue-700 text-3xl" />
-            <h1 className="text-2xl md:text-3xl font-extrabold text-blue-800">Cómo evitar fraudes y asegurar entregas en compras B2B</h1>
-          </div>
-          <div className="text-gray-600 mb-6 text-base">Actualizado: Junio 2025 · Por Kustodia</div>
-
-          <p className="text-lg text-gray-800 mb-6">
-            Las compras entre empresas suelen implicar montos altos, entregas múltiples y riesgos de incumplimiento. Aquí te explicamos cómo proteger tus pagos y asegurar la entrega y calidad usando custodia blockchain.
-          </p>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">¿Cuáles son los riesgos más comunes?</h2>
-          <ul className="list-disc ml-6 text-gray-700 mb-6">
-            <li><b>Pagos por adelantado:</b> El proveedor recibe el dinero y no entrega o la calidad no es la pactada.</li>
-            <li><b>Entregas parciales o múltiples:</b> Dificultad para coordinar pagos y entregas en varias etapas.</li>
-            <li><b>Falta de intermediario:</b> No hay una entidad que asegure el cumplimiento de ambas partes.</li>
-          </ul>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">¿Cómo protegerte usando Kustodia?</h2>
-          <ol className="list-decimal list-inside bg-blue-50 rounded-xl p-6 border border-blue-100 mb-6 text-gray-800">
-            <li>Las empresas acuerdan usar Kustodia para el pago protegido.</li>
-            <li>El dinero se bloquea en un smart contract en la blockchain.</li>
-            <li>Solo se libera cuando ambas partes confirman que la entrega y calidad se cumplieron.</li>
-            <li>Si hay disputa, Kustodia puede intervenir y resolver según la evidencia.</li>
-          </ol>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 shadow mb-2">
-                <FaShieldAlt className="text-white text-2xl" />
+      <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-20">
+        <article className="w-full max-w-4xl bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 mx-auto relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100 rounded-full -mr-12 -mt-12 opacity-30" aria-hidden="true"></div>
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-indigo-100 rounded-full -ml-10 -mb-10 opacity-30" aria-hidden="true"></div>
+          
+          <div className="relative z-10">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 tracking-tight leading-tight">
+              Cómo evitar fraudes y asegurar entregas en compras B2B
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-500 mb-12 leading-relaxed font-light">
+              Las compras entre empresas suelen implicar montos altos, entregas múltiples y riesgos de incumplimiento. Aquí te explicamos cómo proteger tus pagos y asegurar la entrega y calidad usando custodia blockchain.
+            </p>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                ¿Cuáles son los riesgos más comunes?
+              </h2>
+              <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                <ul className="space-y-4 text-lg text-gray-600 leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">Pagos por adelantado:</strong> El proveedor recibe el dinero y no entrega o la calidad no es la pactada.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">Entregas parciales o múltiples:</strong> Dificultad para coordinar pagos y entregas en varias etapas.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">Falta de intermediario:</strong> No hay una entidad que asegure el cumplimiento de ambas partes.
+                    </div>
+                  </li>
+                </ul>
               </div>
-              <div className="font-bold text-blue-800">Sin fraudes ni sorpresas</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 shadow mb-2">
-                <FaBuilding className="text-white text-2xl" />
+            </section>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                ¿Cómo protegerte usando Kustodia?
+              </h2>
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8">
+                <ol className="space-y-4 text-lg text-gray-700 leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center mt-1">1</span>
+                    Las empresas acuerdan usar Kustodia para el pago protegido.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center mt-1">2</span>
+                    El dinero se bloquea en un smart contract en la blockchain.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center mt-1">3</span>
+                    Solo se libera cuando ambas partes confirman que la entrega y calidad se cumplieron.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center mt-1">4</span>
+                    Si hay disputa, Kustodia puede intervenir y resolver según la evidencia.
+                  </li>
+                </ol>
               </div>
-              <div className="font-bold text-blue-800">Confianza en cada operación</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-200 shadow mb-2">
-                <FaRegSmile className="text-blue-700 text-2xl" />
+            </section>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                Tips para compras B2B seguras
+              </h2>
+              <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                <ul className="space-y-4 text-lg text-gray-600 leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Deja por escrito las condiciones de entrega y calidad.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    No pagues todo por adelantado sin protección.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Solicita usar pagos en custodia para proteger ambas partes.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Guarda toda la evidencia de la negociación y entrega.
+                  </li>
+                </ul>
               </div>
-              <div className="font-bold text-blue-800">Tranquilidad para todos</div>
+            </section>
+            
+            <div className="text-center mb-12">
+              <Link 
+                href="/b2b" 
+                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                Ver cómo funciona para empresas B2B
+              </Link>
+            </div>
+            
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
+              <p className="text-lg text-gray-700 mb-6 font-semibold">
+                ¿Te gustó este artículo? <span className="text-blue-700">¡Compártelo y ayuda a que las empresas operen con mayor seguridad!</span>
+              </p>
+              <SocialShare
+                url="https://kustodia.mx/blog/evitar-fraudes-b2b"
+                title="Descubre cómo proteger pagos y entregas en compras B2B con Kustodia — Evita fraudes y conflictos en empresas!"
+                summary="Tips para compras B2B seguras y control de entregas."
+              />
             </div>
           </div>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">Tips para compras B2B seguras</h2>
-          <ul className="list-disc ml-6 text-gray-700 mb-6">
-            <li>Deja por escrito las condiciones de entrega y calidad.</li>
-            <li>No pagues todo por adelantado sin protección.</li>
-            <li>Solicita usar pagos en custodia para proteger ambas partes.</li>
-            <li>Guarda toda la evidencia de la negociación y entrega.</li>
-          </ul>
-
-          <div className="flex flex-col md:flex-row gap-4 items-center mt-10 mb-4">
-            <Link href="/b2b" className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-xl shadow hover:bg-blue-700 transition text-center w-full md:w-auto">Ver cómo funciona para empresas B2B</Link>
-            <a href="/#early-access" className="inline-block bg-white border border-blue-600 text-blue-700 font-bold px-6 py-3 rounded-xl shadow hover:bg-blue-50 transition text-center w-full md:w-auto">Solicitar acceso anticipado</a>
-          </div>
-
-          <SocialShare
-            url="https://kustodia.mx/blog/evitar-fraudes-b2b"
-            title="Descubre cómo proteger pagos y entregas en compras B2B con Kustodia — Evita fraudes y conflictos en empresas!"
-            summary="Tips para compras B2B seguras y control de entregas."
-          />
-
         </article>
-
-        <div className="w-full max-w-3xl mx-auto text-center mt-6">
-          <Link href="/" className="inline-block bg-gray-100 text-blue-700 font-bold px-8 py-3 rounded-xl shadow hover:bg-blue-200 transition mt-2">Volver al inicio</Link>
+        
+        <div className="w-full max-w-4xl mx-auto text-center mt-8">
+          <Link 
+            href="/" 
+            className="inline-block bg-gray-100 text-blue-700 font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+          >
+            Volver al inicio
+          </Link>
         </div>
       </main>
     </>

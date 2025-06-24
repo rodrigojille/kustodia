@@ -26,73 +26,115 @@ export default function BlogEvitarFraudesInmobiliarias() {
         <meta name="twitter:site" content="@kustodia_mx" />
       </header>
       <Header isAuthenticated={false} userName={''} />
-      <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center px-4 pt-10 pb-20">
-        <article className="w-full max-w-3xl bg-white rounded-3xl shadow-xl border border-blue-100 p-10 mx-auto mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <FaHome className="text-blue-700 text-3xl" />
-            <h1 className="text-2xl md:text-3xl font-extrabold text-blue-800">Cómo evitar fraudes en operaciones inmobiliarias</h1>
-          </div>
-          <div className="text-gray-600 mb-6 text-base">Actualizado: Junio 2025 · Por Kustodia</div>
-
-          <p className="text-lg text-gray-800 mb-6">
-            ¿Te ha pasado que un cliente aparta una propiedad y luego desaparece? ¿O que entregas llaves y el anticipo nunca llega? Los fraudes en el sector inmobiliario son más comunes de lo que imaginas, pero hoy existen formas modernas y tecnológicas de protegerte.
-          </p>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">Historias reales: ¿cómo ocurre el fraude?</h2>
-          <ul className="list-disc ml-6 text-gray-700 mb-6">
-            <li><b>El anticipo fantasma:</b> El cliente promete transferir el anticipo, pero nunca llega. El trato se cae y el agente pierde tiempo y oportunidades.</li>
-            <li><b>El apartado sin compromiso:</b> El cliente aparta, pero luego se arrepiente y exige el reembolso, dejando al agente sin ingresos y con la propiedad fuera del mercado.</li>
-            <li><b>La renta insegura:</b> El inquilino paga el primer mes, recibe las llaves y luego deja de pagar, generando pérdidas y conflictos.</li>
-          </ul>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">Solución: pagos en custodia blockchain</h2>
-          <p className="mb-4 text-gray-800">
-            Con Kustodia, los anticipos, apartados y rentas quedan bloqueados en un smart contract en la blockchain. El dinero solo se libera cuando ambas partes cumplen lo acordado. Si el trato no se concreta, el dinero se devuelve de forma automática y transparente.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 shadow mb-2">
-                <FaShieldAlt className="text-white text-2xl" />
+      <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-20">
+        <article className="w-full max-w-4xl bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 mx-auto relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100 rounded-full -mr-12 -mt-12 opacity-30" aria-hidden="true"></div>
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-indigo-100 rounded-full -ml-10 -mb-10 opacity-30" aria-hidden="true"></div>
+          
+          <div className="relative z-10">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 tracking-tight leading-tight">
+              Cómo evitar fraudes en operaciones inmobiliarias
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-500 mb-12 leading-relaxed font-light">
+              ¿Te ha pasado que un cliente aparta una propiedad y luego desaparece? ¿O que entregas llaves y el anticipo nunca llega? Los fraudes en el sector inmobiliario son más comunes de lo que imaginas, pero hoy existen formas modernas y tecnológicas de protegerte.
+            </p>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                Historias reales: ¿cómo ocurre el fraude?
+              </h2>
+              <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                <ul className="space-y-4 text-lg text-gray-600 leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">El anticipo fantasma:</strong> El cliente promete transferir el anticipo, pero nunca llega. El trato se cae y el agente pierde tiempo y oportunidades.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">El apartado sin compromiso:</strong> El cliente aparta, pero luego se arrepiente y exige el reembolso, dejando al agente sin ingresos y con la propiedad fuera del mercado.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    <div>
+                      <strong className="text-gray-900">La renta insegura:</strong> El inquilino paga el primer mes, recibe las llaves y luego deja de pagar, generando pérdidas y conflictos.
+                    </div>
+                  </li>
+                </ul>
               </div>
-              <div className="font-bold text-blue-800">Sin fraudes ni pérdidas</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 shadow mb-2">
-                <FaHome className="text-white text-2xl" />
+            </section>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                Solución: pagos en custodia blockchain
+              </h2>
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8">
+                <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
+                  Con Kustodia, los anticipos, apartados y rentas quedan bloqueados en un smart contract en la blockchain. El dinero solo se libera cuando ambas partes cumplen lo acordado. Si el trato no se concreta, el dinero se devuelve de forma automática y transparente.
+                </p>
               </div>
-              <div className="font-bold text-blue-800">Propiedades protegidas</div>
-            </div>
-            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl p-6 shadow border border-blue-200">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-200 shadow mb-2">
-                <FaRegSmile className="text-blue-700 text-2xl" />
+            </section>
+            
+            <section className="mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+                Tips para agentes y clientes
+              </h2>
+              <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                <ul className="space-y-4 text-lg text-gray-600 leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Exige siempre que los anticipos y apartados se hagan en custodia, nunca directo a una cuenta personal.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Verifica que el dinero esté bloqueado antes de entregar llaves o firmar contrato.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Utiliza plataformas con historial y reputación verificable.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-blue-600 font-bold text-xl">•</span>
+                    Si hay disputa, recurre a la evidencia y deja que la tecnología decida de forma justa.
+                  </li>
+                </ul>
               </div>
-              <div className="font-bold text-blue-800">Tranquilidad para todos</div>
+            </section>
+            
+            <div className="text-center mb-12">
+              <Link 
+                href="/inmobiliarias" 
+                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                Ver cómo funciona para inmobiliarias
+              </Link>
+            </div>
+            
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
+              <p className="text-lg text-gray-700 mb-6 font-semibold">
+                ¿Te gustó este artículo? <span className="text-blue-700">¡Compártelo y ayuda a que el sector inmobiliario sea más seguro!</span>
+              </p>
+              <SocialShare
+                url="https://kustodia.mx/blog/evitar-fraudes-inmobiliarias"
+                title="Descubre cómo proteger anticipos y rentas en inmuebles con Kustodia — Evita fraudes en operaciones inmobiliarias!"
+                summary="Tips para proteger anticipos y rentas en inmuebles."
+              />
             </div>
           </div>
-
-          <h2 className="text-xl font-bold text-blue-700 mb-3 mt-8">Tips para agentes y clientes</h2>
-          <ul className="list-disc ml-6 text-gray-700 mb-6">
-            <li>Exige siempre que los anticipos y apartados se hagan en custodia, nunca directo a una cuenta personal.</li>
-            <li>Verifica que el dinero esté bloqueado antes de entregar llaves o firmar contrato.</li>
-            <li>Utiliza plataformas con historial y reputación verificable.</li>
-            <li>Si hay disputa, recurre a la evidencia y deja que la tecnología decida de forma justa.</li>
-          </ul>
-
-          <div className="flex flex-col md:flex-row gap-4 items-center mt-10 mb-4">
-            <Link href="/inmobiliarias" className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-xl shadow hover:bg-blue-700 transition text-center w-full md:w-auto">Ver cómo funciona para inmobiliarias</Link>
-            <a href="/#early-access" className="inline-block bg-white border border-blue-600 text-blue-700 font-bold px-6 py-3 rounded-xl shadow hover:bg-blue-50 transition text-center w-full md:w-auto">Solicitar acceso anticipado</a>
-          </div>
-
-          <SocialShare
-            url="https://kustodia.mx/blog/evitar-fraudes-inmobiliarias"
-            title="Descubre cómo proteger anticipos y rentas en inmuebles con Kustodia — Evita fraudes en operaciones inmobiliarias!"
-            summary="Tips para proteger anticipos y rentas en inmuebles."
-          />
         </article>
-
-        <div className="w-full max-w-3xl mx-auto text-center mt-6">
-          <Link href="/" className="inline-block bg-gray-100 text-blue-700 font-bold px-8 py-3 rounded-xl shadow hover:bg-blue-200 transition mt-2">Volver al inicio</Link>
+        
+        <div className="w-full max-w-4xl mx-auto text-center mt-8">
+          <Link 
+            href="/" 
+            className="inline-block bg-gray-100 text-blue-700 font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+          >
+            Volver al inicio
+          </Link>
         </div>
       </main>
     </>
