@@ -92,23 +92,29 @@ const MXNBSection: React.FC = () => (
       </div>
 
       {/* Benefits Box */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl shadow-sm p-8 lg:p-10 text-center border border-blue-100">
-        <h4 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 tracking-tight">¿Por qué es Revolucionario?</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          <div className="flex flex-col items-center justify-center gap-3 text-center">
-            <span className="text-3xl mb-2">🤖</span>
-            <span className="text-lg font-semibold text-gray-800">100% Automático</span>
-            <span className="text-sm text-gray-600 font-light">Sin intervención manual</span>
+      <div className="mt-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl shadow-sm p-8 lg:p-12 text-center border border-blue-100">
+        <h4 className="text-2xl md:text-3xl font-bold text-gray-900 mb-12 tracking-tight">¿Por qué es Revolucionario?</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+          <div className="flex flex-col items-center justify-center text-center">
+            <span className="text-4xl mb-4">💰</span>
+            <span className="text-xl font-bold text-gray-900 mb-2">Respaldo 1:1 con MXN</span>
+            <span className="text-base text-gray-600 font-light leading-relaxed">
+              Cada MXNB está respaldado por 1 peso mexicano real en bancos regulados
+            </span>
           </div>
-          <div className="flex flex-col items-center justify-center gap-3 text-center">
-            <span className="text-3xl mb-2">🔍</span>
-            <span className="text-lg font-semibold text-gray-800">Totalmente Transparente</span>
-            <span className="text-sm text-gray-600 font-light">Auditable en blockchain</span>
+          <div className="flex flex-col items-center justify-center text-center">
+            <span className="text-4xl mb-4">🤖</span>
+            <span className="text-xl font-bold text-gray-900 mb-2">100% Automático</span>
+            <span className="text-base text-gray-600 font-light leading-relaxed">
+              Smart contracts ejecutan las transacciones sin intervención humana
+            </span>
           </div>
-          <div className="flex flex-col items-center justify-center gap-3 text-center">
-            <span className="text-3xl mb-2">⚡</span>
-            <span className="text-lg font-semibold text-gray-800">Instantáneo 24/7</span>
-            <span className="text-sm text-gray-600 font-light">Disponible siempre</span>
+          <div className="flex flex-col items-center justify-center text-center">
+            <span className="text-4xl mb-4">🔍</span>
+            <span className="text-xl font-bold text-gray-900 mb-2">Totalmente Transparente</span>
+            <span className="text-base text-gray-600 font-light leading-relaxed">
+              Todas las transacciones son auditables públicamente en blockchain
+            </span>
           </div>
         </div>
       </div>
