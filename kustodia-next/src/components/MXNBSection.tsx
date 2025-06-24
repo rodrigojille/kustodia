@@ -6,7 +6,7 @@ const MXNBSection: React.FC = () => (
     {/* Hero Section */}
     <div className="text-center mb-20">
       <h2 id="mxnb-heading" className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-        Tecnología MXNB y Smart Contracts
+        Cómo Funciona la Custodia Inteligente
       </h2>
       <p className="text-xl text-gray-500 mb-8 max-w-3xl mx-auto leading-relaxed">
         MXNB es una moneda digital estable respaldada 1:1 con pesos mexicanos. 
@@ -23,30 +23,91 @@ const MXNBSection: React.FC = () => (
       </a>
     </div>
 
-    {/* Key Features */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 text-center">
-        <div className="text-4xl mb-4" role="img" aria-label="Transparencia">🔍</div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">100% Transparente</h3>
-        <p className="text-gray-600">
-          Cada transacción es auditable en blockchain
-        </p>
-      </div>
+    {/* Smart Contract Flow */}
+    <div className="mb-20">
+      <h3 className="text-2xl font-bold text-gray-900 text-center mb-12">Proceso de Custodia Inteligente</h3>
       
-      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 text-center">
-        <div className="text-4xl mb-4" role="img" aria-label="Seguridad">🛡️</div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">Máxima Seguridad</h3>
-        <p className="text-gray-600">
-          Smart contracts automáticos sin intermediarios
-        </p>
+      {/* Flow Steps */}
+      <div className="relative">
+        {/* Connection Lines */}
+        <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200"></div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4">
+          {/* Step 1: Deposit */}
+          <div className="relative bg-white rounded-2xl shadow-lg p-6 border-2 border-blue-100 hover:border-blue-200 transition-all">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+              1
+            </div>
+            <div className="text-center pt-4">
+              <div className="text-4xl mb-4">💰</div>
+              <h4 className="font-bold text-gray-900 mb-2">Depositar Fondos</h4>
+              <p className="text-sm text-gray-600">
+                El comprador deposita MXNB en el smart contract
+              </p>
+            </div>
+          </div>
+
+          {/* Step 2: Escrow */}
+          <div className="relative bg-white rounded-2xl shadow-lg p-6 border-2 border-yellow-100 hover:border-yellow-200 transition-all">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+              2
+            </div>
+            <div className="text-center pt-4">
+              <div className="text-4xl mb-4">🔒</div>
+              <h4 className="font-bold text-gray-900 mb-2">Custodia Segura</h4>
+              <p className="text-sm text-gray-600">
+                Los fondos quedan protegidos en el contrato hasta cumplir condiciones
+              </p>
+            </div>
+          </div>
+
+          {/* Step 3: Conditions */}
+          <div className="relative bg-white rounded-2xl shadow-lg p-6 border-2 border-purple-100 hover:border-purple-200 transition-all">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+              3
+            </div>
+            <div className="text-center pt-4">
+              <div className="text-4xl mb-4">✅</div>
+              <h4 className="font-bold text-gray-900 mb-2">Validar Entrega</h4>
+              <p className="text-sm text-gray-600">
+                El vendedor entrega y ambas partes confirman en la plataforma
+              </p>
+            </div>
+          </div>
+
+          {/* Step 4: Release */}
+          <div className="relative bg-white rounded-2xl shadow-lg p-6 border-2 border-green-100 hover:border-green-200 transition-all">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+              4
+            </div>
+            <div className="text-center pt-4">
+              <div className="text-4xl mb-4">🚀</div>
+              <h4 className="font-bold text-gray-900 mb-2">Liberación Automática</h4>
+              <p className="text-sm text-gray-600">
+                El smart contract libera los fondos al vendedor instantáneamente
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
-      
-      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 text-center">
-        <div className="text-4xl mb-4" role="img" aria-label="Velocidad">⚡</div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">Instantáneo 24/7</h3>
-        <p className="text-gray-600">
-          Operaciones en segundos, disponible siempre
-        </p>
+
+      {/* Benefits Box */}
+      <div className="mt-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 text-center">
+        <h4 className="text-2xl font-bold text-gray-900 mb-6">¿Por qué es Revolucionario?</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-2xl">🤖</span>
+            <span className="font-semibold text-gray-800">100% Automático</span>
+          </div>
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-2xl">🔍</span>
+            <span className="font-semibold text-gray-800">Totalmente Transparente</span>
+          </div>
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-2xl">⚡</span>
+            <span className="font-semibold text-gray-800">Instantáneo 24/7</span>
+          </div>
+        </div>
       </div>
     </div>
 
