@@ -1,7 +1,7 @@
 import { PaymentService } from './paymentService';
 import { releaseEscrow, getEscrow } from './escrowService';
 import { listJunoTransactions, redeemMXNbForMXN, sendJunoPayment } from './junoService';
-import { LessThan } from 'typeorm';
+import { LessThan, DataSource } from 'typeorm';
 import { Payment } from '../entity/Payment';
 import { Escrow } from '../entity/Escrow';
 import { PaymentEvent } from '../entity/PaymentEvent';
@@ -28,6 +28,22 @@ export class PaymentAutomationService {
 
   constructor() {
     this.paymentService = new PaymentService();
+  }
+
+  /**
+   * Get database connection with proper error handling
+   */
+  private getDataSource(): DataSource | null {
+    try {
+      if (!ormconfig.isInitialized) {
+        console.warn('⚠️ Database not initialized');
+        return null;
+      }
+      return ormconfig;
+    } catch (error) {
+      console.error('❌ Database connection error:', error);
+      return null;
+    }
   }
 
   /**
@@ -72,12 +88,13 @@ export class PaymentAutomationService {
       console.log('🔍 Revisando nuevos depósitos SPEI...');
       
       // Check if database connection exists
-      if (!ormconfig) {
+      const dataSource = this.getDataSource();
+      if (!dataSource) {
         console.warn('⚠️ Database not initialized, skipping deposit processing');
         return;
       }
 
-      const paymentRepo = ormconfig.getRepository(Payment);
+      const paymentRepo = dataSource.getRepository(Payment);
       const pendingPayments = await paymentRepo.find({
         where: { status: 'pending' },
         relations: ['user', 'escrow']
@@ -142,13 +159,14 @@ export class PaymentAutomationService {
     try {
       console.log('💰 Procesando retiros de Juno a wallet puente...');
       
-      if (!ormconfig) {
+      const dataSource = this.getDataSource();
+      if (!dataSource) {
         console.warn('⚠️ Database not initialized, skipping Juno withdrawals');
         return;
       }
 
-      const paymentRepo = ormconfig.getRepository(Payment);
-      const escrowRepo = ormconfig.getRepository(Escrow);
+      const paymentRepo = dataSource.getRepository(Payment);
+      const escrowRepo = dataSource.getRepository(Escrow);
       
       // Find payments that need MXNB withdrawal from Juno
       const paymentsNeedingWithdrawal = await paymentRepo.find({
@@ -272,12 +290,13 @@ export class PaymentAutomationService {
       console.log('⏰ Revisando custodias expiradas...');
       
       // Check if database connection exists
-      if (!ormconfig) {
+      const dataSource = this.getDataSource();
+      if (!dataSource) {
         console.warn('⚠️ Database not initialized, skipping custody release');
         return;
       }
       
-      const escrowRepo = ormconfig.getRepository(Escrow);
+      const escrowRepo = dataSource.getRepository(Escrow);
       const expiredEscrows = await escrowRepo.find({
         where: {
           status: 'active',
@@ -345,13 +364,14 @@ export class PaymentAutomationService {
     try {
       console.log('💸 Procesando pagos pendientes...');
       
-      if (!ormconfig) {
+      const dataSource = this.getDataSource();
+      if (!dataSource) {
         console.warn('⚠️ Database not initialized, skipping pending payouts');
         return;
       }
 
-      const paymentRepo = ormconfig.getRepository(Payment);
-      const escrowRepo = ormconfig.getRepository(Escrow);
+      const paymentRepo = dataSource.getRepository(Payment);
+      const escrowRepo = dataSource.getRepository(Escrow);
       
       // Find escrows that are released and ready for payout
       const releasedEscrows = await escrowRepo.find({
@@ -447,12 +467,13 @@ export class PaymentAutomationService {
       console.log('🔄 Sincronizando estados con blockchain...');
       
       // Check if database connection exists
-      if (!ormconfig) {
+      const dataSource = this.getDataSource();
+      if (!dataSource) {
         console.warn('⚠️ Database not initialized, skipping blockchain sync');
         return;
       }
       
-      const escrowRepo = ormconfig.getRepository(Escrow);
+      const escrowRepo = dataSource.getRepository(Escrow);
       const activeEscrows = await escrowRepo.find({
         where: { status: 'active' },
         relations: ['payment']
