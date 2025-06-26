@@ -39,7 +39,7 @@ export default function NuevoPagoForm() {
   );
 }
 
-import PagoFormFull from "./PagoFormFull";
+import PagoFormFull from "./PagoFormFull"; // Bridge wallet escrow 2
 import CobroFormFull from "./CobroFormFull";
 
 // (legacy PagoForm and CobroForm removed)

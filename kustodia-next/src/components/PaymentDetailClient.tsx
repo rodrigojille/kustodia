@@ -55,6 +55,7 @@ type Payment = {
   payout_clabe?: string;
   escrow?: Escrow;
   hmac?: string; // <-- Para evitar error TS al acceder a payment.hmac
+  payment_type?: string; // Add payment type for tracker routing
 };
 
 import './PaymentDetailClient.css';
@@ -103,12 +104,29 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
     <div className="bg-white rounded-xl shadow border border-gray-200 w-full max-w-4xl mx-auto my-4 md:my-10 text-black px-2 sm:px-6 md:px-12 py-4 md:py-8" style={{ boxSizing: 'border-box', color: '#000' }}>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-black">Detalle del pago</h1>
-        {automationActive && (
-          <div className="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-green-700 font-medium">🤖 Procesamiento automático activo</span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {/* Interactive Tracker Button for nuevo-flujo payments */}
+          {payment?.payment_type === 'nuevo_flujo' && (
+            <a
+              href={`/dashboard/pagos/${payment.id}/tracker`}
+              className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition font-medium text-sm"
+              title="Ver seguimiento interactivo con aprobaciones"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Ver Tracker
+            </a>
+          )}
+          
+          {/* Automation Status */}
+          {automationActive && (
+            <div className="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-700 font-medium">🤖 Procesamiento automático activo</span>
+            </div>
+          )}
+        </div>
       </div>
       
       {loading ? (

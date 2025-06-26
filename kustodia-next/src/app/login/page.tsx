@@ -45,6 +45,7 @@ export default function LoginPage() {
       if (data.token) {
         console.log("Got token, storing in localStorage");
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userEmail", email);
         
         console.log("=== WALLET CHECK STARTED ===");
         // Skip wallet complexity for now, just redirect

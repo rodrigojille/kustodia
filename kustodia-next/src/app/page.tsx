@@ -11,6 +11,7 @@ import EarlyAccessCounter from '../components/EarlyAccessCounter';
 import EarlyAccessForm from '../components/EarlyAccessForm';
 import UrgencyNotice from '../components/UrgencyNotice';
 import RevealAnimation from '../components/RevealAnimation';
+import VideoAvatar from '../components/VideoAvatar';
 
 const benefits = [
   {
@@ -248,7 +249,7 @@ export default function LandingPage() {
         
         {/* Hero Section */}
         <RevealAnimation>
-          <section className="w-full max-w-7xl px-6 mx-auto mb-32 mt-20" aria-labelledby="hero-heading">
+          <section className="w-full max-w-7xl px-6 mx-auto mb-24 mt-20" aria-labelledby="hero-heading">
             <div className="flex flex-col items-center justify-center w-full">
               <div className="flex flex-col items-center justify-center text-center w-full max-w-5xl">
                 {/* Trust indicator badge */}
@@ -281,7 +282,7 @@ export default function LandingPage() {
 
         {/* Benefits Section */}
         <RevealAnimation>
-          <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="benefits-heading">
+          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="benefits-heading">
             <div className="text-center mb-20">
               <h2 id="benefits-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
                 ¿Por qué elegir Kustodia?
@@ -314,9 +315,91 @@ export default function LandingPage() {
           </section>
         </RevealAnimation>
 
+        {/* Video Avatar Section */}
+        <RevealAnimation>
+          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="video-avatar-heading">
+            <div className="text-center mb-16">
+              <h2 id="video-avatar-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+                Conoce cómo funciona
+              </h2>
+              <p className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
+                Nuestro equipo te explica paso a paso cómo proteger tus pagos
+              </p>
+            </div>
+            
+            <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-16">
+              {/* Video Avatar */}
+              <div className="flex-1 max-w-md">
+                <VideoAvatar 
+                  title="Tu asesor digital"
+                  subtitle="Haz clic para que te explique paso a paso cómo protegemos tus pagos."
+                  muted={true}
+                />
+              </div>
+              
+              {/* Supporting Content */}
+              <div className="flex-1 max-w-lg">
+                <div className="space-y-8">
+                  {/* Step 1 */}
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 font-bold shadow-lg">
+                      1
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Depositar fondos</h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        El comprador deposita MXNB en el smart contract de forma segura.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Step 2 */}
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 font-bold shadow-lg">
+                      2
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Custodia segura</h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        Los fondos quedan protegidos en el contrato hasta cumplir todas las condiciones.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Step 3 */}
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 font-bold shadow-lg">
+                      3
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Validar condiciones</h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        Se valida la entrega de productos, servicios, o cualquier condición acordada.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 4 */}
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 font-bold shadow-lg">
+                      4
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Liberación automática</h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        El smart contract libera los fondos instantáneamente una vez validadas las condiciones.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </RevealAnimation>
+
         {/* Product Demo Section */}
         <RevealAnimation>
-          <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="demo-heading">
+          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="demo-heading">
             <div className="text-center mb-20">
               <h2 id="demo-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
                 Así funciona Kustodia
@@ -799,6 +882,213 @@ export default function LandingPage() {
           </section>
         </RevealAnimation>
 
+        {/* CETES Yield Generation Section */}
+        {false && (
+        <RevealAnimation>
+          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="yield-heading">
+            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-3xl shadow-xl border border-amber-200 p-8 md:p-12 relative overflow-hidden">
+              {/* Background decoration */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-amber-100 rounded-full -mr-20 -mt-20 opacity-30" aria-hidden="true"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-100 rounded-full -ml-16 -mb-16 opacity-30" aria-hidden="true"></div>
+              
+              <div className="relative z-10">
+                <div className="mb-8">
+                  <span className="text-5xl mb-6 block" role="img" aria-label="Cohete">🚀</span>
+                  <h2 id="yield-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+                    Tus pagos en custodia ahora <span className="text-amber-600">podrán generar rendimientos</span>
+                  </h2>
+                  
+                  <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed mb-8">
+                    Mientras tu dinero está en custodia, puede generar rendimientos seguros respaldados por 
+                    <span className="font-semibold text-amber-700"> CETES del Gobierno de México</span>
+                  </p>
+                  
+                  <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6 max-w-2xl mx-auto">
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                      <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                        <span className="text-amber-600 font-bold text-lg">🏛️</span>
+                      </div>
+                      <div className="text-2xl font-bold text-amber-600">7.2%</div>
+                      <div className="text-sm text-gray-600">Tasa anual actual</div>
+                    </div>
+                    <div className="text-xs text-gray-500 text-center">
+                      Respaldado por Certificados de la Tesorería (CETES) • <a href="https://stablebonds.s3.us-west-2.amazonaws.com/CNBV_Statement_of_Fact.pdf" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:text-amber-700 underline">Regulados ante CNBV</a>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Enhanced Demo Examples with Yield */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                  {/* iPhone Example with Yield */}
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-bold">📱</span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">iPhone 15 Pro</h3>
+                        <div className="text-sm text-gray-600">$25,000 MXN</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-gray-600">Custodia:</span>
+                        <span className="font-semibold">24 horas</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Rendimiento generado:</span>
+                        <span className="font-bold text-blue-600">+$12 MXN</span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        0.05% del monto del pago
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-center text-gray-500">
+                      💡 Dinero protegido <span className="font-semibold">+ Rendimientos</span>
+                    </div>
+                  </div>
+                  
+                  {/* Car Example with Yield */}
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-green-600 font-bold">🚗</span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">Honda Civic 2022</h3>
+                        <div className="text-sm text-gray-600">$385,000 MXN</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-green-50 rounded-xl p-4 mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-gray-600">Custodia:</span>
+                        <span className="font-semibold">7 días</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Rendimiento generado:</span>
+                        <span className="font-bold text-green-600">+$531 MXN</span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        0.14% del monto del pago
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-center text-gray-500">
+                      💡 Más tiempo = <span className="font-semibold">Más rendimientos</span>
+                    </div>
+                  </div>
+                  
+                  {/* Apartment Example with Yield */}
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span className="text-purple-600 font-bold">🏠</span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">Apartamento Polanco</h3>
+                        <div className="text-sm text-gray-600">$2,500,000 MXN</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-purple-50 rounded-xl p-4 mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-gray-600">Custodia:</span>
+                        <span className="font-semibold">30 días</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Rendimiento generado:</span>
+                        <span className="font-bold text-purple-600">+$36,986 MXN</span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        1.48% del monto del pago
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-center text-gray-500">
+                      💡 Monto mayor = <span className="font-semibold">Rendimientos mayores</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Key Features */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                      <span className="text-amber-600">🛡️</span>
+                      Máxima Seguridad
+                    </h3>
+                    <ul className="space-y-4 text-gray-600">
+                      <li className="flex items-start gap-3">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span>Respaldado por <strong>CETES del Gobierno de México</strong></span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span>Regulado por la <strong>Comisión Nacional Bancaria (CNBV)</strong></span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span>Capital protegido al 100% en cualquier momento</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span>Rendimientos calculados diariamente</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                      <span className="text-amber-600">⚡</span>
+                      Fácil de Usar
+                    </h3>
+                    <ul className="space-y-4 text-gray-600">
+                      <li className="flex items-start gap-3">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span><strong>Activación opcional</strong> después de crear tu custodia digital</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span>Sin montos mínimos requeridos</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span>Rendimientos visibles en tiempo real</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span>Genera rendimientos mientras tus pagos están en custodia</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                
+                {/* Call to Action */}
+                <div className="text-center">
+                  <div className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white rounded-2xl p-8 max-w-2xl mx-auto">
+                    <h3 className="text-2xl font-bold mb-4">
+                      🚀 Próximamente disponible
+                    </h3>
+                    <p className="text-lg opacity-90 mb-6">
+                      Sé de los primeros en generar rendimientos con tus pagos en custodia
+                    </p>
+                    <a 
+                      href="#early-access" 
+                      className="inline-block bg-white text-amber-600 font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      Regístrate para acceso anticipado
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </RevealAnimation>
+        )}
+
         {/* Casos de Uso Section */}
         <RevealAnimation>
           <CasosDeUso />
@@ -806,7 +1096,7 @@ export default function LandingPage() {
 
         {/* Early Access Section */}
         <RevealAnimation>
-          <section id="early-access" className="w-full max-w-7xl px-6 mx-auto my-32" aria-labelledby="early-access-heading">
+          <section id="early-access" className="w-full max-w-7xl px-6 mx-auto my-24" aria-labelledby="early-access-heading">
             <div className="flex justify-center w-full mb-12">
               <div className="max-w-5xl w-full">
                 <UrgencyNotice />
@@ -822,7 +1112,7 @@ export default function LandingPage() {
                 <div className="mb-8">
                   <span className="text-5xl mb-6 block" role="img" aria-label="Cohete">🚀</span>
                   <h2 id="early-access-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-                    Acceso Anticipado a Kustodia
+                    Acceso anticipado a Kustodia
                   </h2>
                   <p className="text-xl md:text-2xl text-gray-500 mb-6 max-w-2xl mx-auto leading-relaxed font-light">
                     Únete a la revolución de los pagos seguros con tecnología blockchain y MXNB
