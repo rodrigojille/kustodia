@@ -32,6 +32,9 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.escrowContract = void 0;
 exports.transferMXNBToJunoWallet = transferMXNBToJunoWallet;
@@ -44,6 +47,9 @@ exports.releaseEscrow = releaseEscrow;
 const ethers_1 = require("ethers");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const dotenv_1 = __importDefault(require("dotenv"));
+// Load environment variables with explicit path
+dotenv_1.default.config({ path: path.join(__dirname, '../../.env') });
 console.log('[escrowService] Starting import');
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS:', process.env.ESCROW_CONTRACT_ADDRESS);
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS_2:', process.env.ESCROW_CONTRACT_ADDRESS_2);

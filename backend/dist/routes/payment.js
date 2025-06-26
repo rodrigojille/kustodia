@@ -7,11 +7,16 @@ const getUserPaymentsController_1 = require("../controllers/getUserPaymentsContr
 const paymentEventController_1 = require("../controllers/paymentEventController");
 const getPaymentByIdController_1 = require("../controllers/getPaymentByIdController");
 const requestPaymentController_1 = require("../controllers/requestPaymentController");
+const getAllPaymentsController_1 = require("../controllers/getAllPaymentsController");
+const paymentApprovalController_1 = require("../controllers/paymentApprovalController");
 const router = (0, express_1.Router)();
+router.get("/", getAllPaymentsController_1.getAllPayments);
 router.post("/initiate", paymentController_1.initiatePayment);
 router.post("/request", authenticateJWT_1.authenticateJWT, requestPaymentController_1.requestPayment);
 router.post("/webhook/juno", paymentController_1.junoWebhook);
 router.get("/user-payments", authenticateJWT_1.authenticateJWT, getUserPaymentsController_1.getUserPayments);
 router.get("/:id/events", paymentEventController_1.getPaymentEvents);
 router.get("/:id", getPaymentByIdController_1.getPaymentById);
+router.post("/:id/approve/payer", authenticateJWT_1.authenticateJWT, paymentApprovalController_1.approvePaymentPayer);
+router.post("/:id/approve/payee", authenticateJWT_1.authenticateJWT, paymentApprovalController_1.approvePaymentPayee);
 exports.default = router;

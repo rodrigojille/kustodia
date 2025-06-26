@@ -52,6 +52,7 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [isApproving, setIsApproving] = useState(false);
 
   // Get current user
   useEffect(() => {
@@ -99,6 +100,7 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
   const handleApprovalChange = async (type: 'payer' | 'payee', approved: boolean) => {
     if (!payment || !currentUser) return;
 
+    setIsApproving(true);
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
       const response = await authFetch(`${apiBase}/api/payments/${paymentId}/approval`, {
@@ -128,6 +130,8 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
     } catch (err) {
       console.error('Error updating approval:', err);
       alert('Error updating approval: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -225,11 +229,14 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
         </p>
       </div>
 
-      <NuevoFlujoTracker 
-        payment={payment}
-        currentUser={currentUser}
-        onApprovalChange={handleApprovalChange}
-      />
+      {currentUser && (
+        <NuevoFlujoTracker 
+          payment={payment}
+          currentUser={currentUser}
+          onApprovalChange={handleApprovalChange}
+          isApproving={isApproving}
+        />
+      )}
     </div>
   );
 }

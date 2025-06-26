@@ -8,6 +8,7 @@ import { PaymentAutomationService } from "./services/PaymentAutomationService";
 import mainRouter from "./routes";
 import leadRoutes from './routes/lead';
 import earlyAccessCounterRoutes from './routes/earlyAccessCounter';
+import yieldRoutes from './routes/yield';
 
 dotenv.config();
 
@@ -73,6 +74,7 @@ ormconfig.initialize()
     app.use("/api", mainRouter);
     app.use('/api/leads', leadRoutes);
     app.use('/api/early-access-counter', earlyAccessCounterRoutes);
+    app.use('/api/yield', yieldRoutes);
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`Server started on port ${PORT}`);

@@ -70,8 +70,11 @@ const initiatePayment = async (req, res) => {
             currency,
             description,
             status: "pending",
+            payment_type: req.body.payment_type || "nuevo_flujo", // Allow override, default to nuevo-flujo
+            vertical_type: req.body.vertical_type || null, // Add vertical type
+            release_conditions: req.body.release_conditions || null, // Add release conditions
             reference: '', // will update after save
-            deposit_clabe: paymentClabe, // 🎯 UNIQUE CLABE PER PAYMENT
+            deposit_clabe: paymentClabe, // UNIQUE CLABE PER PAYMENT
             payout_clabe: recipientUser.payout_clabe || undefined,
             commission_beneficiary_name: req.body.commission_beneficiary_name,
             commission_beneficiary_email: req.body.commission_beneficiary_email,

@@ -45,6 +45,8 @@ interface Payment {
 interface NuevoFlujoTrackerProps {
   payment: Payment;
   currentUser: string;
+  onApprovalChange: (type: 'payer' | 'payee', approved: boolean) => void;
+  isApproving: boolean;
 }
 
 function getVerticalDisplayName(vertical?: string): string {
@@ -114,70 +116,18 @@ function getEventIcon(eventType: string): string {
   return eventIcons[eventType] || '📝';
 }
 
-export default function NuevoFlujoTracker({ payment, currentUser }: NuevoFlujoTrackerProps) {
+export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChange, isApproving }: NuevoFlujoTrackerProps) {
   const [showEvidence, setShowEvidence] = useState(false);
-  const [approvalLoading, setApprovalLoading] = useState<'payer' | 'payee' | null>(null);
-  const [approvalStatus, setApprovalStatus] = useState<string>('');
 
   const isPayee = currentUser === payment.recipient_email;
   const isPayer = currentUser === payment.payer_email;
   const isCommissionRecipient = currentUser === payment.commission_beneficiary_email;
 
   const bothApproved = payment.payer_approval && payment.payee_approval;
-  // Allow release for both 'funded' and 'active' status when both parties approve
+  const isCompleted = payment.status === 'completed' || payment.status === 'cancelled';
+
   const canRelease = bothApproved && (payment.status === 'funded' || payment.status === 'active');
-  const isCompleted = payment.status === 'completed';
-  
-  // Show validation module for funded or active payments (not completed)
   const showValidationModule = (payment.status === 'funded' || payment.status === 'active') && !isCompleted;
-
-  const handleApproval = async (userType: 'payer' | 'payee', approve: boolean) => {
-    if (!approve) {
-      // Handle dispute case
-      alert('Funcionalidad de disputa será implementada próximamente');
-      return;
-    }
-
-    setApprovalLoading(userType);
-    setApprovalStatus('');
-
-    try {
-      const response = await fetch(`/api/payments/${payment.id}/approve/${userType}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        if (result.both_approved && result.release_triggered) {
-          setApprovalStatus('✅ Aprobación confirmada y pago liberado exitosamente!');
-          // Refresh the page to show updated status
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
-        } else if (result.both_approved && !result.release_triggered) {
-          setApprovalStatus('✅ Aprobación confirmada, pero hubo un error en la liberación');
-        } else {
-          setApprovalStatus('✅ Aprobación confirmada, esperando la otra parte');
-          // Refresh to show updated approval status
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
-        }
-      } else {
-        setApprovalStatus(`❌ Error: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('Approval error:', error);
-      setApprovalStatus('❌ Error de conexión');
-    } finally {
-      setApprovalLoading(null);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -368,15 +318,19 @@ export default function NuevoFlujoTracker({ payment, currentUser }: NuevoFlujoTr
                     <p className="text-sm text-gray-600">¿Se cumplieron las condiciones del pago?</p>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleApproval('payer', true)}
-                        disabled={approvalLoading === 'payer'}
-                        className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50"
+                        disabled={isApproving}
+                        onClick={() => onApprovalChange('payer', !payment.payer_approval)}
+                        className={`w-full px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                          payment.payer_approval
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        }`}
                       >
-                        {approvalLoading === 'payer' ? 'Procesando...' : 'Sí, confirmar'}
+                        {isApproving ? 'Procesando...' : (payment.payer_approval ? 'Revocar Aprobación' : 'Aprobar Liberación')}
                       </button>
                       <button
-                        onClick={() => handleApproval('payer', false)}
-                        disabled={approvalLoading === 'payer'}
+                        disabled={isApproving}
+                        onClick={() => onApprovalChange('payer', false)}
                         className="flex-1 px-3 py-2 border border-red-300 text-red-700 bg-white text-sm rounded-lg hover:bg-red-100 disabled:opacity-50"
                       >
                         Disputar
@@ -415,15 +369,19 @@ export default function NuevoFlujoTracker({ payment, currentUser }: NuevoFlujoTr
                     <p className="text-sm text-gray-600">¿Se cumplieron las condiciones del pago?</p>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleApproval('payee', true)}
-                        disabled={approvalLoading === 'payee'}
-                        className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50"
+                        disabled={isApproving}
+                        onClick={() => onApprovalChange('payee', !payment.payee_approval)}
+                        className={`w-full px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                          payment.payee_approval
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        }`}
                       >
-                        {approvalLoading === 'payee' ? 'Procesando...' : 'Sí, confirmar'}
+                        {isApproving ? 'Procesando...' : (payment.payee_approval ? 'Revocar Aprobación' : 'Aprobar Liberación')}
                       </button>
                       <button
-                        onClick={() => handleApproval('payee', false)}
-                        disabled={approvalLoading === 'payee'}
+                        disabled={isApproving}
+                        onClick={() => onApprovalChange('payee', false)}
                         className="flex-1 px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50"
                       >
                         No, disputar
@@ -447,14 +405,7 @@ export default function NuevoFlujoTracker({ payment, currentUser }: NuevoFlujoTr
               </div>
             )}
 
-            {/* Approval Status Messages */}
-            {approvalStatus && (
-              <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <p className="text-gray-800 text-sm font-medium">
-                  {approvalStatus}
-                </p>
-              </div>
-            )}
+
           </div>
         </div>
       )}

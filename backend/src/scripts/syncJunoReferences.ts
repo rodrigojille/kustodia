@@ -44,23 +44,28 @@ async function getSpeiDeposits() {
   const nonce = Date.now().toString();
   const body = '';
   
+  // Use Bitso authentication format (like sync_juno_deposits.ts)
   const stringToSign = nonce + method + requestPath + body;
   const signature = crypto.createHmac('sha256', JUNO_API_SECRET!).update(stringToSign).digest('hex');
+  const authHeader = `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`;
   
   try {
     const response = await axios.get(baseURL + requestPath, {
       headers: {
-        'X-API-KEY': JUNO_API_KEY,
-        'X-SIGNATURE': signature,
-        'X-NONCE': nonce,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       }
     });
     
-    return response.data.payload || [];
-  } catch (error) {
-    console.error('Error fetching SPEI deposits:', error);
-    return [];
+    console.log('[SPEI] Successfully fetched SPEI deposits');
+    return response.data.payload.response; // Array of deposits with fid, receiver_clabe, amount, etc.
+  } catch (error: any) {
+    console.error('Error fetching SPEI deposits:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
+    return []; // Return empty array to continue processing
   }
 }
 

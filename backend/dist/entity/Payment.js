@@ -108,6 +108,34 @@ __decorate([
     __metadata("design:type", String)
 ], Payment.prototype, "status", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: 'traditional', length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "payment_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Boolean)
+], Payment.prototype, "payer_approval", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Boolean)
+], Payment.prototype, "payee_approval", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "timestamp" }),
+    __metadata("design:type", Date)
+], Payment.prototype, "payer_approval_timestamp", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "timestamp" }),
+    __metadata("design:type", Date)
+], Payment.prototype, "payee_approval_timestamp", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "text" }),
+    __metadata("design:type", String)
+], Payment.prototype, "release_conditions", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "vertical_type", void 0);
+__decorate([
     (0, typeorm_1.OneToOne)(() => Escrow_1.Escrow, escrow => escrow.payment),
     (0, typeorm_1.JoinColumn)({ name: "escrow_id" }),
     __metadata("design:type", Escrow_1.Escrow)

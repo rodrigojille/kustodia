@@ -12,6 +12,7 @@ const PaymentAutomationService_1 = require("./services/PaymentAutomationService"
 const routes_1 = __importDefault(require("./routes"));
 const lead_1 = __importDefault(require("./routes/lead"));
 const earlyAccessCounter_1 = __importDefault(require("./routes/earlyAccessCounter"));
+const yield_1 = __importDefault(require("./routes/yield"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -71,6 +72,7 @@ ormconfig_1.default.initialize()
     app.use("/api", routes_1.default);
     app.use('/api/leads', lead_1.default);
     app.use('/api/early-access-counter', earlyAccessCounter_1.default);
+    app.use('/api/yield', yield_1.default);
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
         console.log(`Server started on port ${PORT}`);

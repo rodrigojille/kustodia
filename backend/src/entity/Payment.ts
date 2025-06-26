@@ -86,6 +86,28 @@ export class Payment {
   @Column({ default: 'pending' })
   status!: string;
 
+  @Column({ default: 'traditional', length: 50 })
+  payment_type!: string; // For routing to appropriate tracker: 'traditional' | 'nuevo_flujo'
+
+  // Nuevo-flujo specific fields
+  @Column({ nullable: true })
+  payer_approval?: boolean;
+
+  @Column({ nullable: true })
+  payee_approval?: boolean;
+
+  @Column({ nullable: true, type: "timestamp" })
+  payer_approval_timestamp?: Date;
+
+  @Column({ nullable: true, type: "timestamp" })
+  payee_approval_timestamp?: Date;
+
+  @Column({ nullable: true, type: "text" })
+  release_conditions?: string;
+
+  @Column({ nullable: true, length: 100 })
+  vertical_type?: string; // e.g., 'freelance', 'marketplace', 'escrow'
+
   @OneToOne(() => Escrow, escrow => escrow.payment)
   @JoinColumn({ name: "escrow_id" })
   escrow?: Escrow;
