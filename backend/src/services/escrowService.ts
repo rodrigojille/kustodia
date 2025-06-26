@@ -1,6 +1,10 @@
 import { ethers } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
+import dotenv from 'dotenv';
+
+// Load environment variables with explicit path
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 console.log('[escrowService] Starting import');
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS:', process.env.ESCROW_CONTRACT_ADDRESS);
