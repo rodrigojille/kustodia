@@ -84,9 +84,21 @@ __decorate([
     __metadata("design:type", Number)
 ], Payment.prototype, "commission_percent", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 18, scale: 2 }),
+    (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 10, scale: 2 }),
     __metadata("design:type", Number)
 ], Payment.prototype, "commission_amount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Payment.prototype, "platform_commission_percent", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 2, nullable: true }),
+    __metadata("design:type", Number)
+], Payment.prototype, "platform_commission_amount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Payment.prototype, "platform_commission_beneficiary_email", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true, length: 255 }),
     __metadata("design:type", String)

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NuevoFlujoTracker from "@/components/NuevoFlujoTracker";
+import WalletPaymentTracker from "@/components/WalletPaymentTracker";
 
 // Helper function for authenticated requests
 function authFetch(input: RequestInfo, init: RequestInit = {}) {
@@ -75,9 +76,10 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
 
         const paymentData = data.payment || data;
         
-        // Check if this is a nuevo-flujo payment
-        if (paymentData.payment_type !== 'nuevo_flujo') {
-          // Redirect to traditional tracker
+        // For this page, we only handle 'nuevo_flujo' and 'web3' types.
+        // The traditional tracker is at a different route.
+        if (paymentData.payment_type !== 'nuevo_flujo' && paymentData.payment_type !== 'web3') {
+          // Redirect to the traditional tracker page if it's not a supported type
           router.push(`/pagos/${paymentId}`);
           return;
         }
@@ -97,7 +99,7 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
   }, [paymentId, router]);
 
   // Handle approval changes
-  const handleApprovalChange = async (type: 'payer' | 'payee', approved: boolean) => {
+  const handleApprovalChange = async (type: 'payer' | 'payee', approved: boolean, txHash?: string) => {
     if (!payment || !currentUser) return;
 
     setIsApproving(true);
@@ -109,7 +111,8 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
         body: JSON.stringify({
           approval_type: type,
           approved: approved,
-          user_email: currentUser
+          user_email: currentUser,
+          tx_hash: txHash // Include txHash if it exists
         })
       });
 
@@ -229,7 +232,16 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
         </p>
       </div>
 
-      {currentUser && (
+      {currentUser && payment.payment_type === 'web3' && (
+        <WalletPaymentTracker 
+          payment={payment}
+          currentUser={currentUser}
+          onApprovalChange={handleApprovalChange}
+          isApproving={isApproving}
+        />
+      )}
+
+      {currentUser && payment.payment_type === 'nuevo_flujo' && (
         <NuevoFlujoTracker 
           payment={payment}
           currentUser={currentUser}

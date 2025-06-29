@@ -103,10 +103,10 @@ export default function LandingPage() {
         <link rel="alternate" hrefLang="es-MX" href="https://kustodia.mx/" />
         <link rel="alternate" hrefLang="es" href="https://kustodia.mx/" />
         <link rel="alternate" hrefLang="x-default" href="https://kustodia.mx/" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" href="/kustodia-logo.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/kustodia-logo.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/kustodia-logo.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/kustodia-logo.png" />
         <link rel="manifest" href="/site.webmanifest" />
         
         {/* Structured Data */}
@@ -346,9 +346,9 @@ export default function LandingPage() {
                       1
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Depositar fondos</h3>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Haces un SPEI como siempre, pero con tus condiciones</h3>
                       <p className="text-gray-600 leading-relaxed">
-                        El comprador deposita MXNB en el smart contract de forma segura.
+                        Realiza el pago como lo harías normalmente, pero con la seguridad de que tus condiciones se cumplirán.
                       </p>
                     </div>
                   </div>
@@ -359,9 +359,9 @@ export default function LandingPage() {
                       2
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Custodia segura</h3>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Custodia Inteligente</h3>
                       <p className="text-gray-600 leading-relaxed">
-                        Los fondos quedan protegidos en el contrato hasta cumplir todas las condiciones.
+                        Los fondos se quedan protegidos en una custodia inteligente hasta cumplir las condiciones acordadas.
                       </p>
                     </div>
                   </div>
@@ -385,9 +385,9 @@ export default function LandingPage() {
                       4
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Liberación automática</h3>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Liberación Inteligente</h3>
                       <p className="text-gray-600 leading-relaxed">
-                        El smart contract libera los fondos instantáneamente una vez validadas las condiciones.
+                        La custodia inteligente libera los fondos al vendedor de forma automática e instantánea.
                       </p>
                     </div>
                   </div>

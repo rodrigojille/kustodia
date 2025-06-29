@@ -68,8 +68,17 @@ export class Payment {
   @Column({ nullable: true, type: "decimal", precision: 5, scale: 2 })
   commission_percent?: number;
 
-  @Column({ nullable: true, type: "decimal", precision: 18, scale: 2 })
+  @Column({ nullable: true, type: "decimal", precision: 10, scale: 2 })
   commission_amount?: number;
+
+  @Column({ nullable: true })
+  platform_commission_percent?: number;
+
+  @Column({ type: "decimal", precision: 10, scale: 2, nullable: true })
+  platform_commission_amount?: number;
+
+  @Column({ nullable: true })
+  platform_commission_beneficiary_email?: string;
 
   @Column({ nullable: true, length: 255 })
   commission_beneficiary_name?: string;
@@ -87,7 +96,7 @@ export class Payment {
   status!: string;
 
   @Column({ default: 'traditional', length: 50 })
-  payment_type!: string; // For routing to appropriate tracker: 'traditional' | 'nuevo_flujo'
+  payment_type!: string; // For routing to appropriate tracker: 'traditional' | 'nuevo_flujo' | 'web3'
 
   // Nuevo-flujo specific fields
   @Column({ nullable: true })

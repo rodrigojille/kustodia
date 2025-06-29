@@ -31,47 +31,53 @@ export const initiateEscrow3Payment = async (req: AuthenticatedRequest, res: Res
     const paymentRepo = ormconfig.getRepository(Payment);
     const escrowRepo = ormconfig.getRepository(Escrow);
 
-    // Validate input
     if (!recipient_email || !amount || !custody_percent || !custody_days) {
       return res.status(400).json({ error: "Missing required parameters." });
     }
-    const payer = req.user; // Populated by authenticateJWT
+    const payer = req.user;
     if (!payer) return res.status(401).json({ error: "Unauthorized" });
 
-    // Debug: Log the user from JWT/session
-    console.log("initiateEscrow3Payment: req.user", req.user);
-    // Fetch payer and recipient from DB
     const payerUser = await userRepo.findOne({ where: { id: payer.id } });
-    // Debug: Log the payerUser object to inspect wallet_address and portal_share
-    console.log("payerUser from DB:", payerUser);
     const recipientUser = await userRepo.findOne({ where: { email: recipient_email } });
-    if (!payerUser || !recipientUser) {
-      return res.status(404).json({ error: "Payer or recipient not found." });
-    }
-    // portal_share is typed on User entity
-    if (!payerUser.wallet_address || !payerUser.portal_share) {
-      return res.status(400).json({ error: "Payer wallet not configured." });
-    }
-    if (!recipientUser.wallet_address) {
-      return res.status(400).json({ error: "Recipient wallet not configured." });
-    }
 
-    // Prepare commission info
-    let commission_wallet = null;
-    if (commission_beneficiary_email) {
-      const commissionUser = await userRepo.findOne({ where: { email: commission_beneficiary_email } });
-      if (!commissionUser || !commissionUser.wallet_address) {
-        return res.status(400).json({ error: "Commission beneficiary wallet not configured." });
-      }
-      commission_wallet = commissionUser.wallet_address;
-    }
+    if (!payerUser || !recipientUser) return res.status(404).json({ error: "Payer or recipient not found." });
+    if (!payerUser.wallet_address || !payerUser.portal_share) return res.status(400).json({ error: "Payer wallet not configured." });
+    if (!recipientUser.wallet_address) return res.status(400).json({ error: "Recipient wallet not configured." });
 
-    // Calculate custody and commission amounts
     const amt = Number(amount);
     const custodyAmt = Math.round((amt * Number(custody_percent)) / 100);
-    const commissionAmt = commission_percent ? Math.round((amt * Number(commission_percent)) / 100) : 0;
 
-    // Create Payment record (pending, before on-chain tx)
+    // --- DUAL COMMISSION LOGIC ---
+
+    // 1. Process Optional User-Defined Commission
+    let userCommissionWallet = "0x0000000000000000000000000000000000000000";
+    let userCommissionAmt = 0;
+    if (commission_beneficiary_email && commission_percent) {
+      const commissionUser = await userRepo.findOne({ where: { email: commission_beneficiary_email } });
+      if (commissionUser && commissionUser.wallet_address) {
+        userCommissionWallet = commissionUser.wallet_address;
+        userCommissionAmt = Math.round((amt * Number(commission_percent)) / 100);
+      } else {
+        console.warn(`User commission beneficiary ${commission_beneficiary_email} not found or has no wallet. Skipping user commission.`);
+      }
+    }
+
+    // 2. Process Mandatory 2% Platform Commission
+    const platformCommissionPercent = 2;
+    const platformCommissionEmail = process.env.PLATFORM_COMMISSION_EMAIL;
+    let platformCommissionWallet = "0x0000000000000000000000000000000000000000";
+    let platformCommissionAmt = 0;
+    if (platformCommissionEmail) {
+      const platformUser = await userRepo.findOne({ where: { email: platformCommissionEmail } });
+      if (platformUser && platformUser.wallet_address) {
+        platformCommissionWallet = platformUser.wallet_address;
+        platformCommissionAmt = Math.round((amt * platformCommissionPercent) / 100);
+      } else {
+        console.error(`CRITICAL: Platform commission beneficiary ${platformCommissionEmail} not found or has no wallet. Skipping platform commission.`);
+      }
+    }
+
+    // Create Payment record
     const payment = paymentRepo.create({
       user: payerUser,
       recipient_email,
@@ -79,19 +85,26 @@ export const initiateEscrow3Payment = async (req: AuthenticatedRequest, res: Res
       amount: amt,
       currency: "MXNB",
       description,
+      status: "pending",
+      payment_type: 'web3',
+      // User commission fields
       commission_percent: commission_percent ? Number(commission_percent) : undefined,
-      commission_amount: commissionAmt || undefined,
+      commission_amount: userCommissionAmt || undefined,
       commission_beneficiary_email: commission_beneficiary_email || undefined,
-      status: "pending"
+      // Platform commission fields
+      platform_commission_percent: platformCommissionPercent,
+      platform_commission_amount: platformCommissionAmt,
+      platform_commission_beneficiary_email: platformCommissionEmail,
     });
     await paymentRepo.save(payment);
 
-    // Create Escrow record (pending, before on-chain tx)
+    // Create Escrow record
+    const totalCommission = userCommissionAmt + platformCommissionAmt;
     const escrow = escrowRepo.create({
       payment,
       custody_percent: Number(custody_percent),
       custody_amount: custodyAmt,
-      release_amount: amt - custodyAmt - commissionAmt,
+      release_amount: amt - custodyAmt - totalCommission,
       status: "pending"
     });
     await escrowRepo.save(escrow);
@@ -102,21 +115,20 @@ export const initiateEscrow3Payment = async (req: AuthenticatedRequest, res: Res
       payment_id: payment.id,
       escrow_id: escrow.id,
       payer_wallet: payerUser.wallet_address,
-      payer_portal_share: payerUser.portal_share,
       recipient_wallet: recipientUser.wallet_address,
-      commission_wallet,
       amount: amt,
       custody_amount: custodyAmt,
-      commission_amount: commissionAmt,
       custody_days,
+      // Commission details for the contract
+      user_commission_beneficiary: userCommissionWallet,
+      user_commission_amount: userCommissionAmt,
+      platform_commission_beneficiary: platformCommissionWallet,
+      platform_commission_amount: platformCommissionAmt,
+      // Contract info
       contract: {
         address: ESCROW3_CONTRACT_ADDRESS,
         abi: escrowAbi
-      },
-      token: {
-        address: MXNBS_CONTRACT_ADDRESS
-      },
-      rpc_url: ARBITRUM_SEPOLIA_RPC_URL
+      }
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

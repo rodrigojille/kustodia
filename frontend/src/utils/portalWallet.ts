@@ -1,4 +1,6 @@
 import { getPortalInstance } from './portalInstance';
+import { ethers } from 'ethers';
+import KustodiaEscrowABI from '../abis/KustodiaEscrow3_0.json';
 
 export async function ensurePortalWallet(token: string): Promise<string | null> {
   // Fetch user profile from backend
@@ -63,4 +65,23 @@ export async function ensurePortalWallet(token: string): Promise<string | null> 
   });
   
   return ethAddress;
+}
+
+export async function signContractInteraction(contractAddress: string, functionName: string, args: any[]): Promise<string> {
+  const portal = await getPortalInstance();
+  if (!portal) {
+    throw new Error('Portal SDK is only available in the browser');
+  }
+
+  await portal.onReady(() => {});
+
+  const provider = new ethers.BrowserProvider(portal.provider);
+  const signer = await provider.getSigner();
+
+    const contract = new ethers.Contract(contractAddress, KustodiaEscrowABI, signer);
+
+  const tx = await contract[functionName](...args);
+  await tx.wait();
+
+  return tx.hash;
 }
