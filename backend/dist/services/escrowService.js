@@ -65,7 +65,7 @@ console.log('[escrowService] ERC20.json exists:', fs.existsSync(erc20ArtifactPat
 const RPC_URL = process.env.ETH_RPC_URL;
 const provider = new ethers_1.ethers.JsonRpcProvider(RPC_URL);
 // Use mainnet deployer/escrow key from env
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEY = process.env.ESCROW_PRIVATE_KEY;
 const signer = new ethers_1.ethers.Wallet(PRIVATE_KEY, provider);
 // Use ESCROW_CONTRACT_ADDRESS_2 for the new KustodiaEscrow2_0 contract
 const ESCROW_ADDRESS = process.env.KUSTODIA_ESCROW_V2_ADDRESS;

@@ -24,7 +24,7 @@ const RPC_URL = process.env.ETH_RPC_URL!;
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 
 // Use mainnet deployer/escrow key from env
-const PRIVATE_KEY = process.env.PRIVATE_KEY!;
+const PRIVATE_KEY = process.env.ESCROW_PRIVATE_KEY!;
 const signer = new ethers.Wallet(PRIVATE_KEY, provider);
 
 // Use ESCROW_CONTRACT_ADDRESS_2 for the new KustodiaEscrow2_0 contract

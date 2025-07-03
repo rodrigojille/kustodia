@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const isCompiled = __dirname.includes('dist');
@@ -10,6 +13,8 @@ const User_1 = require("./entity/User");
 const Ticket_1 = require("./entity/Ticket");
 const TicketReply_1 = require("./entity/TicketReply");
 const Notification_1 = require("./entity/Notification");
+const Lead_1 = __importDefault(require("./entity/Lead"));
+const EarlyAccessCounter_1 = __importDefault(require("./entity/EarlyAccessCounter"));
 const AppDataSource = new typeorm_1.DataSource({
     name: "default",
     type: "postgres",
@@ -24,7 +29,9 @@ const AppDataSource = new typeorm_1.DataSource({
         JunoTransaction_1.JunoTransaction,
         Ticket_1.Ticket,
         TicketReply_1.TicketReply,
-        Notification_1.Notification
+        Notification_1.Notification,
+        Lead_1.default,
+        EarlyAccessCounter_1.default
     ],
     migrations: [isCompiled ? "dist/migration/**/*.js" : "src/migration/**/*.ts"],
     subscribers: [isCompiled ? "dist/subscriber/**/*.js" : "src/subscriber/**/*.ts"],

@@ -63,31 +63,36 @@ app.options('*', (0, cors_1.default)({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-// Connect to Postgres
-ormconfig_1.default.initialize()
-    .then(async () => {
-    console.log("Data Source has been initialized!");
-    // Initialize Payment Automation Service
-    const paymentAutomation = new PaymentAutomationService_1.PaymentAutomationService();
-    await paymentAutomation.startAutomation();
-    // Basic health check
-    app.get("/", (req, res) => {
-        res.json({ status: "Kustodia backend running" });
-    });
-    // Mount all API routes
-    app.use("/api", routes_1.default);
-    app.use('/api/leads', lead_1.default);
-    app.use('/api/automation', automation_1.default);
-    app.use('/api/juno', juno_1.default);
-    app.use('/api/support', support_1.default);
-    app.use('/api/tickets', ticket_1.default);
-    app.use('/api/early-access-counter', earlyAccessCounter_1.default);
-    app.use('/api/yield', (0, yield_1.createYieldRoutes)(ormconfig_1.default));
-    const PORT = process.env.PORT || 4000;
-    app.listen(PORT, () => {
-        console.log(`Server started on port ${PORT}`);
-    });
-})
-    .catch((err) => {
-    console.error("Error during Data Source initialization:", err);
-});
+async function main() {
+    try {
+        // Connect to Postgres and wait for it to be ready
+        await ormconfig_1.default.initialize();
+        console.log("Data Source has been initialized!");
+        // Now that the DB is connected, we can configure and start the server.
+        // Initialize Payment Automation Service
+        const paymentAutomation = new PaymentAutomationService_1.PaymentAutomationService();
+        await paymentAutomation.startAutomation();
+        // Basic health check
+        app.get("/", (req, res) => {
+            res.json({ status: "Kustodia backend running" });
+        });
+        // Mount all API routes
+        app.use("/api", routes_1.default);
+        app.use('/api/leads', lead_1.default);
+        app.use('/api/automation', automation_1.default);
+        app.use('/api/juno', juno_1.default);
+        app.use('/api/support', support_1.default);
+        app.use('/api/tickets', ticket_1.default);
+        app.use('/api/early-access-counter', earlyAccessCounter_1.default);
+        app.use('/api/yield', (0, yield_1.createYieldRoutes)(ormconfig_1.default));
+        const PORT = process.env.PORT || 4000;
+        app.listen(PORT, () => {
+            console.log(`Server started on port ${PORT}`);
+        });
+    }
+    catch (err) {
+        console.error("Error during application startup:", err);
+        process.exit(1);
+    }
+}
+main();
