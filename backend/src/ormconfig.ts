@@ -12,7 +12,6 @@ import { User } from "./entity/User";
 import { Ticket } from "./entity/Ticket";
 import { TicketReply } from './entity/TicketReply';
 import { Notification } from './entity/Notification';
-import { EarlyAccessCounter } from './entity/EarlyAccessCounter';
 
 const AppDataSource = new DataSource({
   name: "default",
@@ -28,8 +27,7 @@ const AppDataSource = new DataSource({
     JunoTransaction,
     Ticket,
     TicketReply,
-    Notification,
-    EarlyAccessCounter
+    Notification
   ],
   migrations: [isCompiled ? "dist/migration/**/*.js" : "src/migration/**/*.ts"],
   subscribers: [isCompiled ? "dist/subscriber/**/*.js" : "src/subscriber/**/*.ts"],

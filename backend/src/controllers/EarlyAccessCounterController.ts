@@ -11,8 +11,7 @@ const getCounterRepo = () => {
 export const getSlots = async (req: Request, res: Response): Promise<void> => {
   try {
     const repo = getCounterRepo();
-    const counters = await repo.find();
-    let counter = counters[0];
+    let counter = await repo.findOne({ where: {} });
 
     if (!counter) {
       console.log('Early access counter not found. Initializing with 100 slots.');
@@ -30,12 +29,13 @@ export const getSlots = async (req: Request, res: Response): Promise<void> => {
 
 export const decrementSlot = async (connection?: DataSource): Promise<number> => {
   const conn = connection || ormconfig;
+  const repo = conn.getRepository(EarlyAccessCounter);
   
-  return conn.manager.transaction(async transactionalEntityManager => {
-    const counters = await transactionalEntityManager.find(EarlyAccessCounter, { 
+  return repo.manager.transaction(async transactionalEntityManager => {
+    let counter = await transactionalEntityManager.findOne(EarlyAccessCounter, { 
+      where: {}, 
       lock: { mode: 'pessimistic_write' } 
     });
-    let counter = counters[0];
 
     if (!counter) {
       console.log('Early access counter not found during decrement. Initializing with 100 slots.');
