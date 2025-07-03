@@ -911,7 +911,7 @@ export default function NuevoFlujoPage() {
         textAlign: "center", 
         marginBottom: 32 
       }}>
-        Nuevo flujo de pago
+        Nuevo pago condicional
       </h1>
       {step === 1 && (
         <>

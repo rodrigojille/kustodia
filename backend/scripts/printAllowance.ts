@@ -1,8 +1,8 @@
-import { ethers } from 'ethers';
+import { ethers, JsonRpcProvider, formatUnits } from 'ethers';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: require('path').join(__dirname, '../.env') });
 
-const provider = new ethers.providers.JsonRpcProvider(process.env.ETH_RPC_URL);
+const provider = new JsonRpcProvider(process.env.ETH_RPC_URL);
 const PRIVATE_KEY = process.env.ESCROW_PRIVATE_KEY!;
 const TOKEN_ADDRESS = process.env.MOCK_ERC20_ADDRESS!;
 const ESCROW_ADDRESS = '0x9F920b3444B0FEC26D33dD3D48bdaC7B808E4a03';
@@ -21,7 +21,7 @@ async function main() {
     contract.decimals(),
     contract.symbol()
   ]);
-  console.log(`Allowance for ${ESCROW_ADDRESS}: ${ethers.utils.formatUnits(allowance, decimals)} ${symbol}`);
+  console.log(`Allowance: ${formatUnits(allowance, 6)} USDC`);
 }
 
 main().catch(console.error);

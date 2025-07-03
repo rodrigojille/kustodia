@@ -3,7 +3,7 @@ import { AppDataSource } from '../data-source';
 import { User } from '../entity/User';
 import { WalletTransaction } from '../entity/WalletTransaction';
 import { listJunoTransactions, withdrawCryptoToBridgeWallet } from './junoService';
-import { sendMxnbToAddress, getTransactionReceipt } from './blockchainService';
+import { sendMxnbToAddress, getTransactionReceipt, bridgeWalletAddress } from './blockchainService';
 
 
 
@@ -79,7 +79,7 @@ export class WalletAutomationService {
             console.log(`Initiating withdrawal of ${amountToWithdraw} MXNB for transaction ${tx.id}`);
             
             // Call the new service function
-            await withdrawCryptoToBridgeWallet(amountToWithdraw, 'mxnb');
+            await withdrawCryptoToBridgeWallet(amountToWithdraw, bridgeWalletAddress);
 
             // Update status to the next step
             tx.status = 'pending_bridge_transfer';

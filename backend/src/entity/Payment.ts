@@ -10,7 +10,11 @@ export class Payment {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "user_id" })
-  user!: User;
+  user!: User; // This is the user who created the payment (e.g., the buyer)
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "seller_id" })
+  seller!: User; // This is the user who will receive the funds (the seller)
 
   @Column()
   recipient_email!: string;
@@ -64,6 +68,9 @@ export class Payment {
 
   @Column({ nullable: true, length: 18 })
   payout_clabe?: string; // Seller's payout CLABE at time of payment creation
+
+  @Column({ nullable: true, length: 255 })
+  juno_payment_id?: string; // The transaction ID of the final Juno payout
 
   @Column({ nullable: true, type: "decimal", precision: 5, scale: 2 })
   commission_percent?: number;

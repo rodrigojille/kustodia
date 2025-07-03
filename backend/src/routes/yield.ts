@@ -1,11 +1,8 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
-import { Pool } from 'pg';
+import { DataSource } from 'typeorm';
+import { YieldController } from '../controllers/yieldController';
 
-const router: Router = express.Router();
-
-// Import controllers and services (will need to be converted to TypeScript)
-// For now using require until they're converted
-const YieldController = require('../../controllers/yieldController');
+// NOTE: These services will also need to be migrated to TypeScript
 const YieldCalculationService = require('../../services/yieldCalculationService');
 const EtherFuseService = require('../../services/etherfuseService');
 
@@ -33,131 +30,129 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction): void
     return;
   }
   
-  (req.body as any).userEmail = userEmail;
+  (req as any).userEmail = userEmail;
   next();
 };
 
-/**
- * Yield Generation Routes
- */
 
-// Activate yield generation for a payment
-router.post('/payments/:id/activate-yield', authenticateUser, YieldController.activateYield);
+export const createYieldRoutes = (dataSource: DataSource): Router => {
+  const router: Router = express.Router();
 
-// Get current yield status for a payment
-router.get('/payments/:id/yield-status', authenticateUser, YieldController.getYieldStatus);
+  /**
+   * Yield Generation Routes
+   */
 
-// Get yield earnings history for a payment
-router.get('/payments/:id/yield-history', authenticateUser, YieldController.getYieldHistory);
+  // Activate yield generation for a payment
+  router.post('/payments/:id/activate-yield', authenticateUser, YieldController.activateYield(dataSource));
 
-// EtherFuse webhook endpoint (no auth required - signature verified in controller)
-router.post('/etherfuse/webhook', YieldController.handleWebhook);
+  // Get current yield status for a payment
+  router.get('/payments/:id/yield-status', authenticateUser, YieldController.getYieldStatus(dataSource));
 
-/**
- * Admin/Internal Routes (require admin authentication)
- */
+  // Get yield earnings history for a payment
+  router.get('/payments/:id/yield-history', authenticateUser, YieldController.getYieldHistory(dataSource));
 
-// Manual yield calculation trigger (admin only)
-router.post('/admin/calculate-yields', (req: Request, res: Response): void => {
-  // TODO: Add admin authentication
-  yieldCalcService.manualCalculation();
-  res.json({ success: true, message: 'Manual calculation triggered' });
-});
+  // EtherFuse webhook endpoint (no auth required - signature verified in controller)
+  router.post('/etherfuse/webhook', YieldController.handleWebhook(dataSource));
 
-// Service health check
-router.get('/admin/health', async (req: Request, res: Response): Promise<void> => {
-  try {
-    await yieldCalcService.healthCheck();
-    res.json({ 
-      success: true, 
-      message: 'Yield service is healthy',
-      last_run: yieldCalcService.lastRunDate
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: 'Health check failed' 
-    });
-  }
-});
+  /**
+   * Admin/Internal Routes (require admin authentication)
+   */
 
-// EtherFuse health check
-router.get('/admin/etherfuse/health', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const health = await etherFuseService.healthCheck();
-    res.json({ 
-      success: true, 
-      message: 'EtherFuse service is healthy',
-      health
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: 'Health check failed' 
-    });
-  }
-});
+  // Manual yield calculation trigger (admin only)
+  router.post('/admin/calculate-yields', (req: Request, res: Response): void => {
+    // TODO: Add admin authentication
+    yieldCalcService.manualCalculation();
+    res.json({ success: true, message: 'Manual calculation triggered' });
+  });
 
-// Get current CETES rate
-router.get('/admin/cetes-rate', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const rate = await etherFuseService.getCurrentRate();
-    res.json({ 
-      success: true, 
-      rate
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to get CETES rate' 
-    });
-  }
-});
+  // Service health check
+  router.get('/admin/health', async (req: Request, res: Response): Promise<void> => {
+    try {
+      await yieldCalcService.healthCheck();
+      res.json({ 
+        success: true, 
+        message: 'Yield service is healthy',
+        last_run: yieldCalcService.lastRunDate
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: 'Health check failed' 
+      });
+    }
+  });
 
-// Get yield statistics (admin only)
-router.get('/admin/stats', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const pool = new Pool({
-      host: process.env.POSTGRES_HOST,
-      port: parseInt(process.env.POSTGRES_PORT || '5432'),
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-    });
+  // EtherFuse health check
+  router.get('/admin/etherfuse/health', async (req: Request, res: Response): Promise<void> => {
+    try {
+      const health = await etherFuseService.healthCheck();
+      res.json({ 
+        success: true, 
+        message: 'EtherFuse service is healthy',
+        health
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: 'Health check failed' 
+      });
+    }
+  });
 
-    const stats = await pool.query(`
-      SELECT 
-        COUNT(*) as total_activations,
-        COUNT(CASE WHEN status = 'active' THEN 1 END) as active_activations,
-        SUM(principal_amount) as total_invested,
-        AVG(principal_amount) as avg_investment
-      FROM yield_activations
-    `);
+  // Get current CETES rate
+  router.get('/admin/cetes-rate', async (req: Request, res: Response): Promise<void> => {
+    try {
+      const rate = await etherFuseService.getCurrentRate();
+      res.json({ 
+        success: true, 
+        rate
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to get CETES rate' 
+      });
+    }
+  });
 
-    const earnings = await pool.query(`
-      SELECT 
-        SUM(cumulative_total) as total_earnings,
-        COUNT(DISTINCT yield_activation_id) as earning_activations,
-        AVG(annual_rate) as avg_rate
-      FROM yield_earnings 
-      WHERE earning_date = CURRENT_DATE - INTERVAL '1 day'
-    `);
+  // Get yield statistics (admin only)
+  router.get('/admin/stats', async (req: Request, res: Response): Promise<void> => {
+    try {
+      // Use the injected dataSource instead of creating a new Pool
+      const stats = await dataSource.query(`
+        SELECT 
+          COUNT(*) as total_activations,
+          COUNT(CASE WHEN status = 'active' THEN 1 END) as active_activations,
+          SUM(principal_amount) as total_invested,
+          AVG(principal_amount) as avg_investment
+        FROM yield_activations
+      `);
 
-    res.json({
-      success: true,
-      stats: {
-        activations: stats.rows[0],
-        earnings: earnings.rows[0]
-      }
-    });
+      const earnings = await dataSource.query(`
+        SELECT 
+          SUM(cumulative_total) as total_earnings,
+          COUNT(DISTINCT yield_activation_id) as earning_activations,
+          AVG(annual_rate) as avg_rate
+        FROM yield_earnings 
+        WHERE earning_date = CURRENT_DATE - INTERVAL '1 day'
+      `);
 
-  } catch (error) {
-    console.error('Error getting yield stats:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to get statistics' 
-    });
-  }
-});
+      res.json({
+        success: true,
+        stats: {
+          activations: stats[0],
+          earnings: earnings[0]
+        }
+      });
 
-export default router;
+    } catch (error) {
+      console.error('Error getting yield stats:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to get statistics' 
+      });
+    }
+  });
+  
+  return router;
+};

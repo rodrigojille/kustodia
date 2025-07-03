@@ -13,8 +13,9 @@ if (!rpcUrl || !privateKey || !contractAddress) {
 }
 
 // Set up provider and wallet using ethers v5 syntax
-const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+const provider = new ethers.JsonRpcProvider(rpcUrl);
 const bridgeWallet = new ethers.Wallet(privateKey, provider);
+export const bridgeWalletAddress = bridgeWallet.address;
 
 // Minimal ERC20 ABI for the transfer and decimals functions
 const erc20Abi = [
@@ -38,7 +39,7 @@ export async function sendMxnbToAddress(userAddress: string, amountMxn: number):
     // Get token decimals to convert the amount to the correct format
     const decimals = await mxnbContract.decimals();
     // Using ethers.utils.parseUnits for ethers v5 compatibility
-    const amountInSmallestUnit = ethers.utils.parseUnits(amountMxn.toString(), decimals);
+    const amountInSmallestUnit = ethers.parseUnits(amountMxn.toString(), decimals);
 
     console.log(`Sending ${amountInSmallestUnit.toString()} (in smallest unit) to ${userAddress}.`);
 
@@ -62,7 +63,7 @@ export async function sendMxnbToAddress(userAddress: string, amountMxn: number):
  * @param txHash The hash of the transaction to check.
  * @returns The transaction receipt, or null if it's not yet mined.
  */
-export async function getTransactionReceipt(txHash: string): Promise<ethers.providers.TransactionReceipt | null> {
+export async function getTransactionReceipt(txHash: string): Promise<ethers.TransactionReceipt | null> {
   try {
     const receipt = await provider.getTransactionReceipt(txHash);
     return receipt;

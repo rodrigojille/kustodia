@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.verifyEmail = exports.resetPassword = exports.requestPasswordReset = exports.register = exports.getRecipientClabe = void 0;
+exports.login = exports.changePassword = exports.updateMyProfile = exports.verifyEmail = exports.resetPassword = exports.requestPasswordReset = exports.register = exports.getRecipientClabe = void 0;
 exports.resendVerificationEmail = resendVerificationEmail;
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const User_1 = require("../entity/User");
@@ -218,6 +218,68 @@ const verifyEmail = async (req, res) => {
 };
 exports.verifyEmail = verifyEmail;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const updateMyProfile = async (req, res) => {
+    const authReq = req;
+    const id = authReq.user?.id;
+    if (!id) {
+        res.status(401).json({ error: "Not authenticated" });
+        return;
+    }
+    const { full_name } = req.body;
+    if (!full_name || typeof full_name !== 'string' || full_name.trim() === '') {
+        res.status(400).json({ error: "Valid full name is required" });
+        return;
+    }
+    try {
+        const userRepo = ormconfig_1.default.getRepository(User_1.User);
+        await userRepo.update(id, { full_name: full_name.trim() });
+        const updatedUser = await userRepo.findOne({ where: { id } });
+        res.json({ message: "Profile updated successfully", user: updatedUser });
+    }
+    catch (err) {
+        console.error('Profile update error:', err);
+        res.status(500).json({ error: "Failed to update profile" });
+    }
+};
+exports.updateMyProfile = updateMyProfile;
+const changePassword = async (req, res) => {
+    const authReq = req;
+    const id = authReq.user?.id;
+    if (!id) {
+        res.status(401).json({ error: "Not authenticated" });
+        return;
+    }
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword || newPassword.length < 8) {
+        res.status(400).json({ error: "New password must be at least 8 characters long." });
+        return;
+    }
+    try {
+        const userRepo = ormconfig_1.default.getRepository(User_1.User);
+        const user = await userRepo.createQueryBuilder("user")
+            .addSelect("user.password_hash")
+            .where("user.id = :id", { id })
+            .getOne();
+        if (!user) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+        const isMatch = await bcryptjs_1.default.compare(currentPassword, user.password_hash);
+        if (!isMatch) {
+            res.status(401).json({ error: "Incorrect current password" });
+            return;
+        }
+        const salt = await bcryptjs_1.default.genSalt(10);
+        const hashedPassword = await bcryptjs_1.default.hash(newPassword, salt);
+        await userRepo.update(id, { password_hash: hashedPassword });
+        res.json({ message: "Password updated successfully" });
+    }
+    catch (err) {
+        console.error('Password change error:', err);
+        res.status(500).json({ error: "Failed to change password" });
+    }
+};
+exports.changePassword = changePassword;
 const login = async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {

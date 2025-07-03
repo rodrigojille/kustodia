@@ -5,7 +5,7 @@ import path from 'path';
 
 dotenv.config();
 
-const provider = new ethers.providers.JsonRpcProvider(process.env.ETH_RPC_URL);
+const provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL!);
 const privateKey = process.env.ESCROW_PRIVATE_KEY as string;
 const signer = new ethers.Wallet(privateKey, provider);
 const tokenAddress = process.env.MOCK_ERC20_ADDRESS as string;
@@ -16,7 +16,7 @@ const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8')).abi;
 
 async function main() {
   const token = new ethers.Contract(tokenAddress, abi, signer);
-  const amount = ethers.utils.parseUnits('2000', 6); // 2000 MXNB (6 decimales)
+  const amount = ethers.parseUnits('2000', 6); // 2000 MXNB (6 decimales)
   console.log(`Aprobando ${amount.toString()} tokens para ${escrowAddress}`);
 
   try {

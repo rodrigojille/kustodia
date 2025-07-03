@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "./emailTokenUtil";
 import { sendEmail } from "../utils/emailService";
 import { createJunoClabe } from "../services/junoService";
+import { AuthenticatedRequest } from "../AuthenticatedRequest";
 
 // Get recipient's deposit CLABE by email
 export const getRecipientClabe = async (req: Request, res: Response): Promise<void> => {
@@ -211,6 +212,80 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
 };
 
 import jwt from 'jsonwebtoken';
+
+export const updateMyProfile = async (req: Request, res: Response): Promise<void> => {
+  const authReq = req as AuthenticatedRequest;
+  const id = authReq.user?.id;
+
+  if (!id) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
+  const { full_name } = req.body;
+
+  if (!full_name || typeof full_name !== 'string' || full_name.trim() === '') {
+    res.status(400).json({ error: "Valid full name is required" });
+    return;
+  }
+
+  try {
+    const userRepo = ormconfig.getRepository(User);
+    await userRepo.update(id, { full_name: full_name.trim() });
+    const updatedUser = await userRepo.findOne({ where: { id } });
+
+    res.json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response): Promise<void> => {
+  const authReq = req as AuthenticatedRequest;
+  const id = authReq.user?.id;
+
+  if (!id) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword || newPassword.length < 8) {
+    res.status(400).json({ error: "New password must be at least 8 characters long." });
+    return;
+  }
+
+  try {
+    const userRepo = ormconfig.getRepository(User);
+    const user = await userRepo.createQueryBuilder("user")
+      .addSelect("user.password_hash")
+      .where("user.id = :id", { id })
+      .getOne();
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      res.status(401).json({ error: "Incorrect current password" });
+      return;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await userRepo.update(id, { password_hash: hashedPassword });
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.error('Password change error:', err);
+    res.status(500).json({ error: "Failed to change password" });
+  }
+};
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import authFetch from '../../../../lib/api';
+import authFetch from '@/lib/api';
 
 interface User {
   id: number;

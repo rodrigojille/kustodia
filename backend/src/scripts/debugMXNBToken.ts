@@ -4,7 +4,7 @@ import fs from 'fs';
 
 dotenv.config();
 
-const provider = new ethers.providers.JsonRpcProvider(process.env.ETH_RPC_URL);
+const provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL!);
 const tokenAddress = process.env.MOCK_ERC20_ADDRESS as string;
 const custodialWallet = process.env.ESCROW_BRIDGE_WALLET as string;
 

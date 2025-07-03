@@ -13,7 +13,7 @@ const JUNO_API_KEY = process.env.JUNO_API_KEY;
 const JUNO_API_SECRET = process.env.JUNO_API_SECRET;
 const JUNO_BASE_URL = process.env.JUNO_BASE_URL || "https://stage.buildwithjuno.com";
 
-const amount = 1000; // Monto a redimir: 2500 MXN for final payout to seller of payment 73
+const amount = 3000; // Monto a redimir: 2500 MXN for final payout to seller of payment 73
 const destination_bank_account_id = process.env.JUNO_SELLER_BANK_ACCOUNT_ID;
 const asset = "mxn";
 const paymentId = Number(process.env.PAYMENT_ID) || 81;

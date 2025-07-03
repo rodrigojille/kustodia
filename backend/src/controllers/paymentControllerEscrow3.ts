@@ -11,7 +11,7 @@ import { Escrow } from "../entity/Escrow";
 import { User } from "../entity/User";
 import { ethers } from "ethers";
 
-const ESCROW3_CONTRACT_ADDRESS = process.env.ESCROW3_CONTRACT_ADDRESS;
+const ESCROW3_CONTRACT_ADDRESS = process.env.KUSTODIA_ESCROW_V3_ADDRESS;
 const MXNBS_CONTRACT_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS;
 const ARBITRUM_SEPOLIA_RPC_URL = process.env.ARBITRUM_SEPOLIA_RPC_URL;
 
@@ -138,7 +138,7 @@ export const initiateEscrow3Payment = async (req: AuthenticatedRequest, res: Res
 // This function should be called by a backend job or webhook
 export const syncEscrow3Events = async (req: Request, res: Response) => {
   try {
-    const provider = new ethers.providers.JsonRpcProvider(ARBITRUM_SEPOLIA_RPC_URL || "");
+    const provider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA_RPC_URL || "");
     const escrow = new ethers.Contract(ESCROW3_CONTRACT_ADDRESS || "", escrowAbi, provider);
     // 1. Get last synced block from DB or config (implement as needed)
     const fromBlock = Number(process.env.LAST_SYNCED_BLOCK || 0);
@@ -148,12 +148,13 @@ export const syncEscrow3Events = async (req: Request, res: Response) => {
     const paymentRepo = ormconfig.getRepository(Payment);
     const escrowRepo = ormconfig.getRepository(Escrow);
     for (const ev of createdEvents) {
-      if (!ev.args) continue;
-      const smart_contract_escrow_id = ev.args.smart_contract_escrow_id.toString();
-      const payer = ev.args.payer;
-      const seller = ev.args.seller;
-      const amount = ev.args.amount.toString();
-      const custodyAmount = ev.args.custodyAmount.toString();
+      const event = ev as ethers.EventLog;
+      if (!event.args) continue;
+      const smart_contract_escrow_id = event.args.smart_contract_escrow_id.toString();
+      const payer = event.args.payer;
+      const seller = event.args.seller;
+      const amount = event.args.amount.toString();
+      const custodyAmount = event.args.custodyAmount.toString();
       // Upsert escrow record
       let esc = await escrowRepo.findOne({ where: { smart_contract_escrow_id } });
       if (!esc) {

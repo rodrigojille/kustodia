@@ -6,7 +6,7 @@ dotenv.config();
 const ESCROW_CONTRACT = "0xa5b45dc1cf2e44844eba557df29687d24f5d8543"; // Proxy contract address
 const TOKEN_ADDRESS = "0x82B9e52b26A2954E113F94Ff26647754d5a4247D"; // MXNB token address
 const TO_ADDRESS = process.env.PLATFORM_WALLET_ADDRESS || ""; // Bridge wallet address
-const AMOUNT = ethers.utils.parseUnits("1000", 6); // 1000 MXNB with 6 decimals
+const AMOUNT = ethers.parseUnits("1000", 6); // 1000 MXNB with 6 decimals
 const OWNER_PK = process.env.DEPLOYER_PRIVATE_KEY || "";
 const PROVIDER_URL = process.env.ETH_RPC_URL || "";
 
@@ -19,7 +19,7 @@ const ABI = [
 ];
 
 async function main() {
-  const provider = new ethers.providers.JsonRpcProvider(PROVIDER_URL);
+  const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
   const signer = new ethers.Wallet(OWNER_PK, provider);
   const escrow = new ethers.Contract(ESCROW_CONTRACT, ABI, signer);
 

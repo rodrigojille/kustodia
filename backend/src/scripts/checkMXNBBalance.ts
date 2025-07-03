@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import dotenv from "dotenv";
 dotenv.config();
 
-const provider = new ethers.providers.JsonRpcProvider(process.env.ETH_RPC_URL!);
+const provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL!);
 const wallet = process.env.ESCROW_BRIDGE_WALLET!;
 const tokenAddress = process.env.MOCK_ERC20_ADDRESS!;
 
@@ -20,7 +20,7 @@ async function main() {
     token.decimals(),
     token.symbol()
   ]);
-  const human = ethers.utils.formatUnits(balance, decimals);
+  const human = ethers.formatUnits(balance, decimals);
   console.log(`Saldo de ${symbol} en ${wallet}: ${human}`);
 }
 

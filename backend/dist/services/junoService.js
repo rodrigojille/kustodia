@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createJunoClabe = createJunoClabe;
 exports.redeemMXNbForMXN = redeemMXNbForMXN;
 exports.getJunoTxHashFromTimeline = getJunoTxHashFromTimeline;
-exports.sendJunoPayment = sendJunoPayment;
+exports.withdrawCryptoToBridgeWallet = withdrawCryptoToBridgeWallet;
 exports.listJunoTransactions = listJunoTransactions;
 const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -68,34 +68,36 @@ async function createJunoClabe() {
  * @param travelRuleData - Optional Travel Rule compliance data to include
  * @returns The redemption response from the API
  */
-async function redeemMXNbForMXN(amountMXNb, travelRuleData) {
-    const endpoint = '/redemptions/';
+async function redeemMXNbForMXN(amount, destination_bank_account_id) {
+    const endpoint = '/mint_platform/v1/redemptions';
     const url = `${JUNO_BASE_URL}${endpoint}`;
     const bodyObj = {
-        currency: "mxnb",
-        amount: String(amountMXNb),
-        notes_ref: "Kustodia redemption",
-        origin_id: "kustodia_backend",
+        amount: amount, // Keep amount as string
+        destination_bank_account_id,
+        asset: 'mxn', // The asset being redeemed is MXNB
     };
-    if (travelRuleData) {
-        bodyObj.travel_rule = travelRuleData;
-    }
     const body = JSON.stringify(bodyObj);
     const nonce = Date.now().toString();
-    const method = "POST";
-    const requestPath = "/api/v3/redemptions/";
+    const method = 'POST';
+    const requestPath = endpoint;
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto_1.default.createHmac("sha256", JUNO_API_SECRET).update(dataToSign).digest("hex");
+    const signature = crypto_1.default.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
     const headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Content-Type': 'application/json',
+        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
     };
+    console.log(`[JUNO] Redeeming ${amount} MXNB to bank account ${destination_bank_account_id}...`);
+    console.log(`[JUNO] Request Body: ${body}`);
     try {
         const response = await axios_1.default.post(url, bodyObj, { headers });
-        return response.data;
+        // The documentation shows the transaction details are in the 'payload' object
+        if (response.data && response.data.success) {
+            return response.data.payload;
+        }
+        throw new Error('Juno redemption response was not successful: ' + JSON.stringify(response.data));
     }
     catch (err) {
-        console.error('Juno redemption error:', err?.response?.data || err?.message || err);
+        console.error('Juno redemption error:', JSON.stringify(err.response.data, null, 2) || err?.message || err);
         throw err;
     }
 }
@@ -125,44 +127,44 @@ async function getJunoTxHashFromTimeline(transactionId, isStage = true) {
         return null;
     }
 }
-async function sendJunoPayment(clabe, amount, description) {
-    const endpoint = '/withdrawals/';
-    const url = `${JUNO_BASE_URL}${endpoint}`;
-    const bodyObj = {
-        currency: "mxn",
-        protocol: "clabe",
-        amount: String(amount),
-        beneficiary: "Pago Kustodia", // or seller name if available
-        clabe,
-        notes_ref: description || "Pago Kustodia",
-        numeric_ref: "1234567",
-        rfc: "XAXX010101000",
-        origin_id: "kustodia_test",
-    };
-    const body = JSON.stringify(bodyObj);
-    const nonce = Date.now().toString();
-    const method = "POST";
-    const requestPath = "/api/v3/withdrawals/";
-    const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto_1.default.createHmac("sha256", JUNO_API_SECRET).update(dataToSign).digest("hex");
-    const headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
-    };
-    try {
-        const response = await axios_1.default.post(url, bodyObj, { headers });
-        return response.data;
-    }
-    catch (err) {
-        console.error('Juno payout error:', err?.response?.data || err?.message || err);
-        throw err;
-    }
-}
 /**
  * Lista todas las transacciones de la cuenta Juno.
  * @param isStage Si es true usa el endpoint de stage, si no el de producción
  * @returns Array de transacciones Juno
  */
+async function withdrawCryptoToBridgeWallet(amount, destinationAddress) {
+    const endpoint = '/mint_platform/v1/withdrawals';
+    const url = `${JUNO_BASE_URL}${endpoint}`;
+    const bodyObj = {
+        amount: amount,
+        asset: 'MXNB',
+        address: destinationAddress,
+        blockchain: 'ARBITRUM'
+    };
+    const body = JSON.stringify(bodyObj);
+    const nonce = Date.now().toString();
+    const method = 'POST';
+    const requestPath = endpoint;
+    const dataToSign = nonce + method + requestPath + body;
+    const signature = crypto_1.default.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+    };
+    console.log('Enviando withdrawal de MXNB via junoService...');
+    console.log('Destino:', destinationAddress);
+    console.log('Monto:', amount);
+    console.log('Payload:', JSON.stringify(bodyObj));
+    try {
+        const response = await axios_1.default.post(url, bodyObj, { headers, timeout: 15000 }); // 15-second timeout
+        console.log('Respuesta withdrawal:', response.data);
+        return response.data;
+    }
+    catch (err) {
+        console.error('Error en withdrawal desde junoService:', err?.response?.data || err?.message || err);
+        throw err;
+    }
+}
 async function listJunoTransactions(isStage = true) {
     const baseUrl = isStage
         ? 'https://stage.buildwithjuno.com'

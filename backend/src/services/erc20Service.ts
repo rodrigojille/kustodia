@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 // import MockERC20ABI from '../../../contracts/artifacts/contracts/MockERC20.sol/MockERC20.json';
 
-const provider = new ethers.providers.JsonRpcProvider("https://arb1.arbitrum.io/rpc");
+const provider = new ethers.JsonRpcProvider("https://arb1.arbitrum.io/rpc");
 const privateKey = process.env.ESCROW_PRIVATE_KEY!;
 const wallet = new ethers.Wallet(privateKey, provider);
 const contractAddress = process.env.MOCK_ERC20_ADDRESS!;

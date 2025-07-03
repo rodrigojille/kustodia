@@ -39,23 +39,27 @@ const dotenv = __importStar(require("dotenv"));
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 console.log("[DEBUG] DATABASE_URL:", process.env.DATABASE_URL);
 const isCompiled = __dirname.includes('dist');
+const Escrow_1 = require("./entity/Escrow");
 const JunoTransaction_1 = require("./entity/JunoTransaction");
 const Payment_1 = require("./entity/Payment");
+const PaymentEvent_1 = require("./entity/PaymentEvent");
 const User_1 = require("./entity/User");
-const Escrow_1 = require("./entity/Escrow");
-exports.default = new typeorm_1.DataSource({
+const Ticket_1 = require("./entity/Ticket");
+const AppDataSource = new typeorm_1.DataSource({
     type: "postgres",
-    url: process.env.DATABASE_URL, // Use this for Heroku!
-    synchronize: true, // set to false in production and use migrations
-    logging: false,
+    url: process.env.DATABASE_URL,
+    synchronize: false, // Should be false in production, use migrations
+    logging: true,
     entities: [
-        JunoTransaction_1.JunoTransaction,
-        Payment_1.Payment,
         User_1.User,
         Escrow_1.Escrow,
-        isCompiled ? "dist/entity/**/*.js" : "src/entity/**/*.ts"
+        Payment_1.Payment,
+        PaymentEvent_1.PaymentEvent,
+        JunoTransaction_1.JunoTransaction,
+        Ticket_1.Ticket
     ],
     migrations: [isCompiled ? "dist/migration/**/*.js" : "src/migration/**/*.ts"],
     subscribers: [isCompiled ? "dist/subscriber/**/*.js" : "src/subscriber/**/*.ts"],
     ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
+exports.default = AppDataSource;

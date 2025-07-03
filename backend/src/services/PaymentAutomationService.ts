@@ -1,6 +1,6 @@
 import { PaymentService } from './paymentService';
 import { releaseEscrow, getEscrow } from './escrowService';
-import { listJunoTransactions, redeemMXNbForMXN, sendJunoPayment } from './junoService';
+import { listJunoTransactions, redeemMXNbForMXN } from './junoService';
 import { LessThan, DataSource } from 'typeorm';
 import { Payment } from '../entity/Payment';
 import { Escrow } from '../entity/Escrow';
@@ -33,18 +33,7 @@ export class PaymentAutomationService {
   /**
    * Get database connection with proper error handling
    */
-  private getDataSource(): DataSource | null {
-    try {
-      if (!ormconfig.isInitialized) {
-        console.warn('⚠️ Database not initialized');
-        return null;
-      }
-      return ormconfig;
-    } catch (error) {
-      console.error('❌ Database connection error:', error);
-      return null;
-    }
-  }
+
 
   /**
    * Initialize all automation processes
@@ -67,8 +56,8 @@ export class PaymentAutomationService {
       await this.releaseExpiredCustodies();
     });
 
-    // Every 15 minutes: Process pending payouts
-    cron.schedule('*/15 * * * *', async () => {
+    // Every 8 minutes: Process payouts for released escrows
+    cron.schedule('*/8 * * * *', async () => {
       await this.processPendingPayouts();
     });
 
@@ -88,13 +77,13 @@ export class PaymentAutomationService {
       console.log('🔍 Revisando nuevos depósitos SPEI...');
       
       // Check if database connection exists
-      const dataSource = this.getDataSource();
-      if (!dataSource) {
+      
+      if (!ormconfig.isInitialized) {
         console.warn('⚠️ Database not initialized, skipping deposit processing');
         return;
       }
 
-      const paymentRepo = dataSource.getRepository(Payment);
+      const paymentRepo = ormconfig.getRepository(Payment);
       const pendingPayments = await paymentRepo.find({
         where: { status: 'pending' },
         relations: ['user', 'escrow']
@@ -159,14 +148,14 @@ export class PaymentAutomationService {
     try {
       console.log('💰 Procesando retiros de Juno a wallet puente...');
       
-      const dataSource = this.getDataSource();
-      if (!dataSource) {
+      
+      if (!ormconfig.isInitialized) {
         console.warn('⚠️ Database not initialized, skipping Juno withdrawals');
         return;
       }
 
-      const paymentRepo = dataSource.getRepository(Payment);
-      const escrowRepo = dataSource.getRepository(Escrow);
+      const paymentRepo = ormconfig.getRepository(Payment);
+      const escrowRepo = ormconfig.getRepository(Escrow);
       
       // Find payments that need MXNB withdrawal from Juno
       const paymentsNeedingWithdrawal = await paymentRepo.find({
@@ -266,7 +255,7 @@ export class PaymentAutomationService {
       throw new Error('Missing bridge wallet private key or Juno wallet address');
     }
 
-    const provider = new ethers.providers.JsonRpcProvider(PROVIDER_URL);
+    const provider = new ethers.JsonRpcProvider(PROVIDER_URL!);
     const signer = new ethers.Wallet(BRIDGE_WALLET_PK, provider);
     
     const ERC20_ABI = [
@@ -274,7 +263,7 @@ export class PaymentAutomationService {
     ];
     
     const token = new ethers.Contract(MXNB_TOKEN, ERC20_ABI, signer);
-    const amountWithDecimals = ethers.utils.parseUnits(amount.toString(), 6); // MXNB uses 6 decimals
+    const amountWithDecimals = ethers.parseUnits(amount.toString(), 6); // MXNB uses 6 decimals
 
     const tx = await token.transfer(JUNO_WALLET, amountWithDecimals);
     console.log(`🔄 Bridge to Juno transfer tx: ${tx.hash}`);
@@ -283,20 +272,21 @@ export class PaymentAutomationService {
   }
 
   /**
-   * AUTOMATION 2: Automatically release expired custodies
+   * AUTOMATION 2: Atomically release expired custodies and process payouts
    */
   async releaseExpiredCustodies(): Promise<void> {
     try {
-      console.log('⏰ Revisando custodias expiradas...');
+      console.log('⏰ Revisando custodias expiradas para liberación y pago atómico...');
       
-      // Check if database connection exists
-      const dataSource = this.getDataSource();
-      if (!dataSource) {
+      
+      if (!ormconfig.isInitialized) {
         console.warn('⚠️ Database not initialized, skipping custody release');
         return;
       }
       
-      const escrowRepo = dataSource.getRepository(Escrow);
+      const escrowRepo = ormconfig.getRepository(Escrow);
+      const paymentRepo = ormconfig.getRepository(Payment); // Added payment repo
+      
       const expiredEscrows = await escrowRepo.find({
         where: {
           status: 'active',
@@ -305,75 +295,116 @@ export class PaymentAutomationService {
         relations: ['payment', 'payment.user']
       });
 
-      let releasedCount = 0;
+      let processedCount = 0;
 
       for (const escrow of expiredEscrows) {
         try {
-          // Check if smart_contract_escrow_id exists
           if (!escrow.smart_contract_escrow_id) {
-            console.warn(`⚠️ Escrow ${escrow.id} no tiene smart_contract_escrow_id`);
+            console.warn(`⚠️ Escrow ${escrow.id} no tiene smart_contract_escrow_id, saltando.`);
             continue;
           }
 
-          // Release escrow on blockchain
+          // 1. Release escrow on blockchain
+          console.log(`Liberando escrow ${escrow.id} on-chain...`);
           await releaseEscrow(Number(escrow.smart_contract_escrow_id));
           
-          // Update database status
-          escrow.status = 'released';
-          escrow.release_tx_hash = 'auto-released-' + Date.now();
-          await escrowRepo.save(escrow);
-
-          // Log event
           await this.paymentService.logPaymentEvent(
             escrow.payment.id,
             'escrow_auto_liberado',
-            'Custodia liberada automáticamente al vencer el período'
+            'Custodia liberada on-chain automáticamente al vencer el período.'
+          );
+          console.log(`Escrow ${escrow.id} liberado on-chain.`);
+
+          // --- ATOMIC PAYOUT LOGIC ---
+          const payment = escrow.payment;
+          const payoutAmount = escrow.release_amount || escrow.custody_amount;
+
+          // 2. Transfer MXNB from bridge wallet back to Juno
+          console.log(`Transfiriendo ${payoutAmount} MXNB del bridge a Juno para el pago ${payment.id}...`);
+          await this.transferBridgeToJuno(payoutAmount);
+          await this.paymentService.logPaymentEvent(
+            payment.id,
+            'bridge_to_juno_transfer',
+            `MXNB transferido del bridge a Juno: ${payoutAmount}`
           );
 
-          // Trigger automatic payout
-          await this.triggerAutomaticPayout(escrow.payment.id);
+          // Wait for settlement
+          console.log('Esperando 30s para que la transferencia a Juno se asiente...');
+          await new Promise(resolve => setTimeout(resolve, 30000));
+
+          // 3. Redeem MXNB for MXN and send SPEI payment to final recipient
+          if (payment.payout_clabe) {
+            console.log(`Redimiendo ${payoutAmount} MXNB y enviando a ${payment.payout_clabe}...`);
+            await redeemMXNbForMXN(payoutAmount, payment.payout_clabe);
+
+            await this.paymentService.logPaymentEvent(
+              payment.id,
+              'payout_processed',
+              `Redención y envío SPEI procesado a ${payment.payout_clabe}`
+            );
+          } else {
+            console.warn(`⚠️ No payout_clabe for payment ${payment.id}, skipping redemption and payout.`);
+            await this.paymentService.logPaymentEvent(
+              payment.id,
+              'payout_skipped',
+              'No se encontró CLABE de pago, se omitió la redención y el pago.'
+            );
+          }
+
+          // 5. Update payment and escrow status to COMPLETED
+          escrow.status = 'completed';
+          escrow.release_tx_hash = 'auto-released-paid-' + Date.now();
+          payment.status = 'completed';
           
-          releasedCount++;
-          console.log(`✅ Escrow ${escrow.id} liberado automáticamente`);
+          await escrowRepo.save(escrow);
+          await paymentRepo.save(payment);
+
+          await this.paymentService.logPaymentEvent(
+            payment.id,
+            'pago_completado',
+            'Pago completado y ciclo cerrado automáticamente.'
+          );
+
+          processedCount++;
+          console.log(`✅ Escrow ${escrow.id} y Pago ${payment.id} procesados y completados atómicamente.`);
+
         } catch (error: any) {
           const errorMessage = error.message || 'Error desconocido';
-          console.error(`❌ Error liberando escrow ${escrow.id}:`, errorMessage);
+          console.error(`❌ Error en el proceso atómico para escrow ${escrow.id}:`, errorMessage);
           
-          // Log error event
           await this.paymentService.logPaymentEvent(
             escrow.payment.id,
-            'error_liberacion_automatica',
-            `Error en liberación automática: ${errorMessage}`
+            'error_liberacion_pago_automatico',
+            `Error en el flujo atómico de liberación/pago: ${errorMessage}`
           );
         }
       }
 
-      if (releasedCount > 0) {
-        console.log(`🎉 ${releasedCount} custodias liberadas automáticamente`);
+      if (processedCount > 0) {
+        console.log(`🎉 ${processedCount} custodias procesadas y pagadas atómicamente.`);
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Error desconocido';
-      console.error('❌ Error liberando custodias expiradas:', errorMessage);
+      console.error('❌ Error procesando custodias expiradas y pagos:', errorMessage);
     }
   }
 
   /**
-   * AUTOMATION 3: Process pending payouts (MXNB redemption + SPEI)
+   * AUTOMATION 3: Process pending payouts for escrows already marked as 'released'
    */
   async processPendingPayouts(): Promise<void> {
     try {
-      console.log('💸 Procesando pagos pendientes...');
+      console.log('💸 Revisando custodias liberadas para procesar pago final...');
       
-      const dataSource = this.getDataSource();
-      if (!dataSource) {
-        console.warn('⚠️ Database not initialized, skipping pending payouts');
+      
+      if (!ormconfig.isInitialized) {
+        console.warn('⚠️ Database not initialized, skipping payout processing');
         return;
       }
-
-      const paymentRepo = dataSource.getRepository(Payment);
-      const escrowRepo = dataSource.getRepository(Escrow);
       
-      // Find escrows that are released and ready for payout
+      const escrowRepo = ormconfig.getRepository(Escrow);
+      const paymentRepo = ormconfig.getRepository(Payment);
+      
       const releasedEscrows = await escrowRepo.find({
         where: { status: 'released' },
         relations: ['payment', 'payment.user']
@@ -384,74 +415,72 @@ export class PaymentAutomationService {
       for (const escrow of releasedEscrows) {
         try {
           const payment = escrow.payment;
-          
-          // 🔥 NEW: Transfer MXNB from bridge wallet to Juno first
-          await this.transferBridgeToJuno(escrow.release_amount || escrow.custody_amount);
-          
+          const payoutAmount = escrow.release_amount || escrow.custody_amount;
+
+          console.log(`Iniciando proceso de pago para el pago ${payment.id} asociado al escrow ${escrow.id}`);
+
+          // 1. Transfer MXNB from bridge wallet back to Juno
+          console.log(`Transfiriendo ${payoutAmount} MXNB del bridge a Juno...`);
+          await this.transferBridgeToJuno(payoutAmount);
           await this.paymentService.logPaymentEvent(
             payment.id,
             'bridge_to_juno_transfer',
-            `MXNB transferred from bridge to Juno: ${escrow.release_amount || escrow.custody_amount}`
+            `MXNB transferido del bridge a Juno: ${payoutAmount}`
           );
 
-          // Wait a moment for the transfer to be confirmed
-          await new Promise(resolve => setTimeout(resolve, 30000)); // 30 seconds
+          // Wait for settlement
+          console.log('Esperando 30s para que la transferencia a Juno se asiente...');
+          await new Promise(resolve => setTimeout(resolve, 30000));
 
-          // 1. Redeem MXNB for MXN via Juno
-          const redemptionResult = await redeemMXNbForMXN(escrow.release_amount || escrow.custody_amount);
-          console.log(`💱 MXNB redemption result for payment ${payment.id}:`, redemptionResult);
-          
-          await this.paymentService.logPaymentEvent(
-            payment.id,
-            'mxnb_redemption',
-            `MXNB redeemed for MXN: ${escrow.release_amount || escrow.custody_amount}`
-          );
-
-          // 2. Send SPEI payment to recipient
+          // 2. Redeem MXNB for MXN and send SPEI payment to final recipient
           if (payment.payout_clabe) {
-            const speiResult = await sendJunoPayment(
-              payment.payout_clabe,
-              escrow.release_amount || escrow.custody_amount,
-              `Pago Kustodia #${payment.id}`
-            );
-            console.log(`💸 SPEI result for payment ${payment.id}:`, speiResult);
+            console.log(`Redimiendo ${payoutAmount} MXNB y enviando a ${payment.payout_clabe}...`);
+            await redeemMXNbForMXN(payoutAmount, payment.payout_clabe);
 
             await this.paymentService.logPaymentEvent(
               payment.id,
-              'spei_completado',
-              `Transferencia SPEI realizada a ${payment.payout_clabe}`
+              'payout_processed',
+              `Redención y envío SPEI procesado a ${payment.payout_clabe}`
+            );
+          } else {
+            console.warn(`⚠️ No payout_clabe for payment ${payment.id}, skipping redemption and payout.`);
+            await this.paymentService.logPaymentEvent(
+              payment.id,
+              'payout_skipped',
+              'No se encontró CLABE de pago, se omitió la redención y el pago.'
             );
           }
 
-          // 3. Update payment and escrow status
-          payment.status = 'completed';
+          // 4. Update payment and escrow status to COMPLETED
           escrow.status = 'completed';
+          payment.status = 'completed';
           
-          await paymentRepo.save(payment);
           await escrowRepo.save(escrow);
+          await paymentRepo.save(payment);
 
           await this.paymentService.logPaymentEvent(
             payment.id,
             'pago_completado',
-            'Pago completado automáticamente'
+            'Pago completado y ciclo cerrado tras liberación manual/sincronizada.'
           );
 
           processedCount++;
-          console.log(`✅ Pago ${payment.id} completado automáticamente`);
+          console.log(`✅ Pago ${payment.id} procesado y completado.`);
+
         } catch (error: any) {
           const errorMessage = error.message || 'Error desconocido';
-          console.error(`❌ Error completando pago ${escrow.payment.id}:`, errorMessage);
+          console.error(`❌ Error procesando el pago para el escrow ${escrow.id}:`, errorMessage);
           
           await this.paymentService.logPaymentEvent(
             escrow.payment.id,
-            'error_pago_automatico',
-            `Error en pago automático: ${errorMessage}`
+            'error_pago_final',
+            `Error en el flujo de pago final: ${errorMessage}`
           );
         }
       }
 
       if (processedCount > 0) {
-        console.log(`🎉 ${processedCount} pagos completados automáticamente`);
+        console.log(`🎉 ${processedCount} pagos procesados exitosamente.`);
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Error desconocido';
@@ -467,13 +496,13 @@ export class PaymentAutomationService {
       console.log('🔄 Sincronizando estados con blockchain...');
       
       // Check if database connection exists
-      const dataSource = this.getDataSource();
-      if (!dataSource) {
+      
+      if (!ormconfig.isInitialized) {
         console.warn('⚠️ Database not initialized, skipping blockchain sync');
         return;
       }
       
-      const escrowRepo = dataSource.getRepository(Escrow);
+      const escrowRepo = ormconfig.getRepository(Escrow);
       const activeEscrows = await escrowRepo.find({
         where: { status: 'active' },
         relations: ['payment']

@@ -22,7 +22,7 @@ const ABI = [
 ];
 
 async function main() {
-  const provider = new ethers.providers.JsonRpcProvider(PROVIDER_URL);
+  const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
   if (!BRIDGE_WALLET_PK) {
     throw new Error('DEPLOYER_PRIVATE_KEY (bridge wallet) is not set in environment variables.');
   }

@@ -128,6 +128,7 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
 
   const canRelease = bothApproved && (payment.status === 'funded' || payment.status === 'active');
   const showValidationModule = (payment.status === 'funded' || payment.status === 'active') && !isCompleted;
+  const showYield = payment.yield_enabled && showValidationModule && (!isCompleted);
 
   return (
     <div className="space-y-6">
@@ -411,7 +412,7 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
       )}
 
       {/* Yield Generation Section */}
-      {payment && (
+      {showValidationModule && (
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-sm border border-green-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             📈 Genera rendimientos mientras esperas

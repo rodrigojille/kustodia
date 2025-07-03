@@ -1,13 +1,31 @@
-require('dotenv').config();
-const hre = require("hardhat");
+const { task } = require("hardhat/config");
 
-async function main() {
-  const proxyAddress = process.env.ESCROW_CONTRACT_ADDRESS_2;
-  const slot = "0x360894A13BA1A3210667C828492DB98DCA3E2076CC3735A920A3CA505D382BBC";
-  const provider = hre.network.provider;
-  const implHex = await provider.send("eth_getStorageAt", [proxyAddress, slot, "latest"]);
-  const implAddress = "0x" + implHex.slice(26);
-  console.log("Implementation address:", implAddress);
-}
+task("get-implementation", "Fetches the EIP-1967 implementation address for a proxy")
+  .addParam("proxyAddress", "The address of the proxy contract")
+  .setAction(async (taskArgs, { ethers }) => {
+    const { proxyAddress } = taskArgs;
 
-main().catch(console.error);
+    if (!ethers.isAddress(proxyAddress)) {
+      console.error(`Error: Invalid address provided: ${proxyAddress}`);
+      process.exit(1);
+    }
+
+    const implementationSlot = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
+
+    console.log(`Querying implementation address for proxy: ${proxyAddress}`);
+
+    const implementationAddressHex = await ethers.provider.getStorage(
+      proxyAddress,
+      implementationSlot
+    );
+
+    const implementationAddress = ethers.getAddress(implementationAddressHex.slice(0, 2) + implementationAddressHex.slice(26));
+
+    if (implementationAddress === '0x0000000000000000000000000000000000000000') {
+      console.error("Error: Could not find implementation address. Is this a valid proxy contract?");
+      process.exit(1);
+    }
+
+    console.log(`\n✅ Found Implementation Address: ${implementationAddress}`);
+    console.log("You can now use this address to verify the contract on Arbiscan.");
+  });

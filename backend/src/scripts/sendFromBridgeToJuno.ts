@@ -8,14 +8,14 @@ const MXNB_TOKEN = "0x82B9e52b26A2954E113F94Ff26647754d5a4247D";
 const BRIDGE_WALLET_PK = process.env.DEPLOYER_PRIVATE_KEY;
 const PROVIDER_URL = process.env.ETH_RPC_URL;
 const TO = process.env.JUNO_WALLET;
-const AMOUNT = ethers.utils.parseUnits("2500.00", 6); // MXNB uses 6 decimals
+const AMOUNT = ethers.parseUnits("2500.00", 6); // MXNB uses 6 decimals
 
 const ERC20_ABI = [
   "function transfer(address to, uint256 amount) external returns (bool)"
 ];
 
 async function main() {
-  const provider = new ethers.providers.JsonRpcProvider(PROVIDER_URL);
+  const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
   if (!BRIDGE_WALLET_PK) {
   throw new Error('DEPLOYER_PRIVATE_KEY (bridge wallet) is not set in environment variables.');
 }

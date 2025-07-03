@@ -27,6 +27,11 @@ __decorate([
     __metadata("design:type", User_1.User)
 ], Payment.prototype, "user", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => User_1.User),
+    (0, typeorm_1.JoinColumn)({ name: "seller_id" }),
+    __metadata("design:type", User_1.User)
+], Payment.prototype, "seller", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Payment.prototype, "recipient_email", void 0);
@@ -79,6 +84,10 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], Payment.prototype, "payout_clabe", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 255 }),
+    __metadata("design:type", String)
+], Payment.prototype, "juno_payment_id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 5, scale: 2 }),
     __metadata("design:type", Number)

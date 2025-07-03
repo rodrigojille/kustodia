@@ -5,12 +5,12 @@ dotenv.config();
 
 async function main() {
   // Parámetros para el test manual:
-  const sellerAddress = process.env.PLATFORM_WALLET_ADDRESS!; // Usa la wallet de la plataforma
+  const sellerAddress = process.env.BRIDGE_WALLET_ADDRESS!; // Usa la wallet de la plataforma
   const custodyAmount = '2000000000000000000000'; // 2,000 MXNB en wei (ajusta según decimales)
   const custodyPeriod = 604800; // 7 días en segundos
 
   if (!sellerAddress) {
-    throw new Error('Falta PLATFORM_WALLET_ADDRESS en .env');
+    throw new Error('Falta BRIDGE_WALLET_ADDRESS en .env');
   }
 
   console.log('Iniciando test de depósito a escrow...');
@@ -21,7 +21,7 @@ async function main() {
   try {
     // Updated for KustodiaEscrow2_0 API
     const result = await createEscrow({
-      payer: process.env.ESCROW_BRIDGE_WALLET || sellerAddress, // Bridge wallet as payer
+      payer: sellerAddress, // Bridge wallet as payer
       payee: sellerAddress, // Seller as payee
       token: process.env.MOCK_ERC20_ADDRESS!, // MXNB token
       amount: custodyAmount, // Amount to lock

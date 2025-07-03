@@ -18,7 +18,7 @@ const ABI = [
 ];
 
 async function main() {
-  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
   const signer = new ethers.Wallet(PRIVATE_KEY, provider);
   const contract = new ethers.Contract(PROXY_ADDRESS, ABI, signer);
 

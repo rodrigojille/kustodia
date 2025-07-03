@@ -32,78 +32,74 @@ The Kustodia Payment Automation System provides **full end-to-end automation** f
 
 ## ⚙️ Automation Processes
 
+The automation is divided into five distinct, cron-scheduled processes that manage the entire payment lifecycle.
+
 ### 1. 🔍 **Deposit Detection** (Every 5 minutes)
 ```typescript
 cron.schedule('*/5 * * * *', async () => {
   await this.processNewDeposits();
 });
 ```
+**Process**:
+1.  Queries the database for `pending` payments.
+2.  Fetches the latest transactions from the Juno API.
+3.  Matches Juno `ISSUANCE` transactions to pending payments by `amount` and `clabe`.
+4.  Atomically "claims" the payment by updating its status to `processing` to prevent race conditions.
+
+### 2. 🏦 **Juno Withdrawal to Bridge Wallet** (Every 7 minutes)
+```typescript
+cron.schedule('*/7 * * * *', async () => {
+  await this.processJunoWithdrawals();
+});
+```
+**Process**:
+1.  Finds payments with status `processing`.
+2.  Initiates a withdrawal of the corresponding MXNB amount from Juno's platform account to the system's `ESCROW_BRIDGE_WALLET`.
+3.  This step ensures the bridge wallet is funded and ready for the on-chain escrow creation.
+
+### 3. ⛓️ **On-Chain Escrow Funding** (Manual or Scheduled Script)
+**Script**: `updateJunoTxHashesAndEscrow.ts`
 
 **Process**:
-1. Query pending payments from database
-2. Fetch latest Juno transactions via API
-3. Match ISSUANCE transactions by amount + CLABE
-4. Atomically claim payment (prevent race conditions)
-5. Trigger full payment lifecycle processing
+This is a critical step that moves the funds into the secure on-chain escrow.
+1.  Fetches the blockchain transaction hash for the withdrawal completed in the previous step.
+2.  **[FIXED]** Calls the `approve` function on the MXNB ERC20 token contract. This is a crucial fix that grants the escrow contract permission to spend the tokens from the bridge wallet, resolving previous `gas required exceeds allowance` errors.
+3.  Calls the `createEscrow` function on the Kustodia V2 smart contract, which transfers the funds from the bridge wallet into the on-chain escrow.
+4.  Updates the `Payment` and `Escrow` status to `active`.
 
-**Key Features**:
-- Atomic database claims prevent duplicate processing
-- Spanish event logging: `deposito_detectado`
-- Automatic lifecycle triggering
-
-### 2. ⏰ **Custody Release** (Every 10 minutes)
+### 4. ⏰ **Atomic Escrow Release & Payout** (Every 10 minutes)
 ```typescript
 cron.schedule('*/10 * * * *', async () => {
   await this.releaseExpiredCustodies();
 });
 ```
-
 **Process**:
-1. Find active escrows past custody_end date
-2. Call `KustodiaEscrow2_0.release()` on blockchain
-3. Update database status to 'released'
-4. Trigger automatic payout processing
+This is a unified, atomic process that handles both the on-chain release and the off-chain payout in a single, sequential operation to prevent errors and stuck funds.
+
+1.  **Find Expired Escrows**: Queries the database for active escrows where the `custody_end` date has passed.
+2.  **On-Chain Release**: Calls `KustodiaEscrow2_0.release()` on the blockchain to release the funds from the smart contract.
+3.  **Juno Redemption**: Transfers the released MXNB tokens back to Juno and redeems them for MXN.
+4.  **SPEI Payout**: Executes the final SPEI payment to the recipient's `payout_clabe`.
+5.  **Finalize Status**: Updates the `Payment` and `Escrow` status to `completed` in the database.
 
 **Key Features**:
-- Smart contract integration via `escrowService`
-- Null checks for `smart_contract_escrow_id`
-- Error recovery and event logging
+- **[IMPROVED] Atomic Operation**: The entire release-and-payout flow is now a single, indivisible transaction. This eliminates the risk of funds being released from the contract but failing to be paid out.
+- **Robust Error Handling**: The entire process is wrapped in a try/catch block. If any step fails, the error is logged, and the process will be retried on the next run.
 
-### 3. 💸 **MXNB Payouts** (Every 15 minutes)
-```typescript
-cron.schedule('*/15 * * * *', async () => {
-  await this.processPendingPayouts();
-});
-```
-
-**Process**:
-1. Find released escrows ready for payout
-2. Redeem MXNB tokens to MXN via Juno API
-3. Send SPEI transfer to recipient's `payout_clabe`
-4. Update payment status to 'completed'
-
-**Key Features**:
-- Two-step process: MXNB redemption → SPEI transfer
-- Complete payment lifecycle closure
-- Spanish events: `mxnb_redimido`, `spei_completado`, `pago_completado`
-
-### 4. 🔄 **Blockchain Sync** (Every hour)
+### 5. 🔄 **Blockchain Sync** (Every hour)
 ```typescript
 cron.schedule('0 * * * *', async () => {
   await this.syncBlockchainStatuses();
 });
 ```
-
 **Process**:
-1. Query active escrows from database
-2. Check blockchain status via `getEscrow()`
-3. Sync database status with blockchain state
-4. Handle released escrows missed by automation
+1.  Queries active escrows from the database.
+2.  Checks their on-chain status via `getEscrow()`.
+3.  Syncs the database status with the blockchain state to correct any discrepancies.
 
 **Key Features**:
-- Ensures database consistency with blockchain
-- Handles edge cases and manual releases
-- Spanish event: `estado_sincronizado`
+- Ensures data integrity between the off-chain database and the on-chain smart contract.
+- Handles edge cases and manual releases.
 
 ---
 
@@ -307,7 +303,6 @@ curl -X POST http://localhost:4000/api/automation/trigger \
 Check console output for:
 - `🔍 Revisando nuevos depósitos SPEI...`
 - `⏰ Revisando custodias expiradas...`
-- `💸 Procesando pagos pendientes...`
 - `🔄 Sincronizando estados con blockchain...`
 
 ---
@@ -374,6 +369,6 @@ The payment automation system is **complete and operational**. Focus can now shi
 ---
 
 **System Status**: ✅ **FULLY OPERATIONAL**  
-**Last Updated**: June 23, 2025 - 9:47 PM  
+**Last Updated**: July 2, 2025 - 10:19 AM  
 **Deployment**: Production Ready  
 **Manual Intervention Required**: **NONE**

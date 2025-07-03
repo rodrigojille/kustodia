@@ -50,13 +50,23 @@ async function main() {
   console.log('Actualizados Payment y Escrow con hash:', txHash);
 
   // 3. Ejecutar contrato inteligente para fondear el escrow
-  // Asume que createEscrow ya realiza approve+transfer
+  const provider = new ethers.providers.JsonRpcProvider(process.env.ETH_RPC_URL);
+  const signer = new ethers.Wallet(process.env.ESCROW_DEPLOYER_PRIVATE_KEY!, provider);
+  const tokenContract = new ethers.Contract(process.env.MOCK_ERC20_ADDRESS!, ['function approve(address spender, uint256 amount) public returns (bool)'], signer);
+
+  const custodyAmount = ethers.utils.parseUnits('2000', 6).toString(); // 2000 MXNB con 6 decimales
+  const escrowContractAddress = process.env.KUSTODIA_ESCROW_V2_ADDRESS!;
+
+  console.log(`Aprobando ${custodyAmount} tokens para el contrato de escrow...`);
+  const approveTx = await tokenContract.approve(escrowContractAddress, custodyAmount);
+  await approveTx.wait();
+  console.log('Aprobación completada, hash:', approveTx.hash);
+
   // Usar la platform wallet (misma que el private key del deployer/escrow)
   const platformWallet = process.env.ESCROW_BRIDGE_WALLET!;
-  // ...
-  const custodyAmount = ethers.utils.parseUnits('2000', 6).toString(); // 2000 MXNB con 6 decimales
   
   // Updated for KustodiaEscrow2_0 API
+  console.log('Creando escrow on-chain...');
   const result = await createEscrow({
     payer: platformWallet, // Platform wallet as payer
     payee: platformWallet, // Same wallet as payee for this test

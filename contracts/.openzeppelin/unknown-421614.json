@@ -10,6 +10,21 @@
       "address": "0x356904e4E124046016c3760cca0205786155691d",
       "txHash": "0x1a557821d54e3317d69d37ca67b228d3da5c8cb2d732c5d9b6dacc9ea8d3af2b",
       "kind": "transparent"
+    },
+    {
+      "address": "0x9aD65b8B8f7d8626A06ABB168E23f6a8BDC96a01",
+      "txHash": "0x3b3a34677926786ad0d2d00ebf434a5904fdfcdf19aa059c350a5436154c9d1b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xEcfd7d23488Fb05834f6dD0390CD2E158a0B5d15",
+      "txHash": "0x957327838f6ad823313fd393d1bc2ba6c3bf6c206bf3bfe766f1ea2c21b79a2c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xeD766f75738C77179448A5BB98850358801B16e3",
+      "txHash": "0x59144883e5bdfe4b5dbfa296339e669783fbb87d64a97edfe25178a4a5ef409f",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -1093,6 +1108,199 @@
               }
             ],
             "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "23dde38170638a5691bbedb6b391f7c0acbae95e04489472f922e7832f194eb7": {
+      "address": "0xdAf23bAB1e842893fCAD0D759C8A8cAccB84192A",
+      "txHash": "0x4c1d3f3668af24a3aa2efec683f969af075ee5eee3991d1e70576e2f8b0a9c6c",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "mxnbs",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IERC20Upgradeable)378",
+            "contract": "KustodiaEscrow3_0",
+            "src": "contracts\\KustodiaEscrow3_0.sol:27"
+          },
+          {
+            "label": "escrowCount",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_uint256",
+            "contract": "KustodiaEscrow3_0",
+            "src": "contracts\\KustodiaEscrow3_0.sol:28"
+          },
+          {
+            "label": "escrows",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_uint256,t_struct(Escrow)2531_storage)",
+            "contract": "KustodiaEscrow3_0",
+            "src": "contracts\\KustodiaEscrow3_0.sol:29"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20Upgradeable)378": {
+            "label": "contract IERC20Upgradeable",
+            "numberOfBytes": "20"
+          },
+          "t_enum(Status)2507": {
+            "label": "enum KustodiaEscrow3_0.Status",
+            "members": [
+              "Pending",
+              "Funded",
+              "Released",
+              "Disputed",
+              "Resolved",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_struct(Escrow)2531_storage)": {
+            "label": "mapping(uint256 => struct KustodiaEscrow3_0.Escrow)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Escrow)2531_storage": {
+            "label": "struct KustodiaEscrow3_0.Escrow",
+            "members": [
+              {
+                "label": "payer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "seller",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "custodyAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "createdAt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "custodyPeriod",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(Status)2507",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "userCommissionBeneficiary",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "6"
+              },
+              {
+                "label": "userCommissionAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "platformCommissionBeneficiary",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "platformCommissionAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              }
+            ],
+            "numberOfBytes": "320"
           },
           "t_uint256": {
             "label": "uint256",

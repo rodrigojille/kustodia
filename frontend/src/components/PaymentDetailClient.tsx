@@ -179,6 +179,7 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
             </div>
           </div>
           {/* Condiciones de pago */}
+          {payment.status !== 'completed' && (
           <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-100">
             <h3 className="text-base font-bold text-blue-900 mb-2">Condiciones de pago</h3>
             <div>
@@ -224,6 +225,7 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
               </div>
             </div>
           </div>
+          )}
           {/* QR y Timeline solo en modo pantalla, no en printout */}
           {!showQrInPrintout && (
             <>
@@ -250,7 +252,7 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
         </button>
       </div>
       {/* Dispute Button and Modal */}
-      {payment && payment.escrow && (() => {
+      {payment && payment.status !== 'completed' && payment.escrow && (() => {
         const now = new Date();
         const custodyEnd = payment.escrow.custody_end ? new Date(payment.escrow.custody_end) : null;
         const canRaise = payment.status === 'funded' &&

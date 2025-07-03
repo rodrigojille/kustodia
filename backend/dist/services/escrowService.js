@@ -49,26 +49,26 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 // Load environment variables with explicit path
-dotenv_1.default.config({ path: path.join(__dirname, '../../.env') });
+dotenv_1.default.config({ path: path.resolve(__dirname, '../../../.env') });
 console.log('[escrowService] Starting import');
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS:', process.env.ESCROW_CONTRACT_ADDRESS);
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS_2:', process.env.ESCROW_CONTRACT_ADDRESS_2);
 console.log('[escrowService] ENV.ESCROW_PRIVATE_KEY:', process.env.ESCROW_PRIVATE_KEY ? '***set***' : '***missing***');
 // Artifact paths - Updated to use KustodiaEscrow2_0
-const escrowArtifactPath = path.join(__dirname, '../../artifacts/contracts/KustodiaEscrow2_0.sol/KustodiaEscrow2_0.json');
-const erc20ArtifactPath = path.join(__dirname, '../../artifacts/contracts/ERC20.json');
+const escrowArtifactPath = path.resolve(__dirname, '../../../contracts/artifacts/contracts/KustodiaEscrow2_0.sol/KustodiaEscrow2_0.json');
+const erc20ArtifactPath = path.resolve(__dirname, '../../../contracts/artifacts/contracts/ERC20.json');
 console.log('[escrowService] Resolved KustodiaEscrow2_0.json path:', escrowArtifactPath);
 console.log('[escrowService] Resolved ERC20.json path:', erc20ArtifactPath);
 console.log('[escrowService] KustodiaEscrow2_0.json exists:', fs.existsSync(escrowArtifactPath));
 console.log('[escrowService] ERC20.json exists:', fs.existsSync(erc20ArtifactPath));
 // Arbitrum testnet/configurable
 const RPC_URL = process.env.ETH_RPC_URL;
-const provider = new ethers_1.ethers.providers.JsonRpcProvider(RPC_URL);
+const provider = new ethers_1.ethers.JsonRpcProvider(RPC_URL);
 // Use mainnet deployer/escrow key from env
-const PRIVATE_KEY = process.env.ESCROW_PRIVATE_KEY;
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const signer = new ethers_1.ethers.Wallet(PRIVATE_KEY, provider);
 // Use ESCROW_CONTRACT_ADDRESS_2 for the new KustodiaEscrow2_0 contract
-const ESCROW_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS_2;
+const ESCROW_ADDRESS = process.env.KUSTODIA_ESCROW_V2_ADDRESS;
 console.log('[escrowService] Using ESCROW_CONTRACT_ADDRESS_2:', ESCROW_ADDRESS);
 // Mainnet contract addresses
 const TOKEN_ADDRESS = process.env.MOCK_ERC20_ADDRESS;

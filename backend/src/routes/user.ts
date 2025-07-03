@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticateJWT } from '../authenticateJWT';
-import { register, login, verifyEmail, requestPasswordReset, resetPassword, resendVerificationEmail, getRecipientClabe } from "../controllers/userController";
+import { register, login, verifyEmail, requestPasswordReset, resetPassword, resendVerificationEmail, getRecipientClabe, updateMyProfile, changePassword } from "../controllers/userController";
 import { getKYCStatus } from "../controllers/kycController";
 import { verifyRecipient } from "../controllers/verifyRecipientController";
 import ormconfig from "../ormconfig";
@@ -33,6 +33,10 @@ router.get("/me", authenticateJWT, async (req, res) => {
   }
   res.json({ user: { id: user.id, email: user.email, full_name: user.full_name, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe, kyc_status: user.kyc_status, wallet_address: user.wallet_address } });
 });
+
+router.patch("/me", authenticateJWT, updateMyProfile);
+
+router.post("/change-password", authenticateJWT, changePassword);
 // Update payout CLABE
 router.post("/update-payout-clabe", authenticateJWT, async (req, res) => {
   const authReq = req as AuthenticatedRequest;

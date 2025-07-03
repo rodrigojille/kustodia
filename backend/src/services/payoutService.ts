@@ -7,6 +7,7 @@ import { PaymentEvent } from '../entity/PaymentEvent';
 import { sendJunoPayout } from '../utils/junoClient';
 import { isValidReference, sanitizeReference } from '../utils/referenceValidation';
 import { getJunoTxHashFromTimeline } from '../services/junoService';
+import { releaseCustody } from './escrowService'; // Import on-chain release function
 import axios from 'axios';
 import crypto from 'crypto';
 
@@ -27,6 +28,20 @@ export async function releaseEscrowAndPayout(escrowId: number) {
   if (!payment) throw new Error('Payment not found');
   const seller = await userRepo.findOne({ where: { id: payment.user.id } });
   if (!seller || !seller.payout_clabe) throw new Error('Seller or CLABE not found');
+
+  // --- 0. Release from on-chain Escrow Contract ---
+  try {
+    console.log(`[Payout] Releasing escrow ID ${escrow.smart_contract_escrow_id} from V2 contract...`);
+    await releaseCustody(Number(escrow.smart_contract_escrow_id));
+    console.log(`[Payout] On-chain release successful for escrow ID ${escrow.smart_contract_escrow_id}.`);
+    await logPaymentEvent(payment.id, 'onchain_release_success', `Escrow ${escrow.smart_contract_escrow_id} released from contract.`);
+  } catch (onchainError) {
+    console.error(`[Payout] CRITICAL: On-chain release failed for escrow ${escrow.smart_contract_escrow_id}:`, onchainError);
+    await logPaymentEvent(payment.id, 'onchain_release_failed', `Failed to release escrow ${escrow.smart_contract_escrow_id} from contract.`);
+    // Stop the process if on-chain release fails to prevent incorrect payouts
+    throw new Error('On-chain escrow release failed.');
+  }
+
 
   // Prepare payout
   const totalAmount = Number(escrow.release_amount);

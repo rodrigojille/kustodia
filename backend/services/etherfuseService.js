@@ -52,17 +52,21 @@ class EtherFuseService {
       return config;
     });
 
-    // Response interceptor for error handling
+    // Response interceptor for detailed error logging.
+    // We use Promise.reject(error) to allow individual method try/catch blocks
+    // to handle the error gracefully, rather than letting it bubble up globally.
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
+        // Log detailed error information for debugging
         console.error('EtherFuse API Error:', {
           status: error.response?.status,
           data: error.response?.data,
           url: error.config?.url,
-          method: error.config?.method
+          method: error.config?.method,
         });
-        throw error;
+        // Reject the promise to allow local catch blocks to execute
+        return Promise.reject(error);
       }
     );
   }
@@ -134,32 +138,30 @@ class EtherFuseService {
   }
 
   /**
-   * Create a new customer in EtherFuse
+   * Generate a pre-signed URL for user onboarding
+   * @param {string} kustodiaCustomerId - The user's ID from our internal database
+   * @param {string} kustodiaBankAccountId - A new unique ID we generate for this bank account relationship
+   * @returns {Promise<Object>} The pre-signed URL for the user to complete onboarding
    */
-  async createCustomer(customerData) {
+  async generateOnboardingUrl(kustodiaCustomerId, kustodiaBankAccountId) {
     try {
-      const response = await this.api.post('/ramp/customer', {
-        displayName: `${customerData.firstName} ${customerData.lastName}`,
-        email: customerData.email,
-        phone: customerData.phone
-      });
+      const payload = {
+        customer_id: kustodiaCustomerId,
+        bank_account_id: kustodiaBankAccountId,
+        redirect_url: `${process.env.BASE_URL}/onboarding/success`
+      };
+
+      const response = await this.api.post('/ramp/onboarding-url', payload);
       
       return {
         success: true,
-        customer_id: response.data.customerId,
+        presignedUrl: response.data.presignedUrl,
         data: response.data
       };
     } catch (error) {
-      console.error('EtherFuse API Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        url: error.config?.url,
-        method: error.config?.method
-      });
-      
       return {
         success: false,
-        error: error.message,
+        error: error.response?.data?.message || error.message,
         code: error.response?.status
       };
     }
@@ -223,7 +225,7 @@ class EtherFuseService {
         auto_compound: true // Reinvest earnings
       };
 
-      const response = await this.api.post('/ramp/orders/cetes', payload);
+      const response = await this.api.post('/ramp/cetes/orders', payload);
       
       return {
         success: true,

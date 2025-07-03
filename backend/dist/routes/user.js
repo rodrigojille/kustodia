@@ -31,6 +31,8 @@ router.get("/me", authenticateJWT_1.authenticateJWT, async (req, res) => {
     }
     res.json({ user: { id: user.id, email: user.email, full_name: user.full_name, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe, kyc_status: user.kyc_status, wallet_address: user.wallet_address } });
 });
+router.patch("/me", authenticateJWT_1.authenticateJWT, userController_1.updateMyProfile);
+router.post("/change-password", authenticateJWT_1.authenticateJWT, userController_1.changePassword);
 // Update payout CLABE
 router.post("/update-payout-clabe", authenticateJWT_1.authenticateJWT, async (req, res) => {
     const authReq = req;

@@ -11,9 +11,14 @@ const ormconfig_1 = __importDefault(require("./ormconfig"));
 const PaymentAutomationService_1 = require("./services/PaymentAutomationService");
 const routes_1 = __importDefault(require("./routes"));
 const lead_1 = __importDefault(require("./routes/lead"));
+const juno_1 = __importDefault(require("./routes/juno"));
+const automation_1 = __importDefault(require("./routes/automation"));
+const support_1 = __importDefault(require("./routes/support"));
+const ticket_1 = __importDefault(require("./routes/ticket"));
 const earlyAccessCounter_1 = __importDefault(require("./routes/earlyAccessCounter"));
-const yield_1 = __importDefault(require("./routes/yield"));
-dotenv_1.default.config();
+const yield_1 = require("./routes/yield");
+const path_1 = __importDefault(require("path"));
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../../.env') });
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 // Enable CORS for frontend dev server
@@ -71,8 +76,12 @@ ormconfig_1.default.initialize()
     // Mount all API routes
     app.use("/api", routes_1.default);
     app.use('/api/leads', lead_1.default);
+    app.use('/api/automation', automation_1.default);
+    app.use('/api/juno', juno_1.default);
+    app.use('/api/support', support_1.default);
+    app.use('/api/tickets', ticket_1.default);
     app.use('/api/early-access-counter', earlyAccessCounter_1.default);
-    app.use('/api/yield', yield_1.default);
+    app.use('/api/yield', (0, yield_1.createYieldRoutes)(ormconfig_1.default));
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
         console.log(`Server started on port ${PORT}`);

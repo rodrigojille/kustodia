@@ -1,16 +1,23 @@
 import "reflect-metadata";
+import dotenv from "dotenv";
+import path from 'path';
+
+// Load environment variables from .env file before any other imports
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import ormconfig from "./ormconfig";
 import { PaymentAutomationService } from "./services/PaymentAutomationService";
 
 import mainRouter from "./routes";
 import leadRoutes from './routes/lead';
+import junoRoutes from './routes/juno';
+import automationRoutes from './routes/automation';
+import supportRoutes from './routes/support';
+import ticketRoutes from './routes/ticket';
 import earlyAccessCounterRoutes from './routes/earlyAccessCounter';
-import yieldRoutes from './routes/yield';
-
-dotenv.config();
+import { createYieldRoutes } from './routes/yield';
 
 const app = express();
 app.use(express.json());
@@ -73,8 +80,12 @@ ormconfig.initialize()
     // Mount all API routes
     app.use("/api", mainRouter);
     app.use('/api/leads', leadRoutes);
+    app.use('/api/automation', automationRoutes);
+    app.use('/api/juno', junoRoutes);
+    app.use('/api/support', supportRoutes);
+    app.use('/api/tickets', ticketRoutes);
     app.use('/api/early-access-counter', earlyAccessCounterRoutes);
-    app.use('/api/yield', yieldRoutes);
+    app.use('/api/yield', createYieldRoutes(ormconfig));
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`Server started on port ${PORT}`);
