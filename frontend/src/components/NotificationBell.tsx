@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { authFetch } from '../lib/api';
+import authFetch from '../lib/api';
 import Link from 'next/link';
 
 interface Notification {
