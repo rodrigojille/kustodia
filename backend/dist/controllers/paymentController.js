@@ -12,6 +12,7 @@ const PaymentEvent_1 = require("../entity/PaymentEvent");
 const escrowService_1 = require("../services/escrowService");
 const JunoTransaction_1 = require("../entity/JunoTransaction");
 const junoService_1 = require("../services/junoService");
+const notificationService_1 = require("../services/notificationService");
 const initiatePayment = async (req, res) => {
     const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
     try {
@@ -153,10 +154,11 @@ const junoWebhook = async (req, res) => {
             relations: ['user', 'escrow'] // Eagerly load user and escrow
         });
         if (!payment) {
-            console.error(`[Webhook] No matching pending payment found for deposit_clabe=${webhookClabe}`);
-            res.status(404).json({ error: 'No matching pending payment found' });
+            console.log(`[JUNO] No payment found for CLABE ${webhookClabe}. Ignoring webhook.`);
+            res.status(200).json({ message: 'No payment found for this CLABE.' });
             return;
         }
+        const recipientUser = await ormconfig_1.default.getRepository(User_1.User).findOne({ where: { email: payment.recipient_email } });
         const escrow = payment.escrow;
         if (!escrow) {
             console.error(`[Webhook] Escrow record not found for payment ID ${payment.id}`);
@@ -255,6 +257,13 @@ const junoWebhook = async (req, res) => {
         // Finalize payment status
         if (payment.status !== 'failed') {
             payment.status = 'funded';
+            // Create notifications for both users
+            if (payment.user) {
+                (0, notificationService_1.createNotification)(payment.user.id, `Tu pago de $${payment.amount} ha sido fondeado.`, `/dashboard/pagos/${payment.id}`);
+            }
+            if (recipientUser) {
+                (0, notificationService_1.createNotification)(recipientUser.id, `Has recibido un pago de $${payment.amount}.`, `/dashboard/pagos/${payment.id}`);
+            }
         }
         // If the payment is fully funded and has a valid payout CLABE, redeem the funds
         if (payment.status === 'funded' && payment.payout_clabe) {
@@ -264,6 +273,13 @@ const junoWebhook = async (req, res) => {
                 console.log(`[JUNO] Redemption successful for payment ${payment.id}:`, redemptionResult);
                 // Update payment status to 'completed'
                 payment.status = 'completed';
+                // Notify both users that the payment is complete
+                if (payment.user) {
+                    (0, notificationService_1.createNotification)(payment.user.id, `Tu pago de $${payment.amount} ha sido completado y enviado.`, `/dashboard/pagos/${payment.id}`);
+                }
+                if (recipientUser) {
+                    (0, notificationService_1.createNotification)(recipientUser.id, `El pago de $${payment.amount} ha sido liberado a tu cuenta.`, `/dashboard/pagos/${payment.id}`);
+                }
                 await paymentRepo.save(payment);
                 // Log the redemption event
                 await paymentEventRepo.save(paymentEventRepo.create({

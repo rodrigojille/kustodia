@@ -4,9 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+// Load environment variables from .env file before any other imports
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../../.env') });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const ormconfig_1 = __importDefault(require("./ormconfig"));
 const PaymentAutomationService_1 = require("./services/PaymentAutomationService");
 const routes_1 = __importDefault(require("./routes"));
@@ -17,8 +20,6 @@ const support_1 = __importDefault(require("./routes/support"));
 const ticket_1 = __importDefault(require("./routes/ticket"));
 const earlyAccessCounter_1 = __importDefault(require("./routes/earlyAccessCounter"));
 const yield_1 = require("./routes/yield");
-const path_1 = __importDefault(require("path"));
-dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../../.env') });
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 // Enable CORS for frontend dev server
