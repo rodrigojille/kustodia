@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
     "start": "node dist/index.js",
-    "build": "tsc",
+    "build": "tsc && cp -r contracts dist",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
   },
   "dependencies": {
