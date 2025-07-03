@@ -20,8 +20,9 @@ const NotificationBell = () => {
 
   const fetchNotifications = async () => {
     try {
-      const data = await authFetch('/api/notifications');
-      setNotifications(data);
+      const response = await authFetch('/api/notifications');
+      const notifications = await response.json();
+      setNotifications(notifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
@@ -29,8 +30,9 @@ const NotificationBell = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const data = await authFetch('/api/notifications/unread-count');
-      setUnreadCount(data.count);
+      const response = await authFetch('/api/notifications/unread-count');
+      const data = await response.json();
+      setUnreadCount(data.unreadCount);
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
