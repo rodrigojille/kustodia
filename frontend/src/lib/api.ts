@@ -1,4 +1,6 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://kustodia-backend-f991a7cb1824.herokuapp.com';
+export const API_BASE = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:4000' 
+  : process.env.NEXT_PUBLIC_API_URL || 'https://kustodia-backend-f991a7cb1824.herokuapp.com';
 
 const authFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
