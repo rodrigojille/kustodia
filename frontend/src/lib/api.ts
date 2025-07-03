@@ -1,3 +1,5 @@
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://kustodia-backend-f991a7cb1824.herokuapp.com';
+
 const authFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -10,7 +12,7 @@ const authFetch = async (url: string, options: RequestInit = {}): Promise<Respon
     headers.append('Content-Type', 'application/json');
   }
 
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE}${url}`, {
     ...options,
     headers,
   });

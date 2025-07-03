@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE } from '@/lib/api';
 
 export default function EarlyAccessCounter() {
   const [slots, setSlots] = useState<number|null>(null);
   useEffect(() => {
     let mounted = true;
-    const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://kustodia-backend-f991a7cb1824.herokuapp.com";
+    
     const fetchSlots = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/early-access-counter/slots`);

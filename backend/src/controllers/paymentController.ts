@@ -7,6 +7,7 @@ import { PaymentEvent } from "../entity/PaymentEvent";
 import { createEscrow as createEscrowOnChain } from "../services/escrowService";
 import { JunoTransaction } from "../entity/JunoTransaction";
 import { createJunoClabe, redeemMXNbForMXN } from "../services/junoService";
+import { createNotification } from '../services/notificationService';
 
 export const initiatePayment = async (req: Request, res: Response): Promise<void> => {
   const paymentEventRepo = ormconfig.getRepository(PaymentEvent);
@@ -160,10 +161,12 @@ export const junoWebhook = async (req: Request, res: Response): Promise<void> =>
     });
 
     if (!payment) {
-      console.error(`[Webhook] No matching pending payment found for deposit_clabe=${webhookClabe}`);
-      res.status(404).json({ error: 'No matching pending payment found' });
+      console.log(`[JUNO] No payment found for CLABE ${webhookClabe}. Ignoring webhook.`);
+      res.status(200).json({ message: 'No payment found for this CLABE.' });
       return;
     }
+
+    const recipientUser = await ormconfig.getRepository(User).findOne({ where: { email: payment.recipient_email } });
 
     const escrow = payment.escrow;
     if (!escrow) {
@@ -275,6 +278,14 @@ export const junoWebhook = async (req: Request, res: Response): Promise<void> =>
     // Finalize payment status
     if (payment.status !== 'failed') {
       payment.status = 'funded';
+
+        // Create notifications for both users
+        if (payment.user) {
+          createNotification(payment.user.id, `Tu pago de $${payment.amount} ha sido fondeado.`, `/dashboard/pagos/${payment.id}`);
+        }
+        if (recipientUser) {
+          createNotification(recipientUser.id, `Has recibido un pago de $${payment.amount}.`, `/dashboard/pagos/${payment.id}`);
+        }
     }
     
     // If the payment is fully funded and has a valid payout CLABE, redeem the funds
@@ -286,6 +297,14 @@ export const junoWebhook = async (req: Request, res: Response): Promise<void> =>
 
         // Update payment status to 'completed'
         payment.status = 'completed';
+
+        // Notify both users that the payment is complete
+        if (payment.user) {
+          createNotification(payment.user.id, `Tu pago de $${payment.amount} ha sido completado y enviado.`, `/dashboard/pagos/${payment.id}`);
+        }
+        if (recipientUser) {
+          createNotification(recipientUser.id, `El pago de $${payment.amount} ha sido liberado a tu cuenta.`, `/dashboard/pagos/${payment.id}`);
+        }
         await paymentRepo.save(payment);
 
         // Log the redemption event
