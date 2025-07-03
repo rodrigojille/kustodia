@@ -7,6 +7,7 @@ import adminRoutes from "./admin";
 import evidenceRoutes from "./evidence";
 import junoRoutes from "./juno";
 import automationRoutes from "./automation";
+import notificationRoutes from "./notification";
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use("/admin", adminRoutes);
 router.use("/evidence", evidenceRoutes);
 router.use("/juno", junoRoutes);
 router.use("/automation", automationRoutes);
+router.use("/notifications", notificationRoutes);
 
 export default router;

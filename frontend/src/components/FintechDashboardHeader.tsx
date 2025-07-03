@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import NotificationBell from './NotificationBell';
+import authFetch from "../lib/api";
 
 type FintechDashboardHeaderProps = {
   onOpenSidebar?: () => void;
@@ -10,9 +12,9 @@ export default function FintechDashboardHeader(props: FintechDashboardHeaderProp
 
   useEffect(() => {
     const checkAutomation = () => {
-      fetch('http://localhost:4000/api/automation/status')
+      authFetch('/api/automation/status')
         .then(res => res.json())
-        .then(data => {
+        .then((data: { success: boolean; status: string }) => {
           setAutomationActive(data.success && data.status === 'running');
           setLoading(false);
         })
@@ -62,12 +64,7 @@ export default function FintechDashboardHeader(props: FintechDashboardHeaderProp
       className="rounded-lg border border-black px-3 py-1 bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm w-32 md:w-64 transition"
       placeholder="Buscar transacción..."
     />
-    <button className="relative p-2 rounded-full hover:bg-blue-50 transition group" aria-label="Notificaciones">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-black group-hover:text-blue-500">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a2.25 2.25 0 01-4.714 0m8.486-3.29c-.806-.64-1.362-1.574-1.362-2.622V9.75a6 6 0 10-12 0v1.42c0 1.048-.556 1.981-1.362 2.622-.527.419-.838 1.06-.838 1.738v.174c0 .933.76 1.693 1.693 1.693h14.416c.933 0 1.693-.76 1.693-1.693v-.174c0-.678-.311-1.319-.838-1.738z" />
-      </svg>
-      <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-white"></span>
-    </button>
+    <NotificationBell />
     <button className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md hover:scale-105 transition" aria-label="Menú usuario">
       <span className="text-lg">N</span>
     </button>
