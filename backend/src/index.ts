@@ -64,19 +64,22 @@ app.options('*', cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Connect to Postgres
-ormconfig.initialize()
-  .then(async () => {
+async function main() {
+  try {
+    // Connect to Postgres and wait for it to be ready
+    await ormconfig.initialize();
     console.log("Data Source has been initialized!");
-    
+
+    // Now that the DB is connected, we can configure and start the server.
     // Initialize Payment Automation Service
     const paymentAutomation = new PaymentAutomationService();
     await paymentAutomation.startAutomation();
-    
+
     // Basic health check
     app.get("/", (req, res) => {
       res.json({ status: "Kustodia backend running" });
     });
+
     // Mount all API routes
     app.use("/api", mainRouter);
     app.use('/api/leads', leadRoutes);
@@ -86,11 +89,16 @@ ormconfig.initialize()
     app.use('/api/tickets', ticketRoutes);
     app.use('/api/early-access-counter', earlyAccessCounterRoutes);
     app.use('/api/yield', createYieldRoutes(ormconfig));
+
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`Server started on port ${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error("Error during Data Source initialization:", err);
-  });
+
+  } catch (err) {
+    console.error("Error during application startup:", err);
+    process.exit(1);
+  }
+}
+
+main();
