@@ -34,3 +34,6 @@ contracts/.env
 
 # Misc
 *.local
+
+# Local development artifacts
+/backend/src/artifacts

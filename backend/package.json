@@ -4,7 +4,7 @@
   "description": "Backend for Kustodia escrow/payment platform.",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts",
+    "dev": "npx copyfiles -u 3 ../contracts/artifacts/contracts/**/* src/artifacts && ts-node-dev src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc && copyfiles -u 1 ../contracts/artifacts/**/* dist/artifacts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
