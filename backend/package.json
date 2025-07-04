@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npx copyfiles -u 3 ../contracts/artifacts/contracts/**/* src/artifacts && ts-node-dev src/index.ts",
     "start": "node dist/index.js",
-    "build": "tsc && copyfiles -u 1 artifacts/**/* dist/artifacts",
+    "build": "tsc && copyfiles artifacts/**/* dist/",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
   },
   "dependencies": {
