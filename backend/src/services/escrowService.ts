@@ -34,9 +34,24 @@ console.log('[escrowService] Using ESCROW_CONTRACT_ADDRESS_2:', ESCROW_ADDRESS);
 // Mainnet contract addresses
 const TOKEN_ADDRESS = process.env.MOCK_ERC20_ADDRESS!;
 
-// Load ABIs
-const KustodiaEscrowArtifact = require(escrowArtifactPath);
-const ESCROW_ABI = KustodiaEscrowArtifact.abi;
+// Load ABIs with error handling
+let ESCROW_ABI;
+try {
+  const KustodiaEscrowArtifact = require(escrowArtifactPath);
+  ESCROW_ABI = KustodiaEscrowArtifact.abi;
+  console.log('[escrowService] Successfully loaded KustodiaEscrow2_0 ABI');
+} catch (error: any) {
+  console.error('[escrowService] Failed to load KustodiaEscrow2_0 artifact:', error.message);
+  console.log('[escrowService] Using fallback minimal ABI');
+  // Minimal ABI with essential functions for basic operation
+  ESCROW_ABI = [
+    "function createEscrow(address token, uint256 amount, address recipient, string memory reference) external returns (uint256)",
+    "function releaseEscrow(uint256 escrowId) external",
+    "function getEscrow(uint256 escrowId) external view returns (tuple(address token, uint256 amount, address sender, address recipient, string reference, bool released, uint256 createdAt))",
+    "event EscrowCreated(uint256 indexed escrowId, address indexed sender, address indexed recipient, address token, uint256 amount, string reference)",
+    "event EscrowReleased(uint256 indexed escrowId)"
+  ];
+}
 // MXNB is a proxy contract. Merge proxy ABI with ERC20 ABI for full functionality.
 const PROXY_ABI = [
   {"inputs":[{"internalType":"address","name":"implementationContract","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
