@@ -216,6 +216,7 @@ async function releaseCustody(escrowId) {
     const tx = await exports.escrowContract.release(escrowId); // Changed from releaseCustody to release
     await tx.wait();
     console.log('[escrowService] Escrow release transaction completed:', tx.hash);
+    return tx.hash;
 }
 // Updated raiseDispute to use 'dispute' function from KustodiaEscrow2_0  
 async function raiseDispute(escrowId, reason) {
