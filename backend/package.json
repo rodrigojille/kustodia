@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npx copyfiles -u 3 ../contracts/artifacts/contracts/**/* src/artifacts && ts-node-dev --transpile-only src/index.ts",
     "start": "node dist/index.js",
-    "build": "npx copyfiles -u 1 src/artifacts/**/* dist/ && tsc",
+    "build": "npx copyfiles src/artifacts/**/* dist/ && tsc",
     "heroku-prebuild": "mkdir -p src/artifacts/contracts || true",
     "typeorm": "ts-node-dev -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
   },
