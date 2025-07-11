@@ -10,8 +10,11 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 console.log('[escrowV3Service] Starting import for V3');
 
 // Artifact paths - Pointing to KustodiaEscrow3_0
-const escrowArtifactPath = path.resolve(__dirname, '../artifacts/contracts/KustodiaEscrow3_0.sol/KustodiaEscrow3_0.json');
-const erc20ArtifactPath = path.resolve(__dirname, '../artifacts/contracts/MockERC20.sol/MockERC20.json');
+// In production (dist), artifacts are in dist/artifacts/
+// In development, they're copied from src/artifacts/ to dist/artifacts/
+const artifactsBase = path.resolve(__dirname, '../artifacts');
+const escrowArtifactPath = path.resolve(artifactsBase, 'contracts/KustodiaEscrow3_0.sol/KustodiaEscrow3_0.json');
+const erc20ArtifactPath = path.resolve(artifactsBase, 'contracts/MockERC20.sol/MockERC20.json');
 console.log('[escrowV3Service] Resolved KustodiaEscrow3_0.json path:', escrowArtifactPath);
 console.log('[escrowV3Service] KustodiaEscrow3_0.json exists:', fs.existsSync(escrowArtifactPath));
 

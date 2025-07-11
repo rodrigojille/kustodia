@@ -9,7 +9,11 @@ const tokenAddress = process.env.MOCK_ERC20_ADDRESS as string;
 const custodialWallet = process.env.ESCROW_BRIDGE_WALLET as string;
 
 const path = require('path');
-const abiPath = path.join(process.cwd(), 'artifacts', 'contracts', 'ERC20.json');
+// Use dist/artifacts in production, artifacts in development
+const artifactsDir = fs.existsSync(path.join(process.cwd(), 'dist', 'artifacts')) 
+  ? path.join(process.cwd(), 'dist', 'artifacts')
+  : path.join(process.cwd(), 'artifacts');
+const abiPath = path.join(artifactsDir, 'contracts', 'ERC20.json');
 console.log('Intentando leer ABI en:', abiPath);
 const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8')).abi;
 
