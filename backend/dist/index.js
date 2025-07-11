@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -10,18 +43,25 @@ const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../../.env') });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const ormconfig_1 = __importDefault(require("./ormconfig"));
 const PaymentAutomationService_1 = require("./services/PaymentAutomationService");
+const passport_1 = __importStar(require("./services/passport"));
+const junoService_1 = require("./services/junoService");
 const routes_1 = __importDefault(require("./routes"));
 const lead_1 = __importDefault(require("./routes/lead"));
-const juno_1 = __importDefault(require("./routes/juno"));
+const payment_1 = __importDefault(require("./routes/payment"));
+const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const automation_1 = __importDefault(require("./routes/automation"));
 const support_1 = __importDefault(require("./routes/support"));
 const ticket_1 = __importDefault(require("./routes/ticket"));
+const disputeMessages_1 = __importDefault(require("./routes/disputeMessages"));
 const earlyAccessCounter_1 = __importDefault(require("./routes/earlyAccessCounter"));
 const yield_1 = require("./routes/yield");
 const app = (0, express_1.default)();
-app.use(express_1.default.json());
+app.use(express_1.default.json({ limit: '5mb' }));
+app.use((0, cookie_parser_1.default)()); // Enable cookie parsing for JWT authentication
+app.use(express_1.default.urlencoded({ extended: true })); // Parse URL-encoded bodies
 // Enable CORS for frontend dev server
 const allowedOrigins = [
     'http://localhost:5173',
@@ -47,7 +87,7 @@ app.use((0, cors_1.default)({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
 }));
 // Explicit preflight handler for all routes
 app.options('*', (0, cors_1.default)({
@@ -61,17 +101,23 @@ app.options('*', (0, cors_1.default)({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
 }));
 async function main() {
     try {
         // Connect to Postgres and wait for it to be ready
         await ormconfig_1.default.initialize();
         console.log("Data Source has been initialized!");
+        // Configure passport strategies now that DB is connected
+        (0, passport_1.configurePassport)();
+        // Initialize Juno service to ensure API keys are loaded
+        (0, junoService_1.initializeJunoService)();
         // Now that the DB is connected, we can configure and start the server.
         // Initialize Payment Automation Service
         const paymentAutomation = new PaymentAutomationService_1.PaymentAutomationService();
         await paymentAutomation.startAutomation();
+        // Serve uploaded files
+        app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
         // Basic health check
         app.get("/", (req, res) => {
             res.json({ status: "Kustodia backend running" });
@@ -80,9 +126,13 @@ async function main() {
         app.use("/api", routes_1.default);
         app.use('/api/leads', lead_1.default);
         app.use('/api/automation', automation_1.default);
-        app.use('/api/juno', juno_1.default);
+        app.use('/api/payments', payment_1.default);
+        // Auth routes
+        app.use(passport_1.default.initialize());
+        app.use('/api/auth', authRoutes_1.default);
         app.use('/api/support', support_1.default);
         app.use('/api/tickets', ticket_1.default);
+        app.use('/api/disputes', disputeMessages_1.default);
         app.use('/api/early-access-counter', earlyAccessCounter_1.default);
         app.use('/api/yield', (0, yield_1.createYieldRoutes)(ormconfig_1.default));
         const PORT = process.env.PORT || 4000;

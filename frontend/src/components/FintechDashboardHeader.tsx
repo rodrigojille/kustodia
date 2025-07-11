@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import NotificationBell from './NotificationBell';
-import authFetch from "../lib/api";
+import { authFetch } from "../utils/authFetch";
 
 type FintechDashboardHeaderProps = {
   onOpenSidebar?: () => void;
@@ -12,7 +12,7 @@ export default function FintechDashboardHeader(props: FintechDashboardHeaderProp
 
   useEffect(() => {
     const checkAutomation = () => {
-      authFetch('/api/automation/status')
+      authFetch('automation/status')
         .then(res => res.json())
         .then((data: { success: boolean; status: string }) => {
           setAutomationActive(data.success && data.status === 'running');
@@ -65,8 +65,16 @@ export default function FintechDashboardHeader(props: FintechDashboardHeaderProp
       placeholder="Buscar transacción..."
     />
     <NotificationBell />
-    <button className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md hover:scale-105 transition" aria-label="Menú usuario">
-      <span className="text-lg">N</span>
+    <button 
+      className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md hover:scale-105 transition" 
+      aria-label="Ir a configuración"
+      onClick={() => {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/dashboard/configuracion';
+        }
+      }}
+    >
+      <span className="text-lg">R</span>
     </button>
     <button
       className="ml-2 p-2 rounded hover:bg-red-50 text-red-600 border border-red-100 transition"
@@ -74,10 +82,11 @@ export default function FintechDashboardHeader(props: FintechDashboardHeaderProp
       onClick={() => {
         // Remove token/cookie if stored, then redirect
         if (typeof window !== 'undefined') {
-          // Remove token if stored in localStorage
-          localStorage.removeItem('token');
-          // Remove session cookies if needed
-          document.cookie = 'token=; Max-Age=0; path=/;';
+          // Remove token if stored in localStorage (use correct key)
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('userEmail');
+          // Remove session cookies if needed (use correct cookie name)
+          document.cookie = 'auth_token=; Max-Age=0; path=/;';
           window.location.href = '/login';
         }
       }}

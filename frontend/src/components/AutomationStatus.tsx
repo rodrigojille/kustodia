@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { authFetch } from '../utils/authFetch';
 
 interface AutomationStatusData {
   success: boolean;
@@ -36,7 +37,7 @@ export default function AutomationStatus({
 
   useEffect(() => {
     const fetchStatus = () => {
-      fetch('http://localhost:4000/api/automation/status')
+      authFetch('automation/status')
         .then(res => res.json())
         .then(data => {
           setStatus(data);

@@ -1,19 +1,18 @@
 import { DataSource } from "typeorm";
-import * as path from "path";
-
-
-const isCompiled = __dirname.includes('dist');
-
-import { Escrow } from "./entity/Escrow";
-import { JunoTransaction } from "./entity/JunoTransaction";
-import { Payment } from "./entity/Payment";
-import { PaymentEvent } from "./entity/PaymentEvent";
-import { User } from "./entity/User";
-import { Ticket } from "./entity/Ticket";
-import { TicketReply } from './entity/TicketReply';
+import { User } from './entity/User';
+import { Payment } from './entity/Payment';
+import { PaymentEvent } from './entity/PaymentEvent';
+import { Escrow } from './entity/Escrow';
+import { Dispute } from './entity/Dispute';
+import { DisputeMessage } from './entity/DisputeMessage';
 import { Notification } from './entity/Notification';
-import Lead from './entity/Lead';
-import EarlyAccessCounter from './entity/EarlyAccessCounter';
+import { EarlyAccessCounter } from './entity/EarlyAccessCounter';
+import { JunoTransaction } from './entity/JunoTransaction';
+import { Lead } from './entity/Lead';
+import { Ticket } from './entity/Ticket';
+import { TicketReply } from './entity/TicketReply';
+import { Token } from './entity/Token';
+import { WalletTransaction } from './entity/WalletTransaction';
 
 const AppDataSource = new DataSource({
   name: "default",
@@ -23,18 +22,22 @@ const AppDataSource = new DataSource({
   logging: true,
   entities: [
     User,
-    Escrow,
     Payment,
     PaymentEvent,
+    Escrow,
+    Dispute,
+    DisputeMessage,
+    Notification,
+    EarlyAccessCounter,
     JunoTransaction,
+    Lead,
     Ticket,
     TicketReply,
-    Notification,
-    Lead,
-    EarlyAccessCounter
+    Token,
+    WalletTransaction
   ],
-  migrations: [isCompiled ? "dist/migration/**/*.js" : "src/migration/**/*.ts"],
-  subscribers: [isCompiled ? "dist/subscriber/**/*.js" : "src/subscriber/**/*.ts"],
+  migrations: ["dist/migration/**/*.js"],
+  subscribers: ["dist/subscriber/**/*.js"],
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 

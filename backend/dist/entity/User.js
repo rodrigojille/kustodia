@@ -41,23 +41,43 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "wallet_address", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, length: 128 }),
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "portal_client_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "portal_share", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true, unique: true }),
+    __metadata("design:type", String)
+], User.prototype, "googleId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "googleAccessToken", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "googleRefreshToken", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 18, scale: 6, default: 0 }),
+    __metadata("design:type", Number)
+], User.prototype, "mxnb_balance", void 0);
 __decorate([
     (0, typeorm_1.Column)({ default: 'user' }),
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], User.prototype, "deposit_clabe", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], User.prototype, "payout_clabe", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, length: 64 }),
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 36 }),
     __metadata("design:type", String)
 ], User.prototype, "juno_bank_account_id", void 0);
 __decorate([

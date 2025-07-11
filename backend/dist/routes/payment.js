@@ -11,7 +11,7 @@ const getAllPaymentsController_1 = require("../controllers/getAllPaymentsControl
 const paymentApprovalController_1 = require("../controllers/paymentApprovalController");
 const router = (0, express_1.Router)();
 router.get("/", getAllPaymentsController_1.getAllPayments);
-router.post("/initiate", paymentController_1.initiatePayment);
+router.post('/initiate-web3', authenticateJWT_1.authenticateJWT, paymentController_1.initiateWeb3Payment);
 router.post("/request", authenticateJWT_1.authenticateJWT, requestPaymentController_1.requestPayment);
 router.post("/webhook/juno", paymentController_1.junoWebhook);
 router.get("/user-payments", authenticateJWT_1.authenticateJWT, getUserPaymentsController_1.getUserPayments);
@@ -19,4 +19,7 @@ router.get("/:id/events", paymentEventController_1.getPaymentEvents);
 router.get("/:id", getPaymentByIdController_1.getPaymentById);
 router.post("/:id/approve/payer", authenticateJWT_1.authenticateJWT, paymentApprovalController_1.approvePaymentPayer);
 router.post("/:id/approve/payee", authenticateJWT_1.authenticateJWT, paymentApprovalController_1.approvePaymentPayee);
+// Web3 escrow management routes
+router.post("/fund-web3-escrow", authenticateJWT_1.authenticateJWT, paymentController_1.fundWeb3Escrow);
+router.post("/release-web3-escrow", authenticateJWT_1.authenticateJWT, paymentController_1.releaseWeb3Payment);
 exports.default = router;

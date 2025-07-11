@@ -19,26 +19,38 @@ async function main() {
     console.error(`Escrow ${escrowId} not found`);
     process.exit(1);
   }
+  if (!escrow.payment) {
+    console.error(`Escrow ${escrowId} has no associated payment`);
+    process.exit(1);
+  }
   const payment = await paymentRepo.findOne({ where: { id: escrow.payment.id } });
   if (!payment) {
     console.error(`Payment ${escrow.payment.id} not found`);
     process.exit(1);
   }
 
-  // Use bridge wallet as seller
-  const seller = process.env.ESCROW_BRIDGE_WALLET!;
+  // Map escrow data to createEscrow parameters
+  const payer = process.env.ESCROW_BRIDGE_WALLET!; // Bridge wallet acts as payer
+  const payee = payment.recipient_email || 'unknown@kustodia.com'; // Use recipient from payment
+  const token = process.env.MOCK_ERC20_ADDRESS!; // MXNB token address
   // MXNB uses 6 decimals (e.g., 1000 MXNB = 1000000000)
-  const custodyAmount = (Number(escrow.custody_amount) * 1e6).toFixed(0); // string in base units
-  // Use custody period in seconds (or adapt as needed)
-  const custodyPeriod = Math.floor((new Date(escrow.custody_end).getTime() - Date.now()) / 1000);
+  const amount = (Number(escrow.custody_amount) * 1e6).toFixed(0); // string in base units
+  // Calculate deadline from custody_end date
+  const deadline = Math.floor(new Date(escrow.custody_end).getTime() / 1000);
+  const vertical = null; // Not using verticals for this flow
+  const clabe = payment.payout_clabe || ''; // Use payout CLABE from payment if available
+  const conditions = null; // Not using conditions for this flow
 
   console.log(`Creating on-chain escrow for escrowId=${escrowId}, paymentId=${payment.id}`);
-  console.log(`Seller (bridge wallet): ${seller}`);
-  console.log(`Custody amount: ${custodyAmount} (base units)`);
-  console.log(`Custody period: ${custodyPeriod} seconds`);
+  console.log(`Payer (bridge wallet): ${payer}`);
+  console.log(`Payee: ${payee}`);
+  console.log(`Token: ${token}`);
+  console.log(`Amount: ${amount} (base units)`);
+  console.log(`Deadline: ${deadline} (timestamp)`);
+  console.log(`CLABE: ${clabe}`);
 
   try {
-    const result = await createEscrow({ seller, custodyAmount, custodyPeriod });
+    const result = await createEscrow({ payer, payee, token, amount, deadline, vertical, clabe, conditions });
     console.log("Escrow created on-chain:", result);
     // Update DB with tx hash and smart contract escrow ID
     escrow.blockchain_tx_hash = result.txHash;

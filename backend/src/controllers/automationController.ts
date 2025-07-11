@@ -22,7 +22,15 @@ export const triggerAutomation = async (req: Request, res: Response) => {
         result = 'Liberación de custodias expiradas ejecutada';
         break;
         
-
+      case 'withdrawals':
+        await automationService.processJunoWithdrawals();
+        result = 'Procesamiento de retiros de Juno ejecutado';
+        break;
+        
+      case 'payouts':
+        await automationService.processPendingPayouts();
+        result = 'Procesamiento de pagos pendientes ejecutado';
+        break;
         
       case 'sync':
         await automationService.syncBlockchainStatuses();
@@ -31,6 +39,8 @@ export const triggerAutomation = async (req: Request, res: Response) => {
         
       case 'all':
         await automationService.processNewDeposits();
+        await automationService.processJunoWithdrawals();
+        await automationService.processPendingPayouts();
         await automationService.releaseExpiredCustodies();
         await automationService.syncBlockchainStatuses();
         result = 'Todos los procesos de automatización ejecutados';

@@ -7,6 +7,12 @@ async function main() {
     console.error('Usage: ts-node manualPayout.ts <escrowId>');
     process.exit(1);
   }
+  
+  // 🔐 SECURITY WARNING: Manual override bypasses normal approval flow
+  console.warn('⚠️  WARNING: Manual payout bypasses normal approval process!');
+  console.warn('⚠️  Ensure dual approval validation is met for Flow 2 payments!');
+  console.warn('⚠️  This should only be used for emergency situations!');
+  
   await ormconfig.initialize();
   try {
     const result = await releaseEscrowAndPayout(escrowId);

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { fetchPayments } from "../fetchPayments";
+import fetchPayments from "../fetchPayments";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { PAYMENT_STATUSES, getStatusConfig, getStatusSpanish } from '../config/paymentStatuses';
 
@@ -26,6 +26,12 @@ export default function PaymentsByStageChart({ filterMonth, onSliceClick, select
     fetchPayments().then((payments: Payment[]) => {
       const stageTotals: Record<string, number> = {};
       let curr = "MXN";
+      // Safety check for payments array
+      if (!payments || !Array.isArray(payments)) {
+        console.warn('Payments data is not an array:', payments);
+        setLoading(false);
+        return;
+      }
       payments.forEach((p) => {
         stageTotals[p.status] = (stageTotals[p.status] || 0) + Number(p.amount);
         if (!curr && p.currency) curr = p.currency;

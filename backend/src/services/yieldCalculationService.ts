@@ -1,4 +1,4 @@
-import { AppDataSource } from '../data-source';
+import AppDataSource from '../ormconfig';
 import * as cron from 'node-cron';
 import { EtherFuseService } from './etherfuseService';
 import { QueryRunner } from 'typeorm';

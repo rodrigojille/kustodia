@@ -24,23 +24,18 @@ export const metadata: Metadata = {
     "pagos protegidos",
     "Kustodia México"
   ],
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-    other: [
-      {
-        rel: 'icon',
-        url: '/favicon-32x32.png',
-        sizes: '32x32',
-      },
-      {
-        rel: 'icon',
-        url: '/favicon-16x16.png',
-        sizes: '16x16',
-      },
-    ],
-  },
+  icons: [
+    {
+      rel: 'icon',
+      type: 'image/svg+xml',
+      url: '/favicon.svg',
+    },
+    {
+      rel: 'icon',
+      type: 'image/png',
+      url: '/favicon.png',
+    },
+  ],
   openGraph: {
     title: "Kustodia - Pagos Inteligentes y Seguros en México",
     description: "Kustodia es la plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien.",
@@ -70,6 +65,7 @@ export const metadata: Metadata = {
 };
 
 import CookieBanner from "../components/CookieBanner";
+import { Providers } from "./providers";
 
 export default function RootLayout({
   children,
@@ -93,8 +89,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} antialiased`}>
-        {children}
+      <body className={`${inter.variable} antialiased bg-white`}>
+        <Providers>
+          {children}
+        </Providers>
         <CookieBanner />
         <footer className="w-full py-8 mt-12 border-t border-blue-100 bg-white text-sm text-gray-600 px-4">
   <div className="max-w-6xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-4">

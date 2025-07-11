@@ -22,19 +22,36 @@ export class User {
   @Column({ nullable: true })
   wallet_address!: string;
 
-  @Column({ nullable: true, length: 128 })
+  @Column({ nullable: true })
+  portal_client_id?: string; // Portal client ID for API calls
+
+  @Column({ type: 'varchar', nullable: true })
   portal_share?: string; // Portal SDK share for wallet recovery
+
+
+
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  googleId: string; // Google ID for SSO
+
+  @Column({ type: 'text', nullable: true })
+  googleAccessToken: string;
+
+  @Column({ type: 'text', nullable: true })
+  googleRefreshToken: string;
+
+  @Column({ type: 'decimal', precision: 18, scale: 6, default: 0 })
+  mxnb_balance!: number;
 
   @Column({ default: 'user' })
   role!: string; // user, admin, etc.
 
-  @Column({ nullable: true, length: 18 })
+  @Column('varchar', { nullable: true, length: 18 })
   deposit_clabe?: string; // Juno-generated CLABE for deposits (pay-ins)
 
-  @Column({ nullable: true, length: 18 })
+  @Column('varchar', { nullable: true, length: 18 })
   payout_clabe?: string; // User's real CLABE for payouts (withdrawals)
 
-  @Column({ nullable: true, length: 64 })
+  @Column('varchar', { nullable: true, length: 36 })
   juno_bank_account_id?: string; // Juno UUID for payout bank account
 
   @Column({ default: false })

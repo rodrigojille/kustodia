@@ -1,11 +1,105 @@
 import { Request, Response } from "express";
-import ormconfig from "../ormconfig";
-import { User } from "../entity/User";
+
+import { User } from '../entity/User';
 import bcrypt from "bcryptjs";
 import { generateToken } from "./emailTokenUtil";
 import { sendEmail } from "../utils/emailService";
 import { createJunoClabe } from "../services/junoService";
+import { createPortalClient } from "../services/portalService";
 import { AuthenticatedRequest } from "../AuthenticatedRequest";
+import ormconfig from "../ormconfig";
+
+/**
+ * Saves the user's Portal Share to their database record.
+ * This is called from the frontend after a user creates or recovers their wallet.
+ */
+export const getPortalShare = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as AuthenticatedRequest).user.id;
+
+  try {
+    const userRepo = ormconfig.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: userId } });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found.' });
+    } else {
+      res.status(200).json({ portalShare: user.portal_share });
+    }
+  } catch (error) {
+    console.error('Error getting portal share:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+export const savePortalShare = async (req: Request, res: Response): Promise<void> => {
+  console.log('🔍 savePortalShare called - Request received');
+  console.log('🔍 Request headers:', req.headers);
+  console.log('🔍 Content-Type:', req.headers['content-type']);
+  console.log('🔍 Content-Length:', req.headers['content-length']);
+  console.log('🔍 Raw body:', req.body);
+  console.log('🔍 Request body keys:', Object.keys(req.body));
+  console.log('🔍 Request body size:', JSON.stringify(req.body).length, 'characters');
+  
+  const { portal_share } = req.body;
+  const userId = (req as AuthenticatedRequest).user.id; // Cast to access user property
+
+  console.log('🔍 User ID:', userId);
+  console.log('🔍 portal_share present:', !!portal_share);
+  console.log('🔍 portal_share type:', typeof portal_share);
+  console.log('🔍 portal_share length:', portal_share ? portal_share.length : 'N/A');
+
+  if (!portal_share) {
+    console.log('❌ portal_share is missing - returning 400');
+    res.status(400).json({ error: 'portal_share is required.' });
+  } else {
+    try {
+      console.log('✅ portal_share found - proceeding with save');
+      const userRepo = ormconfig.getRepository(User);
+      const user = await userRepo.findOne({ where: { id: userId } });
+
+      if (!user) {
+        console.log('❌ User not found - returning 404');
+        res.status(404).json({ error: 'User not found.' });
+      } else {
+        console.log('✅ User found - saving portal_share');
+        user.portal_share = portal_share;
+        await userRepo.save(user);
+        console.log('✅ Portal share saved successfully');
+        res.status(200).json({ message: 'Portal share saved successfully.' });
+      }
+    } catch (error) {
+      console.error('❌ Error saving portal share:', error);
+      res.status(500).json({ error: 'Internal server error.' });
+    }
+  }
+};
+
+export const verifyRecipient = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ error: 'Missing email' });
+    return;
+  }
+
+  try {
+    const userRepo = ormconfig.getRepository(User);
+    const user = await userRepo.findOne({ where: { email } });
+
+    if (!user) {
+      res.json({ exists: false, verified: false, wallet_address: null });
+      return;
+    }
+
+    res.json({
+      exists: true,
+      verified: user.email_verified,
+      wallet_address: user.wallet_address,
+    });
+  } catch (error) {
+    console.error('Error verifying recipient:', error);
+    res.status(500).json({ error: 'Internal server error while verifying recipient' });
+  }
+};
 
 // Get recipient's deposit CLABE by email
 export const getRecipientClabe = async (req: Request, res: Response): Promise<void> => {
@@ -40,6 +134,17 @@ export const register = async (req: Request, res: Response) => {
     const email_verification_token = generateToken(24);
     const user = userRepo.create({ email, password_hash, full_name, email_verification_token, email_verified: false });
     await userRepo.save(user);
+
+    // Create Portal wallet and save to user
+    try {
+      const portalClient = await createPortalClient();
+      user.wallet_address = portalClient.wallet.address;
+      user.portal_share = portalClient.wallet.portalShare;
+      await userRepo.save(user);
+    } catch (portalErr) {
+      console.error('Portal wallet creation failed:', portalErr);
+      // Continue registration even if wallet creation fails
+    }
 
     // Create deposit CLABE for pay-ins and save to user
     try {
@@ -317,20 +422,44 @@ export const login = async (req: Request, res: Response) => {
       }
     }
 
-    // Generate JWT
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET || 'your_secret_key',
-      { expiresIn: '7d' }
-    );
-    // Set JWT as httpOnly cookie for SSR and API use
-    res.cookie('token', token, {
+    // Generate JWT with payload - exclude portal_share to keep token size manageable
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      wallet_address: user.wallet_address || null,
+    };
+    
+    const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '7d' });
+    
+    console.log('[LOGIN DEBUG] Generated token for email login');
+    
+    // Always set HTTP-only cookie, with appropriate security settings per environment
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Set cookie for both environments
+    res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      secure: isProduction, // Only secure in production
+      sameSite: isProduction ? 'lax' : 'none', // More permissive in development
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/'
     });
-    res.json({ message: "Login successful", token, user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
+    
+    console.log('[LOGIN DEBUG] Cookie set with settings:', {
+      isProduction,
+      secure: isProduction,
+      sameSite: isProduction ? 'lax' : 'none'
+    });
+    
+    if (isProduction) {
+      // Production: Don't return token in response body for security
+      res.json({ message: "Login successful", user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
+    } else {
+      // Development: Also return token in response body as fallback
+      console.log('[LOGIN DEBUG] Development mode - setting cookie AND returning token in response');
+      res.json({ message: "Login successful", token, user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
+    }
     return;
   } catch (err) {
     res.status(500).json({ error: "Login failed", details: err });

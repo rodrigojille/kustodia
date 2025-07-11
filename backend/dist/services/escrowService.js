@@ -32,9 +32,6 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.escrowContract = void 0;
 exports.transferMXNBToJunoWallet = transferMXNBToJunoWallet;
@@ -47,16 +44,16 @@ exports.releaseEscrow = releaseEscrow;
 const ethers_1 = require("ethers");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const dotenv_1 = __importDefault(require("dotenv"));
+const dotenv = __importStar(require("dotenv"));
 // Load environment variables with explicit path
-dotenv_1.default.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 console.log('[escrowService] Starting import');
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS:', process.env.ESCROW_CONTRACT_ADDRESS);
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS_2:', process.env.ESCROW_CONTRACT_ADDRESS_2);
 console.log('[escrowService] ENV.ESCROW_PRIVATE_KEY:', process.env.ESCROW_PRIVATE_KEY ? '***set***' : '***missing***');
 // Artifact paths - Updated to use KustodiaEscrow2_0
-const escrowArtifactPath = path.resolve(__dirname, '../../../contracts/artifacts/contracts/KustodiaEscrow2_0.sol/KustodiaEscrow2_0.json');
-const erc20ArtifactPath = path.resolve(__dirname, '../../../contracts/artifacts/contracts/ERC20.json');
+const escrowArtifactPath = path.resolve(__dirname, '../artifacts/contracts/KustodiaEscrow2_0.sol/KustodiaEscrow2_0.json');
+const erc20ArtifactPath = path.resolve(__dirname, '../artifacts/contracts/MockERC20.sol/MockERC20.json');
 console.log('[escrowService] Resolved KustodiaEscrow2_0.json path:', escrowArtifactPath);
 console.log('[escrowService] Resolved ERC20.json path:', erc20ArtifactPath);
 console.log('[escrowService] KustodiaEscrow2_0.json exists:', fs.existsSync(escrowArtifactPath));
@@ -72,9 +69,25 @@ const ESCROW_ADDRESS = process.env.KUSTODIA_ESCROW_V2_ADDRESS;
 console.log('[escrowService] Using ESCROW_CONTRACT_ADDRESS_2:', ESCROW_ADDRESS);
 // Mainnet contract addresses
 const TOKEN_ADDRESS = process.env.MOCK_ERC20_ADDRESS;
-// Load ABIs
-const KustodiaEscrowArtifact = require(escrowArtifactPath);
-const ESCROW_ABI = KustodiaEscrowArtifact.abi;
+// Load ABIs with error handling
+let ESCROW_ABI;
+try {
+    const KustodiaEscrowArtifact = require(escrowArtifactPath);
+    ESCROW_ABI = KustodiaEscrowArtifact.abi;
+    console.log('[escrowService] Successfully loaded KustodiaEscrow2_0 ABI');
+}
+catch (error) {
+    console.error('[escrowService] Failed to load KustodiaEscrow2_0 artifact:', error.message);
+    console.log('[escrowService] Using fallback minimal ABI');
+    // Minimal ABI with essential functions for basic operation
+    ESCROW_ABI = [
+        "function createEscrow(address token, uint256 amount, address recipient, string memory reference) external returns (uint256)",
+        "function releaseEscrow(uint256 escrowId) external",
+        "function getEscrow(uint256 escrowId) external view returns (tuple(address token, uint256 amount, address sender, address recipient, string reference, bool released, uint256 createdAt))",
+        "event EscrowCreated(uint256 indexed escrowId, address indexed sender, address indexed recipient, address token, uint256 amount, string reference)",
+        "event EscrowReleased(uint256 indexed escrowId)"
+    ];
+}
 // MXNB is a proxy contract. Merge proxy ABI with ERC20 ABI for full functionality.
 const PROXY_ABI = [
     { "inputs": [{ "internalType": "address", "name": "implementationContract", "type": "address" }], "stateMutability": "nonpayable", "type": "constructor" },
@@ -124,33 +137,78 @@ async function transferMXNBToJunoWallet(amount, to) {
     }
 }
 // Updated createEscrow function to match KustodiaEscrow2_0 API
+// Flow 2 will use conditions and verticals, current flow can pass null values
 async function createEscrow({ payer, payee, token, amount, deadline, vertical, clabe, conditions }) {
     console.log('[escrowService] Creating escrow with KustodiaEscrow2_0:', {
         payer, payee, token, amount, deadline, vertical, clabe
     });
+    // Convert amount to token units (MXNB uses 6 decimals)
+    // Handle both string and number inputs
+    const amountString = amount.toString();
+    const amountInTokenUnits = ethers_1.ethers.parseUnits(amountString, 6);
+    console.log('[escrowService] Amount conversion:', {
+        original: amountString,
+        amountInTokenUnits: amountInTokenUnits.toString(),
+        decimals: 6
+    });
     // Check current allowance
     const currentAllowance = await tokenContract.allowance(signer.address, ESCROW_ADDRESS);
     console.log('[escrowService] Current allowance:', currentAllowance.toString());
-    if (currentAllowance.lt(amount)) {
+    if (currentAllowance < amountInTokenUnits) {
         console.log('[escrowService] Insufficient allowance, approving token spend');
-        if (!currentAllowance.isZero()) {
+        if (currentAllowance > BigInt(0)) {
             const resetTx = await tokenContract.approve(ESCROW_ADDRESS, 0);
             await resetTx.wait();
         }
-        const approveTx = await tokenContract.approve(ESCROW_ADDRESS, amount);
+        const approveTx = await tokenContract.approve(ESCROW_ADDRESS, amountInTokenUnits);
         await approveTx.wait();
         console.log('[escrowService] Token approval completed');
     }
     // Create escrow on-chain with the new contract parameters
-    const tx = await exports.escrowContract.createEscrow(payer, payee, token, amount, deadline, vertical, clabe, conditions);
+    // Handle null values for Flow 2 compatibility
+    const tx = await exports.escrowContract.createEscrow(payer, payee, token, amountInTokenUnits, // Use converted token units (6 decimals for MXNB)
+    deadline, vertical || '', // Convert null to empty string for smart contract
+    clabe, conditions || '' // Convert null to empty string for smart contract
+    );
     const receipt = await tx.wait();
     console.log('[escrowService] Escrow creation transaction completed:', tx.hash);
-    // Find EscrowCreated event
-    const event = receipt.events?.find((e) => e.event === "EscrowCreated");
-    const escrowId = event?.args?.escrowId;
+    // Parse events from receipt to get escrow ID (ethers v6 fix)
+    let escrowId;
+    for (const log of receipt.logs) {
+        try {
+            const parsedLog = exports.escrowContract.interface.parseLog(log);
+            if (parsedLog && parsedLog.name === 'EscrowCreated') {
+                escrowId = parsedLog.args.escrowId?.toString();
+                console.log('[escrowService] Found EscrowCreated event, escrowId:', escrowId);
+                break;
+            }
+        }
+        catch (e) {
+            // Skip unparseable logs
+        }
+    }
+    // If still undefined, try manual topic parsing as fallback
+    if (!escrowId) {
+        console.log('[escrowService] Falling back to manual topic parsing...');
+        const escrowCreatedTopic = ethers_1.ethers.id("EscrowCreated(uint256,address,address,uint256,string,string)");
+        const escrowLog = receipt.logs.find((log) => log.topics[0] === escrowCreatedTopic);
+        if (escrowLog && escrowLog.topics[1]) {
+            escrowId = ethers_1.ethers.toBigInt(escrowLog.topics[1]).toString();
+            console.log('[escrowService] Extracted escrow ID from topics:', escrowId);
+        }
+    }
     console.log('[escrowService] Escrow created with ID:', escrowId?.toString());
+    // CRITICAL: KustodiaEscrow2_0 requires calling fundEscrow() to properly fund the escrow
+    console.log('[escrowService] Funding escrow using fundEscrow function...');
+    const fundTx = await exports.escrowContract.fundEscrow(escrowId);
+    await fundTx.wait();
+    console.log('[escrowService] Escrow funding completed:', fundTx.hash);
+    // Ensure escrowId is defined before returning
+    if (!escrowId) {
+        throw new Error('Failed to extract escrow ID from transaction logs');
+    }
     // Return both escrowId and transaction hash
-    return { escrowId: escrowId?.toString(), txHash: tx.hash };
+    return { escrowId: escrowId.toString(), txHash: tx.hash };
 }
 // Updated releaseCustody to use 'release' function from KustodiaEscrow2_0
 async function releaseCustody(escrowId) {

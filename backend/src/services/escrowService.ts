@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 
 // Load environment variables with explicit path
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -13,7 +13,7 @@ console.log('[escrowService] ENV.ESCROW_PRIVATE_KEY:', process.env.ESCROW_PRIVAT
 
 // Artifact paths - Updated to use KustodiaEscrow2_0
 const escrowArtifactPath = path.resolve(__dirname, '../artifacts/contracts/KustodiaEscrow2_0.sol/KustodiaEscrow2_0.json');
-const erc20ArtifactPath = path.resolve(__dirname, '../artifacts/contracts/ERC20.json');
+const erc20ArtifactPath = path.resolve(__dirname, '../artifacts/contracts/MockERC20.sol/MockERC20.json');
 console.log('[escrowService] Resolved KustodiaEscrow2_0.json path:', escrowArtifactPath);
 console.log('[escrowService] Resolved ERC20.json path:', erc20ArtifactPath);
 console.log('[escrowService] KustodiaEscrow2_0.json exists:', fs.existsSync(escrowArtifactPath));
@@ -104,6 +104,7 @@ export async function transferMXNBToJunoWallet(amount: string, to: string): Prom
 }
 
 // Updated createEscrow function to match KustodiaEscrow2_0 API
+// Flow 2 will use conditions and verticals, current flow can pass null values
 export async function createEscrow({
   payer,
   payee,
@@ -119,58 +120,104 @@ export async function createEscrow({
   token: string,
   amount: string,
   deadline: number,
-  vertical: string,
+  vertical: string | null,
   clabe: string,
-  conditions: string
+  conditions: string | null
 }) {
   console.log('[escrowService] Creating escrow with KustodiaEscrow2_0:', {
     payer, payee, token, amount, deadline, vertical, clabe
+  });
+
+  // Convert amount to token units (MXNB uses 6 decimals)
+  // Handle both string and number inputs
+  const amountString = amount.toString();
+  const amountInTokenUnits = ethers.parseUnits(amountString, 6);
+  
+  console.log('[escrowService] Amount conversion:', {
+    original: amountString,
+    amountInTokenUnits: amountInTokenUnits.toString(),
+    decimals: 6
   });
 
   // Check current allowance
   const currentAllowance = await tokenContract.allowance(signer.address, ESCROW_ADDRESS);
   console.log('[escrowService] Current allowance:', currentAllowance.toString());
   
-  if (currentAllowance.lt(amount)) {
+  if (currentAllowance < amountInTokenUnits) {
     console.log('[escrowService] Insufficient allowance, approving token spend');
-    if (!currentAllowance.isZero()) {
+    if (currentAllowance > BigInt(0)) {
       const resetTx = await tokenContract.approve(ESCROW_ADDRESS, 0);
       await resetTx.wait();
     }
-    const approveTx = await tokenContract.approve(ESCROW_ADDRESS, amount);
+    const approveTx = await tokenContract.approve(ESCROW_ADDRESS, amountInTokenUnits);
     await approveTx.wait();
     console.log('[escrowService] Token approval completed');
   }
 
   // Create escrow on-chain with the new contract parameters
+  // Handle null values for Flow 2 compatibility
   const tx = await escrowContract.createEscrow(
     payer,
     payee, 
     token,
-    amount,
+    amountInTokenUnits, // Use converted token units (6 decimals for MXNB)
     deadline,
-    vertical,
+    vertical || '', // Convert null to empty string for smart contract
     clabe,
-    conditions
+    conditions || '' // Convert null to empty string for smart contract
   );
   const receipt = await tx.wait();
   console.log('[escrowService] Escrow creation transaction completed:', tx.hash);
 
-  // Find EscrowCreated event
-  const event = receipt.events?.find((e: any) => e.event === "EscrowCreated");
-  const escrowId = event?.args?.escrowId;
+  // Parse events from receipt to get escrow ID (ethers v6 fix)
+  let escrowId: string | undefined;
+  for (const log of receipt.logs) {
+    try {
+      const parsedLog = escrowContract.interface.parseLog(log);
+      if (parsedLog && parsedLog.name === 'EscrowCreated') {
+        escrowId = parsedLog.args.escrowId?.toString();
+        console.log('[escrowService] Found EscrowCreated event, escrowId:', escrowId);
+        break;
+      }
+    } catch (e) {
+      // Skip unparseable logs
+    }
+  }
+  
+  // If still undefined, try manual topic parsing as fallback
+  if (!escrowId) {
+    console.log('[escrowService] Falling back to manual topic parsing...');
+    const escrowCreatedTopic = ethers.id("EscrowCreated(uint256,address,address,uint256,string,string)");
+    const escrowLog = receipt.logs.find((log: any) => log.topics[0] === escrowCreatedTopic);
+    if (escrowLog && escrowLog.topics[1]) {
+      escrowId = ethers.toBigInt(escrowLog.topics[1]).toString();
+      console.log('[escrowService] Extracted escrow ID from topics:', escrowId);
+    }
+  }
   console.log('[escrowService] Escrow created with ID:', escrowId?.toString());
   
+  // CRITICAL: KustodiaEscrow2_0 requires calling fundEscrow() to properly fund the escrow
+  console.log('[escrowService] Funding escrow using fundEscrow function...');
+  const fundTx = await escrowContract.fundEscrow(escrowId);
+  await fundTx.wait();
+  console.log('[escrowService] Escrow funding completed:', fundTx.hash);
+  
+  // Ensure escrowId is defined before returning
+  if (!escrowId) {
+    throw new Error('Failed to extract escrow ID from transaction logs');
+  }
+  
   // Return both escrowId and transaction hash
-  return { escrowId: escrowId?.toString(), txHash: tx.hash };
+  return { escrowId: escrowId.toString(), txHash: tx.hash };
 }
 
 // Updated releaseCustody to use 'release' function from KustodiaEscrow2_0
-export async function releaseCustody(escrowId: number) {
+export async function releaseCustody(escrowId: number): Promise<string> {
   console.log('[escrowService] Releasing escrow with ID:', escrowId);
   const tx = await escrowContract.release(escrowId); // Changed from releaseCustody to release
   await tx.wait();
   console.log('[escrowService] Escrow release transaction completed:', tx.hash);
+  return tx.hash;
 }
 
 // Updated raiseDispute to use 'dispute' function from KustodiaEscrow2_0  
@@ -194,6 +241,6 @@ export async function getEscrow(escrowId: number) {
 }
 
 // Alias for backward compatibility with existing scripts
-export async function releaseEscrow(escrowId: number) {
+export async function releaseEscrow(escrowId: number): Promise<string> {
   return await releaseCustody(escrowId);
 }

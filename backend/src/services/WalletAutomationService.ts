@@ -1,11 +1,51 @@
 import * as cron from 'node-cron';
-import { AppDataSource } from '../data-source';
+import AppDataSource from '../ormconfig';
 import { User } from '../entity/User';
 import { WalletTransaction } from '../entity/WalletTransaction';
 import { listJunoTransactions, withdrawCryptoToBridgeWallet } from './junoService';
 import { sendMxnbToAddress, getTransactionReceipt, bridgeWalletAddress } from './blockchainService';
 
 
+
+export async function handlePermanentClabeDeposit(user: User, amount: number): Promise<void> {
+  if (!user.wallet_address) {
+    console.error(`User ${user.id} does not have a wallet address. Cannot process deposit.`);
+    // Optionally, create a notification for the admin/user
+    return;
+  }
+
+  console.log(`Handling permanent CLABE deposit for user ${user.id}. Amount: ${amount}`);
+
+  const walletTransactionRepo = AppDataSource.getRepository(WalletTransaction);
+
+  // 1. Create a preliminary transaction record
+  let transaction = walletTransactionRepo.create({
+    user: user,
+    type: 'DEPOSIT',
+    status: 'pending_bridge_transfer', // This is a valid status
+    amount_mxn: amount,
+    // deposit_clabe is not stored here as it's the user's permanent one
+  });
+  await walletTransactionRepo.save(transaction);
+
+  try {
+    // 2. Initiate the blockchain transfer
+    const txHash = await sendMxnbToAddress(user.wallet_address, amount);
+    console.log(`Blockchain transaction initiated for user ${user.id}. Hash: ${txHash}`);
+
+    // 3. Update the transaction record with the hash
+    transaction.blockchain_tx_hash = txHash;
+    transaction.status = 'pending_blockchain_confirmation'; // The watcher service will pick it up from here
+    await walletTransactionRepo.save(transaction);
+
+  } catch (error) {
+    console.error(`Failed to send MXNB for user ${user.id}. Error:`, error);
+    // 4. Mark the transaction as failed
+    transaction.status = 'failed';
+    await walletTransactionRepo.save(transaction);
+    // Optionally, notify the user/admin of the failure
+  }
+}
 
 export class WalletAutomationService {
 

@@ -26,12 +26,12 @@ const escrowAbi = [
 // New controller for Flow 2.0: initiate wallet-based escrow payment
 export const initiateEscrow3Payment = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { recipient_email, amount, custody_percent, custody_days, commission_percent, commission_beneficiary_email, description } = req.body;
+    const { recipient_email, amount, custody_percent, timeline, commission_percent, commission_beneficiary_email, description } = req.body;
     const userRepo = ormconfig.getRepository(User);
     const paymentRepo = ormconfig.getRepository(Payment);
     const escrowRepo = ormconfig.getRepository(Escrow);
 
-    if (!recipient_email || !amount || !custody_percent || !custody_days) {
+    if (!recipient_email || !amount || !custody_percent || !timeline) {
       return res.status(400).json({ error: "Missing required parameters." });
     }
     const payer = req.user;
@@ -87,6 +87,8 @@ export const initiateEscrow3Payment = async (req: AuthenticatedRequest, res: Res
       description,
       status: "pending",
       payment_type: 'web3',
+      // 🔧 FIX: Auto-copy seller's Juno UUID to prevent field mapping bug
+      payout_juno_bank_account_id: recipientUser.juno_bank_account_id || undefined,
       // User commission fields
       commission_percent: commission_percent ? Number(commission_percent) : undefined,
       commission_amount: userCommissionAmt || undefined,
@@ -98,13 +100,17 @@ export const initiateEscrow3Payment = async (req: AuthenticatedRequest, res: Res
     });
     await paymentRepo.save(payment);
 
-    // Create Escrow record
+    // Create Escrow record with all required fields
     const totalCommission = userCommissionAmt + platformCommissionAmt;
+    const custodyEndDate = new Date();
+    custodyEndDate.setDate(custodyEndDate.getDate() + Number(timeline)); // timeline in days
+    
     const escrow = escrowRepo.create({
       payment,
       custody_percent: Number(custody_percent),
       custody_amount: custodyAmt,
       release_amount: amt - custodyAmt - totalCommission,
+      custody_end: custodyEndDate, // Set the custody end date based on timeline
       status: "pending"
     });
     await escrowRepo.save(escrow);
@@ -118,7 +124,7 @@ export const initiateEscrow3Payment = async (req: AuthenticatedRequest, res: Res
       recipient_wallet: recipientUser.wallet_address,
       amount: amt,
       custody_amount: custodyAmt,
-      custody_days,
+      timeline: Number(timeline),
       // Commission details for the contract
       user_commission_beneficiary: userCommissionWallet,
       user_commission_amount: userCommissionAmt,

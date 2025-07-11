@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { authenticateJWT } from '../authenticateJWT';
-import { register, login, verifyEmail, requestPasswordReset, resetPassword, resendVerificationEmail, getRecipientClabe, updateMyProfile, changePassword } from "../controllers/userController";
+import { verifyEmail, resendVerificationEmail, register, login, requestPasswordReset, resetPassword, getRecipientClabe, updateMyProfile, changePassword, verifyRecipient, savePortalShare, getPortalShare } from '../controllers/userController';
 import { getKYCStatus } from "../controllers/kycController";
-import { verifyRecipient } from "../controllers/verifyRecipientController";
+
 import ormconfig from "../ormconfig";
 import { User } from "../entity/User";
 import { AuthenticatedRequest } from '../AuthenticatedRequest';
@@ -11,11 +11,18 @@ const router = Router();
 
 
 router.post("/register", register);
+router.post("/verify-recipient", verifyRecipient);
 router.post("/login", login);
 router.post("/verify-email", verifyEmail);
 router.post("/request-password-reset", requestPasswordReset);
 router.post("/reset-password", resetPassword);
 router.post("/resend-verification", resendVerificationEmail);
+
+// Save the user's portal share after creation/recovery
+router.post('/save-portal-share', authenticateJWT, savePortalShare);
+
+// Get the user's portal share for recovery
+router.get('/get-portal-share', authenticateJWT, getPortalShare);
 
 // Get current user info
 
@@ -49,14 +56,36 @@ router.post("/update-payout-clabe", authenticateJWT, async (req, res) => {
     res.status(400).json({ error: "CLABE inválida" });
     return;
   }
+  
   const user = await ormconfig.getRepository(User).findOne({ where: { id: authReq.user.id } });
   if (!user) {
     res.status(404).json({ error: "No user found" });
     return;
   }
-  user.payout_clabe = payout_clabe;
-  await ormconfig.getRepository(User).save(user);
-  res.json({ message: "Payout CLABE guardada" });
+
+  try {
+    // 🚀 IMMEDIATE JUNO REGISTRATION: Register CLABE with Juno and get UUID
+    const { registerBankAccount } = await import('../services/junoService');
+    const registrationResult = await registerBankAccount(payout_clabe, user.full_name || user.email);
+    
+    console.log('✅ CLABE registrada con Juno:', registrationResult);
+    
+    // Store both CLABE and Juno UUID
+    user.payout_clabe = payout_clabe;
+    user.juno_bank_account_id = registrationResult.id; // Store Juno UUID
+    
+    await ormconfig.getRepository(User).save(user);
+    
+    res.json({ 
+      message: "CLABE guardada y registrada con Juno", 
+      juno_account_id: registrationResult.id 
+    });
+  } catch (error: any) {
+    console.error('❌ Error registrando CLABE con Juno:', error.message);
+    res.status(400).json({ 
+      error: "Error registrando CLABE con Juno: " + error.message 
+    });
+  }
 });
 
 // KYC status endpoint

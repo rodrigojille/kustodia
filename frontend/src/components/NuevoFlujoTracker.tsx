@@ -126,8 +126,8 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
   const bothApproved = payment.payer_approval && payment.payee_approval;
   const isCompleted = payment.status === 'completed' || payment.status === 'cancelled';
 
-  const canRelease = bothApproved && (payment.status === 'funded' || payment.status === 'active');
-  const showValidationModule = (payment.status === 'funded' || payment.status === 'active') && !isCompleted;
+  const canRelease = bothApproved && (payment.status === 'funded' || payment.status === 'active' || payment.status === 'escrowed');
+  const showValidationModule = (payment.status === 'funded' || payment.status === 'active' || payment.status === 'escrowed') && !isCompleted;
   const showYield = payment.yield_enabled && showValidationModule && (!isCompleted);
 
   return (
@@ -210,7 +210,7 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
       )}
 
       {/* Custody Information */}
-      {(payment.status === 'funded' || payment.status === 'active') && payment.escrow && (
+      {(payment.status === 'funded' || payment.status === 'active' || payment.status === 'escrowed') && payment.escrow && (
         <div className="bg-amber-50 rounded-lg shadow-sm border border-amber-200 p-6">
           <h3 className="text-lg font-semibold text-amber-900 mb-4 flex items-center">
             🔒 Información de custodia
@@ -463,15 +463,9 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
                 <div className="text-xs text-gray-500">
                   Activar después del fondeo • Mínimo $0.10 para mostrar rendimientos
                 </div>
-                <button
-                  onClick={() => {
-                    // TODO: Implement yield opt-in
-                    alert('Funcionalidad de rendimientos será implementada próximamente');
-                  }}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                >
-                  🚀 Activar rendimientos
-                </button>
+                <div className="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed">
+                  ⏳ Próximamente disponible
+                </div>
               </div>
             </div>
           ) : (

@@ -77,13 +77,17 @@ __decorate([
     __metadata("design:type", Object)
 ], Payment.prototype, "travel_rule_data", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], Payment.prototype, "deposit_clabe", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], Payment.prototype, "payout_clabe", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 36 }),
+    __metadata("design:type", String)
+], Payment.prototype, "payout_juno_bank_account_id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true, length: 255 }),
     __metadata("design:type", String)
@@ -117,11 +121,15 @@ __decorate([
     __metadata("design:type", String)
 ], Payment.prototype, "commission_beneficiary_email", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], Payment.prototype, "commission_beneficiary_clabe", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, length: 18 }),
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 36 }),
+    __metadata("design:type", String)
+], Payment.prototype, "commission_beneficiary_juno_bank_account_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { nullable: true, length: 18 }),
     __metadata("design:type", String)
 ], Payment.prototype, "payer_clabe", void 0);
 __decorate([

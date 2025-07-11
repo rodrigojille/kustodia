@@ -8,12 +8,16 @@ import KYCStatus from '../../components/KYCStatus';
 import PaymentsByMonthChart from '../../components/PaymentsByMonthChart';
 import PaymentsByStageChart from '../../components/PaymentsByStageChart';
 import PaymentsTable from '../../components/PaymentsTable';
+import { authFetch } from '../../utils/authFetch';
 
 // getUserInfo removed for client component compatibility
 
 import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function DashboardHomePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -22,27 +26,74 @@ export default function DashboardHomePage() {
 
   const [mxnbsBalance, setMxnbsBalance] = useState<string | null>(null);
 
+  // Handle URL token extraction for development mode (Google SSO)
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (!token) {
-      setUserError('No token found');
-      setUserLoading(false);
-      return;
+    const token = searchParams.get('token');
+    if (token) {
+      console.log('[DASHBOARD] Token found in URL, storing in localStorage for development');
+      localStorage.setItem('auth_token', token);
+      // Clean up URL by removing token parameter
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('token');
+      window.history.replaceState({}, '', newUrl.toString());
     }
-    fetch('/api/users/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch user');
-        return res.json();
-      })
-      .then(data => {
-        if (data.user) setUser(data.user);
-        else setUserError('No user data');
-      })
-      .catch(err => setUserError(err.message))
-      .finally(() => setUserLoading(false));
-  }, []);
+  }, [searchParams]);
+
+  useEffect(() => {
+    let retryCount = 0;
+    const maxRetries = 2;
+    
+    const fetchUserWithRetry = async () => {
+      try {
+        console.log('[DASHBOARD] Fetching user data with authFetch (attempt', retryCount + 1, ')');
+        const res = await authFetch('users/me');
+        
+        console.log('[DASHBOARD] authFetch response status:', res.status);
+        
+        if (!res.ok) {
+          if (res.status === 401) {
+            console.log('[DASHBOARD] 401 Unauthorized - redirecting to login');
+            throw new Error('UNAUTHORIZED');
+          }
+          if (res.status >= 500 && retryCount < maxRetries) {
+            console.log('[DASHBOARD] Server error, retrying...');
+            retryCount++;
+            setTimeout(fetchUserWithRetry, 1000 * retryCount); // Exponential backoff
+            return;
+          }
+          throw new Error(`Server error: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log('[DASHBOARD] User data received:', data);
+        setUser(data.user || data); // Handle both {user: ...} and direct user object
+        setUserLoading(false);
+        setUserError(null);
+        
+      } catch (error: any) {
+        console.error('[DASHBOARD] Authentication error:', error);
+        
+        if (error.message === 'UNAUTHORIZED') {
+          // Only redirect on actual auth failure
+          setUserLoading(false);
+          router.push('/login');
+        } else if (retryCount < maxRetries) {
+          // Retry on network/server errors
+          console.log('[DASHBOARD] Retrying due to network error...');
+          retryCount++;
+          setTimeout(fetchUserWithRetry, 1000 * retryCount);
+        } else {
+          // Max retries reached, show error but don't logout
+          console.error('[DASHBOARD] Max retries reached, showing error');
+          setUserError('Failed to load user data. Please refresh the page.');
+          setUserLoading(false);
+        }
+      }
+    };
+    
+    // Wait a bit for token to be stored from URL if present
+    setTimeout(fetchUserWithRetry, 100);
+  }, [router]);
 
   // Fetch balances when user.wallet_address is available
   useEffect(() => {

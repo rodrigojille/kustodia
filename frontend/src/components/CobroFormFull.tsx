@@ -1,13 +1,6 @@
 "use client";
-import React, { useState } from "react";
-
-type FetchOptions = RequestInit & { headers?: Record<string, string> };
-async function authFetch(input: RequestInfo, init: FetchOptions = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers: Record<string, string> = { ...(init.headers || {}) };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  return fetch(input, { ...init, headers });
-}
+import React, { useState, useEffect } from "react";
+import { authFetch } from "../utils/authFetch";
 
 export default function CobroFormFull() {
   const [payerEmail, setPayerEmail] = useState("");
@@ -45,7 +38,7 @@ export default function CobroFormFull() {
           payer_email: payerEmail,
           amount: Number(amount),
           warranty_percent: warrantyPercent ? Number(warrantyPercent) : undefined,
-          custody_days: custodyDays ? Number(custodyDays) : undefined,
+          timeline: custodyDays ? Number(custodyDays) : undefined,
           description,
           commission_percent: commissionPercent ? Number(commissionPercent) : undefined,
           commission_beneficiary_name: commissionBeneficiaryName || undefined,

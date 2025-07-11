@@ -17,7 +17,7 @@ const router = (0, express_1.Router)();
 router.use("/users", user_1.default);
 router.use("/payments", payment_1.default);
 router.use("/truora", truora_1.default);
-router.use("/escrow", dispute_1.default);
+router.use("/dispute", dispute_1.default);
 router.use("/admin", admin_1.default);
 router.use("/evidence", evidence_1.default);
 router.use("/juno", juno_1.default);

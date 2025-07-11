@@ -1,4 +1,4 @@
-import { AppDataSource } from '../data-source';
+import AppDataSource from '../ormconfig';
 import { Notification } from '../entity/Notification';
 import { User } from '../entity/User';
 
@@ -8,8 +8,18 @@ import { User } from '../entity/User';
  * @param userId - The ID of the user to notify.
  * @param message - The notification message.
  * @param link - The URL the notification should link to.
+ * @param type - The notification type (success, info, warning, error).
+ * @param paymentId - Optional payment ID to link the notification to.
+ * @param category - The notification category (payment, dispute, account, general).
  */
-export const createNotification = async (userId: number, message: string, link: string): Promise<void> => {
+export const createNotification = async (
+  userId: number, 
+  message: string, 
+  link: string, 
+  type: 'success' | 'info' | 'warning' | 'error' = 'info',
+  paymentId?: number,
+  category: 'payment' | 'dispute' | 'account' | 'general' = 'general'
+): Promise<void> => {
   try {
     const notificationRepo = AppDataSource.getRepository(Notification);
     const userRepo = AppDataSource.getRepository(User);
@@ -25,7 +35,13 @@ export const createNotification = async (userId: number, message: string, link: 
     newNotification.user = user;
     newNotification.message = message;
     newNotification.link = link;
+    newNotification.type = type;
+    newNotification.category = category;
     newNotification.read = false;
+    
+    if (paymentId) {
+      newNotification.payment_id = paymentId;
+    }
 
     await notificationRepo.save(newNotification);
     console.log(`Notification created for user ${userId}: "${message}"`);

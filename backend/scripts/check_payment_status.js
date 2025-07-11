@@ -2,7 +2,7 @@ require('dotenv').config({ path: './backend/.env' });
 const axios = require('axios');
 
 // Set these as needed
-const PAYMENT_ID = 71; // The payment you want to check
+const PAYMENT_ID = 88; // The payment you want to check
 const BASE_URL = process.env.PAYMENT_API_BASE_URL || 'http://localhost:4000'; // Updated to backend port 4000
 
 async function checkPaymentStatus() {

@@ -3,8 +3,8 @@ const crypto = require('crypto');
 const axios = require('axios');
 
 const defaults = {
-  amount: "2000",
-  receiver_clabe: "710969000000364656", // Payment ID 83 correct CLABE
+  amount: "1000",
+  receiver_clabe: "710969000000400730", // Payment ID 85 correct CLABE
   receiver_name: "test-seller@kustodia.mx", // Receiver's full name
   sender_name: "rodrigojille6@gmail.com" // Sender's full name
 };

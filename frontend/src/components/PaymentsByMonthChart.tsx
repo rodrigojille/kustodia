@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { fetchPayments } from "../fetchPayments";
+import fetchPayments from "../fetchPayments";
 import {
   BarChart,
   Bar,
@@ -38,6 +38,12 @@ export default function PaymentsByMonthChart({ filterStage, onBarClick, selected
     fetchPayments().then((payments: Payment[]) => {
       const monthly: Record<string, number> = {};
       let curr = "MXN";
+      // Safety check for payments array
+      if (!payments || !Array.isArray(payments)) {
+        console.warn('Payments data is not an array:', payments);
+        setLoading(false);
+        return;
+      }
       payments.forEach((p) => {
         const date = new Date(p.created_at);
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;

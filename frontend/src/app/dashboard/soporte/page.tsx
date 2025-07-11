@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import authFetch from '../../../lib/api';
+import { authFetch } from '../../../utils/authFetch';
 import MyTicketsList from '../../../components/soporte/MyTicketsList';
 import FAQ from '../../../components/FAQ';
 

@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../AuthenticatedRequest';
-import { AppDataSource } from '../data-source';
+import AppDataSource from '../ormconfig';
 import { WalletTransaction } from '../entity/WalletTransaction';
 // Asumiremos que existe un junoService con un método para crear CLABEs
 import { createJunoClabe } from '../services/junoService'; 

@@ -1,14 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
-async function authFetch(input: RequestInfo, init: RequestInit = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers = {
-    ...(init.headers || {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-  return fetch(input, { ...init, headers });
-}
+import { authFetch } from "../utils/authFetch";
 
 export interface ClabeSectionProps {
   payoutClabe?: string;
@@ -18,13 +10,17 @@ export interface ClabeSectionProps {
   mxnbsBalance?: string | null;
 }
 
+import DepositModal from './DepositModal';
+
 const ClabeSection: React.FC<ClabeSectionProps> = ({ payoutClabe = '', depositClabe = '', walletAddress = '', ethBalance = null, mxnbsBalance = null }) => {
+  const [isDepositModalOpen, setDepositModalOpen] = useState(false);
   const [currentPayoutClabe, setCurrentPayoutClabe] = useState(payoutClabe);
   const [currentDepositClabe] = useState(depositClabe);
   const [input, setInput] = useState("");
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('deposit');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,57 +47,96 @@ const ClabeSection: React.FC<ClabeSectionProps> = ({ payoutClabe = '', depositCl
   };
 
   return (
-    <div className="my-4">
-      <div className="text-base font-bold text-gray-800 mb-3 text-left">CLABE y cuentas</div>
-      <div className="mb-2">Wallet address: {walletAddress ? (
-        <a
-          href={`https://sepolia.arbiscan.io/address/${walletAddress}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-mono text-blue-700 underline break-all hover:text-blue-900"
-          title="View on Arbiscan (Arbitrum Sepolia)"
-        >
-          {walletAddress}
-        </a>
-      ) : <span className="font-mono text-black break-all">-</span>}
-      </div>
-      <div className="mb-2">MXNBS (Arbitrum Sepolia): <span className="font-mono text-green-700">{mxnbsBalance !== null ? `${mxnbsBalance} MXNBS` : "-"}</span></div>
-      <div className="mb-2">CLABE de depósito: <span className="font-mono text-black">{currentDepositClabe || "-"}</span></div>
-      <div className="mb-2">CLABE de retiro: <span className="font-mono text-black">{currentPayoutClabe || "-"}</span></div>
-      {editing ? (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 mt-2">
-          <input
-            className="input"
-            type="text"
-            maxLength={18}
-            minLength={18}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Nueva CLABE de retiro"
-            style={{ borderColor: "#1A73E8", borderWidth: 2 }}
-            autoFocus
-          />
-          <button type="submit" disabled={loading} className="btn btn-primary">
-            {loading ? "Guardando..." : "Guardar"}
+    <>
+      <DepositModal
+        isOpen={isDepositModalOpen}
+        onClose={() => setDepositModalOpen(false)}
+        depositClabe={depositClabe}
+      />
+      <div>
+        <h3 className="font-semibold text-xl mb-4">Billetera</h3>
+        
+        {/* Segmented Control */}
+        <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1 mb-4">
+          <button 
+            onClick={() => setActiveTab('deposit')}
+            className={`px-6 py-2 text-sm font-medium rounded-md ${activeTab === 'deposit' ? 'bg-white text-blue-700 shadow' : 'text-gray-600 hover:text-gray-800'}`}
+          >
+            Depositar
           </button>
-          <button type="button" onClick={() => setEditing(false)} className="btn btn-secondary">Cancelar</button>
-        </form>
-      ) : (
-        <button
-          onClick={() => { setInput(currentPayoutClabe); setEditing(true); }}
-          className="w-full flex items-center justify-center gap-2 mt-3 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium shadow-sm text-sm"
-          style={{ minHeight: 32, maxWidth: 220, marginLeft: 'auto', marginRight: 'auto' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.293-6.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L13 17H9v-4z" />
-          </svg>
-          Editar CLABE de retiro
-        </button>
-      )}
-      {feedback && (
-        <div className={`mt-2 rounded p-2 ${feedback.startsWith("CLABE") ? "bg-green-100 text-black" : "bg-red-100 text-black"}`}>{feedback}</div>
-      )}
-    </div>
+          <button 
+            onClick={() => setActiveTab('withdraw')}
+            className={`px-6 py-2 text-sm font-medium rounded-md ${activeTab === 'withdraw' ? 'bg-white text-blue-700 shadow' : 'text-gray-600 hover:text-gray-800'}`}
+          >
+            Retirar
+          </button>
+        </div>
+
+        {/* Content */}
+        <div>
+          {activeTab === 'deposit' && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Usa esta CLABE para agregar fondos a tu cuenta Kustodia vía SPEI.</p>
+              <div className="flex items-center justify-between bg-white p-3 rounded-md border">
+                <div>
+                  <span className="text-xs text-gray-500">CLABE de depósito</span>
+                  <p className="font-mono text-gray-900 text-lg">{currentDepositClabe || "-"}</p>
+                </div>
+                <button className="btn btn-secondary" onClick={() => navigator.clipboard.writeText(depositClabe)}>
+                  Copiar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'withdraw' && (
+            <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+              <div className="text-sm bg-white p-3 rounded-md border">
+                <p>Wallet: <a href={`https://sepolia.arbiscan.io/address/${walletAddress}`} target="_blank" rel="noopener noreferrer" className="font-mono text-blue-700 underline break-all hover:text-blue-900">{walletAddress || '-'}</a></p>
+                <p>Balance: <span className="font-mono text-green-700">{mxnbsBalance !== null ? `${mxnbsBalance} MXNBS` : "-"}</span></p>
+              </div>
+              {editing ? (
+                <form onSubmit={handleSubmit} className="space-y-2">
+                  <input
+                    className="input w-full"
+                    type="text"
+                    maxLength={18}
+                    minLength={18}
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    placeholder="Nueva CLABE de retiro de 18 dígitos"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button type="submit" disabled={loading} className="btn btn-primary">
+                      {loading ? "Guardando..." : "Guardar CLABE"}
+                    </button>
+                    <button type="button" onClick={() => setEditing(false)} className="btn btn-secondary">Cancelar</button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center justify-between bg-white p-3 rounded-md border">
+                  <div>
+                    <span className="text-xs text-gray-500">CLABE de retiro</span>
+                    <p className="font-mono text-gray-900">{currentPayoutClabe || "No establecida"}</p>
+                  </div>
+                  <button onClick={() => { setInput(currentPayoutClabe); setEditing(true); }} className="btn btn-secondary text-sm">Editar</button>
+                </div>
+              )}
+              {feedback && (
+                <div className={`mt-2 rounded p-2 text-sm ${feedback.startsWith("CLABE") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{feedback}</div>
+              )}
+              <button
+                className="btn btn-primary w-full mt-4"
+                onClick={() => alert('La función de retiro estará disponible próximamente.')}
+              >
+                Retirar Fondos
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 };
 

@@ -12,6 +12,9 @@ export class PaymentEvent {
   @Column({ nullable: true })
   description?: string;
 
+  @Column({ default: false })
+  is_automatic!: boolean;
+
   @CreateDateColumn()
   created_at!: Date;
 

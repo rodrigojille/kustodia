@@ -1,16 +1,19 @@
 "use client";
-import React, { useState } from "react";
-import { Interface, parseUnits, ZeroAddress } from "ethers";
-import KustodiaEscrow3_0 from "../abis/KustodiaEscrow3_0.json";
+import React, { useState, useEffect, useCallback } from 'react';
+import { ethers } from 'ethers';
+import { authFetch } from '../utils/authFetch';
+import { parseUnits, Interface, ZeroAddress } from 'ethers';
+import KustodiaEscrow3_0 from '../abis/KustodiaEscrow3_0.json';
 import ERC20_ABI from "../abis/ERC20.json";
 import { getPortalInstance } from '../utils/portalInstance';
 
-type FetchOptions = RequestInit & { headers?: Record<string, string> };
-async function authFetch(input: RequestInfo, init: FetchOptions = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers: Record<string, string> = { ...(init.headers || {}) };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  return fetch(input, { ...init, headers });
+// Contract addresses from environment variables
+const ESCROW_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS || '0xeD766f75738C77179448A5BB98850358801B16e3'; // Arbitrum Sepolia
+const MXNB_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS || '0x82B9e52b26A2954E113F94Ff26647754d5a4247D'; // Arbitrum Sepolia
+
+// Validate required contract addresses
+if (!ESCROW_CONTRACT_ADDRESS || !MXNB_CONTRACT_ADDRESS) {
+  console.error('Missing required contract addresses in environment variables');
 }
 
 // Fetch user profile and wallet by email
@@ -21,6 +24,75 @@ async function fetchUserProfile(email: string) {
 }
 
 function PagoFormFull2() {
+  // Direct balance management (like dashboard - no Portal SDK dependency)
+  const [balance, setBalance] = useState<string | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [approvalTxHash, setApprovalTxHash] = useState<string | null>(null);
+  const [escrowTxHash, setEscrowTxHash] = useState<string | null>(null);
+  
+  // Direct balance check function (same as dashboard)
+  const checkBalance = useCallback(async () => {
+    if (!currentUser || !currentUser.wallet_address) {
+      setBalance(null);
+      return;
+    }
+    
+    try {
+      setBalanceLoading(true);
+      setBalanceError(null);
+      
+      // MXNB Arbitrum Sepolia (ERC20) - same as dashboard
+      const arbProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL);
+      const mxnbAddress = process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS;
+      if (!mxnbAddress) {
+        setBalance(null);
+        return;
+      }
+      
+      const erc20Abi = ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)"];
+      const mxnb = new ethers.Contract(mxnbAddress, erc20Abi, arbProvider);
+      const bal = await mxnb.balanceOf(currentUser.wallet_address);
+      let decimals = 18;
+      try { decimals = await mxnb.decimals(); } catch {}
+      setBalance(ethers.formatUnits(bal, decimals));
+    } catch (e) {
+      console.error('Error checking balance:', e);
+      setBalanceError('Error al cargar saldo');
+      setBalance(null);
+    } finally {
+      setBalanceLoading(false);
+    }
+  }, [currentUser]);
+  
+  // Load user on component mount
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+        if (!token) return;
+        
+        const res = await authFetch('/api/users/me');
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentUser(data.user);
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
+      }
+    };
+    
+    loadUser();
+  }, []);
+  
+  // Check balance when user loads
+  useEffect(() => {
+    if (currentUser) {
+      checkBalance();
+    }
+  }, [currentUser, checkBalance]);
+  
   // Recipient state and validation
   const [warrantyPercent, setWarrantyPercent] = useState("");
   const [custodyDays, setCustodyDays] = useState("");
@@ -54,120 +126,250 @@ function PagoFormFull2() {
   const [backendStatus, setBackendStatus] = useState<string | null>(null);
   const [trackerUrl, setTrackerUrl] = useState<string | null>(null);
 
+  // Check Portal balance on component mount
+  useEffect(() => {
+    checkBalance();
+  }, [checkBalance]);
+
+  // Flow 3.0: Web3 payment initiation
+  const handleSubmitWeb3 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recipient || !amount || !description) {
+      setError("Por favor, completa todos los campos requeridos: Email del vendedor, Monto y Descripción.");
+      return;
+    }
+    
+    // Check Portal balance before payment (frontend SDK approach)
+    setError(null);
+    setLoading(true);
+    setBackendStatus("Verificando saldo MXNB...");
+    
+    try {
+      // Refresh balance before payment
+      await checkBalance();
+      
+      // Validate sufficient balance
+      const requiredAmount = parseFloat(amount);
+      const currentBalance = parseFloat(balance || '0');
+      
+      if (currentBalance < requiredAmount) {
+        throw new Error(`Saldo insuficiente. Tienes ${balance} MXNB pero necesitas ${amount} MXNB para este pago.`);
+      }
+      
+      console.log('[Payment] Balance check passed:', { currentBalance, requiredAmount });
+      
+    } catch (balanceErr: any) {
+      setError(balanceErr.message || 'Error al verificar saldo MXNB');
+      setLoading(false);
+      setBackendStatus(null);
+      return;
+    }
+    
+    // FRONTEND PORTAL SDK FLOW: Handle token approval and escrow creation in frontend
+    let approvalTxHash = '';
+    let escrowTxHash = '';
+    
+    try {
+      // Get Portal SDK instance
+      const portal = await getPortalInstance();
+      if (!portal) {
+        throw new Error('Portal SDK not available');
+      }
+      
+      // Step 1: Token Approval via Portal SDK
+      setBackendStatus("Aprobando tokens MXNB via Portal SDK...");
+      
+      const approvalAmount = ethers.parseUnits(amount.toString(), 18);
+      const approveCalldata = new ethers.Interface([
+        'function approve(address spender, uint256 amount) returns (bool)'
+      ]).encodeFunctionData('approve', [process.env.NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS, approvalAmount]);
+      
+      const approvalTx = await portal.ethSendTransaction({
+        to: process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS!,
+        data: approveCalldata,
+        chainId: 'eip155:421614',
+      });
+      
+      approvalTxHash = approvalTx.hash;
+      setApprovalTxHash(approvalTxHash);
+      setBackendStatus("✅ Tokens aprobados. Creando escrow...");
+      
+      // Step 2: Escrow Creation via Portal SDK
+      const custodyAmount = (parseFloat(amount) * parseFloat(warrantyPercent)) / 100;
+      const releaseAmount = parseFloat(amount) - custodyAmount;
+      const custodyDaysInt = parseInt(custodyDays);
+      
+      const escrowCalldata = new ethers.Interface([
+        'function createEscrow(address payer, address seller, uint256 amount, uint256 custodyAmount, uint256 custodyPeriod, uint256 releaseAmount, address token, string memory description) returns (uint256)'
+      ]).encodeFunctionData('createEscrow', [
+        currentUser.wallet_address,
+        recipient, // seller wallet address (should be fetched from recipient email)
+        ethers.parseUnits(amount.toString(), 18),
+        ethers.parseUnits(custodyAmount.toString(), 18),
+        custodyDaysInt,
+        ethers.parseUnits(releaseAmount.toString(), 18),
+        process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS!,
+        description
+      ]);
+      
+      const escrowTx = await portal.ethSendTransaction({
+        to: process.env.NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS!,
+        data: escrowCalldata,
+        chainId: 'eip155:421614',
+      });
+      
+      escrowTxHash = escrowTx.hash;
+      setEscrowTxHash(escrowTxHash);
+      setBackendStatus("✅ Escrow creado. Actualizando registros...");
+      
+      // Step 3: Update backend with real transaction hashes
+      const response = await authFetch('/api/payments/initiate-web3', {
+        method: 'POST',
+        body: JSON.stringify({
+          recipientEmail: recipient,
+          amount,
+          custodyDays,
+          description,
+          warrantyPercent,
+          approvalTxHash,
+          escrowTxHash
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'El servidor rechazó el pago Web3.');
+      }
+
+      const result = await response.json();
+      
+      // Set tracker URL from payment ID
+      setTrackerUrl(`/dashboard/pagos/${result.payment.id}`);
+      setBackendStatus("🎉 ¡Pago Web3 creado y fondeado exitosamente!");
+
+    } catch (err: any) {
+      console.error('Error during secure Web3 payment flow:', err);
+      setError(err.message || 'Ocurrió un error inesperado durante el proceso de pago Web3.');
+      setBackendStatus("Error en el proceso de pago.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Flow 2.0: Wallet-based escrow payment flow using /api/payments/initiate-wallet
-const handleSubmit2 = async (e: React.FormEvent) => {
-  console.log('[DEBUG] handleSubmit2 called');
-  e.preventDefault();
-  setError(null);
-  setLoading(true);
-  setStep(1);
-  setTxHashes({});
-  setBackendStatus(null);
-  setTrackerUrl(null);
-  try {
-    // 1. Preflight: get contract/token info, do NOT create payment
-    const preflightPayload = {
-      recipient_email: recipient,
-      amount,
-      custody_percent: warrantyPercent,
-      custody_days: custodyDays,
-      commission_percent: commissionPercent || undefined,
-      commission_beneficiary_email: commissionBeneficiaryEmail || undefined,
-      description: description || undefined,
-    };
-    const preflightRes = await authFetch('/api/payments/preflight-wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(preflightPayload),
-    });
-    const preflight = await preflightRes.json();
-    if (!preflightRes.ok) throw new Error(preflight.error || "Error preparando la transacción");
-
-    // 2. Portal signature flow (approve and createEscrow)
-    const portal = await getPortalInstance();
-    if (!portal) throw new Error("Portal SDK is only available in the browser");
-    await portal.onReady(() => {});
-    setBackendStatus("Aprobando MXNB...");
-    const erc20Iface = new Interface(ERC20_ABI);
-    const approveData = erc20Iface.encodeFunctionData("approve", [preflight.contract.address, preflight.backendAmount]);
-    let approveTxHash = "";
+  const handleSubmit2 = async (e: React.FormEvent) => {
+    console.log('[DEBUG] handleSubmit2 called');
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    setStep(1);
+    setTxHashes({});
+    setBackendStatus(null);
+    setTrackerUrl(null);
     try {
-      approveTxHash = await portal.ethSendTransaction(preflight.payer_wallet, {
-        from: preflight.payer_wallet,
-        to: preflight.token.address,
-        data: approveData
+      // 1. Preflight: get contract/token info, do NOT create payment
+      const preflightPayload = {
+        recipient_email: recipient,
+        amount,
+        custody_percent: warrantyPercent,
+        timeline: custodyDays,
+        commission_percent: commissionPercent || undefined,
+        commission_beneficiary_email: commissionBeneficiaryEmail || undefined,
+        description: description || undefined,
+      };
+      const preflightRes = await authFetch('/api/payments/preflight-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preflightPayload),
       });
-      setTxHashes(h => ({ ...h, approve: approveTxHash }));
-    } catch (err) {
-      setError('Firma rechazada o fallida en aprobación. El pago no se creó.');
-      setLoading(false);
-      return;
-    }
-    setBackendStatus("Creando escrow en blockchain...");
-    const escrowIface = new Interface(preflight.contract.abi);
-    const createEscrowData = escrowIface.encodeFunctionData("createEscrow", [
-      preflight.recipient_wallet,
-      preflight.commission_wallet || ZeroAddress,
-      preflight.backendAmount,
-      preflight.custody_amount,
-      preflight.custody_days
-    ]);
-    let escrowTxHash = "";
-    try {
-      escrowTxHash = await portal.ethSendTransaction(preflight.payer_wallet, {
-        from: preflight.payer_wallet,
-        to: preflight.contract.address,
-        data: createEscrowData
+      const preflight = await preflightRes.json();
+      if (!preflightRes.ok) throw new Error(preflight.error || "Error preparando la transacción");
+
+      // 2. Portal signature flow (approve and createEscrow)
+      const portal = await getPortalInstance();
+      if (!portal) throw new Error("Portal SDK is only available in the browser");
+      await portal.onReady(() => {});
+      setBackendStatus("Aprobando MXNB...");
+      const erc20Iface = new Interface(ERC20_ABI);
+      const approveData = erc20Iface.encodeFunctionData("approve", [preflight.contract.address, preflight.backendAmount]);
+      let approveTxHash = "";
+      try {
+        approveTxHash = await portal.ethSendTransaction(preflight.payer_wallet, {
+          from: preflight.payer_wallet,
+          to: preflight.token.address,
+          data: approveData
+        });
+        setTxHashes(h => ({ ...h, approve: approveTxHash }));
+      } catch (err) {
+        setError('Firma rechazada o fallida en aprobación. El pago no se creó.');
+        setLoading(false);
+        return;
+      }
+      setBackendStatus("Creando escrow en blockchain...");
+      const escrowIface = new Interface(preflight.contract.abi);
+      const createEscrowData = escrowIface.encodeFunctionData("createEscrow", [
+        preflight.recipient_wallet,
+        preflight.commission_wallet || ZeroAddress,
+        preflight.backendAmount,
+        preflight.custody_amount,
+        preflight.timeline
+      ]);
+      let escrowTxHash = "";
+      try {
+        escrowTxHash = await portal.ethSendTransaction(preflight.payer_wallet, {
+          from: preflight.payer_wallet,
+          to: preflight.contract.address,
+          data: createEscrowData
+        });
+        setTxHashes(h => ({ ...h, escrow: escrowTxHash }));
+      } catch (err) {
+        setError('Firma rechazada o fallida al crear el escrow. El pago no se creó.');
+        setLoading(false);
+        return;
+      }
+      setStep(3);
+
+      // 3. Only now: create the payment in backend
+      setBackendStatus("Notificando hashes a backend...");
+      const createRes = await authFetch('/api/payments/initiate-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...preflightPayload,
+          approveTxHash,
+          escrowTxHash
+        }),
       });
-      setTxHashes(h => ({ ...h, escrow: escrowTxHash }));
-    } catch (err) {
-      setError('Firma rechazada o fallida al crear el escrow. El pago no se creó.');
-      setLoading(false);
-      return;
+      const createData = await createRes.json();
+      if (!createRes.ok) throw new Error(createData.error || "Error creando el pago");
+      setStep(4);
+      setBackendStatus("¡Pago completado!");
+      // --- Remove all legacy or duplicate Portal/payment logic below this line. Only the new flow should remain. ---
+
+      // 6. Optionally notify backend of tx hashes
+      setBackendStatus("Notificando hashes a backend...");
+      await authFetch('/api/payments/update-escrow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: preflight.id,
+          escrowTxHash,
+          approveTxHash,
+        }),
+      });
+
+      setStep(4);
+      setBackendStatus("¡Pago completado!");
+    } catch (err: any) {
+      console.error('[ERROR] handleSubmit2', err);
+      if (typeof err?.message === 'string' && (err.message.includes('portal_signingRequested') || err.message.toLowerCase().includes('signing'))) {
+        setError('No se pudo firmar la transacción en tu wallet. Por favor verifica tu conexión y vuelve a intentar. Si el problema persiste, recarga la página o contacta soporte.');
+      } else {
+        setError(err.message || String(err));
+      }
     }
-    setStep(3);
-
-    // 3. Only now: create the payment in backend
-    setBackendStatus("Notificando hashes a backend...");
-    const createRes = await authFetch('/api/payments/initiate-wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...preflightPayload,
-        approveTxHash,
-        escrowTxHash
-      }),
-    });
-    const createData = await createRes.json();
-    if (!createRes.ok) throw new Error(createData.error || "Error creando el pago");
-    setStep(4);
-    setBackendStatus("¡Pago completado!");
-    // --- Remove all legacy or duplicate Portal/payment logic below this line. Only the new flow should remain. ---
-
-    // 6. Optionally notify backend of tx hashes
-    setBackendStatus("Notificando hashes a backend...");
-    await authFetch('/api/payments/update-escrow', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        paymentId: preflight.id,
-        escrowTxHash,
-        approveTxHash,
-      }),
-    });
-
-    setStep(4);
-    setBackendStatus("¡Pago completado!");
-  } catch (err: any) {
-    console.error('[ERROR] handleSubmit2', err);
-    if (typeof err?.message === 'string' && (err.message.includes('portal_signingRequested') || err.message.toLowerCase().includes('signing'))) {
-      setError('No se pudo firmar la transacción en tu wallet. Por favor verifica tu conexión y vuelve a intentar. Si el problema persiste, recarga la página o contacta soporte.');
-    } else {
-      setError(err.message || String(err));
-    }
-  }
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   // Recipient validation (reuse PagoFormFull logic, but add wallet visibility)
   const validateRecipient = async (email: string) => {
@@ -186,10 +388,16 @@ const handleSubmit2 = async (e: React.FormEvent) => {
       setRecipientValid(data.exists);
       setRecipientVerified(data.verified);
       setRecipientWallet(data.wallet_address || null);
-      if (!data.exists) setRecipientError('El destinatario no está registrado en Kustodia.');
-      else if (!data.verified) setRecipientError('El destinatario no ha verificado su correo.');
-      else if (!data.wallet_address) setRecipientError('El destinatario no tiene wallet configurada.');
-      else setRecipientError(null);
+      if (!data.exists) {
+        setRecipientError('El destinatario no está registrado en Kustodia.');
+      } else if (!data.verified) {
+        setRecipientError('El destinatario no ha verificado su correo.');
+      } else if (!data.wallet_address) {
+        setRecipientError('El destinatario no tiene wallet configurada.');
+      } else {
+        // This is the success case
+        setRecipientError(null);
+      }
     } catch {
       setRecipientError('Error validando destinatario. Intenta de nuevo.');
       setRecipientValid(undefined);
@@ -241,7 +449,7 @@ const handleSubmit2 = async (e: React.FormEvent) => {
   return (
     <form
       className="space-y-4"
-      onSubmit={handleSubmit2}
+      onSubmit={handleSubmitWeb3}
     >
       <div>
         <label className="block font-semibold mb-1">Email del vendedor</label>
@@ -258,9 +466,7 @@ const handleSubmit2 = async (e: React.FormEvent) => {
         {recipientValid && recipientVerified && recipientWallet && !recipientError && (
           <div className="text-green-700 text-sm mt-1">Wallet vendedor: <b>{recipientWallet}</b></div>
         )}
-        {recipientValid && recipientVerified && !recipientWallet && (
-          <div className="text-red-600 text-sm mt-1">El destinatario no tiene wallet configurada.</div>
-        )}
+
         {recipientError && <div className="text-red-600 text-sm mt-1">{recipientError}</div>}
       </div>
       <div>
@@ -270,10 +476,58 @@ const handleSubmit2 = async (e: React.FormEvent) => {
           className="input w-full"
           value={amount}
           onChange={e => setAmount(e.target.value)}
-          min={1}
+          step="0.01"
+          min="0.01"
+          max={balance || undefined}
           required
           placeholder="Monto en MXNBs (ej. 1000)"
+          disabled={loading}
         />
+        
+        {/* Portal Balance Display */}
+        <div className="mt-2 p-3 bg-blue-50 rounded border">
+          <div className="flex justify-between items-center">
+            <div className="text-sm font-medium text-blue-900">
+              Tu saldo MXNB:
+              {balanceLoading ? (
+                <span className="ml-2 text-blue-600">Verificando...</span>
+              ) : balanceError ? (
+                <span className="ml-2 text-red-600">Error al cargar</span>
+              ) : (
+                <span className="ml-2 text-blue-700 font-bold">{balance || '0.00'} MXNB</span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={checkBalance}
+              disabled={balanceLoading}
+              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded disabled:opacity-50"
+            >
+              {balanceLoading ? 'Actualizando...' : 'Actualizar'}
+            </button>
+          </div>
+          {balanceError && (
+            <div className="text-red-600 text-xs mt-1">{balanceError}</div>
+          )}
+          {amount && balance && parseFloat(amount) > parseFloat(balance) && (
+            <div className="text-red-600 text-xs mt-1 font-medium">
+              ⚠️ Saldo insuficiente para este pago
+            </div>
+          )}
+          {balance && parseFloat(balance) > 0 && (
+            <div className="mt-1 flex justify-between text-xs text-gray-500">
+              <span>Disponible: {balance} MXNB</span>
+              <button
+                type="button"
+                className="text-blue-600 hover:underline disabled:opacity-50"
+                onClick={() => setAmount(balance)}
+                disabled={loading || !balance}
+              >
+                Max
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       <div>
         <label className="block font-semibold mb-1">Porcentaje bajo garantía (%)</label>
@@ -396,7 +650,7 @@ const handleSubmit2 = async (e: React.FormEvent) => {
         className="w-full mt-4 text-white rounded-2xl py-3 px-2 text-lg font-semibold shadow bg-blue-600 hover:bg-blue-700"
         disabled={loading}
       >
-        Crear escrow (Flow 2.0 Wallet-to-Wallet)
+        Iniciar Pago Web3
       </button>
       </form>
     );

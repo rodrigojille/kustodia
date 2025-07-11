@@ -33,7 +33,7 @@ const links = [
     ),
   },
   {
-    href: '/dashboard/flow2',
+    href: '/dashboard/web3',
     label: 'Pagos Web3',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -47,6 +47,15 @@ const links = [
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.036.243c-2.182 0-4.22-.543-6.082-1.528a14.257 14.257 0 00-3.273-1.528m-3.273 1.528c-1.862.985-3.9 1.528-6.082 1.528a5.988 5.988 0 01-2.036-.243c-.483-.174-.711-.703-.59-1.202L5.25 4.97m0 0c-1.01.143-2.01.317-3 .52m3-.52l-2.62 10.726c-.122.499.106 1.028.589 1.202a5.988 5.988 0 002.036.243c2.182 0 4.22-.543 6.082-1.528a14.257 14.257 0 013.273-1.528m3.273 1.528c1.862.985 3.9 1.528 6.082 1.528a5.988 5.988 0 002.036.243c.483-.174.711-.703.59-1.202L18.75 4.97M12 4.5v.75m0 15v.75" />
+      </svg>
+    ),
+  },
+  {
+    href: '/dashboard/notificaciones',
+    label: 'Notificaciones',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
       </svg>
     ),
   },
@@ -83,11 +92,12 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     if (token) {
       try {
         const decoded: { role: string } = jwtDecode(token);
         setUserRole(decoded.role);
+        console.log('[SIDEBAR] User role detected:', decoded.role);
       } catch (error) {
         console.error('Failed to decode JWT:', error);
       }
@@ -95,7 +105,7 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
   }, []);
 
   const adminLink = {
-    href: '/admin/dashboard',
+    href: '/dashboard/admin',
     label: 'Panel Admin',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -108,7 +118,7 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
     <>
       {/* Overlay for mobile */}
       <div
-        className={`fixed inset-0 z-40 bg-black bg-opacity-30 transition-opacity md:hidden ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-40 bg-white bg-opacity-80 transition-opacity md:hidden ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
         aria-hidden={!open}
       />

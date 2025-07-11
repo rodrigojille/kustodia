@@ -74,3 +74,54 @@ export const markAsRead = (req: Request, res: Response, next: NextFunction): voi
       next(error);
     });
 };
+
+export const markAllAsRead = (req: Request, res: Response, next: NextFunction): void => {
+  const authReq = req as AuthenticatedRequest;
+  const userId = authReq.user?.id;
+
+  if (!userId) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const notificationRepository = AppDataSource.getRepository(Notification);
+  notificationRepository.update(
+    { user: { id: userId }, read: false },
+    { read: true }
+  )
+    .then(result => {
+      res.json({ message: 'All notifications marked as read', affected: result.affected });
+    })
+    .catch(error => {
+      next(error);
+    });
+};
+
+export const deleteNotification = (req: Request, res: Response, next: NextFunction): void => {
+  const authReq = req as AuthenticatedRequest;
+  const userId = authReq.user?.id;
+  const { id } = req.params;
+
+  if (!userId) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const notificationRepository = AppDataSource.getRepository(Notification);
+  notificationRepository.findOne({ where: { id: parseInt(id), user: { id: userId } } })
+    .then(notification => {
+      if (!notification) {
+        res.status(404).json({ message: 'Notification not found' });
+        return;
+      }
+      return notificationRepository.remove(notification);
+    })
+    .then(deletedNotification => {
+      if (deletedNotification) {
+        res.json({ message: 'Notification deleted successfully' });
+      }
+    })
+    .catch(error => {
+      next(error);
+    });
+};

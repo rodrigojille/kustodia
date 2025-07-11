@@ -1,19 +1,19 @@
-import { getRepository } from 'typeorm';
 import { Payment } from '../entity/Payment';
 import { Escrow } from '../entity/Escrow';
 import { PaymentEvent } from '../entity/PaymentEvent';
-// Removed broken imports for JunoService and EscrowService
+import { redeemMXNbForMXN } from './junoService'; // Correct import for the redemption function
+import AppDataSource from '../ormconfig';
 
 export class PaymentService {
   // 1. Detectar y registrar depósito SPEI
-  async logPaymentEvent(paymentId: number, type: string, description?: string): Promise<void> {
-    const paymentEventRepo = getRepository(require('../entity/PaymentEvent').PaymentEvent);
-    const event = paymentEventRepo.create({ paymentId, type, description });
+  async logPaymentEvent(paymentId: number, type: string, description?: string, isAutomatic: boolean = false): Promise<void> {
+    const paymentEventRepo = AppDataSource.getRepository(PaymentEvent);
+    const event = paymentEventRepo.create({ paymentId, type, description, is_automatic: isAutomatic });
     await paymentEventRepo.save(event);
   }
 
   async processDeposit(clabe: string, amount: number): Promise<Payment | null> {
-    const paymentRepo = getRepository(Payment);
+    const paymentRepo = AppDataSource.getRepository(Payment);
     const payment = await paymentRepo.findOne({ where: { payout_clabe: clabe, amount, status: 'processing' } });
     if (!payment) return null;
     payment.status = 'funded';
@@ -28,7 +28,46 @@ export class PaymentService {
 
   // 2. Redimir y pagar SPEI inicial (fuera de custodia)
   async redeemAndPayout(payment: Payment): Promise<void> {
-    // Llama a Juno para redención y payout, registra eventos
+    const releaseAmount = payment.escrow?.release_amount;
+    if (!releaseAmount || releaseAmount <= 0) {
+      await this.logPaymentEvent(payment.id, 'payout_skipped', 'No release amount to pay out.');
+      return;
+    }
+
+    // Case 1: Handle commission payout if applicable
+    if (payment.commission_amount && payment.commission_amount > 0 && payment.commission_beneficiary_juno_bank_account_id) {
+      const commissionAmount = payment.commission_amount;
+      const sellerAmount = releaseAmount - commissionAmount;
+
+      // Payout 1: Commission
+      try {
+        await redeemMXNbForMXN(commissionAmount, payment.commission_beneficiary_juno_bank_account_id);
+        await this.logPaymentEvent(payment.id, 'commission_paid', `Comisión de ${commissionAmount} MXN pagada a la cuenta de Juno ${payment.commission_beneficiary_juno_bank_account_id}.`);
+      } catch (error) {
+        await this.logPaymentEvent(payment.id, 'commission_failed', `Error al pagar comisión: ${error instanceof Error ? error.message : String(error)}`);
+      }
+
+      // Payout 2: Seller (remaining amount)
+      if (sellerAmount > 0) {
+        try {
+          if (!payment.payout_juno_bank_account_id) throw new Error('Missing Juno bank account ID for seller payout.');
+          await redeemMXNbForMXN(sellerAmount, payment.payout_juno_bank_account_id);
+          await this.logPaymentEvent(payment.id, 'seller_paid', `Pago de ${sellerAmount} MXN pagado a la cuenta de Juno ${payment.payout_juno_bank_account_id}.`);
+        } catch (error) {
+          await this.logPaymentEvent(payment.id, 'seller_payout_failed', `Error al pagar al vendedor: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+
+    } else {
+      // Case 2: No commission, direct payout to seller
+      try {
+        if (!payment.payout_juno_bank_account_id) throw new Error('Missing Juno bank account ID for seller payout.');
+        await redeemMXNbForMXN(releaseAmount, payment.payout_juno_bank_account_id);
+        await this.logPaymentEvent(payment.id, 'seller_paid', `Pago de ${releaseAmount} MXN pagado a la cuenta de Juno ${payment.payout_juno_bank_account_id}.`);
+      } catch (error) {
+        await this.logPaymentEvent(payment.id, 'seller_payout_failed', `Error al pagar al vendedor: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
   }
 
   // 3. Retirar MXNB a bridge wallet
@@ -60,7 +99,7 @@ export class PaymentService {
 
   // 8. Orquestador end-to-end
   async processFullPaymentLifecycle(paymentId: number): Promise<void> {
-    const paymentRepo = getRepository(Payment);
+    const paymentRepo = AppDataSource.getRepository(Payment);
     let payment = await paymentRepo.findOne({ where: { id: paymentId }, relations: ['escrow'] });
     if (!payment) throw new Error('Payment not found');
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import authFetch from '../lib/api';
+import { authFetch } from '../utils/authFetch';
 import Link from 'next/link';
 
 interface Notification {
@@ -20,7 +20,7 @@ const NotificationBell = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await authFetch('/api/notifications');
+      const response = await authFetch('notifications');
       const notifications = await response.json();
       setNotifications(notifications);
     } catch (error) {
@@ -30,7 +30,7 @@ const NotificationBell = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await authFetch('/api/notifications/unread-count');
+      const response = await authFetch('notifications/unread-count');
       const data = await response.json();
       setUnreadCount(data.unreadCount);
     } catch (error) {
@@ -40,7 +40,7 @@ const NotificationBell = () => {
 
   const markAsRead = async (id: number) => {
     try {
-      await authFetch(`/api/notifications/${id}/read`, { method: 'PATCH' });
+      await authFetch(`notifications/${id}/read`, { method: 'PATCH' });
       // Refresh notifications and count after marking as read
       fetchNotifications();
       fetchUnreadCount();

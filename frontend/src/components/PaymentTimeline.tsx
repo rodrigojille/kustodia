@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { authFetch } from '../utils/authFetch';
 
 export type PaymentEvent = {
   id: number;
@@ -10,47 +11,65 @@ export type PaymentEvent = {
 
 function getEventStyle(type: string) {
   switch (type) {
-    // Original English events
+    // Payment initiation
     case "initiated":
-      return { color: "bg-blue-100 text-blue-800", icon: "🚀", label: "Pago iniciado" };
-    case "custody_created":
-      return { color: "bg-green-100 text-green-800", icon: "🔒", label: "Custodia creada" };
-    case "deposit_received":
-      return { color: "bg-blue-100 text-blue-800", icon: "💰", label: "Depósito recibido" };
-    case "redemption_initiated":
-      return { color: "bg-yellow-100 text-yellow-800", icon: "🔄", label: "Redención iniciada" };
-    case "redemption_failed":
-      return { color: "bg-red-100 text-red-700", icon: "❌", label: "Error en redención" };
-    case "redemption_successful":
-      return { color: "bg-green-100 text-green-800", icon: "✅", label: "Redención exitosa" };
-    case "completed":
-      return { color: "bg-blue-100 text-blue-800", icon: "🎉", label: "Pago completado" };
-    
-    // New Spanish automation events
     case "iniciado":
       return { color: "bg-blue-100 text-blue-800", icon: "🚀", label: "Pago iniciado" };
+    
+    // Deposit events
+    case "deposit_received":
     case "deposito_detectado":
-      return { color: "bg-green-100 text-green-800", icon: "💰", label: "Depósito detectado automáticamente" };
     case "deposito_procesado":
-      return { color: "bg-blue-100 text-blue-800", icon: "⚡", label: "Depósito procesado" };
+      return { color: "bg-green-100 text-green-800", icon: "💰", label: "Depósito detectado automáticamente" };
+    
+    // Escrow/Custody events
+    case "custody_created":
     case "escrow_creado":
+    case "escrow_created":
       return { color: "bg-purple-100 text-purple-800", icon: "🔐", label: "Custodia creada en blockchain" };
+    case "starting_escrow_creation":
+    case "escrow_creation_started":
+      return { color: "bg-yellow-100 text-yellow-800", icon: "⚙️", label: "Creando escrow" };
+    case "starting escrow creation":
+    case "escrow_creation_initiated":
+      return { color: "bg-indigo-100 text-indigo-800", icon: "⭐", label: "Creación de custodia" };
     case "custodia_activa":
       return { color: "bg-indigo-100 text-indigo-800", icon: "🛡️", label: "Custodia activa" };
     case "custodia_liberada":
-      return { color: "bg-green-100 text-green-800", icon: "🔓", label: "Custodia liberada automáticamente" };
+    case "custody_released":
+      return { color: "bg-green-100 text-green-800", icon: "🔓", label: "Custodia liberada" };
+    
+    // Redemption events
+    case "redemption_initiated":
+      return { color: "bg-yellow-100 text-yellow-800", icon: "🔄", label: "Redención iniciada" };
+    case "redemption_successful":
+    case "seller_redemption":
+      return { color: "bg-green-100 text-green-800", icon: "✅", label: "Redención exitosa" };
+    case "redemption_failed":
+      return { color: "bg-red-100 text-red-700", icon: "❌", label: "Error en redención" };
     case "mxnb_redimido":
       return { color: "bg-orange-100 text-orange-800", icon: "🪙", label: "MXNB redimido a MXN" };
+    
+    // SPEI events
     case "spei_enviado":
-      return { color: "bg-cyan-100 text-cyan-800", icon: "🏦", label: "SPEI enviado" };
+    case "spei_sent":
+    case "payout_processed":
+    case "spei_redemption_initiated":
+      return { color: "bg-cyan-100 text-cyan-800", icon: "💸", label: "Pago enviado" };
     case "spei_completado":
       return { color: "bg-green-100 text-green-800", icon: "✅", label: "SPEI completado" };
+    
+    // Completion events
+    case "completed":
     case "pago_completado":
-      return { color: "bg-emerald-100 text-emerald-800", icon: "🎉", label: "Pago completado automáticamente" };
+      return { color: "bg-emerald-100 text-emerald-800", icon: "🎉", label: "Pago completado" };
+    
+    // System events
     case "estado_sincronizado":
-      return { color: "bg-gray-100 text-gray-800", icon: "🔄", label: "Estado sincronizado con blockchain" };
+    case "blockchain_sync":
+      return { color: "bg-gray-100 text-gray-800", icon: "🔄", label: "Estado sincronizado" };
     case "error_automatico":
-      return { color: "bg-red-100 text-red-700", icon: "⚠️", label: "Error en procesamiento automático" };
+      return { color: "bg-red-100 text-red-700", icon: "⚠️", label: "Error en procesamiento" };
     
     // Default case
     default:
@@ -65,14 +84,9 @@ export default function PaymentTimeline({ paymentId }: { paymentId: string }) {
   const [automationActive, setAutomationActive] = useState(false);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    
+    // Authentication is handled by authFetch utility via HTTP-only cookies
     // Load payment events
-    fetch(`http://localhost:4000/api/payments/${paymentId}/events`, {
-      headers: {
-        Authorization: token ? `Bearer ${token}` : ""
-      }
-    })
+    authFetch(`payments/${paymentId}/events`)
       .then(res => res.json())
       .then(data => {
         setEvents(data.events || []);
@@ -84,7 +98,7 @@ export default function PaymentTimeline({ paymentId }: { paymentId: string }) {
       });
 
     // Check automation status
-    fetch('http://localhost:4000/api/automation/status')
+    authFetch('automation/status')
       .then(res => res.json())
       .then(data => {
         setAutomationActive(data.success && data.status === 'running');
@@ -106,29 +120,54 @@ export default function PaymentTimeline({ paymentId }: { paymentId: string }) {
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-bold text-gray-800">Línea de tiempo:</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+        <h3 className="text-sm sm:text-base font-bold text-gray-800">Línea de tiempo:</h3>
         {automationActive && (
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <span className="text-xs text-green-600 font-medium">Automatización activa</span>
           </div>
         )}
       </div>
       <div className="space-y-3">
-        {events.map(ev => {
+        {events
+          .filter(ev => {
+            // Filter out MXNB withdrawal events (internal control only)
+            const desc = (ev.description || '').toLowerCase();
+            return !desc.includes('mxnb withdrawal') && 
+                   !desc.includes('withdrawal of') && 
+                   !desc.includes('bridge wallet');
+          })
+          .map(ev => {
           const style = getEventStyle(ev.type);
           
-          // Enhanced description handling
+          // Enhanced description handling with Spanish translations
           let desc = ev.description || style.label;
+          
+          // Translate common English phrases to Spanish
+          desc = desc
+            .replace(/SPEI redemption of/gi, 'Envío de')
+            .replace(/Transaction ID:/gi, 'ID de Transacción:')
+            .replace(/Escrow contract created with ID/gi, 'Contrato de custodia creado con ID')
+            .replace(/Starting escrow creation for custody amount/gi, 'Iniciando creación de custodia por monto');
+          
           let isError = ev.type === "redemption_failed" || ev.type === "error_automatico" || 
                        desc.toLowerCase().includes("error") || desc.toLowerCase().includes("fail");
           
-          // Show automation badge for automated events
+          // Show automation badge for automated events - check both type and description
           const isAutomated = [
             'deposito_detectado', 'custodia_liberada', 'mxnb_redimido', 
-            'spei_enviado', 'spei_completado', 'pago_completado', 'estado_sincronizado'
-          ].includes(ev.type);
+            'spei_enviado', 'spei_completado', 'pago_completado', 'estado_sincronizado',
+            'escrow_created', 'seller_redemption', 'payout_processed', 'spei_sent',
+            'redemption_successful', 'custody_released', 'blockchain_sync',
+            'spei_redemption_initiated', 'escrow_creation_initiated'
+          ].includes(ev.type) || 
+          desc.toLowerCase().includes('automáticamente') ||
+          desc.toLowerCase().includes('automatically') ||
+          desc.toLowerCase().includes('automatic') ||
+          desc.toLowerCase().includes('spei redemption') ||
+          desc.toLowerCase().includes('withdrawal of') ||
+          desc.toLowerCase().includes('starting escrow');
 
           // Try to extract a user-friendly error message (JSON or text)
           if (isError && desc.length > 120) {
@@ -141,21 +180,21 @@ export default function PaymentTimeline({ paymentId }: { paymentId: string }) {
           }
 
           return (
-            <div key={ev.id} className={`flex items-start gap-3 ${isError ? 'bg-red-50' : ''} rounded-lg p-3 border ${isError ? 'border-red-200' : 'border-gray-100'}`}>
-              <span className={`inline-block text-2xl mt-1 ${isAutomated ? 'animate-pulse' : ''}`}>{style.icon}</span>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`inline-block px-3 py-1 rounded-full font-semibold text-xs ${style.color}`}>
+            <div key={ev.id} className={`flex items-start gap-2 sm:gap-3 ${isError ? 'bg-red-50' : ''} rounded-lg p-2 sm:p-3 border ${isError ? 'border-red-200' : 'border-gray-100'}`}>
+              <span className="inline-block text-xl sm:text-2xl mt-1 flex-shrink-0">{style.icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                  <span className={`inline-block px-2 sm:px-3 py-1 rounded-full font-semibold text-xs ${style.color} w-fit`}>
                     {style.label}
                   </span>
                   {isAutomated && (
-                    <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-600 font-medium">
-                      🤖 Automático
+                    <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-600 font-medium w-fit">
+                      🤖 <span className="hidden sm:inline">Automático</span><span className="sm:hidden">Auto</span>
                     </span>
                   )}
                 </div>
                 {desc !== style.label && (
-                  <div className="text-sm text-gray-600 mb-1">{desc}</div>
+                  <div className="text-xs sm:text-sm text-gray-600 mb-1 break-words">{desc}</div>
                 )}
                 <div className="text-gray-400 text-xs">
                   {new Date(ev.created_at).toLocaleString('es-MX', {

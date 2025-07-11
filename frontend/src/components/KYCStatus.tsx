@@ -1,14 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
-
-async function authFetch(input: RequestInfo, init: RequestInit = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers = {
-    ...(init.headers || {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-  return fetch(input, { ...init, headers });
-}
+import React, { useState, useEffect } from "react";
+import { authFetch } from "../utils/authFetch";
 
 export interface KYCStatusProps {
   kycStatus?: string;

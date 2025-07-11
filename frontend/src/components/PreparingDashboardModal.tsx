@@ -8,7 +8,7 @@ interface PreparingDashboardModalProps {
 const PreparingDashboardModal: React.FC<PreparingDashboardModalProps> = ({ open }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-90">
       <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
         <svg className="animate-spin h-8 w-8 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle

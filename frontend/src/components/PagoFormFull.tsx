@@ -3,12 +3,7 @@ import React, { useState } from "react";
 
 // Utility for fetch with auth
 type FetchOptions = RequestInit & { headers?: Record<string, string> };
-async function authFetch(input: RequestInfo, init: FetchOptions = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers: Record<string, string> = { ...(init.headers || {}) };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  return fetch(input, { ...init, headers });
-}
+import { authFetch } from '../utils/authFetch';
 
 export default function PagoFormFull() {
   const [recipient, setRecipient] = useState("");
@@ -123,10 +118,7 @@ export default function PagoFormFull() {
       let user_id = null;
       let payer_email = null;
       try {
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        const resUser = await authFetch(`${process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000"}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const resUser = await authFetch('users/me');
         const userData = await resUser.json();
         if (resUser.ok && userData.user && userData.user.id && userData.user.email) {
           user_id = userData.user.id;
@@ -274,9 +266,9 @@ export default function PagoFormFull() {
           !Boolean(recipientVerified) ||
           (Boolean(commissionPercent) && (!Boolean(commissionBeneficiaryEmail) || !Boolean(commissionerValid) || !Boolean(commissionerVerified)))
         }
-        aria-label="Enviar pago"
+        aria-label="Crear pago"
       >
-        {loading ? 'Enviando...' : 'Enviar pago'}
+        {loading ? 'Creando...' : 'Crear pago'}
       </button>
       {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
 

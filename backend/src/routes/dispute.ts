@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticateJWT } from '../authenticateJWT';
-import { raiseDispute, getDisputeTimeline, adminResolveDispute } from "../controllers/disputeController";
+import { raiseDispute, getDisputeTimeline, adminResolveDispute, getUserDisputes, getDisputeRiskAssessment, getBatchDisputeRiskAssessments } from "../controllers/disputeController";
 import { Dispute } from '../entity/Dispute';
 
 const router = Router();
@@ -12,11 +12,17 @@ function asyncHandler(fn: any) {
   };
 }
 
+// Get user's disputes list
+router.get("/", authenticateJWT, asyncHandler(getUserDisputes));
 // User raises or reapplies for dispute
 router.post("/:escrowId/raise", authenticateJWT, asyncHandler(raiseDispute));
 // Get dispute timeline/tracking
 router.get("/:escrowId/timeline", authenticateJWT, asyncHandler(getDisputeTimeline));
 // Admin resolves dispute
 router.post("/:escrowId/admin-resolve", authenticateJWT, asyncHandler(adminResolveDispute));
+// Get AI risk assessment for a dispute (admin only)
+router.get("/ai-assessment/:disputeId", authenticateJWT, asyncHandler(getDisputeRiskAssessment));
+// Get batch AI risk assessments (admin only)
+router.post("/ai-assessment/batch", authenticateJWT, asyncHandler(getBatchDisputeRiskAssessments));
 
 export default router;

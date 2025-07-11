@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { authFetch } from '../../../utils/authFetch';
 
 export default function NuevoMovimientoPage() {
   const [showCommission, setShowCommission] = useState(false);
@@ -29,10 +30,8 @@ export default function NuevoMovimientoPage() {
       data.commission_beneficiary_email = form.commission_beneficiary_email.value;
     }
     try {
-      const res = await fetch('http://localhost:4000/api/payments/initiate', {
+      const res = await authFetch('payments/initiate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error('Error al iniciar pago');

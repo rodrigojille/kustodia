@@ -63,11 +63,14 @@ export class Payment {
   @Column({ type: "jsonb", nullable: true })
   travel_rule_data?: Record<string, any>;
 
-  @Column({ nullable: true, length: 18 })
+  @Column('varchar', { nullable: true, length: 18 })
   deposit_clabe?: string; // Recipient's deposit CLABE at time of payment
 
-  @Column({ nullable: true, length: 18 })
+  @Column('varchar', { nullable: true, length: 18 })
   payout_clabe?: string; // Seller's payout CLABE at time of payment creation
+
+  @Column('varchar', { nullable: true, length: 36 })
+  payout_juno_bank_account_id?: string; // Seller's Juno bank account UUID at time of payment creation
 
   @Column({ nullable: true, length: 255 })
   juno_payment_id?: string; // The transaction ID of the final Juno payout
@@ -93,10 +96,13 @@ export class Payment {
   @Column({ nullable: true, length: 255 })
   commission_beneficiary_email?: string;
 
-  @Column({ nullable: true, length: 18 })
+  @Column('varchar', { nullable: true, length: 18 })
   commission_beneficiary_clabe?: string;
 
-  @Column({ nullable: true, length: 18 })
+  @Column('varchar', { nullable: true, length: 36 })
+  commission_beneficiary_juno_bank_account_id?: string; // Commission beneficiary's Juno bank account UUID
+
+  @Column('varchar', { nullable: true, length: 18 })
   payer_clabe?: string;
 
   @Column({ default: 'pending' })

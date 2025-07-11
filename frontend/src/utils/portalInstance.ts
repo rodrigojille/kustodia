@@ -9,9 +9,9 @@ export async function getPortalInstance() {
     
     portal = new Portal({
       apiKey: process.env.NEXT_PUBLIC_PORTAL_API_KEY!,
-      autoApprove: true, // This replaces the manual event handler
+      autoApprove: true,
       rpcConfig: { 
-        'eip155:421614': process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL! // Arbitrum Sepolia
+        [process.env.NEXT_PUBLIC_CHAIN_ID!]: 'https://api.portalhq.io/rpc/v1/eip155/421614' // Portal's official Arbitrum Sepolia RPC
       },
     });
     

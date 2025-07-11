@@ -107,7 +107,7 @@ export default function PagoInstruccionesPage({ params }: { params: { id: string
         <div className="mb-4">
   {/* Solo muestra PaymentDetailClient en pantalla normal */}
   <div className="block print:hidden">
-    <PaymentDetailClient id={paymentId} onLoaded={() => setLoading(false)} />
+    <PaymentDetailClient id={paymentId} onLoaded={() => setLoading(false)} showPrintButton={false} />
   </div>
   {/* Solo muestra QrPrintout en el printout/PDF */}
   <div className="hidden print:block">

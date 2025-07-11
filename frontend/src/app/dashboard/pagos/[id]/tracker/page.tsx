@@ -3,14 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NuevoFlujoTracker from "@/components/NuevoFlujoTracker";
 import WalletPaymentTracker from "@/components/WalletPaymentTracker";
-
-// Helper function for authenticated requests
-function authFetch(input: RequestInfo, init: RequestInit = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers: HeadersInit = { ...(init.headers || {}) };
-  if (token) (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
-  return fetch(input, { ...init, headers });
-}
+import { authFetch } from "@/utils/authFetch";
 
 interface Payment {
   id: string;
@@ -66,8 +59,7 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
     const fetchPayment = async () => {
       try {
         setLoading(true);
-        const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-        const response = await authFetch(`${apiBase}/api/payments/${paymentId}`);
+        const response = await authFetch(`payments/${paymentId}`);
         const data = await response.json();
         
         if (!response.ok) {
@@ -104,14 +96,10 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
 
     setIsApproving(true);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-      const response = await authFetch(`${apiBase}/api/payments/${paymentId}/approval`, {
+      const response = await authFetch(`payments/${paymentId}/approve/${type}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          approval_type: type,
-          approved: approved,
-          user_email: currentUser,
           tx_hash: txHash // Include txHash if it exists
         })
       });
@@ -121,13 +109,20 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
         throw new Error(errorData.error || 'Error updating approval');
       }
 
-      const updatedPayment = await response.json();
-      setPayment(updatedPayment.payment || updatedPayment);
+      const result = await response.json();
+      console.log('Approval response:', result);
+      
+      // Refresh payment data from server to get latest state
+      const refreshResponse = await authFetch(`payments/${paymentId}`);
+      const refreshData = await refreshResponse.json();
+      const refreshedPayment = refreshData.payment || refreshData;
+      
+      setPayment(refreshedPayment);
 
-      // Check if both approvals are now true - auto-release
-      if (updatedPayment.payment?.payer_approval && updatedPayment.payment?.payee_approval) {
-        // Trigger auto-release
-        await handleAutoRelease();
+      // Check if both approvals are now true - backend handles auto-release
+      if (refreshedPayment.payer_approval && refreshedPayment.payee_approval) {
+        // Show success message - backend already triggered release
+        alert('¡Ambas partes han aprobado! El pago se está procesando automáticamente.');
       }
 
     } catch (err) {
@@ -143,8 +138,7 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
     if (!payment) return;
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-      const response = await authFetch(`${apiBase}/api/payments/${paymentId}/release`, {
+      const response = await authFetch(`payments/${paymentId}/release`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

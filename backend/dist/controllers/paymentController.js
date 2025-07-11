@@ -3,337 +3,401 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.junoWebhook = exports.initiatePayment = void 0;
-const ormconfig_1 = __importDefault(require("../ormconfig"));
+exports.junoWebhook = exports.releaseWeb3Payment = exports.fundWeb3Escrow = exports.initiateWeb3Payment = exports.getPaymentById = exports.getPayments = void 0;
+const ormconfig_1 = __importDefault(require("../ormconfig")); // CORRECTED IMPORT PATH
 const Payment_1 = require("../entity/Payment");
-const Escrow_1 = require("../entity/Escrow");
 const User_1 = require("../entity/User");
+const Escrow_1 = require("../entity/Escrow");
 const PaymentEvent_1 = require("../entity/PaymentEvent");
-const escrowService_1 = require("../services/escrowService");
 const JunoTransaction_1 = require("../entity/JunoTransaction");
-const junoService_1 = require("../services/junoService");
 const notificationService_1 = require("../services/notificationService");
-const initiatePayment = async (req, res) => {
+const escrowV3Service_1 = require("../services/escrowV3Service");
+// Helper function to create a payment event
+const createPaymentEvent = async (payment, type, description, isAutomatic = false) => {
     const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
+    const newEvent = new PaymentEvent_1.PaymentEvent();
+    newEvent.payment = payment;
+    newEvent.type = type;
+    newEvent.description = description;
+    newEvent.is_automatic = isAutomatic;
+    await paymentEventRepo.save(newEvent);
+};
+// Helper function to create payment notifications (placeholder)
+const createPaymentNotifications = async (paymentId, type) => {
+    console.log(`Payment notification: ${type} for payment ${paymentId}`);
+    // TODO: Implement actual notification logic
+};
+// Helper function to redeem MXNb for MXN (placeholder)
+const redeemMXNbForMXN = async (amount, clabe) => {
+    console.log(`Redeeming ${amount} MXNb for MXN to CLABE ${clabe}`);
+    // TODO: Implement actual redemption logic
+};
+// Helper function to handle permanent CLABE deposits (placeholder)
+const handlePermanentClabeDeposit = async (user, amount) => {
+    console.log(`Handling permanent CLABE deposit for user ${user.id}, amount: ${amount}`);
+    // TODO: Implement actual deposit handling logic
+};
+// GET all payments for the authenticated user
+const getPayments = async (req, res) => {
     try {
-        const { user_id, recipient_email, amount, currency, description, custody_percent, custody_period, travel_rule_data, payment_type } = req.body; // Re-add payment_type
-        // Basic validation
-        if (!user_id || !recipient_email || !amount || !currency || !custody_percent || !custody_period) {
-            res.status(400).json({ error: "Missing required fields." });
-            return;
-        }
-        // Optional: validate travel_rule_data structure if present
-        if (travel_rule_data && typeof travel_rule_data !== 'object') {
-            res.status(400).json({ error: "travel_rule_data must be an object if provided." });
-            return;
-        }
-        const userRepo = ormconfig_1.default.getRepository(User_1.User);
         const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
-        const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
-        const user = await userRepo.findOne({ where: { id: user_id } });
-        if (!user) {
-            res.status(404).json({ error: "User not found" });
-            return;
-        }
-        // Fetch recipient user for payout_clabe
-        const recipientUser = await userRepo.findOne({ where: { email: recipient_email } });
-        if (!recipientUser) {
-            res.status(404).json({ error: "Recipient not found" });
-            return;
-        }
-        // **CREATE UNIQUE CLABE FOR THIS PAYMENT** - Key change for per-payment CLABE
-        let paymentClabe;
-        try {
-            paymentClabe = await (0, junoService_1.createJunoClabe)();
-            console.log(`✅ Created unique CLABE for payment: ${paymentClabe}`);
-        }
-        catch (clabeErr) {
-            console.error('❌ Failed to create payment CLABE:', clabeErr);
-            res.status(500).json({ error: "Failed to create payment CLABE", details: clabeErr });
-            return;
-        }
-        // Buscar payout_clabe del beneficiario de comisión si aplica
-        let commission_beneficiary_clabe = undefined;
-        if (req.body.commission_beneficiary_email) {
-            const beneficiaryUser = await userRepo.findOne({ where: { email: req.body.commission_beneficiary_email } });
-            if (!beneficiaryUser || !beneficiaryUser.payout_clabe) {
-                res.status(400).json({ error: 'El beneficiario de comisión debe estar registrado y tener CLABE de retiro' });
-                return;
-            }
-            commission_beneficiary_clabe = beneficiaryUser.payout_clabe;
-        }
-        // Create Payment record with UNIQUE payment CLABE (not recipient's deposit_clabe)
-        const payment = paymentRepo.create({
-            user: user, // typeorm expects entity or id
-            recipient_email,
-            payer_email: req.body.payer_email || user.email, // guarda el email del pagador si viene, si no el del usuario
-            amount: Math.trunc(Number(amount)),
-            currency,
-            description,
-            status: "pending",
-            vertical_type: req.body.vertical_type || null, // Add vertical type
-            release_conditions: req.body.release_conditions || null, // Add release conditions
-            reference: '', // will update after save
-            deposit_clabe: paymentClabe, // UNIQUE CLABE PER PAYMENT
-            payout_clabe: recipientUser.payout_clabe || undefined,
-            commission_beneficiary_name: req.body.commission_beneficiary_name,
-            commission_beneficiary_email: req.body.commission_beneficiary_email,
-            commission_beneficiary_clabe,
-            // Store Travel Rule compliance data if provided
-            travel_rule_data: travel_rule_data || null,
-            payment_type: payment_type || 'traditional', // Default to traditional if not provided
-        });
-        await paymentRepo.save(payment);
-        // Registrar evento: Pago iniciado
-        await paymentEventRepo.save(paymentEventRepo.create({
-            paymentId: payment.id,
-            type: 'initiated',
-            description: `💳 Pago iniciado - CLABE única: ${paymentClabe}`
-        }));
-        // Set reference to payment.id (string) and update
-        payment.reference = String(payment.id);
-        await paymentRepo.save(payment);
-        // Only create DB records, do NOT interact with the smart contract yet
-        const custodyPercent = Number(custody_percent);
-        const custodyPeriod = Number(custody_period);
-        const custodyAmount = Number(amount) * (custodyPercent / 100);
-        const releaseAmount = Number(amount) - custodyAmount;
-        const escrow = escrowRepo.create({
-            payment: payment,
-            smart_contract_escrow_id: "", // Will be set after webhook
-            custody_percent: custodyPercent,
-            custody_amount: Math.trunc(custodyAmount),
-            release_amount: Math.trunc(releaseAmount),
-            status: "pending",
-            dispute_status: "none",
-            custody_end: new Date(Date.now() + custodyPeriod * 24 * 60 * 60 * 1000)
-        });
-        await escrowRepo.save(escrow);
-        // NO crear evento de custodia aquí. Se creará cuando se fondeen los fondos.
-        payment.status = "pending";
-        payment.escrow = escrow;
-        await paymentRepo.save(payment);
-        console.log(`✅ Payment created with unique CLABE: ${paymentClabe} | Payment ID: ${payment.id}`);
-        res.json({
-            success: true,
-            payment: {
-                ...payment,
-                deposit_clabe: paymentClabe // Ensure CLABE is returned to frontend
-            },
-            escrow,
-            clabe: paymentClabe // Explicit CLABE for frontend
-        });
-        return;
+        const userId = req.user.id;
+        const payments = await paymentRepo.createQueryBuilder("payment")
+            .leftJoinAndSelect("payment.escrows", "escrow")
+            .leftJoin("payment.payer", "payer")
+            .leftJoin("payment.recipient", "recipient")
+            .addSelect(["payer.id", "payer.email", "recipient.id", "recipient.email"])
+            .where("payment.payerId = :userId OR payment.recipientId = :userId", { userId })
+            .orderBy("payment.created_at", "DESC")
+            .getMany();
+        res.status(200).json(payments);
     }
-    catch (err) {
-        console.error('❌ Payment initiation failed:', err);
-        res.status(500).json({ error: "Payment initiation failed", details: String(err) });
-        return;
+    catch (error) {
+        console.error("Error fetching payments:", error);
+        res.status(500).json({ message: 'Internal server error while fetching payments.' });
     }
 };
-exports.initiatePayment = initiatePayment;
-const junoWebhook = async (req, res) => {
-    console.log('==== Webhook recibido de Juno ====');
-    console.log('Body:', req.body);
-    const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
+exports.getPayments = getPayments;
+// GET a single payment by ID
+const getPaymentById = async (req, res) => {
     try {
-        const { transaction_id, amount: webhookAmount, status, clabe: webhookClabe } = req.body;
-        if (!transaction_id || !webhookAmount || !webhookClabe) {
-            res.status(400).json({ error: 'Missing required fields: transaction_id, amount, or clabe' });
-            return;
-        }
         const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
-        const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
-        const payment = await paymentRepo.findOne({
-            where: {
-                deposit_clabe: webhookClabe,
-                // Use a range to avoid floating point issues with amount
-                // amount: Number(webhookAmount),
-                status: 'pending',
-            },
-            relations: ['user', 'escrow'] // Eagerly load user and escrow
-        });
+        const paymentId = parseInt(req.params.id, 10);
+        const userId = req.user.id;
+        const payment = await paymentRepo.createQueryBuilder("payment")
+            .leftJoinAndSelect("payment.escrows", "escrow")
+            .leftJoinAndSelect("payment.events", "event")
+            .leftJoin("payment.payer", "payer")
+            .leftJoin("payment.recipient", "recipient")
+            .addSelect(["payer.id", "payer.email", "recipient.id", "recipient.email"])
+            .where("payment.id = :paymentId", { paymentId })
+            .andWhere("(payment.payerId = :userId OR payment.recipientId = :userId)", { userId })
+            .orderBy("event.created_at", "ASC")
+            .getOne();
         if (!payment) {
-            console.log(`[JUNO] No payment found for CLABE ${webhookClabe}. Ignoring webhook.`);
-            res.status(200).json({ message: 'No payment found for this CLABE.' });
-            return;
+            return res.status(404).json({ message: 'Payment not found or you do not have permission to view it.' });
         }
-        const recipientUser = await ormconfig_1.default.getRepository(User_1.User).findOne({ where: { email: payment.recipient_email } });
+        res.status(200).json(payment);
+    }
+    catch (error) {
+        console.error(`Error fetching payment with ID ${req.params.id}:`, error);
+        res.status(500).json({ message: 'Internal server error while fetching the payment.' });
+    }
+};
+exports.getPaymentById = getPaymentById;
+// POST a new Web3 payment (on-chain)
+const initiateWeb3Payment = async (req, res) => {
+    const queryRunner = ormconfig_1.default.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+        const { recipientEmail, amount, custodyDays, description, warrantyPercent, approvalTxHash, escrowTxHash } = req.body;
+        const payerId = req.user?.id;
+        // Validate input
+        if (!recipientEmail || !amount || !custodyDays || !description || warrantyPercent === undefined) {
+            return res.status(400).json({ message: 'Missing required fields: recipientEmail, amount, custodyDays, description, warrantyPercent' });
+        }
+        // Parse and validate warrantyPercent with default
+        const custodyPercent = warrantyPercent !== undefined ? parseFloat(warrantyPercent) : 0;
+        if (isNaN(custodyPercent) || custodyPercent < 0 || custodyPercent > 100) {
+            return res.status(400).json({ message: 'Warranty percentage must be a valid number between 0 and 100.' });
+        }
+        // Parse and validate custodyDays with default
+        const custodyDaysNum = custodyDays !== undefined ? parseInt(custodyDays, 10) : 30;
+        if (isNaN(custodyDaysNum) || custodyDaysNum < 0) {
+            return res.status(400).json({ message: 'Custody days must be a valid positive number.' });
+        }
+        const userRepo = queryRunner.manager.getRepository(User_1.User);
+        const paymentRepo = queryRunner.manager.getRepository(Payment_1.Payment);
+        const escrowRepo = queryRunner.manager.getRepository(Escrow_1.Escrow);
+        const payer = await userRepo.findOneBy({ id: payerId });
+        const recipient = await userRepo.findOneBy({ email: recipientEmail });
+        if (!payer) {
+            return res.status(404).json({ message: 'Payer not found.' });
+        }
+        if (!recipient) {
+            return res.status(404).json({ message: 'Recipient not found.' });
+        }
+        if (!payer.wallet_address || !recipient.wallet_address) {
+            return res.status(400).json({ message: 'Both payer and recipient must have a wallet address for Web3 payments.' });
+        }
+        if (!payer.portal_share) {
+            return res.status(400).json({ message: 'Payer must have portal share for Web3 payments.' });
+        }
+        const newPayment = new Payment_1.Payment();
+        newPayment.user = payer; // The payer/buyer
+        newPayment.seller = recipient; // The recipient/seller
+        newPayment.payer_email = payer.email; // Required field
+        newPayment.recipient_email = recipient.email; // Required field - was missing!
+        newPayment.amount = parseFloat(amount);
+        newPayment.description = description;
+        newPayment.status = 'pending_escrow';
+        newPayment.payment_type = 'web3';
+        newPayment.reference = `WEB3-${Date.now()}`;
+        const savedPayment = await paymentRepo.save(newPayment);
+        const custodyAmount = (parseFloat(amount) * custodyPercent) / 100;
+        const releaseAmount = parseFloat(amount) - custodyAmount;
+        const custodyEnd = new Date();
+        custodyEnd.setDate(custodyEnd.getDate() + custodyDaysNum);
+        const newEscrow = new Escrow_1.Escrow();
+        newEscrow.payment = savedPayment;
+        newEscrow.custody_percent = custodyPercent;
+        newEscrow.custody_amount = custodyAmount;
+        newEscrow.release_amount = releaseAmount;
+        newEscrow.custody_end = custodyEnd;
+        newEscrow.status = 'pending_creation';
+        const savedEscrow = await escrowRepo.save(newEscrow);
+        // Real Portal MPC token approval step
+        const MXNB_CONTRACT_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS;
+        const ESCROW_CONTRACT_ADDRESS = process.env.KUSTODIA_ESCROW_V3_ADDRESS;
+        if (!MXNB_CONTRACT_ADDRESS || !ESCROW_CONTRACT_ADDRESS) {
+            throw new Error('Missing contract addresses in environment variables');
+        }
+        // Create ERC-20 approve transaction calldata
+        // Store real transaction hashes from frontend Portal SDK operations
+        if (approvalTxHash) {
+            console.log(`[Payment] Storing approval transaction hash: ${approvalTxHash}`);
+            savedPayment.blockchain_tx_hash = approvalTxHash;
+            await createPaymentEvent(savedPayment, 'token_approved', `MXNB token approval completed via Portal SDK. Tx: ${approvalTxHash}`);
+        }
+        if (escrowTxHash) {
+            console.log(`[Payment] Storing escrow transaction hash: ${escrowTxHash}`);
+            savedEscrow.blockchain_tx_hash = escrowTxHash;
+            savedEscrow.status = 'active';
+            await createPaymentEvent(savedPayment, 'escrow_created', `On-chain escrow created via Portal SDK. Tx: ${escrowTxHash}`);
+        }
+        else {
+            savedEscrow.status = 'pending_creation';
+        }
+        await escrowRepo.save(savedEscrow);
+        console.log(`[Payment] Payment and escrow records updated with real transaction hashes.`);
+        savedPayment.status = escrowTxHash ? 'escrow_created' : 'pending_escrow';
+        await paymentRepo.save(savedPayment);
+        await createPaymentEvent(savedPayment, 'payment_initiated', `Payment of ${amount} initiated by ${payer.email} to ${recipient.email}.`);
+        await createPaymentEvent(savedPayment, 'escrow_created', `On-chain escrow created with ID: ${savedEscrow.id}.`);
+        await queryRunner.commitTransaction();
+        console.log(`[Payment] Web3 payment initiated successfully. ID: ${savedPayment.id}`);
+        // Return payment with tracker URL
+        res.status(201).json({
+            message: escrowTxHash ? 'Web3 payment and escrow created successfully via Portal SDK.' : 'Web3 payment initiated. Escrow creation pending.',
+            payment: savedPayment,
+            escrow: savedEscrow,
+            trackerUrl: `/dashboard/pagos/${savedPayment.id}`,
+            approvalTxHash: approvalTxHash || null,
+            escrowTxHash: escrowTxHash || null
+        });
+    }
+    catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error initiating Web3 payment:", error);
+        res.status(500).json({ message: 'Internal server error during Web3 payment initiation.' });
+    }
+    finally {
+        await queryRunner.release();
+    }
+};
+exports.initiateWeb3Payment = initiateWeb3Payment;
+// POST to fund a Web3 escrow
+const fundWeb3Escrow = async (req, res) => {
+    const { paymentId } = req.body;
+    const funderId = req.user.id;
+    // Get user with portal_share from database
+    const userRepo = ormconfig_1.default.getRepository(User_1.User);
+    const userWithPortalShare = await userRepo.findOne({ where: { id: req.user.id } });
+    if (!userWithPortalShare?.portal_share) {
+        return res.status(400).json({ message: 'User portal share not found' });
+    }
+    const userPortalShare = userWithPortalShare.portal_share;
+    if (!paymentId) {
+        return res.status(400).json({ message: 'Payment ID is required.' });
+    }
+    if (!userPortalShare) {
+        return res.status(400).json({ message: 'User Portal share is required for funding.' });
+    }
+    const queryRunner = ormconfig_1.default.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+        const paymentRepo = queryRunner.manager.getRepository(Payment_1.Payment);
+        const escrowRepo = queryRunner.manager.getRepository(Escrow_1.Escrow);
+        const userRepo = queryRunner.manager.getRepository(User_1.User);
+        const payment = await paymentRepo.findOne({ where: { id: paymentId }, relations: ["payer", "recipient", "escrows"] });
+        if (!payment) {
+            return res.status(404).json({ message: 'Payment not found.' });
+        }
+        if (payment.user.id !== funderId) {
+            return res.status(403).json({ message: 'You are not authorized to fund this payment.' });
+        }
+        if (payment.status !== 'escrow_created') {
+            return res.status(400).json({ message: `Payment cannot be funded in its current state: ${payment.status}` });
+        }
         const escrow = payment.escrow;
-        if (!escrow) {
-            console.error(`[Webhook] Escrow record not found for payment ID ${payment.id}`);
-            res.status(404).json({ error: 'Escrow record not found for payment' });
-            return;
+        if (!escrow || !escrow.smart_contract_escrow_id) {
+            return res.status(400).json({ message: 'Escrow not properly created on-chain.' });
         }
-        // Mark that we are processing this payment
-        payment.status = 'processing';
+        const funder = await userRepo.findOneBy({ id: funderId });
+        if (!funder || !funder.wallet_address) {
+            return res.status(400).json({ message: 'Funder wallet address not found.' });
+        }
+        const { txHash } = await (0, escrowV3Service_1.fundV3Escrow)({
+            funderAddress: funder.wallet_address,
+            escrowId: escrow.smart_contract_escrow_id,
+            amount: payment.amount.toString(),
+            userPortalShare: userPortalShare
+        });
+        escrow.status = 'funded';
+        escrow.blockchain_tx_hash = txHash;
+        await escrowRepo.save(escrow);
+        payment.status = 'in_escrow';
         await paymentRepo.save(payment);
-        // Registrar evento: Depósito recibido
-        await paymentEventRepo.save(paymentEventRepo.create({
-            paymentId: payment.id,
-            type: 'deposit_received',
-            description: `✅ Depósito de ${webhookAmount} MXN recibido. CLABE: ${webhookClabe}.`
-        }));
-        // 1. Payout Immediate Release Amount (if any)
-        const recipientClabe = payment.payout_clabe;
-        if (escrow.release_amount > 0 && recipientClabe) {
-            console.log(`[Juno] Attempting to pay out release amount of ${escrow.release_amount} to CLABE ${recipientClabe}`);
-            try {
-                const payoutResult = await (0, junoService_1.redeemMXNbForMXN)(Number(escrow.release_amount), recipientClabe);
-                console.log(`[Juno] SUCCESS: Payout for release amount sent. Details: ${JSON.stringify(payoutResult)}`);
-                await paymentEventRepo.save(paymentEventRepo.create({
-                    paymentId: payment.id,
-                    type: 'payout_released',
-                    description: `💸 Monto de liberación inmediata (${escrow.release_amount} MXN) pagado a ${recipientClabe}.`
-                }));
-            }
-            catch (payoutErr) {
-                console.error('❌ [Juno] FAILED to send release payment:', payoutErr);
-                await paymentEventRepo.save(paymentEventRepo.create({
-                    paymentId: payment.id,
-                    type: 'payout_failed',
-                    description: `❌ Falló el pago del monto de liberación inmediata: ${String(payoutErr)}`
-                }));
-                // Decide if this is a critical failure. For now, we will proceed to escrow the rest.
-            }
+        await createPaymentEvent(payment, 'escrow_funded', `Escrow funded by ${funder.email}. Tx: ${txHash}.`);
+        await queryRunner.commitTransaction();
+        await (0, notificationService_1.createNotification)(payment.user.id, `Your payment of ${payment.amount} has been successfully funded.`, `/payments/${payment.id}`, 'success', payment.id, 'payment');
+        await (0, notificationService_1.createNotification)(payment.seller.id, `The payment from ${payment.user.email} is now funded and in escrow.`, `/payments/${payment.id}`, 'success', payment.id, 'payment');
+        res.status(200).json({ message: 'Escrow funded successfully.', txHash });
+    }
+    catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error funding Web3 escrow:", error);
+        res.status(500).json({ message: 'Internal server error during escrow funding.' });
+    }
+    finally {
+        await queryRunner.release();
+    }
+};
+exports.fundWeb3Escrow = fundWeb3Escrow;
+// POST to release a Web3 escrow
+const releaseWeb3Payment = async (req, res) => {
+    const { paymentId } = req.body;
+    const releasingUserId = req.user.id;
+    if (!paymentId) {
+        return res.status(400).json({ message: 'Payment ID is required.' });
+    }
+    const queryRunner = ormconfig_1.default.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+        const paymentRepo = queryRunner.manager.getRepository(Payment_1.Payment);
+        const escrowRepo = queryRunner.manager.getRepository(Escrow_1.Escrow);
+        const payment = await paymentRepo.findOne({ where: { id: paymentId }, relations: ["payer", "recipient", "escrows"] });
+        if (!payment) {
+            return res.status(404).json({ message: 'Payment not found.' });
         }
-        // 2. Create On-Chain Escrow for Custody Amount (if any)
-        if (escrow.custody_amount > 0) {
-            let escrowIdOrTx;
-            try {
-                const { ethers } = require("ethers");
-                const custodyAmountStr = Math.trunc(escrow.custody_amount).toString();
-                const custodyAmountBN = ethers.utils.parseUnits(custodyAmountStr, 18); // Assuming 18 decimals for the token
-                const custodyPeriod = Math.floor((escrow.custody_end.getTime() - Date.now()) / 1000);
-                if (custodyPeriod <= 0) {
-                    throw new Error(`Custody end time must be in the future. It is currently ${custodyPeriod}s.`);
-                }
-                const payer = process.env.ESCROW_BRIDGE_WALLET;
-                const payee = process.env.ESCROW_BRIDGE_WALLET;
-                const token = process.env.MOCK_ERC20_ADDRESS;
-                const vertical = payment.vertical_type || '';
-                const clabe = payment.deposit_clabe || '';
-                const conditions = payment.release_conditions || '';
-                console.log(`[Escrow] Creating on-chain escrow with V2 params...`);
-                escrowIdOrTx = await (0, escrowService_1.createEscrow)({
-                    payer,
-                    payee,
-                    token,
-                    amount: custodyAmountBN.toString(), // Pass as string to match service signature
-                    deadline: custodyPeriod,
-                    vertical,
-                    clabe,
-                    conditions
-                });
-                if (typeof escrowIdOrTx === 'object' && escrowIdOrTx !== null) {
-                    escrow.smart_contract_escrow_id = escrowIdOrTx.escrowId || escrowIdOrTx.txHash || '';
-                    escrow.blockchain_tx_hash = escrowIdOrTx.txHash || '';
-                    payment.blockchain_tx_hash = escrowIdOrTx.txHash || '';
-                }
-                else {
-                    escrow.smart_contract_escrow_id = String(escrowIdOrTx);
-                }
-                escrow.status = 'active';
-                await escrowRepo.save(escrow);
-                console.log(`[Escrow] SUCCESS: Created on-chain escrow. EscrowID: ${escrow.smart_contract_escrow_id}, TxHash: ${escrow.blockchain_tx_hash}`);
-                await paymentEventRepo.save(paymentEventRepo.create({
-                    paymentId: payment.id,
-                    type: 'escrow_created',
-                    description: `🔒 Custodia creada en blockchain. ID: ${escrow.smart_contract_escrow_id}`
-                }));
-            }
-            catch (escrowErr) {
-                console.error('❌ FAILED to create on-chain escrow:', String(escrowErr));
-                payment.status = 'failed';
-                escrow.status = 'failed';
-                await escrowRepo.save(escrow);
-                await paymentEventRepo.save(paymentEventRepo.create({
-                    paymentId: payment.id,
-                    type: 'escrow_failed',
-                    description: `❌ Falló la creación de la custodia en blockchain: ${String(escrowErr)}`
-                }));
-            }
+        if (payment.user.id !== releasingUserId && payment.seller.id !== releasingUserId) {
+            return res.status(403).json({ message: 'You are not a party to this payment.' });
         }
-        // Finalize payment status
-        if (payment.status !== 'failed') {
+        if (payment.status !== 'in_escrow') {
+            return res.status(400).json({ message: `Payment cannot be released in its current state: ${payment.status}` });
+        }
+        const escrow = payment.escrow;
+        if (!escrow || !escrow.smart_contract_escrow_id) {
+            return res.status(400).json({ message: 'Escrow not properly created on-chain.' });
+        }
+        if (new Date() < new Date(escrow.custody_end)) {
+            return res.status(400).json({ message: 'Custody period has not ended yet.' });
+        }
+        const { txHash } = await (0, escrowV3Service_1.releaseV3Escrow)(escrow.smart_contract_escrow_id);
+        escrow.status = 'released';
+        escrow.blockchain_tx_hash = txHash;
+        await escrowRepo.save(escrow);
+        payment.status = 'completed';
+        await paymentRepo.save(payment);
+        await createPaymentEvent(payment, 'escrow_released', `Escrow released. Tx: ${txHash}.`);
+        await queryRunner.commitTransaction();
+        await (0, notificationService_1.createNotification)(payment.user.id, `The payment to ${payment.seller.email} has been released from escrow.`, `/payments/${payment.id}`, 'success', payment.id, 'payment');
+        await (0, notificationService_1.createNotification)(payment.seller.id, `Funds from ${payment.user.email} have been released to you.`, `/payments/${payment.id}`, 'success', payment.id, 'payment');
+        res.status(200).json({ message: 'Escrow released successfully.', txHash });
+    }
+    catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error releasing Web3 escrow:", error);
+        if (error instanceof Error && error.message.includes("Custody period not over")) {
+            return res.status(400).json({ message: "Release failed: The custody period has not yet ended." });
+        }
+        res.status(500).json({ message: 'Internal server error during escrow release.' });
+    }
+    finally {
+        await queryRunner.release();
+    }
+};
+exports.releaseWeb3Payment = releaseWeb3Payment;
+// Juno webhook handler for processing bank deposits
+const junoWebhook = async (req, res) => {
+    try {
+        const { clabe, amount, transaction_id } = req.body;
+        const webhookClabe = clabe;
+        const webhookAmount = amount;
+        const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
+        const userRepo = ormconfig_1.default.getRepository(User_1.User);
+        const junoTxRepo = ormconfig_1.default.getRepository(JunoTransaction_1.JunoTransaction);
+        const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
+        // --- Flow 1: Check for a temporary payment CLABE ---
+        const payment = await paymentRepo.findOne({
+            where: { deposit_clabe: webhookClabe, status: 'pending' },
+            relations: ['user', 'escrow']
+        });
+        if (payment) {
+            console.log(`[JUNO] Processing webhook for payment ID: ${payment.id}, CLABE: ${webhookClabe}`);
+            const webhookTransactionId = transaction_id;
+            let junoTransaction = await junoTxRepo.findOne({ where: { reference: webhookTransactionId } });
+            if (!junoTransaction) {
+                console.log(`[junoWebhook] JunoTransaction not found for reference ${webhookTransactionId}. Creating a new one.`);
+                junoTransaction = new JunoTransaction_1.JunoTransaction();
+                junoTransaction.reference = webhookTransactionId;
+                junoTransaction.amount = parseFloat(webhookAmount);
+                junoTransaction.type = 'DEPOSIT';
+                junoTransaction.status = 'COMPLETED';
+                await junoTxRepo.save(junoTransaction);
+            }
+            else {
+                console.log(`[junoWebhook] Found existing JunoTransaction: ${junoTransaction.id}`);
+            }
+            // Assign the entity to the relation
+            payment.junoTransaction = junoTransaction;
+            // Also populate the legacy field for compatibility
+            payment.transaction_id = webhookTransactionId;
             payment.status = 'funded';
-            // Create notifications for both users
-            if (payment.user) {
-                (0, notificationService_1.createNotification)(payment.user.id, `Tu pago de $${payment.amount} ha sido fondeado.`, `/dashboard/pagos/${payment.id}`);
-            }
-            if (recipientUser) {
-                (0, notificationService_1.createNotification)(recipientUser.id, `Has recibido un pago de $${payment.amount}.`, `/dashboard/pagos/${payment.id}`);
-            }
-        }
-        // If the payment is fully funded and has a valid payout CLABE, redeem the funds
-        if (payment.status === 'funded' && payment.payout_clabe) {
-            try {
-                console.log(`[JUNO] Initiating redemption for payment ${payment.id}...`);
-                const redemptionResult = await (0, junoService_1.redeemMXNbForMXN)(payment.amount, payment.payout_clabe);
-                console.log(`[JUNO] Redemption successful for payment ${payment.id}:`, redemptionResult);
-                // Update payment status to 'completed'
-                payment.status = 'completed';
-                // Notify both users that the payment is complete
-                if (payment.user) {
-                    (0, notificationService_1.createNotification)(payment.user.id, `Tu pago de $${payment.amount} ha sido completado y enviado.`, `/dashboard/pagos/${payment.id}`);
+            await paymentRepo.save(payment);
+            await paymentEventRepo.save(paymentEventRepo.create({
+                paymentId: payment.id,
+                type: 'deposit_received',
+                description: `💸 Depósito recibido en CLABE. ID de Juno: ${transaction_id}`
+            }));
+            // Logic for handling escrow, notifications, and potential payout
+            payment.status = 'funded';
+            await createPaymentNotifications(payment.id, 'funds_received');
+            // If the payment has a payout_clabe, it implies direct transfer, not escrow
+            if (payment.payout_clabe) {
+                try {
+                    console.log(`[JUNO] Redeeming funds for payment ${payment.id}`);
+                    await redeemMXNbForMXN(payment.amount, payment.payout_clabe);
+                    payment.status = 'completed';
+                    await createPaymentNotifications(payment.id, 'payment_released');
                 }
-                if (recipientUser) {
-                    (0, notificationService_1.createNotification)(recipientUser.id, `El pago de $${payment.amount} ha sido liberado a tu cuenta.`, `/dashboard/pagos/${payment.id}`);
+                catch (redemptionErr) {
+                    console.error(`[JUNO] Redemption failed for payment ${payment.id}:`, redemptionErr);
+                    payment.status = 'failed';
+                    await createPaymentNotifications(payment.id, 'payment_failed');
                 }
-                await paymentRepo.save(payment);
-                // Log the redemption event
-                await paymentEventRepo.save(paymentEventRepo.create({
-                    paymentId: payment.id,
-                    type: 'payout_initiated',
-                    description: `💸 Pago enviado a la CLABE del beneficiario. ID de transacción de Juno: ${redemptionResult.id}`
-                }));
             }
-            catch (redemptionErr) {
-                console.error(`❌ FAILED to redeem funds for payment ${payment.id}:`, String(redemptionErr));
-                // Optionally, update status to 'payout_failed' or similar
-                await paymentEventRepo.save(paymentEventRepo.create({
-                    paymentId: payment.id,
-                    type: 'payout_failed',
-                    description: `❌ Falló el envío de fondos al beneficiario: ${String(redemptionErr)}`
-                }));
-            }
+            await paymentRepo.save(payment);
         }
-        // Link Juno Transaction
-        const junoTransactionRepo = ormconfig_1.default.getRepository(JunoTransaction_1.JunoTransaction);
-        let junoTransaction = await junoTransactionRepo.findOne({ where: { reference: transaction_id } });
-        if (!junoTransaction) {
-            junoTransaction = junoTransactionRepo.create({
-                reference: transaction_id,
-                type: 'deposit',
-                amount: Number(webhookAmount),
-                status: status || 'completed',
-            });
-            await junoTransactionRepo.save(junoTransaction);
+        // --- Flow 2: Check for a permanent user deposit CLABE ---
+        const user = await userRepo.findOne({ where: { deposit_clabe: webhookClabe } });
+        if (user) {
+            console.log(`[JUNO] Processing webhook for permanent user CLABE: ${webhookClabe} for user ID: ${user.id}`);
+            // This is a deposit to a permanent user CLABE, handle Web3 logic
+            await handlePermanentClabeDeposit(user, parseFloat(webhookAmount));
         }
-        payment.junoTransaction = junoTransaction;
-        await paymentRepo.save(payment);
-        // Send notifications
-        try {
-            const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
-            const recipients = [
-                { email: payment.payer_email, role: 'payer' },
-                { email: payment.recipient_email, role: 'seller' }
-            ];
-            await sendPaymentEventNotification({
-                eventType: 'escrow_created', // Generic "funded" notification
-                paymentId: payment.id.toString(),
-                paymentDetails: payment,
-                recipients,
-                commissionBeneficiaryEmail: payment.commission_beneficiary_email || undefined
-            });
+        else {
+            // Neither a payment nor a user CLABE was found
+            console.log(`[JUNO] Webhook for CLABE ${webhookClabe} did not match any pending payment or user.`);
         }
-        catch (emailErr) {
-            console.error('Email notification failed:', String(emailErr));
-        }
-        res.json({ success: true });
+        // Always respond with 200 OK to Juno to prevent retries
+        res.status(200).send('Webhook received');
     }
     catch (err) {
-        console.error('Juno webhook error:', String(err));
+        console.error('Juno webhook processing error:', String(err));
         res.status(500).json({ error: 'Webhook processing failed', details: String(err) });
     }
 };

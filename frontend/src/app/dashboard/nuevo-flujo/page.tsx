@@ -1,17 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
+import { authFetch } from "../../../utils/authFetch";
 
 // Minimal utility for fetch with auth from localStorage
 type FetchOptions = RequestInit & { headers?: Record<string, string> };
-async function authFetch(input: RequestInfo, init: FetchOptions = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers: Record<string, string> = { ...(init.headers || {}) };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  return fetch(input, { ...init, headers });
-}
 
 const useCases = [
   {
@@ -705,8 +698,7 @@ function getVerticalDisplayName(vertical: string) {
 async function handleCreatePayment(vertical: string, data: FormDataType, router: any) {
   try {
     // Get current user
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-    const resUser = await authFetch(`${apiBase}/api/users/me`);
+    const resUser = await authFetch('users/me');
     
     if (!resUser.ok) {
       throw new Error("No se pudo obtener el usuario actual.");
@@ -741,7 +733,7 @@ async function handleCreatePayment(vertical: string, data: FormDataType, router:
     console.log('Creating nuevo-flujo payment with payload:', payload);
     
     // Submit payment via bridge wallet endpoint
-    const res = await authFetch(`${apiBase}/api/payments/initiate`, {
+    const res = await authFetch('payments/initiate', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -825,15 +817,15 @@ function PaymentSummary({ data, vertical }: { data: FormDataType; vertical: stri
         
         {data.warranty_percentage && (
           <div style={{ marginBottom: '12px' }}>
-            <strong style={{ color: '#374151' }}>🛡️ Porcentaje en custodia:</strong> 
+            <strong style={{ color: '#374151' }}>Porcentaje en custodia:</strong> 
             <span style={{ marginLeft: '8px', color: '#6b7280' }}>{data.warranty_percentage}%</span>
           </div>
         )}
         
-        {data.custody_days && (
+        {data.timeline && (
           <div style={{ marginBottom: '12px' }}>
-            <strong style={{ color: '#374151' }}>📅 Días de custodia:</strong> 
-            <span style={{ marginLeft: '8px', color: '#6b7280' }}>{data.custody_days} días</span>
+            <strong style={{ color: '#374151' }}>Custodia:</strong> 
+            <span style={{ marginLeft: '8px', color: '#6b7280' }}>{data.timeline} días</span>
           </div>
         )}
       </div>
@@ -1086,25 +1078,80 @@ export default function NuevoFlujoPage() {
             {/* Show "Crear pago" button only on final step */}
             {wizardStep === currentSteps.length - 2 && (
               <button
-                disabled={!isFormValid(formData)}
                 onClick={handleSubmit}
+                disabled={loading || !isFormValid(formData)}
                 style={{
-                  background: !isFormValid(formData) ? "#b8c6e6" : "#10b981",
-                  color: "#fff",
+                  background: (isFormValid(formData) && !loading) ? "linear-gradient(135deg, #10b981 0%, #059669 100%)" : "#e5e7eb",
+                  color: (isFormValid(formData) && !loading) ? "#fff" : "#9ca3af",
                   border: "none",
-                  borderRadius: 8,
-                  padding: "12px 32px",
-                  fontWeight: 700,
-                  fontSize: width < 640 ? 16 : 17,
-                  cursor: !isFormValid(formData) ? "not-allowed" : "pointer",
-                  boxShadow: isFormValid(formData) ? "0 2px 8px rgba(16, 185, 129, 0.3)" : "none",
-                  minWidth: "140px"
+                  padding: "14px 28px",
+                  borderRadius: "12px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  cursor: (isFormValid(formData) && !loading) ? "pointer" : "not-allowed",
+                  transition: "all 0.3s ease",
+                  boxShadow: (isFormValid(formData) && !loading) ? "0 2px 8px rgba(16, 185, 129, 0.3)" : "none",
+                  minWidth: "140px",
+                  opacity: loading ? 0.7 : 1
                 }}
               >
                 {loading ? 'Creando...' : '🚀 Crear pago'}
               </button>
             )}
           </div>
+
+          {/* Loading Modal Overlay */}
+          {loading && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999
+            }}>
+              <div style={{
+                backgroundColor: '#fff',
+                borderRadius: '16px',
+                padding: '32px',
+                textAlign: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                maxWidth: '320px',
+                width: '90%'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  border: '4px solid #e5e7eb',
+                  borderTop: '4px solid #2e7ef7',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  margin: '0 auto 16px'
+                }}></div>
+                <h3 style={{
+                  color: '#1f2937',
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  marginBottom: '8px'
+                }}>Creando tu pago</h3>
+                <p style={{
+                  color: '#6b7280',
+                  fontSize: '14px',
+                  margin: 0
+                }}>Por favor espera, estamos configurando tu pago con custodia segura...</p>
+              </div>
+              <style jsx>{`
+                @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+              `}</style>
+            </div>
+          )}
 
           {/* Resumen al final */}
           {wizardStep === currentSteps.length - 2 && (

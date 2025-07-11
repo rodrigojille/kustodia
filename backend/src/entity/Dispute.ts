@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, JoinColumn } from "typeorm";
 import { Escrow } from "./Escrow";
 import { User } from "./User";
+import { DisputeMessage } from "./DisputeMessage";
 
 @Entity()
 export class Dispute {
@@ -35,6 +36,9 @@ export class Dispute {
 
   @Column({ nullable: true })
   contract_dispute_resolved_tx?: string;
+
+  @OneToMany(() => DisputeMessage, message => message.dispute)
+  messages!: DisputeMessage[];
 
   @CreateDateColumn()
   created_at!: Date;

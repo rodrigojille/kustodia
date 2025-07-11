@@ -37,6 +37,18 @@ async function releaseEscrowAndPayout(escrowId) {
     const seller = await userRepo.findOne({ where: { id: payment.user.id } });
     if (!seller || !seller.payout_clabe)
         throw new Error('Seller or CLABE not found');
+    // 🔐 CRITICAL: Validate dual approval for Flow 2 payments
+    if (payment.payment_type === 'nuevo_flujo') {
+        if (!payment.payer_approval || !payment.payee_approval) {
+            const missingApprovals = [];
+            if (!payment.payer_approval)
+                missingApprovals.push('payer');
+            if (!payment.payee_approval)
+                missingApprovals.push('payee');
+            throw new Error(`Dual approval required: Missing ${missingApprovals.join(', ')} approval(s)`);
+        }
+        console.log(`[SECURITY] Dual approval validated for Payment ${payment.id}`);
+    }
     // --- 0. Release from on-chain Escrow Contract ---
     try {
         console.log(`[Payout] Releasing escrow ID ${escrow.smart_contract_escrow_id} from V2 contract...`);

@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fetchPayments } from "../fetchPayments";
+import fetchPayments from "../fetchPayments";
 import AutomationStatus from "./AutomationStatus";
 import { getStatusConfig, getStatusSpanish, PAYMENT_STATUSES } from '../config/paymentStatuses';
+import { authFetch } from '../utils/authFetch';
 
 function getDisplayAmount(amount: number | string, currency: string | undefined) {
   // Siempre mostrar como pesos mexicanos, sin importar el token
@@ -22,6 +23,7 @@ type Payment = {
   status: string;
   payer_email?: string;
   recipient_email?: string;
+  seller_email?: string; // Email from seller User relationship
   description?: string;
   payment_type?: string; // Add payment type for tracker routing
 };
@@ -43,7 +45,7 @@ export default function PaymentsTable() {
       .finally(() => setLoading(false));
 
     // Check automation status
-    fetch('http://localhost:4000/api/automation/status')
+    authFetch('automation/status')
       .then(res => res.json())
       .then(data => {
         setAutomationActive(data.success && data.status === 'running');
@@ -58,7 +60,8 @@ export default function PaymentsTable() {
     const matchesSearch =
       !search ||
       (p.payer_email && p.payer_email.toLowerCase().includes(search.toLowerCase())) ||
-      (p.recipient_email && p.recipient_email.toLowerCase().includes(search.toLowerCase()));
+      (p.recipient_email && p.recipient_email.toLowerCase().includes(search.toLowerCase())) ||
+      (p.description && p.description.toLowerCase().includes(search.toLowerCase()));
     const matchesStatus = !status || p.status === status;
     const created = new Date(p.created_at);
     const matchesFrom = !dateFrom || created >= new Date(dateFrom);
@@ -120,7 +123,7 @@ export default function PaymentsTable() {
       <div className="flex flex-wrap gap-2 mb-3">
         <input
           type="text"
-          placeholder="Buscar email..."
+          placeholder="Buscar email, descripción..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="border rounded px-2 py-1 text-sm w-40 focus:ring-2 focus:ring-blue-300"
@@ -184,7 +187,7 @@ export default function PaymentsTable() {
                       <span>{getStatusDisplay(p.status).icon}</span>
                       {getStatusDisplay(p.status).label}
                     </span>
-                    {automationActive && ['processing', 'paid', 'completed'].includes(p.status) && (
+                    {automationActive && ['funded', 'escrowed', 'completed'].includes(p.status) && (
                       <div className="mt-1">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-green-50 text-green-600 border border-green-200">
                           <span className="text-xs">🤖</span>
@@ -202,11 +205,11 @@ export default function PaymentsTable() {
                         className="inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-100 text-blue-700 font-medium text-xs"
                         title="Ver detalle"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 616 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                         Detalle
                       </a>
                       
-                      {/* Interactive Tracker for nuevo-flujo payments */}
+                      {/* Interactive Tracker for nuevo-flujo payments only */}
                       {p.payment_type === 'nuevo_flujo' && (
                         <a
                           href={`/dashboard/pagos/${p.id}/tracker`}

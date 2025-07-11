@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import ormconfig from "../ormconfig";
+import AppDataSource from "../ormconfig";
 import { Payment } from "../entity/Payment";
 import { generatePaymentHMAC } from "../utils/hmac";
 
@@ -12,9 +12,9 @@ export const getPaymentById = async (req: Request, res: Response): Promise<void>
       res.status(400).json({ error: "Missing payment id" });
       return;
     }
-    const paymentRepo = ormconfig.getRepository(Payment);
-    const userRepo = ormconfig.getRepository(require("../entity/User").User);
-    const paymentEventRepo = ormconfig.getRepository(require("../entity/PaymentEvent").PaymentEvent);
+    const paymentRepo = AppDataSource.getRepository(Payment);
+    const userRepo = AppDataSource.getRepository(require("../entity/User").User);
+    const paymentEventRepo = AppDataSource.getRepository(require("../entity/PaymentEvent").PaymentEvent);
     const payment = await paymentRepo.findOne({ where: { id: Number(id) }, relations: ["user", "escrow"] });
     if (!payment) {
       res.status(404).json({ error: "Payment not found" });

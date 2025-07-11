@@ -47,7 +47,7 @@ interface Payment {
   // New fields for Web3 Payment
   recipient_wallet?: string;
   custody_amount?: number;
-  custody_days?: number;
+  timeline?: number;
   user_commission_beneficiary?: string;
   user_commission_amount?: number;
   platform_commission_beneficiary?: string;
@@ -80,6 +80,7 @@ function getStatusColor(status: string): string {
   const statusColors: Record<string, string> = {
     'pending': 'bg-yellow-100 text-yellow-800',
     'funded': 'bg-blue-100 text-blue-800',
+    'escrowed': 'bg-purple-100 text-purple-800',
     'active': 'bg-green-100 text-green-800',
     'completed': 'bg-green-100 text-green-800',
     'cancelled': 'bg-red-100 text-red-800',
@@ -145,7 +146,7 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
       !payment.contract.address ||
       !payment.recipient_wallet ||
       payment.custody_amount === undefined ||
-      payment.custody_days === undefined ||
+      payment.timeline === undefined ||
       !payment.user_commission_beneficiary ||
       payment.user_commission_amount === undefined ||
       !payment.platform_commission_beneficiary ||
@@ -159,7 +160,7 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
     const contractAddress = payment.contract.address;
     const recipientWallet = payment.recipient_wallet;
     const custodyAmount = payment.custody_amount;
-    const custodyDays = payment.custody_days;
+    const custodyDays = payment.timeline;
     const userCommissionBeneficiary = payment.user_commission_beneficiary;
     const userCommissionAmount = payment.user_commission_amount;
     const platformCommissionBeneficiary = payment.platform_commission_beneficiary;
@@ -225,8 +226,8 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
   const bothApproved = payment.payer_approval && payment.payee_approval;
   const isCompleted = payment.status === 'completed' || payment.status === 'cancelled';
 
-  const canRelease = bothApproved && (payment.status === 'funded' || payment.status === 'active');
-  const showValidationModule = (payment.status === 'funded' || payment.status === 'active') && !isCompleted;
+  const canRelease = bothApproved && (payment.status === 'funded' || payment.status === 'active' || payment.status === 'escrowed');
+  const showValidationModule = (payment.status === 'funded' || payment.status === 'active' || payment.status === 'escrowed') && !isCompleted;
 
   return (
     <div className="space-y-6">
@@ -268,7 +269,7 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
       </div>
 
       {/* Custody Information */}
-      {(payment.status === 'funded' || payment.status === 'active') && payment.escrow && (
+      {(payment.status === 'funded' || payment.status === 'active' || payment.status === 'escrowed') && payment.escrow && (
         <div className="bg-amber-50 rounded-lg shadow-sm border border-amber-200 p-6">
           <h3 className="text-lg font-semibold text-amber-900 mb-4 flex items-center">
             🔒 Información de custodia
@@ -545,7 +546,7 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
       )}
 
       {/* Evidence Upload Section */}
-      {(isPayee || isPayer) && payment.status === 'funded' && !isCompleted && (
+      {(isPayee || isPayer) && (payment.status === 'funded' || payment.status === 'escrowed') && !isCompleted && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">

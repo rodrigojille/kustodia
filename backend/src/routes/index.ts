@@ -14,7 +14,7 @@ const router = Router();
 router.use("/users", userRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/truora", truoraRoutes);
-router.use("/escrow", disputeRoutes);
+router.use("/dispute", disputeRoutes);
 router.use("/admin", adminRoutes);
 router.use("/evidence", evidenceRoutes);
 router.use("/juno", junoRoutes);

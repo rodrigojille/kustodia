@@ -1,17 +1,12 @@
-import { Request, Response } from 'express';
-import { AppDataSource } from '../data-source';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../AuthenticatedRequest';
+import AppDataSource from '../ormconfig';
 import { Payment } from '../entity/Payment';
 import { PaymentEvent } from '../entity/PaymentEvent';
 import { Escrow } from '../entity/Escrow';
 import { releaseEscrowAndPayout } from '../services/payoutService';
 
-// Extend Request type to include user
-interface AuthenticatedRequest extends Request {
-  user?: {
-    email: string;
-    id: number;
-  };
-}
+
 
 /**
  * Handle payer approval for a payment
@@ -49,7 +44,7 @@ export const approvePaymentPayer = async (req: AuthenticatedRequest, res: Respon
     }
 
     // Check if payment is in correct status
-    if (payment.status !== 'funded' && payment.status !== 'active') {
+    if (payment.status !== 'funded' && payment.status !== 'active' && payment.status !== 'escrowed') {
       res.status(400).json({ error: 'Payment cannot be approved in current status' });
       return;
     }
@@ -145,7 +140,7 @@ export const approvePaymentPayee = async (req: AuthenticatedRequest, res: Respon
     }
 
     // Check if payment is in correct status
-    if (payment.status !== 'funded' && payment.status !== 'active') {
+    if (payment.status !== 'funded' && payment.status !== 'active' && payment.status !== 'escrowed') {
       res.status(400).json({ error: 'Payment cannot be approved in current status' });
       return;
     }
