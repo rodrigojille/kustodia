@@ -14,7 +14,7 @@ console.log('[escrowV3Service] Starting import for V3');
 // In development, they're copied from src/artifacts/ to dist/artifacts/
 const artifactsBase = path.resolve(__dirname, '../artifacts');
 const escrowArtifactPath = path.resolve(artifactsBase, 'contracts/KustodiaEscrow3_0.sol/KustodiaEscrow3_0.json');
-const erc20ArtifactPath = path.resolve(artifactsBase, 'contracts/MockERC20.sol/MockERC20.json');
+const erc20ArtifactPath = path.resolve(artifactsBase, 'contracts/MockERC20.sol/MockERC20.json'); // Using MockERC20 ABI for MXNB token (same interface)
 console.log('[escrowV3Service] Resolved KustodiaEscrow3_0.json path:', escrowArtifactPath);
 console.log('[escrowV3Service] KustodiaEscrow3_0.json exists:', fs.existsSync(escrowArtifactPath));
 
@@ -30,8 +30,8 @@ const signer = new ethers.Wallet(PRIVATE_KEY, provider);
 const ESCROW_ADDRESS = process.env.KUSTODIA_ESCROW_V3_ADDRESS!;
 console.log('[escrowV3Service] Using KUSTODIA_ESCROW_V3_ADDRESS:', ESCROW_ADDRESS);
 
-// Mainnet contract addresses
-const TOKEN_ADDRESS = process.env.MOCK_ERC20_ADDRESS!;
+// MXNB Token contract address
+const TOKEN_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS!;
 
 // Load ABIs with error handling
 let ESCROW_ABI;
@@ -56,9 +56,9 @@ let TOKEN_ABI;
 try {
   const ERC20Artifact = JSON.parse(fs.readFileSync(erc20ArtifactPath, "utf8"));
   TOKEN_ABI = ERC20Artifact.abi;
-  console.log('[escrowV3Service] Successfully loaded MockERC20 ABI');
+  console.log('[escrowV3Service] Successfully loaded ERC20 ABI for MXNB token');
 } catch (error: any) {
-  console.error('[escrowV3Service] Failed to load MockERC20 artifact:', error.message);
+  console.error('[escrowV3Service] Failed to load ERC20 artifact:', error.message);
   // Fallback minimal ERC20 ABI
   TOKEN_ABI = [
     "function transfer(address to, uint256 amount) external returns (bool)",
@@ -67,7 +67,7 @@ try {
     "function allowance(address owner, address spender) external view returns (uint256)",
     "function decimals() external view returns (uint8)"
   ];
-  console.log('[escrowV3Service] Using fallback minimal ERC20 ABI');
+  console.log('[escrowV3Service] Using fallback minimal ERC20 ABI for MXNB token');
 }
 
 export const escrowV3Contract = new ethers.Contract(ESCROW_ADDRESS, ESCROW_ABI, signer);

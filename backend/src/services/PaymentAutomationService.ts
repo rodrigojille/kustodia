@@ -69,7 +69,7 @@ export class PaymentAutomationService {
       const paymentRepo = AppDataSource.getRepository(Payment);
       const pendingPayments = await paymentRepo.find({
         where: { status: 'pending' },
-        relations: ['user', 'escrow', 'seller'],
+        relations: ['user', 'seller', 'escrow'],
         select: {
           id: true,
           amount: true,
@@ -86,6 +86,8 @@ export class PaymentAutomationService {
             id: true,
             email: true,
             full_name: true,
+            payout_clabe: true,
+            juno_bank_account_id: true
           },
           escrow: {
             id: true
@@ -231,10 +233,22 @@ export class PaymentAutomationService {
       
       // Step 3: Process SPEI redemption
       console.log(`🏦 Processing SPEI redemption for payment ${payment.id}...`);
-      const bankAccounts = await getRegisteredBankAccounts();
-      if (bankAccounts.length === 0) throw new Error('No registered bank accounts found for redemption');
       
-      const destinationBankAccount = bankAccounts[0];
+      // Get the seller's bank account for redemption
+      if (!payment.seller) {
+        throw new Error(`Payment ${payment.id} has no seller associated`);
+      }
+      
+      if (!payment.seller.juno_bank_account_id) {
+        throw new Error(`Seller ${payment.seller.email} has no registered bank account`);
+      }
+      
+      const bankAccounts = await getRegisteredBankAccounts();
+      const destinationBankAccount = bankAccounts.find(account => account.id === payment.seller!.juno_bank_account_id);
+      
+      if (!destinationBankAccount) {
+        throw new Error(`Seller's bank account ${payment.seller.juno_bank_account_id} not found in registered accounts`);
+      }
       const redemptionResult = await redeemMXNBToMXN(amount, destinationBankAccount.id);
       
       await this.paymentService.logPaymentEvent(
