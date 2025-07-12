@@ -51,7 +51,24 @@ try {
   ];
 }
 
-const TOKEN_ABI = JSON.parse(fs.readFileSync(erc20ArtifactPath, "utf8")).abi;
+// Load TOKEN_ABI with error handling
+let TOKEN_ABI;
+try {
+  const ERC20Artifact = JSON.parse(fs.readFileSync(erc20ArtifactPath, "utf8"));
+  TOKEN_ABI = ERC20Artifact.abi;
+  console.log('[escrowV3Service] Successfully loaded MockERC20 ABI');
+} catch (error: any) {
+  console.error('[escrowV3Service] Failed to load MockERC20 artifact:', error.message);
+  // Fallback minimal ERC20 ABI
+  TOKEN_ABI = [
+    "function transfer(address to, uint256 amount) external returns (bool)",
+    "function balanceOf(address owner) external view returns (uint256)",
+    "function approve(address spender, uint256 amount) external returns (bool)",
+    "function allowance(address owner, address spender) external view returns (uint256)",
+    "function decimals() external view returns (uint8)"
+  ];
+  console.log('[escrowV3Service] Using fallback minimal ERC20 ABI');
+}
 
 export const escrowV3Contract = new ethers.Contract(ESCROW_ADDRESS, ESCROW_ABI, signer);
 const tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
