@@ -76,7 +76,8 @@ function PagoFormFull2() {
         const res = await authFetch('/api/users/me');
         if (res.ok) {
           const data = await res.json();
-          setCurrentUser(data.user);
+          console.log('[PagoFormFull2] User data received:', data);
+          setCurrentUser(data.user); // API returns user data wrapped in { user: ... }
         }
       } catch (error) {
         console.error('Error loading user:', error);

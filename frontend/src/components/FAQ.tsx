@@ -6,28 +6,32 @@ import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
 const faqData = [
   {
-    question: '¿Cómo canjeo mis tokens MXNB a pesos mexicanos?',
-    answer: 'Para canjear tus tokens MXNB a moneda fiduciaria, ve a tu \'Billetera\', selecciona \'Canjear MXNB\' y proporciona el monto y tu cuenta CLABE de destino. Gracias a nuestra integración con la tecnología blockchain y el sistema de pagos SPEI de México, la transferencia generalmente se completa en cuestión de minutos.',
+    question: '¿Cómo recibo mi dinero según el tipo de pago?',
+    answer: 'Depende del tipo de pago que recibas: **Pagos Condicionales (Estándar y Premium)**: El dinero llega directamente a tu cuenta bancaria a través de tu CLABE de cobro una vez completadas las condiciones. Es automático y en pesos mexicanos. **Pagos Web3**: Los fondos llegan directamente a tu billetera digital y tú decides cuándo convertirlos a pesos y enviarlos a tu banco. Ambos métodos son seguros y están protegidos por contratos inteligentes.',
   },
   {
-    question: '¿Cuáles son las comisiones por enviar criptomonedas a una billetera externa?',
-    answer: 'Cuando envías criptomonedas desde Kustodia a una billetera externa, solo pagas la tarifa de red estándar (o \'gas fee\') de esa blockchain (por ejemplo, Arbitrum, Ethereum). Kustodia no cobra ninguna tarifa de plataforma adicional por los retiros. La tarifa de red varía según la congestión de la red en tiempo real.',
+    question: '¿Qué tan seguro es usar Kustodia para mis pagos?',
+    answer: 'Kustodia es extremadamente seguro porque está construido sobre la seguridad del sistema SPEI y blockchain. Todos los pagos tienen completa trazabilidad y transparencia. Utilizamos contratos inteligentes auditados que protegen tu dinero las 24 horas, y tus fondos están asegurados hasta que se cumplan exactamente las condiciones acordadas. Cumplimos con todas las regulaciones financieras mexicanas para tu total tranquilidad.',
   },
   {
-    question: '¿Cómo funciona el escrow en Kustodia?',
-    answer: 'Cuando se realiza un pago, los fondos se pueden colocar en un contrato de escrow seguro en la blockchain de Arbitrum. Los fondos se mantienen allí hasta que se cumplen las condiciones de liberación específicas, acordadas por el pagador y el beneficiario. Una vez que se cumplen las condiciones, los fondos se liberan automáticamente a la cuenta de pago designada del beneficiario.',
+    question: '¿Cómo funciona la protección de mis pagos?',
+    answer: 'Cuando realizas un pago, tus fondos se guardan de forma segura hasta que el trabajo o servicio se complete correctamente. **Pagos Estándar**: Los fondos se liberan automáticamente cuando termina el plazo de custodia y no hay disputas. **Pagos Premium**: Requieren aprobación de ambas partes para liberar los fondos. Es como tener un mediador digital que protege tanto al comprador como al vendedor, eliminando el riesgo de fraude o incumplimiento.',
   },
   {
-    question: '¿Qué significa el estado \'fondeado\' en mi pago?',
-    answer: 'Un estado de \'fondeado\' significa que el pagador ha depositado con éxito los fondos para la transacción. Si el pago incluye un escrow, los fondos ahora están asegurados en el contrato inteligente. El siguiente paso es la liberación de los fondos o esperar a que finalice el período de custodia, según los términos del pago.',
+    question: '¿Qué significa cuando mi pago está "en custodia"?',
+    answer: 'Significa que tu dinero está completamente seguro y protegido. "En custodia" quiere decir que los fondos ya están depositados y asegurados, esperando a que se cumplan las condiciones del acuerdo. **Pagos Estándar**: Los fondos se liberan automáticamente cuando termina el plazo de custodia y no hay disputas. **Pagos Premium**: Requieren aprobación dual para mayor seguridad. Es como tener tu dinero en una caja fuerte digital que se abre solo cuando todo está correcto.',
   },
   {
-    question: '¿Por qué necesito proporcionar una CLABE?',
-    answer: 'Kustodia utiliza la CLABE para todos los pagos en moneda fiduciaria en México. Para recibir pagos en Pesos Mexicanos (MXN), debes proporcionar una CLABE válida de 18 dígitos para tu cuenta bancaria. Esto garantiza que los fondos se transfieran de forma segura y directa a ti.',
+    question: '¿Por qué necesito registrar mi cuenta bancaria?',
+    answer: 'Tu CLABE bancaria es tu dirección de entrega para recibir dinero en pesos mexicanos. Es como tu dirección postal, pero para transferencias bancarias. Kustodia la necesita para enviarte tus pagos de forma directa y segura a tu cuenta. Solo la registras una vez y puedes recibir todos tus pagos sin complicaciones.',
   },
   {
-    question: '¿Qué son los \'Datos de la Regla de Viaje\' (Travel Rule)?',
-    answer: 'La Regla de Viaje es una regulación financiera diseñada para prevenir el lavado de dinero. Para ciertas transacciones, Kustodia debe recopilar y compartir información sobre el originador (pagador) y el beneficiario (receptor). El campo de datos de la regla de viaje es donde se almacena esta información de cumplimiento.',
+    question: '¿Cómo funcionan los pagos Web3 en mi billetera?',
+    answer: 'Los pagos Web3 te dan control total sobre tus fondos. Cuando recibes un pago Web3, los MXNBs llegan directamente a tu billetera digital en Kustodia. Desde ahí puedes: 1) Mantenerlos como MXNBs para futuros pagos, 2) Convertirlos a pesos mexicanos y enviarlos a tu cuenta bancaria cuando quieras, o 3) Usarlos para realizar otros pagos Web3. Tú tienes el control completo.',
+  },
+  {
+    question: '¿Qué es el sistema de aprobación dual en pagos en custodia Premium?',
+    answer: 'El sistema de aprobación dual es exclusivo de los pagos en custodia Premium y ofrece la máxima seguridad. A diferencia de los pagos estándar que se liberan automáticamente al terminar el plazo, los pagos Premium requieren que tanto el pagador como el beneficiario confirmen que el trabajo se completó satisfactoriamente. Es como tener dos llaves para abrir la caja fuerte: ambas partes deben aprobar antes de liberar los fondos. Perfecto para transacciones importantes donde quieres máxima protección.',
   },
 ];
 

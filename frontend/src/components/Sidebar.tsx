@@ -10,34 +10,34 @@ const links = [
     label: 'Inicio',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 4.5l9 5.25M4.5 10.5v7.125A1.125 1.125 0 005.625 18.75h12.75A1.125 1.125 0 0019.5 17.625V10.5M8.25 18.75v-3.375a1.125 1.125 0 011.125-1.125h2.25a1.125 1.125 0 011.125 1.125V18.75" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+      </svg>
+    ),
+  },
+  {
+    href: '/dashboard/crear-pago',
+    label: 'Crear un nuevo pago',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
       </svg>
     ),
   },
   {
     href: '/dashboard/pagos',
-    label: 'Pagos',
+    label: 'Historial de Pagos',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6h1.5m-1.5 3h1.5m-1.5 3h1.5M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m3.75-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
   },
   {
-    href: '/dashboard/nuevo-flujo',
-    label: 'Pagos condicionales',
+    href: '/dashboard/analytics',
+    label: 'Análisis y Estadísticas',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12" />
-      </svg>
-    ),
-  },
-  {
-    href: '/dashboard/web3',
-    label: 'Pagos Web3',
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
       </svg>
     ),
   },
@@ -46,7 +46,7 @@ const links = [
     label: 'Disputas',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.036.243c-2.182 0-4.22-.543-6.082-1.528a14.257 14.257 0 00-3.273-1.528m-3.273 1.528c-1.862.985-3.9 1.528-6.082 1.528a5.988 5.988 0 01-2.036-.243c-.483-.174-.711-.703-.59-1.202L5.25 4.97m0 0c-1.01.143-2.01.317-3 .52m3-.52l-2.62 10.726c-.122.499.106 1.028.589 1.202a5.988 5.988 0 002.036.243c2.182 0 4.22-.543 6.082-1.528a14.257 14.257 0 013.273-1.528m3.273 1.528c1.862.985 3.9 1.528 6.082 1.528a5.988 5.988 0 002.036.243c.483-.174.711-.703.59-1.202L18.75 4.97M12 4.5v.75m0 15v.75" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
       </svg>
     ),
   },
@@ -123,47 +123,55 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
         aria-hidden={!open}
       />
       <aside
-        className={`fixed z-50 top-0 left-0 min-h-screen h-full bg-gray-50 text-gray-900 flex flex-col border-r border-gray-200 shadow-sm transition-transform duration-200 transform md:static md:translate-x-0 md:flex md:w-60 ${open ? 'translate-x-0' : '-translate-x-full'} w-64 max-w-full`}
+        className={`fixed z-50 top-0 left-0 min-h-screen h-full bg-white text-gray-900 flex flex-col border-r border-gray-200 shadow-lg transition-transform duration-200 transform md:static md:translate-x-0 md:flex md:w-64 ${open ? 'translate-x-0' : '-translate-x-full'} w-64 max-w-full`}
         style={{ minWidth: '16rem' }}
       >
-        <div className="flex flex-col items-center py-8">
-          <img src="/kustodia-logo.png" alt="Kustodia logo" className="h-10 mb-2" />
-          <span className="font-bold text-lg tracking-tight text-blue-700">Kustodia</span>
+        <div className="flex flex-col items-center py-6 px-4 border-b border-gray-100">
+          <img src="/kustodia-logo.png" alt="Kustodia logo" className="h-8 mb-2" />
+          <span className="font-bold text-xl tracking-tight text-blue-600">Kustodia</span>
         </div>
-        <nav className="flex-1 px-2">
-          {links.slice(0, -2).map(link => {
-            const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href));
-            return (
-              <Link key={link.href} href={link.href} className={
-                `flex items-center gap-3 px-4 py-2 rounded-lg mb-1 font-medium transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 group` +
-                (isActive ? ' bg-blue-100 text-blue-700' : ' text-primary-dark')
-              }>
-                <span className="inline-block w-5 h-5 text-gray-700 opacity-80 group-hover:text-blue-700">{link.icon}</span>
-                <span>{link.label}</span>
-              </Link>
-            );
-          })}
-          <div className="border-t border-gray-200 my-4"></div>
-          {links.slice(-2).map(link => {
-            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
-            return (
-              <Link key={link.href} href={link.href} className={
-                `flex items-center gap-3 px-4 py-2 rounded-lg mb-1 font-medium transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 group` +
-                (isActive ? ' bg-blue-100 text-blue-700' : ' text-primary-dark')
-              }>
-                <span className="inline-block w-5 h-5 text-gray-700 opacity-80 group-hover:text-blue-700">{link.icon}</span>
-                <span>{link.label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-3 py-4">
+          {/* Main Navigation */}
+          <div className="space-y-1">
+            {links.map(link => {
+              const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href));
+              return (
+                <Link key={link.href} href={link.href} className={
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all duration-200 group ${
+                    isActive 
+                      ? 'bg-blue-600 text-white shadow-sm' 
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+                  }`
+                }>
+                  <span className={`inline-block w-5 h-5 transition-colors ${
+                    isActive ? 'text-white' : 'text-gray-500 group-hover:text-blue-600'
+                  }`}>{link.icon}</span>
+                  <span className="text-sm">{link.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+          
+
+          {/* Admin Section */}
           {userRole === 'admin' && (
-            <Link key={adminLink.href} href={adminLink.href} className={
-              `flex items-center gap-3 px-4 py-2 rounded-lg mb-1 font-medium transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 group` +
-              (pathname.startsWith(adminLink.href) ? ' bg-blue-100 text-blue-700' : ' text-primary-dark')
-            }>
-              <span className="inline-block w-5 h-5 text-gray-700 opacity-80 group-hover:text-blue-700">{adminLink.icon}</span>
-              <span>{adminLink.label}</span>
-            </Link>
+            <>
+              <div className="border-t border-gray-200 my-6"></div>
+              <div className="space-y-1">
+                <Link key={adminLink.href} href={adminLink.href} className={
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all duration-200 group ${
+                    pathname.startsWith(adminLink.href)
+                      ? 'bg-red-600 text-white shadow-sm' 
+                      : 'text-gray-700 hover:bg-red-50 hover:text-red-600'
+                  }`
+                }>
+                  <span className={`inline-block w-5 h-5 transition-colors ${
+                    pathname.startsWith(adminLink.href) ? 'text-white' : 'text-gray-500 group-hover:text-red-600'
+                  }`}>{adminLink.icon}</span>
+                  <span className="text-sm">{adminLink.label}</span>
+                </Link>
+              </div>
+            </>
           )}
         </nav>
       </aside>
