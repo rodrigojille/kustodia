@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { authFetch } from '../../utils/authFetch';
 
 interface Message {
   id: string;
@@ -86,13 +87,7 @@ const DisputeDetailsModal: React.FC<DisputeDetailsModalProps> = ({
   const fetchDisputeDetails = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/disputes/${disputeId}/details`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await authFetch(`disputes/${disputeId}/details`);
 
       if (response.ok) {
         const data = await response.json();
@@ -109,13 +104,7 @@ const DisputeDetailsModal: React.FC<DisputeDetailsModalProps> = ({
 
   const fetchMessages = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/disputes/${disputeId}/messages`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await authFetch(`disputes/${disputeId}/messages`);
 
       if (response.ok) {
         const data = await response.json();
@@ -133,7 +122,6 @@ const DisputeDetailsModal: React.FC<DisputeDetailsModalProps> = ({
 
     setSubmittingMessage(true);
     try {
-      const token = localStorage.getItem('auth_token');
       const formData = new FormData();
       formData.append('message', newMessage.trim() || 'Archivo adjunto');
       
@@ -141,11 +129,14 @@ const DisputeDetailsModal: React.FC<DisputeDetailsModalProps> = ({
         formData.append('attachment', selectedFile);
       }
 
+      // Use fetch with credentials for multipart/form-data upload
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
       const response = await fetch(`/api/disputes/${disputeId}/messages`, {
         method: 'POST',
-        headers: {
+        headers: token ? {
           'Authorization': `Bearer ${token}`,
-        },
+        } : {},
+        credentials: 'include',
         body: formData,
       });
 

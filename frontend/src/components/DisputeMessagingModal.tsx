@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { authFetch } from '../utils/authFetch';
 
 interface Message {
   id: string;
@@ -55,15 +56,8 @@ const DisputeMessagingModal: React.FC<DisputeMessagingModalProps> = ({
   const fetchDisputeInfo = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      
       // Find dispute by escrow ID
-      const disputesResponse = await fetch('/api/dispute', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const disputesResponse = await authFetch('dispute');
 
       if (disputesResponse.ok) {
         const disputesData = await disputesResponse.json();
@@ -83,13 +77,7 @@ const DisputeMessagingModal: React.FC<DisputeMessagingModalProps> = ({
 
   const fetchMessages = async (disputeId: number) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/disputes/${disputeId}/messages`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await authFetch(`disputes/${disputeId}/messages`);
 
       if (response.ok) {
         const data = await response.json();
@@ -108,7 +96,6 @@ const DisputeMessagingModal: React.FC<DisputeMessagingModalProps> = ({
 
     setSubmittingMessage(true);
     try {
-      const token = localStorage.getItem('auth_token');
       const formData = new FormData();
       formData.append('message', newMessage.trim() || 'Archivo adjunto');
       
@@ -116,11 +103,14 @@ const DisputeMessagingModal: React.FC<DisputeMessagingModalProps> = ({
         formData.append('attachment', selectedFile);
       }
 
+      // Use fetch with credentials for multipart/form-data upload
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
       const response = await fetch(`/api/disputes/${dispute.id}/messages`, {
         method: 'POST',
-        headers: {
+        headers: token ? {
           'Authorization': `Bearer ${token}`,
-        },
+        } : {},
+        credentials: 'include',
         body: formData,
       });
 
