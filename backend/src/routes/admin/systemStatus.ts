@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authenticateJWT } from '../../authenticateJWT';
+import { requireAdminRole } from '../../middleware/requireAdminRole';
 import AppDataSource from '../../ormconfig';
 import { Payment } from '../../entity/Payment';
 import { PaymentEvent } from '../../entity/PaymentEvent';
@@ -55,7 +56,7 @@ async function checkServiceHealth() {
 }
 
 // Get system overview statistics
-router.get('/overview', authenticateJWT, async (req, res) => {
+router.get('/overview', authenticateJWT, requireAdminRole, async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -126,7 +127,7 @@ router.get('/overview', authenticateJWT, async (req, res) => {
 });
 
 // Get recent system activity
-router.get('/activity', authenticateJWT, async (req, res) => {
+router.get('/activity', authenticateJWT, requireAdminRole, async (req, res) => {
   try {
     const recentEvents = await AppDataSource.getRepository(PaymentEvent)
       .createQueryBuilder('event')
@@ -173,7 +174,7 @@ router.get('/activity', authenticateJWT, async (req, res) => {
 });
 
 // Quick action: Execute payouts manually
-router.post('/actions/execute-payouts', authenticateJWT, async (req, res) => {
+router.post('/actions/execute-payouts', authenticateJWT, requireAdminRole, async (req, res) => {
   try {
     const automationService = new PaymentAutomationService();
     
@@ -197,7 +198,7 @@ router.post('/actions/execute-payouts', authenticateJWT, async (req, res) => {
 });
 
 // Enhanced system logs with date/time filtering
-router.get('/actions/logs', authenticateJWT, async (req, res) => {
+router.get('/actions/logs', authenticateJWT, requireAdminRole, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const startDate = req.query.startDate as string;
@@ -286,7 +287,7 @@ router.get('/actions/logs', authenticateJWT, async (req, res) => {
 });
 
 // Get specific payment details
-router.get('/payment/:id', authenticateJWT, async (req: Request, res: Response): Promise<void> => {
+router.get('/payment/:id', authenticateJWT, requireAdminRole, async (req: Request, res: Response): Promise<void> => {
   try {
     const paymentId = parseInt(req.params.id);
     
@@ -357,7 +358,7 @@ router.get('/payment/:id', authenticateJWT, async (req: Request, res: Response):
 });
 
 // Quick action: Restart automation services
-router.post('/actions/restart-services', authenticateJWT, async (req, res) => {
+router.post('/actions/restart-services', authenticateJWT, requireAdminRole, async (req, res) => {
   try {
     console.log('[ADMIN] Automation services restart requested');
     

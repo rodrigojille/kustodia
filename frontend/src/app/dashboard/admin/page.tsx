@@ -5,6 +5,7 @@ import { authFetch } from '../../../utils/authFetch';
 import SupportTicketsTable from '../../../components/admin/SupportTicketsTable';
 import DisputeCard from '../../../components/admin/DisputeCard';
 import DisputeDetailsModal from '../../../components/admin/DisputeDetailsModal';
+import HerokuLogsViewer from '../../../components/admin/HerokuLogsViewer';
 
 interface Ticket {
   id: number;
@@ -65,7 +66,10 @@ const AdminDashboardPage = () => {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'disputes' | 'operations'>('operations');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'disputes' | 'operations' | 'production-logs'>('operations');
+  
+  // Environment detection
+  const isProduction = typeof window !== 'undefined' && window.location.hostname === 'kustodia.mx';
   const [resolvingDispute, setResolvingDispute] = useState<number | null>(null);
   const [selectedDisputeId, setSelectedDisputeId] = useState<number | null>(null);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
@@ -437,6 +441,22 @@ const AdminDashboardPage = () => {
           >
             Centro de Operaciones
           </button>
+          {/* Production Logs Tab - Only show in production */}
+          {isProduction && (
+            <button
+              onClick={() => setActiveTab('production-logs')}
+              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'production-logs'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Logs de Producción
+              <span className="ml-1 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
+                Heroku
+              </span>
+            </button>
+          )}
         </nav>
       </div>
 
@@ -941,6 +961,28 @@ const AdminDashboardPage = () => {
                   </div>
                 </>
               )}
+            </div>
+          )}
+
+          {/* Production Logs Tab - Only show in production */}
+          {activeTab === 'production-logs' && isProduction && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl shadow p-6 md:p-8 border border-green-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-2xl">📊</span>
+                  <h2 className="text-xl font-semibold text-green-800">Logs de Heroku - Producción</h2>
+                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                    En Vivo
+                  </span>
+                </div>
+                <p className="text-green-700 text-sm mb-6">
+                  Monitoreo en tiempo real de los logs de aplicación desde Heroku Platform API.
+                  Incluye logs de aplicación, router, y dynos con filtros avanzados.
+                </p>
+                
+                {/* Heroku Logs Viewer Component */}
+                <HerokuLogsViewer />
+              </div>
             </div>
           )}
         </>

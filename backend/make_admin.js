@@ -1,10 +1,24 @@
-const { createConnection } = require('typeorm');
-const ormConfig = require('./dist/ormconfig').default;
+const { DataSource } = require('typeorm');
+require('dotenv').config();
 
 async function makeUserAdmin() {
   try {
     console.log('🔧 Connecting to database...');
-    const connection = await createConnection(ormConfig);
+    
+    // Create DataSource with current config
+    const AppDataSource = new DataSource({
+      type: "postgres",
+      url: process.env.DATABASE_URL,
+      entities: ["dist/entity/*.js"],
+      synchronize: false,
+      logging: false,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    await AppDataSource.initialize();
+    console.log('✅ Database connected!');
+    
+    const connection = AppDataSource;
     
     const userRepo = connection.getRepository('User');
     const targetEmail = 'rodrigojille6@gmail.com';

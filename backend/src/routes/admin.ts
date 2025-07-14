@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { authenticateJWT } from '../authenticateJWT';
+import { requireAdminRole } from '../middleware/requireAdminRole';
 import systemStatusRouter from './admin/systemStatus';
+import herokuLogsRouter from './admin/herokuLogs';
 import { 
   // Legacy functions
   getAllDisputes, 
@@ -31,35 +33,38 @@ function asyncHandler(fn: any) {
 // =============================================================================
 
 // Dispute management
-router.get("/disputes", authenticateJWT, asyncHandler(getAllDisputes));
+router.get("/disputes", authenticateJWT, requireAdminRole, asyncHandler(getAllDisputes));
 // User management
-router.get("/users", authenticateJWT, asyncHandler(getAllUsersWithDetails));
-router.get("/users/:userId/clabes", authenticateJWT, asyncHandler(getUserClabes));
-router.get("/users/:userId/deposits", authenticateJWT, asyncHandler(getUserDeposits));
+router.get("/users", authenticateJWT, requireAdminRole, asyncHandler(getAllUsersWithDetails));
+router.get("/users/:userId/clabes", authenticateJWT, requireAdminRole, asyncHandler(getUserClabes));
+router.get("/users/:userId/deposits", authenticateJWT, requireAdminRole, asyncHandler(getUserDeposits));
 // Transaction/escrow management
-router.get("/payments", authenticateJWT, asyncHandler(getAllPayments));
+router.get("/payments", authenticateJWT, requireAdminRole, asyncHandler(getAllPayments));
 // Support tickets
-router.get("/tickets", authenticateJWT, asyncHandler(getTicketsForAdmin));
+router.get("/tickets", authenticateJWT, requireAdminRole, asyncHandler(getTicketsForAdmin));
 
 // =============================================================================
 // 🎯 PAYMENT OPERATIONS CONTROL ROOM ROUTES
 // =============================================================================
 
 // 📊 Analytics Dashboard
-router.get("/analytics/payments", authenticateJWT, asyncHandler(getPaymentAnalytics));
-router.get("/analytics/users", authenticateJWT, asyncHandler(getUserAnalytics));
+router.get("/analytics/payments", authenticateJWT, requireAdminRole, asyncHandler(getPaymentAnalytics));
+router.get("/analytics/users", authenticateJWT, requireAdminRole, asyncHandler(getUserAnalytics));
 
 // 🔍 Advanced Search & Troubleshooting
-router.get("/payments/search", authenticateJWT, asyncHandler(searchPayments));
-router.get("/health/payments", authenticateJWT, asyncHandler(getPaymentHealth));
+router.get("/payments/search", authenticateJWT, requireAdminRole, asyncHandler(searchPayments));
+router.get("/health/payments", authenticateJWT, requireAdminRole, asyncHandler(getPaymentHealth));
 
 // 🔧 Operations & Fixes
-router.post("/operations/bulk-fix-uuids", authenticateJWT, asyncHandler(bulkFixMissingUUIDs));
+router.post("/operations/bulk-fix-uuids", authenticateJWT, requireAdminRole, asyncHandler(bulkFixMissingUUIDs));
 
 // 🏦 External API Monitoring
-router.get("/monitoring/juno-status", authenticateJWT, asyncHandler(getJunoApiStatus));
+router.get("/monitoring/juno-status", authenticateJWT, requireAdminRole, asyncHandler(getJunoApiStatus));
 
 // 🎮 System Status & Operations Center
 router.use("/system", systemStatusRouter);
+
+// 📊 Heroku Platform Logs & Monitoring
+router.use("/heroku", herokuLogsRouter);
 
 export default router;

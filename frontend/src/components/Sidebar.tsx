@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
+import { authFetch } from '../utils/authFetch';
 
 const links = [
   {
@@ -92,16 +93,24 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
+    const checkUserRole = async () => {
       try {
-        const decoded: { role: string } = jwtDecode(token);
-        setUserRole(decoded.role);
-        console.log('[SIDEBAR] User role detected:', decoded.role);
+        const response = await authFetch('users/me');
+        
+        if (response.ok) {
+          const data = await response.json();
+          const role = data.user?.role || data.role;
+          setUserRole(role);
+          console.log('[SIDEBAR] User role detected:', role);
+        } else {
+          console.log('[SIDEBAR] Failed to get user role, response:', response.status);
+        }
       } catch (error) {
-        console.error('Failed to decode JWT:', error);
+        console.error('[SIDEBAR] Failed to fetch user role:', error);
       }
-    }
+    };
+
+    checkUserRole();
   }, []);
 
   const adminLink = {
@@ -154,6 +163,7 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
           
 
           {/* Admin Section */}
+
           {userRole === 'admin' && (
             <>
               <div className="border-t border-gray-200 my-6"></div>

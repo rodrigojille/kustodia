@@ -5,6 +5,7 @@ import fetchPayments from "../fetchPayments";
 import AutomationStatus from "./AutomationStatus";
 import { getStatusConfig, PAYMENT_STATUSES } from '../config/paymentStatuses';
 import { authFetch } from '../utils/authFetch';
+import DisputeModal from './DisputeModal';
 
 function getDisplayAmount(amount: number | string, currency: string | undefined) {
   return Number(amount).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -25,7 +26,15 @@ type Payment = {
   recipient_email?: string;
   seller_email?: string; 
   description?: string;
-  payment_type?: string; 
+  payment_type?: string;
+  payer_approval?: boolean;
+  payee_approval?: boolean;
+  escrow?: {
+    id: number;
+    status: string;
+    dispute_status: string;
+    custody_end?: string;
+  };
 };
 
 function PaymentsTableContent() {
@@ -40,6 +49,7 @@ function PaymentsTableContent() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [automationActive, setAutomationActive] = useState(false);
+  const [activeDisputePayment, setActiveDisputePayment] = useState<Payment | null>(null);
 
   useEffect(() => {
     fetchPayments()
@@ -200,6 +210,25 @@ function PaymentsTableContent() {
                         </span>
                       </div>
                     )}
+                    {/* Custody Expiration Warning */}
+                    {(() => {
+                      if (!p.escrow || p.status === 'completed') return null;
+                      const now = new Date();
+                      const custodyEnd = p.escrow.custody_end ? new Date(p.escrow.custody_end) : null;
+                      const hasNoDualApproval = !p.payer_approval || !p.payee_approval;
+                      const custodyExpired = custodyEnd && now > custodyEnd;
+                      
+                      if (!custodyExpired || !hasNoDualApproval) return null;
+                      
+                      return (
+                        <div className="mt-1">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-orange-50 text-orange-700 border border-orange-200" title="El plazo de custodia ha expirado sin aprobación dual">
+                            <span className="text-xs">⚠️</span>
+                            Custodia expirada
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="py-2 px-2 text-black max-w-[160px] truncate" title={p.description || ''}>{p.description || '-'}</td>
                   <td className="py-2 px-2 text-black">
@@ -225,6 +254,36 @@ function PaymentsTableContent() {
                           Tracker
                         </a>
                       )}
+                      
+                      {/* Dispute button for escrowed payments */}
+                      {(() => {
+                        if (!p.escrow) return null;
+                        const now = new Date();
+                        const custodyEnd = p.escrow.custody_end ? new Date(p.escrow.custody_end) : null;
+                        const hasNoDualApproval = !p.payer_approval || !p.payee_approval;
+                        const custodyExpired = custodyEnd && now > custodyEnd;
+                        
+                        // Allow disputes if:
+                        // 1. Before custody end, OR
+                        // 2. After custody end but no dual approval occurred (likely disagreement)
+                        const canRaise = ['funded', 'in_progress', 'en_custodia', 'escrowed'].includes(p.status) &&
+                          ['pending', 'active', 'funded'].includes(p.escrow.status ?? '') &&
+                          (p.escrow.dispute_status === 'none' || p.escrow.dispute_status === 'dismissed') &&
+                          (!custodyEnd || now < custodyEnd || (custodyExpired && hasNoDualApproval));
+                        
+                        if (!canRaise) return null;
+                        
+                        return (
+                          <button
+                            onClick={() => setActiveDisputePayment(p)}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-orange-100 text-orange-700 font-medium text-xs"
+                            title="Levantar disputa"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.99-.833-2.76 0L3.054 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                            Disputa
+                          </button>
+                        );
+                      })()}
                     </div>
                   </td>
                 </tr>
@@ -240,6 +299,15 @@ function PaymentsTableContent() {
             </tbody>
           </table>
         </div>
+      )}
+      
+      {/* Dispute Modal */}
+      {activeDisputePayment && activeDisputePayment.escrow && (
+        <DisputeModal
+          escrowId={activeDisputePayment.escrow.id}
+          onClose={() => setActiveDisputePayment(null)}
+          canReapply={activeDisputePayment.escrow.dispute_status === 'dismissed'}
+        />
       )}
     </div>
   );

@@ -167,6 +167,8 @@ type Payment = {
   description?: string;
   deposit_clabe?: string;
   payout_clabe?: string;
+  payer_approval?: boolean;
+  payee_approval?: boolean;
   escrow?: Escrow;
   hmac?: string; // <-- Para evitar error TS al acceder a payment.hmac
   payment_type?: string; // Add payment type for tracker routing
@@ -583,10 +585,16 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
       {payment && payment.status !== 'completed' && payment.escrow && (() => {
         const now = new Date();
         const custodyEnd = payment.escrow.custody_end ? new Date(payment.escrow.custody_end) : null;
+        const hasNoDualApproval = !payment.payer_approval || !payment.payee_approval;
+        const custodyExpired = custodyEnd && now > custodyEnd;
+        
+        // Allow disputes if:
+        // 1. Before custody end, OR
+        // 2. After custody end but no dual approval occurred (likely disagreement)
         const canRaise = ['funded', 'in_progress', 'en_custodia', 'escrowed'].includes(payment.status) &&
           ['pending', 'active', 'funded'].includes(payment.escrow.status ?? '') &&
           (payment.escrow.dispute_status === 'none' || payment.escrow.dispute_status === 'dismissed') &&
-          (!custodyEnd || now < custodyEnd);
+          (!custodyEnd || now < custodyEnd || (custodyExpired && hasNoDualApproval));
         const canReapply = payment.escrow.dispute_status === 'dismissed' && (!custodyEnd || now < custodyEnd);
         const hasActiveDispute = payment.escrow.dispute_status && ['pending', 'approved', 'rejected'].includes(payment.escrow.dispute_status);
         
