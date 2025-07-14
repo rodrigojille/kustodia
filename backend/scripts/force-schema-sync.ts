@@ -30,23 +30,13 @@ async function forceSchemaSync() {
     const queryRunner = AppDataSource.createQueryRunner();
     
     const tables = await queryRunner.getTables();
+    // Verify key tables exist (using correct entity table names)
     const expectedTables = [
-      'user',
-      'payment', 
-      'payment_event',
-      'escrow',
-      'dispute',
-      'dispute_message',
-      'notification',
-      'early_access_counter',
-      'juno_transaction',
-      'lead',
-      'ticket',
-      'ticket_reply',
-      'token',
-      'wallet_transaction'
+      'user', 'payment', 'paymentevent', 'escrow', 'dispute', 'dispute_messages',
+      'notification', 'earlyaccesscounter', 'junotransaction', 'lead', 
+      'tickets', 'ticket_replies', 'token', 'wallet_transaction'
     ];
-
+    
     console.log("📋 Current database tables:");
     const foundTables = tables.map(table => table.name).sort();
     foundTables.forEach(table => {
