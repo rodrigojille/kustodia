@@ -1,6 +1,9 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
   className?: string;
@@ -8,28 +11,128 @@ interface HeaderProps {
   userName?: string;
 }
 
-export default function Header({ className = "", isAuthenticated, userName }: HeaderProps) {
-  return (
-    <header className={`sticky top-0 z-30 bg-white shadow-sm px-4 sm:px-8 py-3 flex items-center justify-between ${className}`}>
-      <div className="font-bold text-xl tracking-tight text-blue-700 flex items-center gap-2">
-        <Link href="/">
-  <Image src="/kustodia-logo.png" alt="Kustodia Logo" width={40} height={40} className="h-10 w-10 mr-2 cursor-pointer" priority />
-</Link>
-        <span>Kustodia</span>
-      </div>
-      <nav className="flex items-center gap-3 sm:gap-6">
+const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userName }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const useCases = [
+    { title: "Inmobiliarias y agentes", icon: "🏠", href: "/inmobiliarias" },
+    { title: "Freelancers y servicios", icon: "💻", href: "/freelancer" },
+    { title: "E-commerce y ventas online", icon: "🛒", href: "/ecommerce" },
+    { title: "Compra-venta entre particulares", icon: "🤝", href: "/compra-venta" },
+    { title: "Empresas B2B y control de entregas", icon: "🏢", href: "/b2b" },
+    { title: "Marketplaces de servicios", icon: "🌐", href: "/marketplaces" },
+  ];
+
+  const scrollToUseCases = () => {
+    // Check if we're already on the home page
+    if (window.location.pathname === '/') {
+      // We're on home page, just scroll to the section
+      const element = document.getElementById('use-cases-heading');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      // We're on a different page, navigate to home page with hash
+      window.location.href = '/#use-cases';
+    }
+    setIsDropdownOpen(false);
+  };
+
+  return (
+    <header className={`sticky top-0 z-30 bg-white border-b border-gray-100 px-4 sm:px-8 py-4 flex items-center justify-between ${className}`}>
+      {/* Logo Section */}
+      <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Image 
+            src="/kustodia-logo.png" 
+            alt="Kustodia Logo" 
+            width={32} 
+            height={32} 
+            className="h-8 w-8" 
+            priority 
+          />
+          <span className="font-bold text-xl tracking-tight text-blue-700">
+            Kustodia
+          </span>
+        </Link>
+      </div>
+      
+      {/* Navigation */}
+      <nav className="flex items-center gap-6">
+        {/* Casos de uso dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 rounded-lg hover:bg-blue-50"
+            aria-expanded={isDropdownOpen}
+            aria-haspopup="true"
+          >
+            <span>Casos de uso</span>
+            <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {isDropdownOpen && (
+            <>
+              {/* Backdrop */}
+              <div 
+                className="fixed inset-0 z-10" 
+                onClick={() => setIsDropdownOpen(false)}
+                aria-hidden="true"
+              />
+              
+              {/* Dropdown menu */}
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-20">
+                <button
+                  onClick={scrollToUseCases}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📋</span>
+                    <div>
+                      <div className="font-semibold text-gray-900">Ver todos los casos de uso</div>
+                      <div className="text-sm text-gray-500">Explora todas las soluciones</div>
+                    </div>
+                  </div>
+                </button>
+                
+                {useCases.map((useCase) => (
+                  <Link
+                    key={useCase.title}
+                    href={useCase.href}
+                    className="block px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{useCase.icon}</span>
+                      <div className="font-medium text-gray-900 text-sm leading-tight">
+                        {useCase.title}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* User section */}
         {isAuthenticated ? (
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-blue-900 hidden sm:inline">{userName || 'Usuario'}</span>
-            <button className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold hover:shadow-md transition" aria-label="Menú usuario">
-              {(userName && userName[0]) || 'N'}
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-700 hidden sm:inline">
+              {userName || 'Usuario'}
+            </span>
+            <button className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-sm" aria-label="Menú usuario">
+              {(userName && userName[0]?.toUpperCase()) || 'U'}
             </button>
           </div>
         ) : (
-          <></>
+          <div className="flex items-center">
+            {/* Login and Register links hidden as requested */}
+          </div>
         )}
       </nav>
     </header>
   );
-}
+};
+
+export default Header;

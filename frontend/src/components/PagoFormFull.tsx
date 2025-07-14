@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import PaymentLoadingModal from './PaymentLoadingModal';
 
 // Utility for fetch with auth
 type FetchOptions = RequestInit & { headers?: Record<string, string> };
@@ -118,7 +119,7 @@ export default function PagoFormFull() {
       let user_id = null;
       let payer_email = null;
       try {
-        const resUser = await authFetch('users/me');
+        const resUser = await authFetch('/api/users/me');
         const userData = await resUser.json();
         if (resUser.ok && userData.user && userData.user.id && userData.user.email) {
           user_id = userData.user.id;
@@ -141,13 +142,12 @@ export default function PagoFormFull() {
         currency: 'MXN',
         description,
         custody_percent: warrantyPercent ? Number(warrantyPercent) : null,
-        custody_period: custodyDays ? Number(custodyDays) : null,
+        custody_period: custodyDays ? Number(custodyDays) * 24 * 60 * 60 : null, // Convert days to seconds
         ...commissionFields,
       };
 
       console.log('Payload enviado a /api/payments/initiate:', payload);
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
-      const res = await authFetch(`${apiBase}/api/payments/initiate`, {
+      const res = await authFetch('/api/payments/initiate', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -172,26 +172,81 @@ export default function PagoFormFull() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 w-full bg-white rounded-xl shadow border border-gray-200 p-4 sm:p-6 md:p-8 mx-auto">
-      <h2 className="text-xl font-bold text-center mb-4 text-black">Iniciar pago</h2>
-      <input
-        type="email"
-        className="input w-full text-black placeholder-black"
-        placeholder="Destinatario (correo o usuario)"
-        value={recipient}
-        onChange={e => setRecipient(e.target.value)}
-        onBlur={handleRecipientBlur}
-        required
-      />
-      {recipientLoading && <div className="text-gray-500 text-sm mt-1">Validando destinatario...</div>}
+    <form onSubmit={handleSubmit} className="space-y-4 w-full">
+      <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Iniciar pago</h2>
+      
+      {/* Recipient Input */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Destinatario</label>
+        <input
+          type="email"
+          className="input-standard"
+          placeholder="Correo electrónico del destinatario"
+          value={recipient}
+          onChange={e => setRecipient(e.target.value)}
+          onBlur={handleRecipientBlur}
+          required
+        />
+      </div>
+      {/* Validation Messages */}
+      {recipientLoading && <div className="text-gray-500 text-sm">Validando destinatario...</div>}
       {recipient && recipientValid && recipientVerified && !recipientError && (
-        <div className="text-green-700 font-semibold text-sm mt-1">Destinatario válido y verificado.</div>
+        <div className="text-green-700 font-semibold text-sm">✓ Destinatario válido y verificado</div>
       )}
-      {recipient && recipientError && <div className="text-red-600 text-sm mt-1 font-semibold">{recipientError}</div>} 
-      <input type="number" className="input w-full text-black placeholder-black" placeholder="Monto (MXN)" value={amount} onChange={e => setAmount(e.target.value)} required min={1} />
-      <input type="text" className="input w-full text-black placeholder-black" placeholder="Descripción o propósito del pago (opcional)" value={description} onChange={e => setDescription(e.target.value)} />
-      <input type="number" className="input w-full text-black placeholder-black" placeholder="% bajo garantía (0-100)" value={warrantyPercent} onChange={e => setWarrantyPercent(e.target.value)} min={0} max={100} />
-      <input type="number" className="input w-full text-black placeholder-black" placeholder="Días en custodia (mínimo 1)" value={custodyDays} onChange={e => setCustodyDays(e.target.value)} min={1} />
+      {recipient && recipientError && <div className="text-red-600 text-sm font-semibold">{recipientError}</div>}
+      
+      {/* Amount Input */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Monto</label>
+        <input 
+          type="number" 
+          className="input-standard" 
+          placeholder="Monto en MXN" 
+          value={amount} 
+          onChange={e => setAmount(e.target.value)} 
+          required 
+          min={1} 
+        />
+      </div>
+      
+      {/* Description Input */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Descripción (opcional)</label>
+        <input 
+          type="text" 
+          className="input-standard" 
+          placeholder="Propósito del pago" 
+          value={description} 
+          onChange={e => setDescription(e.target.value)} 
+        />
+      </div>
+      
+      {/* Warranty Percentage */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Porcentaje bajo garantía</label>
+        <input 
+          type="number" 
+          className="input-standard" 
+          placeholder="% bajo garantía (0-100)" 
+          value={warrantyPercent} 
+          onChange={e => setWarrantyPercent(e.target.value)} 
+          min={0} 
+          max={100} 
+        />
+      </div>
+      
+      {/* Custody Days */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Días en custodia</label>
+        <input 
+          type="number" 
+          className="input-standard" 
+          placeholder="Días en custodia (mínimo 1)" 
+          value={custodyDays} 
+          onChange={e => setCustodyDays(e.target.value)} 
+          min={1} 
+        />
+      </div>
       <div className="mt-4 mb-2 font-semibold text-black">
         <button
           type="button"
@@ -245,16 +300,15 @@ export default function PagoFormFull() {
       )}
       <button
         type="submit"
-        className={`w-full mt-4 text-white rounded-2xl py-3 px-2 text-lg font-semibold shadow transition-all ${
+        className={`btn-primary w-full mt-6 ${
           (recipientValid && recipientVerified && recipient && amount && warrantyPercent !== '' && custodyDays !== '' && !recipientLoading && (
             !commissionPercent || (
               commissionBeneficiaryEmail && commissionerValid && commissionerVerified
             )
           ))
-            ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
-            : 'bg-gray-300 cursor-not-allowed'
+            ? ''
+            : 'opacity-50 cursor-not-allowed'
         }`}
-        style={{ boxShadow: '0 2px 8px #E3EAFD' }}
         disabled={
           !!loading ||
           !!recipientLoading ||
@@ -272,6 +326,11 @@ export default function PagoFormFull() {
       </button>
       {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
 
+      {/* Payment Loading Modal */}
+      <PaymentLoadingModal 
+        isOpen={loading} 
+        message="Creando tu pago seguro..." 
+      />
     </form>
   );
 }

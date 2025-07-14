@@ -50,6 +50,31 @@ export default function LandingPage() {
     setCurrentExample(num);
   };
 
+  // Handle hash navigation on page load
+  useEffect(() => {
+    const handleHashNavigation = () => {
+      const hash = window.location.hash;
+      if (hash === '#use-cases') {
+        setTimeout(() => {
+          const element = document.getElementById('use-cases-heading');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100); // Small delay to ensure page is fully loaded
+      }
+    };
+
+    // Handle on initial load
+    handleHashNavigation();
+
+    // Handle hash changes
+    window.addEventListener('hashchange', handleHashNavigation);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashNavigation);
+    };
+  }, []);
+
   const nextExample = () => {
     const next = currentExample === 3 ? 1 : currentExample + 1;
     setCurrentExample(next);
