@@ -8,7 +8,7 @@
     "start": "node dist/index.js",
     "build": "npx copyfiles src/artifacts/**/* dist/ && tsc",
     "heroku-prebuild": "mkdir -p src/artifacts/contracts || true",
-    "heroku-postbuild": "npm run setup-prod-db",
+    "heroku-postbuild": "npm run build && npm run setup-prod-db",
     "typeorm": "ts-node-dev -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
