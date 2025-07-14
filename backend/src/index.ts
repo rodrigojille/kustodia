@@ -98,10 +98,10 @@ async function main() {
     });
 
     // Mount all API routes
+    console.log('Mounting mainRouter at /api');
     app.use("/api", mainRouter);
+    console.log('Mounting leadRoutes at /api/leads');
     app.use('/api/leads', leadRoutes);
-    app.use('/api/automation', automationRoutes);
-    app.use('/api/payments', paymentRoutes);
 
     // Auth routes
     app.use(passport.initialize());

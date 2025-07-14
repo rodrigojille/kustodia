@@ -11,6 +11,7 @@ import notificationRoutes from "./notification";
 
 const router = Router();
 
+console.log('Mounting userRoutes at /users in mainRouter');
 router.use("/users", userRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/truora", truoraRoutes);
