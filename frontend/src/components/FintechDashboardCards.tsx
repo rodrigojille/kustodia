@@ -77,12 +77,14 @@ export default function FintechDashboardCards() {
   const [automationActive, setAutomationActive] = useState(false);
 
   useEffect(() => {
-    // Fetch payments data
+    // Fetch USER-SPECIFIC payments data (now secure by default)
     authFetch('payments')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setPaymentsData(data);
+        // Handle both {payments: [...]} and direct array formats
+        const payments = Array.isArray(data) ? data : (data.payments || []);
+        if (Array.isArray(payments)) {
+          setPaymentsData(payments);
         } else {
           throw new Error('Invalid data format');
         }

@@ -22,10 +22,11 @@ export default function LoginPage() {
     console.log("=== LOGIN STARTED ===");
     
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000';
-      console.log("Calling backend API:", `${apiUrl}/api/users/login`);
+      // Use Next.js proxy route for consistent authentication
+      const loginUrl = '/api/users/login';
+      console.log("Calling login API via proxy:", loginUrl);
       
-      const res = await fetch(`${apiUrl}/api/users/login`, {
+      const res = await fetch(loginUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

@@ -211,11 +211,11 @@ export default function DashboardHomePage() {
           <div className="mb-6 md:mb-8">
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">Mi Información</h3>
             <RevolutAccountCards 
-              user={user} 
-              mxnbsBalance={mxnbsBalance || '0.00'} 
-              loading={userLoading} 
-              error={userError} 
-              onUserUpdate={handleUserUpdate}
+              user={user}
+              mxnbsBalance={mxnbsBalance}
+              loading={userLoading}
+              error={userError}
+              onUserUpdate={(updatedUser) => setUser(updatedUser)}
             />
           </div>
 

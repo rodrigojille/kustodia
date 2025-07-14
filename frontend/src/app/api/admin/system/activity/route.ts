@@ -4,9 +4,21 @@ export async function GET(request: NextRequest) {
   try {
     // Get the authorization header from the frontend request
     const authHeader = request.headers.get('authorization');
+    const customToken = request.headers.get('x-auth-token');
     
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Authorization header required' }, { status: 401 });
+    let token: string | null = null;
+    
+    // Check for Authorization header first
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+    // Check for custom x-auth-token header
+    else if (customToken) {
+      token = customToken;
+    }
+    
+    if (!token) {
+      return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
     }
 
     // Get query parameters and forward them
@@ -14,11 +26,11 @@ export async function GET(request: NextRequest) {
     const queryString = searchParams.toString();
     const backendUrl = `http://localhost:4000/api/admin/system/activity${queryString ? `?${queryString}` : ''}`;
 
-    // Forward the request to the backend on port 3000 (not 3001!)
+    // Forward the request to the backend on port 4000
     const backendResponse = await fetch(backendUrl, {
       method: 'GET',
       headers: {
-        'Authorization': authHeader,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });

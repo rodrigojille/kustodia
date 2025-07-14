@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-
-// Force dynamic rendering for this route
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Get the authorization header from the frontend request
     const authHeader = request.headers.get('authorization');
     const customToken = request.headers.get('x-auth-token');
     
@@ -24,10 +20,9 @@ export async function GET(request: NextRequest) {
     if (!token) {
       return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
     }
-    
-    // Forward the request to the backend
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000';
-    const response = await fetch(`${apiUrl}/api/users/me`, {
+
+    // Forward the request to the backend on port 4000
+    const backendResponse = await fetch('http://localhost:4000/api/admin/tickets', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -35,15 +30,22 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      return NextResponse.json({ error: data.error || 'Failed to fetch user data' }, { status: response.status });
+    if (!backendResponse.ok) {
+      const errorText = await backendResponse.text();
+      console.error('Backend error response:', errorText);
+      return NextResponse.json(
+        { error: 'Backend service unavailable', details: errorText }, 
+        { status: backendResponse.status }
+      );
     }
 
+    const data = await backendResponse.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error fetching user data:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error in admin tickets route:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' }, 
+      { status: 500 }
+    );
   }
 }

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  /* Legacy variables (maintained for compatibility) */
   --background: #fff;
   --foreground: #000;
   --primary: #646cff;
@@ -8,6 +9,72 @@
   --accent: #e0e7ff;
   --accent-light: #c7d2fe;
   --secondary: #747bff;
+  
+  /* Kustodia Design System - Primary Brand Colors */
+  --kustodia-blue-50: #eff6ff;
+  --kustodia-blue-100: #dbeafe;
+  --kustodia-blue-500: #3b82f6;
+  --kustodia-blue-600: #2563eb;
+  --kustodia-blue-700: #1d4ed8;
+  
+  /* Status Colors - Success */
+  --kustodia-green-50: #f0fdf4;
+  --kustodia-green-100: #dcfce7;
+  --kustodia-green-600: #16a34a;
+  --kustodia-green-700: #15803d;
+  
+  /* Status Colors - Warning */
+  --kustodia-amber-50: #fffbeb;
+  --kustodia-amber-100: #fef3c7;
+  --kustodia-amber-600: #d97706;
+  --kustodia-amber-700: #b45309;
+  
+  /* Status Colors - Error */
+  --kustodia-red-50: #fef2f2;
+  --kustodia-red-100: #fee2e2;
+  --kustodia-red-600: #dc2626;
+  --kustodia-red-700: #b91c1c;
+  
+  /* Neutral Grays */
+  --kustodia-gray-50: #f9fafb;
+  --kustodia-gray-100: #f3f4f6;
+  --kustodia-gray-200: #e5e7eb;
+  --kustodia-gray-600: #4b5563;
+  --kustodia-gray-700: #374151;
+  --kustodia-gray-900: #111827;
+  
+  /* Spacing Scale */
+  --spacing-xs: 0.5rem;   /* 8px */
+  --spacing-sm: 1rem;     /* 16px */
+  --spacing-md: 1.5rem;   /* 24px */
+  --spacing-lg: 2rem;     /* 32px */
+  --spacing-xl: 3rem;     /* 48px */
+  
+  /* Typography Scale */
+  --text-display: 4rem;     /* 64px - Hero text */
+  --text-h1: 3rem;          /* 48px - Page titles */
+  --text-h2: 2.25rem;       /* 36px - Section titles */
+  --text-h3: 1.875rem;      /* 30px - Subsections */
+  --text-h4: 1.5rem;        /* 24px - Card titles */
+  --text-h5: 1.25rem;       /* 20px - Small headings */
+  --text-body-lg: 1.125rem; /* 18px - Large body */
+  --text-body: 1rem;        /* 16px - Default body */
+  --text-body-sm: 0.875rem; /* 14px - Small text */
+  --text-caption: 0.75rem;  /* 12px - Captions */
+  
+  /* Border Radius Scale */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.5rem;   /* 24px */
+  
+  /* Shadow System */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,4 +88,58 @@ body {
   background: var(--background);
   color: #000;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Kustodia Design System Utility Classes */
+.card-primary {
+  @apply bg-white rounded-2xl shadow-lg border border-gray-200;
+}
+
+.card-status {
+  @apply rounded-2xl border-2 p-6 transition-all duration-200 ease-in-out hover:shadow-lg hover:scale-[1.02] cursor-pointer;
+}
+
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 border border-gray-300 hover:border-gray-400 inline-flex items-center;
+}
+
+.input-standard {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500;
+}
+
+/* Layout Utilities */
+.page-container {
+  @apply min-h-screen bg-gray-50 px-2 pt-4 pb-16;
+}
+
+@screen sm {
+  .page-container {
+    @apply px-4;
+  }
+}
+
+@screen md {
+  .page-container {
+    @apply px-8;
+  }
+}
+
+.content-wrapper {
+  @apply max-w-7xl mx-auto;
+}
+
+.page-header {
+  @apply mb-6;
+}
+
+.page-title {
+  @apply text-2xl md:text-3xl font-bold text-gray-900 mb-2;
+}
+
+.page-description {
+  @apply text-gray-600;
 }

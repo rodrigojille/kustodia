@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     // Get the authorization header from the frontend request
     const authHeader = request.headers.get('authorization');
@@ -21,13 +21,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
     }
 
+    // Get the request body
+    const body = await request.json();
+
     // Forward the request to the backend on port 4000
-    const backendResponse = await fetch('http://localhost:4000/api/admin/system/overview', {
-      method: 'GET',
+    const backendResponse = await fetch('http://localhost:4000/api/dispute/ai-assessment/batch', {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(body),
     });
 
     if (!backendResponse.ok) {
@@ -41,11 +45,10 @@ export async function GET(request: NextRequest) {
 
     const data = await backendResponse.json();
     return NextResponse.json(data);
-
   } catch (error) {
-    console.error('API route error:', error);
+    console.error('Error in AI assessment batch route:', error);
     return NextResponse.json(
-      { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' }, 
+      { error: 'Internal server error' }, 
       { status: 500 }
     );
   }

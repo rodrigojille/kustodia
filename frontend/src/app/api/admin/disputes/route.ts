@@ -5,12 +5,29 @@ const BACKEND_URL = process.env.DISPUTES_API_URL || "http://localhost:4000/api/a
 
 export async function GET(req: Request) {
   try {
-    // Forward Authorization header if present
-    const auth = req.headers.get('authorization');
+    // Get the authorization header from the frontend request
+    const authHeader = req.headers.get('authorization');
+    const customToken = req.headers.get('x-auth-token');
+    
+    let token: string | null = null;
+    
+    // Check for Authorization header first
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+    // Check for custom x-auth-token header
+    else if (customToken) {
+      token = customToken;
+    }
+    
+    if (!token) {
+      return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
+    }
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
     };
-    if (auth) headers["Authorization"] = auth;
     const res = await fetch(BACKEND_URL, {
       headers,
       // credentials: 'include', // Uncomment if you need to send cookies

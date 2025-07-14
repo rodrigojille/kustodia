@@ -108,7 +108,7 @@ const AdminDashboardPage = () => {
       setLoading(true);
       
       // Fetch tickets
-      const ticketsResponse = await authFetch('/api/admin/tickets');
+      const ticketsResponse = await authFetch('admin/tickets');
       if (ticketsResponse.ok) {
         const ticketsData = await ticketsResponse.json();
         setTickets(ticketsData);
@@ -126,7 +126,7 @@ const AdminDashboardPage = () => {
       setLoading(true);
       
       // Fetch disputes
-      const disputesResponse = await authFetch('/api/admin/disputes');
+      const disputesResponse = await authFetch('admin/disputes');
       if (disputesResponse.ok) {
         const disputesData = await disputesResponse.json();
         const disputes = disputesData.disputes || [];
@@ -181,24 +181,9 @@ const AdminDashboardPage = () => {
     setIsLoadingSystem(true);
     try {
       const [overviewResponse, activityResponse, paymentsResponse] = await Promise.all([
-        fetch('/api/admin/system/overview', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-            'Content-Type': 'application/json'
-          }
-        }),
-        fetch('/api/admin/system/activity', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-            'Content-Type': 'application/json'
-          }
-        }),
-        fetch('/api/payments', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-            'Content-Type': 'application/json'
-          }
-        })
+        authFetch('/api/admin/system/overview'),
+        authFetch('/api/admin/system/activity'),
+        authFetch('/api/admin/payments')
       ]);
 
       if (overviewResponse.ok) {
@@ -217,7 +202,9 @@ const AdminDashboardPage = () => {
 
       if (paymentsResponse.ok) {
         const paymentsData = await paymentsResponse.json();
-        const statusGroups = paymentsData.reduce((acc: any, payment: any) => {
+        // Handle both array and object responses
+        const payments = Array.isArray(paymentsData) ? paymentsData : (paymentsData.payments || []);
+        const statusGroups = payments.reduce((acc: any, payment: any) => {
           const status = payment.status;
           if (!acc[status]) {
             acc[status] = { count: 0, amount: 0 };
@@ -265,12 +252,8 @@ const AdminDashboardPage = () => {
           return;
       }
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await authFetch(endpoint, {
+        method
       });
 
       const result = await response.json();
@@ -342,12 +325,7 @@ const AdminDashboardPage = () => {
   const fetchSystemOverview = async () => {
     try {
       setIsLoadingSystem(true);
-      const response = await fetch('/api/admin/system/overview', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await authFetch('admin/system/overview');
       
       if (response.ok) {
         const data = await response.json();
@@ -372,12 +350,7 @@ const AdminDashboardPage = () => {
       if (logDateEnd) params.append('endDate', logDateEnd);
       if (logLevel) params.append('level', logLevel);
       
-      const response = await fetch(`/api/admin/system/actions/logs?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await authFetch(`admin/system/activity?${params.toString()}`);
       
       if (response.ok) {
         const data = await response.json();

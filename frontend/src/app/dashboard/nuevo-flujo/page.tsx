@@ -698,7 +698,7 @@ function getVerticalDisplayName(vertical: string) {
 async function handleCreatePayment(vertical: string, data: FormDataType, router: any) {
   try {
     // Get current user
-    const resUser = await authFetch('users/me');
+    const resUser = await authFetch('/api/users/me');
     
     if (!resUser.ok) {
       throw new Error("No se pudo obtener el usuario actual.");
@@ -897,24 +897,45 @@ export default function NuevoFlujoPage() {
 
   return (
     <div style={{ maxWidth: 900, margin: "2rem auto", padding: "1rem" }}>
+      {/* Back Link */}
+      <button 
+        onClick={() => router.push('/dashboard/crear-pago')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: '24px',
+          padding: '8px 12px',
+          backgroundColor: 'transparent',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          color: '#6b7280',
+          fontSize: '14px',
+          cursor: 'pointer',
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#f9fafb';
+          e.currentTarget.style.borderColor = '#d1d5db';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.borderColor = '#e5e7eb';
+        }}
+      >
+        <span style={{ marginRight: '8px' }}>←</span>
+        Volver a tipos de pago
+      </button>
+
       <h1 style={{ 
         fontSize: width < 640 ? "1.5rem" : "2rem", 
         fontWeight: "bold", 
         textAlign: "center", 
         marginBottom: 32 
       }}>
-        Nuevo pago condicional
+        🎯 Pago Condicional Premium
       </h1>
       {step === 1 && (
         <>
-          <h2 style={{ 
-            textAlign: "center", 
-            marginBottom: 24,
-            fontSize: width < 640 ? "1.2rem" : "1.5rem",
-            padding: "0 1rem"
-          }}>
-            ¿Para qué quieres usar Kustodia?
-          </h2>
           <div style={{ 
             display: "flex", 
             flexWrap: "wrap", 

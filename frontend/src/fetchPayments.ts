@@ -8,5 +8,6 @@ export default async function fetchPayments() {
   }
 
   const data = await res.json();
-  return data; // Backend returns array directly
+  // Handle both {payments: [...]} and direct array formats
+  return Array.isArray(data) ? data : (data.payments || []);
 }

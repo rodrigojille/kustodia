@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import fetchPayments from "../fetchPayments";
+import { authFetch } from '../utils/authFetch';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { PAYMENT_STATUSES, getStatusConfig, getStatusSpanish } from '../config/paymentStatuses';
 
@@ -23,28 +23,37 @@ export default function PaymentsByStageChart({ filterMonth, onSliceClick, select
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPayments().then((payments: Payment[]) => {
-      const stageTotals: Record<string, number> = {};
-      let curr = "MXN";
-      // Safety check for payments array
-      if (!payments || !Array.isArray(payments)) {
-        console.warn('Payments data is not an array:', payments);
+    authFetch('payments')
+      .then(res => res.json())
+      .then(data => {
+        const payments = Array.isArray(data) ? data : (data.payments || []);
+        const stageTotals: Record<string, number> = {};
+        let curr = "MXN";
+        // Safety check for payments array
+        if (!payments || !Array.isArray(payments)) {
+          console.warn('Payments data is not an array:', payments);
+          setLoading(false);
+          return;
+        }
+        payments.forEach((p: any) => {
+          // Handle both string and number amounts
+          const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
+          stageTotals[p.status] = (stageTotals[p.status] || 0) + (isNaN(amount) ? 0 : amount);
+          if (!curr && p.currency) curr = p.currency;
+        });
+        const result = Object.entries(stageTotals).map(([status, total]) => ({
+          name: getStatusSpanish(status),
+          value: total,
+          status,
+        }));
+        setData(result);
+        setCurrency(curr);
         setLoading(false);
-        return;
-      }
-      payments.forEach((p) => {
-        stageTotals[p.status] = (stageTotals[p.status] || 0) + Number(p.amount);
-        if (!curr && p.currency) curr = p.currency;
+      })
+      .catch(error => {
+        console.error('Error fetching payments for stage chart:', error);
+        setLoading(false);
       });
-      const result = Object.entries(stageTotals).map(([status, total]) => ({
-        name: getStatusSpanish(status),
-        value: total,
-        status,
-      }));
-      setData(result);
-      setCurrency(curr);
-      setLoading(false);
-    });
   }, []);
 
   if (loading) return <div className="text-gray-400">Cargando...</div>;

@@ -51,17 +51,42 @@ const SettingsPage = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      console.log('[ConfigPage] Fetching user data...');
       try {
-        const response = await authFetch('/api/users/me');
+        const token = localStorage.getItem('auth_token');
+        console.log('[ConfigPage] Token check before API call:', {
+          hasToken: !!token,
+        });
+
+        const response = await authFetch('users/me');
+        console.log(`[ConfigPage] API response status: ${response.status}`);
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Failed to fetch user data' }));
-          throw new Error(errorData.error || 'Failed to fetch user data');
+          const errorText = await response.text();
+          console.error('[ConfigPage] API request failed with status:', response.status, 'and response text:', errorText);
+          const errorData = JSON.parse(errorText || '{}');
+          throw new Error(errorData.error || `Failed to fetch user data with status ${response.status}`);
         }
+
         const data = await response.json();
-        setUser(data.user);
+        console.log('[ConfigPage] ✅ SUCCESS! Raw API response:', data);
+        
+        // Backend returns user data wrapped in 'user' property
+        const userData = data.user || data; // Fallback to data if no user wrapper
+        
+        console.log('[ConfigPage] User data extracted:', userData);
+        console.log('[ConfigPage] Full user object:', JSON.stringify(userData, null, 2));
+        console.log('[ConfigPage] User KYC status:', userData?.kyc_status);
+        console.log('[ConfigPage] User wallet address:', userData?.wallet_address);
+        
+        setUser(userData);
+        console.log('[ConfigPage] User state set successfully.');
+
       } catch (err) {
+        console.error('[ConfigPage] ❌ ERROR fetching user data:', err);
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
+        console.log('[ConfigPage] Setting loading to false.');
         setLoading(false);
       }
     };
@@ -109,7 +134,7 @@ const SettingsPage = () => {
 
     try {
       const response = await authFetch('/api/users/update-payout-clabe', {
-        method: 'POST',
+        method: 'PUT',
         body: JSON.stringify({ payout_clabe: newClabe.trim() }),
       });
 

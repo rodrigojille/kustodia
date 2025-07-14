@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from 'next/navigation';
 import fetchPayments from "../fetchPayments";
 import AutomationStatus from "./AutomationStatus";
-import { getStatusConfig, getStatusSpanish, PAYMENT_STATUSES } from '../config/paymentStatuses';
+import { getStatusConfig, PAYMENT_STATUSES } from '../config/paymentStatuses';
 import { authFetch } from '../utils/authFetch';
 
 function getDisplayAmount(amount: number | string, currency: string | undefined) {
-  // Siempre mostrar como pesos mexicanos, sin importar el token
   return Number(amount).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
@@ -23,12 +23,15 @@ type Payment = {
   status: string;
   payer_email?: string;
   recipient_email?: string;
-  seller_email?: string; // Email from seller User relationship
+  seller_email?: string; 
   description?: string;
-  payment_type?: string; // Add payment type for tracker routing
+  payment_type?: string; 
 };
 
-export default function PaymentsTable() {
+function PaymentsTableContent() {
+  const searchParams = useSearchParams();
+  const statusFilters = searchParams.getAll('status');
+
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +65,9 @@ export default function PaymentsTable() {
       (p.payer_email && p.payer_email.toLowerCase().includes(search.toLowerCase())) ||
       (p.recipient_email && p.recipient_email.toLowerCase().includes(search.toLowerCase())) ||
       (p.description && p.description.toLowerCase().includes(search.toLowerCase()));
-    const matchesStatus = !status || p.status === status;
+    
+    const matchesStatus = statusFilters.length === 0 || statusFilters.includes(p.status);
+
     const created = new Date(p.created_at);
     const matchesFrom = !dateFrom || created >= new Date(dateFrom);
     const matchesTo = !dateTo || created <= new Date(dateTo);
@@ -237,5 +242,14 @@ export default function PaymentsTable() {
         </div>
       )}
     </div>
+  );
+}
+
+// Wrap the component in Suspense to use useSearchParams
+export default function PaymentsTable() {
+  return (
+    <Suspense fallback={<div>Loading filters...</div>}>
+      <PaymentsTableContent />
+    </Suspense>
   );
 }

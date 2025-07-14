@@ -24,21 +24,20 @@ export async function authFetch(endpoint: string, options: FetchOptions = {}) {
   // Always check for localStorage token in browser environment
   const localStorageToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
   
-  // Send localStorage token via Authorization header
+  // Send localStorage token via x-auth-token header (for proxy route)
   if (localStorageToken) {
-    headers['Authorization'] = `Bearer ${localStorageToken}`;
-    console.log('[AUTH FETCH] Adding localStorage token to Authorization header');
+    headers['x-auth-token'] = localStorageToken;
+    console.log('[AUTH FETCH] Adding localStorage token to x-auth-token header');
   } else {
     console.log('[AUTH FETCH] No localStorage token found');
   }
 
-  // Use direct backend URL - matches deployment env var
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-  const directUrl = `${backendUrl}/api/${cleanEndpoint}`;
-  console.log('[AUTH FETCH] Direct backend URL:', directUrl);
+  // Use Next.js proxy route for all requests
+  const proxyUrl = `/api/${cleanEndpoint}`;
+  console.log('[AUTH FETCH] Using Next.js proxy URL:', proxyUrl);
   
   try {
-    const response = await fetch(directUrl, {
+    const response = await fetch(proxyUrl, {
       ...options,
       headers,
       // Add timeout to prevent hanging requests

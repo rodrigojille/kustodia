@@ -492,8 +492,12 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
                   const end = typeof payment.escrow?.custody_end === 'string' ? new Date(payment.escrow.custody_end) : null;
                   const start = typeof payment.escrow?.created_at === 'string' ? new Date(payment.escrow.created_at) : null;
                   if (end && start) {
-                    const diff = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                    return diff;
+                    // Calculate difference in milliseconds, then convert to days
+                    const diffMs = end.getTime() - start.getTime();
+                    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                    // Use Math.ceil to ensure we never show 0 for periods >= 1 day
+                    // and Math.max to ensure minimum of 1 day is shown
+                    return Math.max(1, Math.ceil(diffDays));
                   }
                   return '-';
                 })() : '-'}</span>

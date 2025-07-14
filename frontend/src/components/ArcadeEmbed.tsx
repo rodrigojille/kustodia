@@ -1,9 +1,9 @@
 export function ArcadeEmbed() {
   return (
-    <div style={{ position: 'relative', paddingBottom: 'calc(50.979166666666664% + 41px)', height: 0, width: '100%' }}>
+    <div style={{ position: 'relative', paddingBottom: 'calc(49.21875% + 41px)', height: 0, width: '100%' }}>
       <iframe
-        src="https://demo.arcade.software/lrh0YG659kqhvtRMtUhZ?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
-        title="Effortless Payment Management with Kustodia"
+        src="https://demo.arcade.software/EcLjwLQ552BAWwH07IzC?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+        title="Crear y gestionar pagos condicionales en la plataforma"
         frameBorder="0"
         loading="lazy"
         allowFullScreen

@@ -6,7 +6,7 @@ import authFetch from '../utils/authFetch';
 
 interface RevolutAccountCardsProps {
   user: any;
-  mxnbsBalance: string;
+  mxnbsBalance: string | null;
   loading: boolean;
   error: string | null;
   onUserUpdate: (user: any) => void;

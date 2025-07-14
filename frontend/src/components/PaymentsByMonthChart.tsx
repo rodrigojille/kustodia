@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import fetchPayments from "../fetchPayments";
+import { authFetch } from '../utils/authFetch';
 import {
   BarChart,
   Bar,
@@ -35,28 +35,37 @@ export default function PaymentsByMonthChart({ filterStage, onBarClick, selected
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPayments().then((payments: Payment[]) => {
-      const monthly: Record<string, number> = {};
-      let curr = "MXN";
-      // Safety check for payments array
-      if (!payments || !Array.isArray(payments)) {
-        console.warn('Payments data is not an array:', payments);
+    authFetch('payments')
+      .then(res => res.json())
+      .then(data => {
+        const payments = Array.isArray(data) ? data : (data.payments || []);
+        const monthly: Record<string, number> = {};
+        let curr = "MXN";
+        // Safety check for payments array
+        if (!payments || !Array.isArray(payments)) {
+          console.warn('Payments data is not an array:', payments);
+          setLoading(false);
+          return;
+        }
+        payments.forEach((p: any) => {
+          const date = new Date(p.created_at);
+          const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+          // Handle both string and number amounts
+          const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
+          monthly[key] = (monthly[key] || 0) + (isNaN(amount) ? 0 : amount);
+          if (!curr && p.currency) curr = p.currency;
+        });
+        const result = Object.entries(monthly)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([month, total]) => ({ month, total }));
+        setData(result);
+        setCurrency(curr);
         setLoading(false);
-        return;
-      }
-      payments.forEach((p) => {
-        const date = new Date(p.created_at);
-        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-        monthly[key] = (monthly[key] || 0) + Number(p.amount);
-        if (!curr && p.currency) curr = p.currency;
+      })
+      .catch(error => {
+        console.error('Error fetching payments for chart:', error);
+        setLoading(false);
       });
-      const result = Object.entries(monthly)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([month, total]) => ({ month, total }));
-      setData(result);
-      setCurrency(curr);
-      setLoading(false);
-    });
   }, []);
 
   if (loading) return <div className="text-gray-400">Cargando...</div>;
