@@ -15,23 +15,44 @@ export default function ClientAuthGuard({ children }: { children: React.ReactNod
     }
     
     // Delay authentication check to allow pages to extract URL tokens first
-    const timeoutId = setTimeout(() => {
-      // Check both cookie (production) and localStorage (development)
-      const hasCookieToken = document.cookie.includes("auth_token=");
-      const hasLocalStorageToken = localStorage.getItem('auth_token');
-      
-      console.log('[AUTH GUARD] Checking authentication:', {
-        hasCookieToken,
-        hasLocalStorageToken: !!hasLocalStorageToken,
-        pathname
-      });
-      
-      if (!hasCookieToken && !hasLocalStorageToken) {
-        console.log('[AUTH GUARD] No session found, redirecting to login');
+    const timeoutId = setTimeout(async () => {
+      try {
+        // First check localStorage for development mode
+        const hasLocalStorageToken = localStorage.getItem('auth_token');
+        
+        console.log('[AUTH GUARD] Checking authentication:', {
+          hasLocalStorageToken: !!hasLocalStorageToken,
+          pathname
+        });
+        
+        // If we have localStorage token (development), we're authenticated
+        if (hasLocalStorageToken) {
+          console.log('[AUTH GUARD] Development mode - localStorage token found');
+          setIsChecking(false);
+          return;
+        }
+        
+        // For production mode, make API call to check authentication status
+        // This works because the Next.js proxy will forward HTTP-only cookies
+        console.log('[AUTH GUARD] Production mode - checking auth via API call');
+        const response = await fetch('/api/users/me', {
+          method: 'GET',
+          credentials: 'include' // Important: include cookies
+        });
+        
+        if (response.ok) {
+          console.log('[AUTH GUARD] Authentication valid - user authenticated');
+          setIsChecking(false);
+        } else {
+          console.log('[AUTH GUARD] Authentication failed - redirecting to login');
+          router.replace("/login");
+        }
+      } catch (error) {
+        console.error('[AUTH GUARD] Error checking authentication:', error);
+        // On error, redirect to login to be safe
         router.replace("/login");
       }
-      setIsChecking(false);
-    }, 200); // Increased delay to let dashboard extract token from URL
+    }, 200); // Delay to let dashboard extract token from URL
 
     return () => clearTimeout(timeoutId);
   }, [pathname, router]);
