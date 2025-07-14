@@ -20,20 +20,15 @@ router.get('/heroku-logs', authenticateJWT, requireAdminRole, async (req: Reques
     } = req.query;
 
     const herokuApiToken = process.env.HEROKU_API_TOKEN;
-    const herokuAppName = process.env.HEROKU_APP_NAME;
+    const herokuAppName = process.env.HEROKU_APP_NAME || 'kustodia-backend';
 
     if (!herokuApiToken) {
-      res.status(500).json({ 
-        error: 'Heroku API token not configured',
-        message: 'HEROKU_API_TOKEN environment variable is required'
-      });
-      return;
-    }
-
-    if (!herokuAppName) {
-      res.status(500).json({ 
-        error: 'Heroku app name not configured',
-        message: 'HEROKU_APP_NAME environment variable is required'
+      res.status(200).json({ 
+        logs: [],
+        totalLines: 0,
+        filteredLines: 0,
+        message: 'Heroku API token not configured. To enable live log monitoring, set HEROKU_API_TOKEN environment variable.',
+        configurationRequired: true
       });
       return;
     }
@@ -162,12 +157,13 @@ router.get('/heroku-logs', authenticateJWT, requireAdminRole, async (req: Reques
 router.get('/heroku-dynos', authenticateJWT, requireAdminRole, async (req: Request, res: Response): Promise<void> => {
   try {
     const herokuApiToken = process.env.HEROKU_API_TOKEN;
-    const herokuAppName = process.env.HEROKU_APP_NAME;
+    const herokuAppName = process.env.HEROKU_APP_NAME || 'kustodia-backend';
 
-    if (!herokuApiToken || !herokuAppName) {
-      res.status(500).json({ 
-        error: 'Heroku configuration missing',
-        message: 'HEROKU_API_TOKEN and HEROKU_APP_NAME environment variables are required'
+    if (!herokuApiToken) {
+      res.status(200).json({ 
+        dynos: [],
+        message: 'Heroku API token not configured. To enable dyno monitoring, set HEROKU_API_TOKEN environment variable.',
+        configurationRequired: true
       });
       return;
     }
