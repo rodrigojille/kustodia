@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { authFetch } from '../../../utils/authFetch';
 
 interface Notification {
   id: number;
@@ -32,19 +33,8 @@ export default function NotificacionesPage() {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setError('No authentication token found');
-        return;
-      }
-
-      const response = await fetch('/api/notifications', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
+      const response = await authFetch('notifications');
+      
       if (!response.ok) {
         throw new Error('Failed to fetch notifications');
       }
@@ -60,15 +50,8 @@ export default function NotificacionesPage() {
 
   const handleMarkAsRead = async (id: number) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) return;
-
-      const response = await fetch(`/api/notifications/${id}/read`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await authFetch(`notifications/${id}/read`, {
+        method: 'PATCH'
       });
 
       if (response.ok) {
@@ -83,15 +66,8 @@ export default function NotificacionesPage() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) return;
-
-      const response = await fetch('/api/notifications/mark-all-read', {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await authFetch('notifications/mark-all-read', {
+        method: 'PATCH'
       });
 
       if (response.ok) {
@@ -104,15 +80,8 @@ export default function NotificacionesPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) return;
-
-      const response = await fetch(`/api/notifications/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await authFetch(`notifications/${id}`, {
+        method: 'DELETE'
       });
 
       if (response.ok) {

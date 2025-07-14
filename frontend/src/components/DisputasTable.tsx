@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import DisputeMessagingModal from "./DisputeMessagingModal";
+import { authFetch } from '../utils/authFetch';
 
 interface Dispute {
   id: number;
@@ -46,13 +47,7 @@ export default function DisputasTable() {
   const fetchDisputes = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch("/api/dispute", {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await authFetch('dispute');
       
       if (!response.ok) {
         throw new Error("Error al cargar disputas");
