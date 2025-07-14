@@ -57,6 +57,38 @@ export default function LoginPage() {
         // Store user email for UI purposes only (not for auth)
         localStorage.setItem("userEmail", email);
         
+        console.log("=== FETCHING USER DATA ===");
+        // Fetch user data to populate frontend state
+        try {
+          const userRes = await fetch('/api/users/me', {
+            method: 'GET',
+            credentials: 'include', // Include cookies for authentication
+            headers: {
+              'Content-Type': 'application/json',
+              // Add Authorization header if we have a token (for development)
+              ...(data.token ? { 'Authorization': `Bearer ${data.token}` } : {})
+            }
+          });
+          
+          console.log("User data fetch status:", userRes.status);
+          
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            console.log("User data fetched successfully:", userData);
+            
+            // Store user data for frontend use
+            if (userData.user) {
+              localStorage.setItem('userData', JSON.stringify(userData.user));
+            }
+          } else {
+            console.error("Failed to fetch user data:", userRes.status);
+            // Continue with redirect even if user data fetch fails
+          }
+        } catch (userFetchError) {
+          console.error("Error fetching user data:", userFetchError);
+          // Continue with redirect even if user data fetch fails
+        }
+        
         console.log("=== WALLET CHECK STARTED ===");
         // Skip wallet complexity for now, just redirect
         console.log("Skipping wallet check, proceeding to dashboard");

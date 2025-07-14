@@ -43,7 +43,48 @@ export default function DashboardHomePage() {
     }
   }, [searchParams]);
 
+  // Function to fetch fresh user data in background (without loading state)
+  const fetchFreshUserData = async () => {
+    try {
+      console.log('[DASHBOARD] Fetching fresh user data in background...');
+      const res = await authFetch('users/me');
+      
+      if (res.ok) {
+        const data = await res.json();
+        const userData = data.user || data;
+        console.log('[DASHBOARD] Fresh user data fetched:', userData);
+        
+        // Update both state and localStorage
+        setUser(userData);
+        localStorage.setItem('userData', JSON.stringify(userData));
+      } else {
+        console.log('[DASHBOARD] Background user fetch failed:', res.status);
+      }
+    } catch (error) {
+      console.error('[DASHBOARD] Background user fetch error:', error);
+    }
+  };
+
   useEffect(() => {
+    // First, check if we have user data in localStorage (from login)
+    const storedUserData = localStorage.getItem('userData');
+    if (storedUserData) {
+      try {
+        const userData = JSON.parse(storedUserData);
+        console.log('[DASHBOARD] Using cached user data from localStorage:', userData);
+        setUser(userData);
+        setUserLoading(false);
+        
+        // Still fetch fresh data in background but don't show loading
+        fetchFreshUserData();
+        return;
+      } catch (e) {
+        console.error('[DASHBOARD] Error parsing stored user data:', e);
+        localStorage.removeItem('userData'); // Remove corrupted data
+      }
+    }
+    
+    // No cached data, fetch with loading state
     let retryCount = 0;
     const maxRetries = 2;
     
