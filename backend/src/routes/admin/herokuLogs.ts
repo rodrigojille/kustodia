@@ -9,7 +9,7 @@ dotenv.config();
 const router = Router();
 
 // Get Heroku application logs
-router.get('/heroku-logs', authenticateJWT, requireAdminRole, async (req: Request, res: Response) => {
+router.get('/heroku-logs', authenticateJWT, requireAdminRole, async (req: Request, res: Response): Promise<void> => {
   try {
     const { 
       lines = 100, 
@@ -23,17 +23,19 @@ router.get('/heroku-logs', authenticateJWT, requireAdminRole, async (req: Reques
     const herokuAppName = process.env.HEROKU_APP_NAME;
 
     if (!herokuApiToken) {
-      return res.status(500).json({ 
+      res.status(500).json({ 
         error: 'Heroku API token not configured',
         message: 'HEROKU_API_TOKEN environment variable is required'
       });
+      return;
     }
 
     if (!herokuAppName) {
-      return res.status(500).json({ 
+      res.status(500).json({ 
         error: 'Heroku app name not configured',
         message: 'HEROKU_APP_NAME environment variable is required'
       });
+      return;
     }
 
     console.log('[ADMIN] Fetching Heroku logs for app:', herokuAppName);
@@ -119,7 +121,7 @@ router.get('/heroku-logs', authenticateJWT, requireAdminRole, async (req: Reques
 
     // Filter by level if specified
     const filteredLogs = level && level !== 'all' 
-      ? formattedLogs.filter(log => log.level === level)
+      ? formattedLogs.filter((log: any) => log.level === level)
       : formattedLogs;
 
     res.json({
@@ -157,16 +159,17 @@ router.get('/heroku-logs', authenticateJWT, requireAdminRole, async (req: Reques
 });
 
 // Get Heroku dyno information
-router.get('/heroku-dynos', authenticateJWT, requireAdminRole, async (req: Request, res: Response) => {
+router.get('/heroku-dynos', authenticateJWT, requireAdminRole, async (req: Request, res: Response): Promise<void> => {
   try {
     const herokuApiToken = process.env.HEROKU_API_TOKEN;
     const herokuAppName = process.env.HEROKU_APP_NAME;
 
     if (!herokuApiToken || !herokuAppName) {
-      return res.status(500).json({ 
+      res.status(500).json({ 
         error: 'Heroku configuration missing',
         message: 'HEROKU_API_TOKEN and HEROKU_APP_NAME environment variables are required'
       });
+      return;
     }
 
     const response = await axios.get(
@@ -209,11 +212,12 @@ router.get('/heroku-dynos', authenticateJWT, requireAdminRole, async (req: Reque
 // Helper function to determine log level from message content
 function getLogLevelFromMessage(message: string): 'error' | 'warn' | 'info' | 'debug' {
   const lowerMessage = message.toLowerCase();
-  
-  if (lowerMessage.includes('error') || lowerMessage.includes('fail') || lowerMessage.includes('exception')) {
+  const log = message as string;
+  const levelNum = log.includes('[ERROR]') ? 3 : log.includes('[WARN]') ? 2 : 1;
+  if (levelNum === 3 || lowerMessage.includes('fail') || lowerMessage.includes('exception')) {
     return 'error';
   }
-  if (lowerMessage.includes('warn') || lowerMessage.includes('warning')) {
+  if (levelNum === 2 || lowerMessage.includes('warn') || lowerMessage.includes('warning')) {
     return 'warn';
   }
   if (lowerMessage.includes('debug') || lowerMessage.includes('trace')) {
