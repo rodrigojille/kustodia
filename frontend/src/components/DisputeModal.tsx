@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { authFetch } from '../utils/authFetch';
 
 interface DisputeModalProps {
   escrowId: number;
@@ -27,24 +28,29 @@ const DisputeModal: React.FC<DisputeModalProps> = ({ escrowId, onClose, canReapp
         setUploading(true);
         const formData = new FormData();
         formData.append('evidence', evidence);
-        const uploadRes = await axios.post('/api/evidence/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`
-          }
+        // Note: Using fetch for multipart form data since authFetch adds Content-Type headers
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+        const uploadRes = await fetch('/api/evidence/upload', {
+          method: 'POST',
+          body: formData,
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include'
         });
-        const uploadData = uploadRes.data as { url: string };
+        if (!uploadRes.ok) throw new Error('Evidence upload failed');
+        const uploadData = await uploadRes.json() as { url: string };
         finalEvidenceUrl = uploadData.url;
         setEvidenceUrl(finalEvidenceUrl);
         setUploading(false);
       }
-      await axios.post(`/api/dispute/${escrowId}/raise`, {
-        reason,
-        details,
-        evidence: finalEvidenceUrl,
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
+      const disputeRes = await authFetch(`dispute/${escrowId}/raise`, {
+        method: 'POST',
+        body: JSON.stringify({
+          reason,
+          details,
+          evidence: finalEvidenceUrl,
+        })
       });
+      if (!disputeRes.ok) throw new Error('Failed to submit dispute');
       setSubmitted(true);
       setStatus('Disputa enviada correctamente.');
     } catch (err: any) {

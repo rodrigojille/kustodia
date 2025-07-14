@@ -11,29 +11,26 @@ export default function CrearPagoPage() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
-        if (!token) {
-          router.push('/login');
-          return;
-        }
-
-        const res = await authFetch('/api/users/me');
+        // Let ClientAuthGuard handle authentication, just fetch user data
+        const res = await authFetch('users/me');
         if (res.ok) {
           const userData = await res.json();
-          setUser(userData);
+          // Handle both wrapped and direct user data responses
+          setUser(userData.user || userData);
         } else {
-          router.push('/login');
+          console.error('Failed to fetch user data');
+          // Don't redirect here - let ClientAuthGuard handle auth failures
         }
       } catch (error) {
         console.error('Error loading user:', error);
-        router.push('/login');
+        // Don't redirect here - let ClientAuthGuard handle auth failures
       } finally {
         setLoading(false);
       }
     };
 
     loadUser();
-  }, [router]);
+  }, []);
 
   const paymentTypes = [
     {

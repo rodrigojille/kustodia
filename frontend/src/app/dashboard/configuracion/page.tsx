@@ -53,10 +53,7 @@ const SettingsPage = () => {
     const fetchUserData = async () => {
       console.log('[ConfigPage] Fetching user data...');
       try {
-        const token = localStorage.getItem('auth_token');
-        console.log('[ConfigPage] Token check before API call:', {
-          hasToken: !!token,
-        });
+        console.log('[ConfigPage] Fetching user data via authFetch');
 
         const response = await authFetch('users/me');
         console.log(`[ConfigPage] API response status: ${response.status}`);

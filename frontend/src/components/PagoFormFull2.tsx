@@ -70,10 +70,7 @@ function PagoFormFull2() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-        if (!token) return;
-        
-        const res = await authFetch('/api/users/me');
+        const res = await authFetch('users/me');
         if (res.ok) {
           const data = await res.json();
           console.log('[PagoFormFull2] User data received:', data);

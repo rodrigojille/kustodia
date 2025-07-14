@@ -188,12 +188,9 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
 
   useEffect(() => {
     setLoading(true);
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     
-    // Load payment details
-    fetch(`/api/payments/${id}`, {
-      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-    })
+    // Load payment details using authFetch
+    authFetch(`payments/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('No se pudo cargar el pago');
         return res.json();
@@ -209,9 +206,7 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
       });
 
     // Load payment events to check SPEI status
-    fetch(`/api/payments/${id}/events`, {
-      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-    })
+    authFetch(`payments/${id}/events`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         setPaymentEvents(data.events || []);

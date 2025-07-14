@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { jwtDecode } from 'jwt-decode';
+import { authFetch } from '../../../utils/authFetch';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -13,25 +13,26 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const checkAdminAccess = () => {
-      const token = localStorage.getItem('auth_token');
-      
-      if (!token) {
-        router.push('/dashboard');
-        return;
-      }
-
+    const checkAdminAccess = async () => {
       try {
-        const decoded: { role: string } = jwtDecode(token);
+        const response = await authFetch('users/me');
         
-        if (decoded.role !== 'admin') {
+        if (!response.ok) {
           router.push('/dashboard');
           return;
         }
+
+        const userData = await response.json();
+        const user = userData.user || userData;
         
+        if (user.role !== 'admin') {
+          router.push('/dashboard');
+          return;
+        }
+
         setIsAdmin(true);
       } catch (error) {
-        console.error('Failed to decode JWT:', error);
+        console.error('Failed to verify admin access:', error);
         router.push('/dashboard');
       }
     };
