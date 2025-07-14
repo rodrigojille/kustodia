@@ -7,32 +7,37 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Get all cookies from the request to forward to backend
+    const cookies = request.headers.get('cookie') || '';
+    
+    // Also extract token from headers as fallback (for development)
     const authHeader = request.headers.get('authorization');
     const customToken = request.headers.get('x-auth-token');
     
-    let token: string | null = null;
-    
-    // Check for Authorization header first
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
-    }
-    // Check for custom x-auth-token header
-    else if (customToken) {
-      token = customToken;
-    }
-    
-    if (!token) {
-      return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
-    }
-    
-    // Forward the request to the backend
+    // Forward the request to the backend with cookies
     const apiUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000';
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Cookie': cookies, // Forward all cookies including HTTP-only ones
+    };
+    
+    // Add Authorization header if available (for development mode)
+    if (authHeader?.startsWith('Bearer ')) {
+      headers['Authorization'] = authHeader;
+    } else if (customToken) {
+      headers['x-auth-token'] = customToken;
+    }
+    
+    console.log('[PROXY] /api/users/me - Forwarding request with cookies:', {
+      hasCookies: !!cookies,
+      cookieLength: cookies.length,
+      hasAuthHeader: !!authHeader,
+      backendUrl: `${apiUrl}/api/users/me`
+    });
+    
     const response = await fetch(`${apiUrl}/api/users/me`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     const data = await response.json();
