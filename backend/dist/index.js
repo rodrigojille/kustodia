@@ -50,14 +50,13 @@ const passport_1 = __importStar(require("./services/passport"));
 const junoService_1 = require("./services/junoService");
 const routes_1 = __importDefault(require("./routes"));
 const lead_1 = __importDefault(require("./routes/lead"));
-const payment_1 = __importDefault(require("./routes/payment"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
-const automation_1 = __importDefault(require("./routes/automation"));
 const support_1 = __importDefault(require("./routes/support"));
 const ticket_1 = __importDefault(require("./routes/ticket"));
 const disputeMessages_1 = __importDefault(require("./routes/disputeMessages"));
 const earlyAccessCounter_1 = __importDefault(require("./routes/earlyAccessCounter"));
 const yield_1 = require("./routes/yield");
+const analytics_1 = __importDefault(require("./routes/analytics"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json({ limit: '5mb' }));
 app.use((0, cookie_parser_1.default)()); // Enable cookie parsing for JWT authentication
@@ -123,10 +122,10 @@ async function main() {
             res.json({ status: "Kustodia backend running" });
         });
         // Mount all API routes
+        console.log('Mounting mainRouter at /api');
         app.use("/api", routes_1.default);
+        console.log('Mounting leadRoutes at /api/leads');
         app.use('/api/leads', lead_1.default);
-        app.use('/api/automation', automation_1.default);
-        app.use('/api/payments', payment_1.default);
         // Auth routes
         app.use(passport_1.default.initialize());
         app.use('/api/auth', authRoutes_1.default);
@@ -135,6 +134,7 @@ async function main() {
         app.use('/api/disputes', disputeMessages_1.default);
         app.use('/api/early-access-counter', earlyAccessCounter_1.default);
         app.use('/api/yield', (0, yield_1.createYieldRoutes)(ormconfig_1.default));
+        app.use('/api/analytics', analytics_1.default);
         const PORT = process.env.PORT || 4000;
         app.listen(PORT, () => {
             console.log(`Server started on port ${PORT}`);

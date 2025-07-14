@@ -14,6 +14,7 @@ const juno_1 = __importDefault(require("./juno"));
 const automation_1 = __importDefault(require("./automation"));
 const notification_1 = __importDefault(require("./notification"));
 const router = (0, express_1.Router)();
+console.log('Mounting userRoutes at /users in mainRouter');
 router.use("/users", user_1.default);
 router.use("/payments", payment_1.default);
 router.use("/truora", truora_1.default);

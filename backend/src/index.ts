@@ -24,6 +24,7 @@ import ticketRoutes from './routes/ticket';
 import disputeMessageRoutes from './routes/disputeMessages';
 import earlyAccessCounterRoutes from './routes/earlyAccessCounter';
 import { createYieldRoutes } from './routes/yield';
+import analyticsRoutes from './routes/analytics';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
@@ -111,6 +112,7 @@ async function main() {
     app.use('/api/disputes', disputeMessageRoutes);
     app.use('/api/early-access-counter', earlyAccessCounterRoutes);
     app.use('/api/yield', createYieldRoutes(ormconfig));
+    app.use('/api/analytics', analyticsRoutes);
 
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {

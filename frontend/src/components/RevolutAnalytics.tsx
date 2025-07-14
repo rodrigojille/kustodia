@@ -14,15 +14,42 @@ interface PaymentData {
   payment_type?: string;
 }
 
-export default function RevolutAnalytics() {
+interface RevolutAnalyticsProps {
+  selectedPeriod?: string;
+  analytics?: {
+    paymentsCount: number;
+    totalVolume: number;
+    pendingPayments: number;
+  };
+}
+
+export default function RevolutAnalytics({ selectedPeriod = '7d', analytics }: RevolutAnalyticsProps) {
   const [paymentsData, setPaymentsData] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState('7d');
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
 
   useEffect(() => {
-    authFetch('payments')
+    setLoading(true);
+    // Convert main page periods to internal periods for charts
+    let chartPeriod = '7d';
+    switch(selectedPeriod) {
+      case 'current_month':
+      case 'last_month':
+        chartPeriod = '30d';
+        break;
+      case 'last_3_months':
+        chartPeriod = '90d';
+        break;
+      case 'current_year':
+      case 'all_time':
+        chartPeriod = 'all';
+        break;
+      default:
+        chartPeriod = '30d';
+    }
+    
+    authFetch(`payments?period=${selectedPeriod}`)
       .then(res => res.json())
       .then(data => {
         const payments = Array.isArray(data) ? data : (data.payments || []);
@@ -33,7 +60,7 @@ export default function RevolutAnalytics() {
         console.error('Error fetching payments for analytics:', error);
         setLoading(false);
       });
-  }, []);
+  }, [selectedPeriod]);
 
 
   
@@ -65,31 +92,17 @@ export default function RevolutAnalytics() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="text-2xl">📊</div>
+          <div className="text-2xl">📈</div>
           <h2 className="text-xl font-bold text-gray-900">ANALÍTICAS DE PAGOS</h2>
         </div>
         
-        {/* Period Selector */}
-        <div className="relative">
-          <select 
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:bg-gray-100 transition-colors"
-          >
-            {periodOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <svg 
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+        {/* Period Display (controlled by parent) */}
+        <div className="text-sm text-gray-500 font-medium">
+          {selectedPeriod === 'current_month' && 'Mes actual'}
+          {selectedPeriod === 'last_month' && 'Mes pasado'}
+          {selectedPeriod === 'last_3_months' && 'Últimos 3 meses'}
+          {selectedPeriod === 'current_year' && 'Año actual'}
+          {selectedPeriod === 'all_time' && 'Todo el tiempo'}
         </div>
       </div>
 
@@ -103,6 +116,7 @@ export default function RevolutAnalytics() {
               filterStage={selectedStage} 
               onBarClick={setSelectedMonth}
               selectedMonth={selectedMonth}
+              paymentsData={paymentsData}
             />
           </div>
         </div>
@@ -115,6 +129,7 @@ export default function RevolutAnalytics() {
               filterMonth={selectedMonth} 
               onSliceClick={setSelectedStage}
               selectedStage={selectedStage}
+              paymentsData={paymentsData}
             />
           </div>
         </div>

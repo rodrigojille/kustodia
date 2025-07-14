@@ -12,10 +12,12 @@ import {
 } from "recharts";
 
 interface Payment {
-  id: string;
+  id: number;
   created_at: string;
   amount: number;
   currency: string;
+  status: string;
+  payment_type?: string;
 }
 
 interface MonthData {
@@ -27,49 +29,39 @@ interface PaymentsByMonthChartProps {
   filterStage?: string | null;
   onBarClick?: (month: string) => void;
   selectedMonth?: string | null;
+  paymentsData?: Payment[];
 }
 
-export default function PaymentsByMonthChart({ filterStage, onBarClick, selectedMonth }: PaymentsByMonthChartProps) {
+export default function PaymentsByMonthChart({ filterStage, onBarClick, selectedMonth, paymentsData = [] }: PaymentsByMonthChartProps) {
   const [data, setData] = useState<MonthData[]>([]);
   const [currency, setCurrency] = useState("MXN");
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    authFetch('payments')
-      .then(res => res.json())
-      .then(data => {
-        const payments = Array.isArray(data) ? data : (data.payments || []);
-        const monthly: Record<string, number> = {};
-        let curr = "MXN";
-        // Safety check for payments array
-        if (!payments || !Array.isArray(payments)) {
-          console.warn('Payments data is not an array:', payments);
-          setLoading(false);
-          return;
-        }
-        payments.forEach((p: any) => {
-          const date = new Date(p.created_at);
-          const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-          // Handle both string and number amounts
-          const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
-          monthly[key] = (monthly[key] || 0) + (isNaN(amount) ? 0 : amount);
-          if (!curr && p.currency) curr = p.currency;
-        });
-        const result = Object.entries(monthly)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([month, total]) => ({ month, total }));
-        setData(result);
-        setCurrency(curr);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching payments for chart:', error);
-        setLoading(false);
-      });
-  }, []);
+    const monthly: Record<string, number> = {};
+    let curr = "MXN";
+    
+    // Process the paymentsData passed as props
+    paymentsData.forEach((p: any) => {
+      // Apply stage filter if provided
+      if (filterStage && p.status !== filterStage) return;
+      
+      const date = new Date(p.created_at);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      // Handle both string and number amounts
+      const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
+      monthly[key] = (monthly[key] || 0) + (isNaN(amount) ? 0 : amount);
+      if (p.currency) curr = p.currency;
+    });
+    
+    const result = Object.entries(monthly)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, total]) => ({ month, total }));
+    
+    setData(result);
+    setCurrency(curr);
+  }, [paymentsData, filterStage]);
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
-  if (!data.length) return <div className="text-gray-400">Sin datos</div>;
+  if (!data.length) return <div className="text-gray-400">Sin datos para este período</div>;
 
   return (
     <ResponsiveContainer width="100%" height={220}>

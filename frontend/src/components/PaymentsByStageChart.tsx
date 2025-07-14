@@ -5,59 +5,55 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recha
 import { PAYMENT_STATUSES, getStatusConfig, getStatusSpanish } from '../config/paymentStatuses';
 
 interface Payment {
-  id: string;
+  id: number;
   status: string;
   amount: number;
   currency: string;
+  created_at: string;
+  payment_type?: string;
 }
 
 interface PaymentsByStageChartProps {
   filterMonth?: string | null;
   onSliceClick?: (stage: string) => void;
   selectedStage?: string | null;
+  paymentsData?: Payment[];
 }
 
-export default function PaymentsByStageChart({ filterMonth, onSliceClick, selectedStage }: PaymentsByStageChartProps) {
+export default function PaymentsByStageChart({ filterMonth, onSliceClick, selectedStage, paymentsData = [] }: PaymentsByStageChartProps) {
   const [data, setData] = useState<any[]>([]);
   const [currency, setCurrency] = useState("MXN");
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    authFetch('payments')
-      .then(res => res.json())
-      .then(data => {
-        const payments = Array.isArray(data) ? data : (data.payments || []);
-        const stageTotals: Record<string, number> = {};
-        let curr = "MXN";
-        // Safety check for payments array
-        if (!payments || !Array.isArray(payments)) {
-          console.warn('Payments data is not an array:', payments);
-          setLoading(false);
-          return;
-        }
-        payments.forEach((p: any) => {
-          // Handle both string and number amounts
-          const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
-          stageTotals[p.status] = (stageTotals[p.status] || 0) + (isNaN(amount) ? 0 : amount);
-          if (!curr && p.currency) curr = p.currency;
-        });
-        const result = Object.entries(stageTotals).map(([status, total]) => ({
-          name: getStatusSpanish(status),
-          value: total,
-          status,
-        }));
-        setData(result);
-        setCurrency(curr);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching payments for stage chart:', error);
-        setLoading(false);
-      });
-  }, []);
+    const stageTotals: Record<string, number> = {};
+    let curr = "MXN";
+    
+    // Process the paymentsData passed as props
+    paymentsData.forEach((p: any) => {
+      // Apply month filter if provided
+      if (filterMonth) {
+        const paymentDate = new Date(p.created_at);
+        const paymentMonth = `${paymentDate.getFullYear()}-${String(paymentDate.getMonth() + 1).padStart(2, "0")}`;
+        if (paymentMonth !== filterMonth) return;
+      }
+      
+      // Handle both string and number amounts
+      const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
+      stageTotals[p.status] = (stageTotals[p.status] || 0) + (isNaN(amount) ? 0 : amount);
+      if (p.currency) curr = p.currency;
+    });
+    
+    const result = Object.entries(stageTotals).map(([status, total]) => ({
+      name: getStatusSpanish(status),
+      value: total,
+      status,
+    }));
+    
+    setData(result);
+    setCurrency(curr);
+  }, [paymentsData, filterMonth]);
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
-  if (!data.length) return <div className="text-gray-400">Sin datos</div>;
+  if (!data.length) return <div className="text-gray-400">Sin datos para este período</div>;
 
   // Ensure all statuses are always present in the chart (even with value 0)
   const allStatuses = Object.keys(PAYMENT_STATUSES);
