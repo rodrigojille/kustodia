@@ -7,11 +7,13 @@ const getUserPaymentsController_1 = require("../controllers/getUserPaymentsContr
 const paymentEventController_1 = require("../controllers/paymentEventController");
 const getPaymentByIdController_1 = require("../controllers/getPaymentByIdController");
 const requestPaymentController_1 = require("../controllers/requestPaymentController");
-const getAllPaymentsController_1 = require("../controllers/getAllPaymentsController");
+// getAllPayments moved to admin routes for security
 const paymentApprovalController_1 = require("../controllers/paymentApprovalController");
 const router = (0, express_1.Router)();
-router.get("/", getAllPaymentsController_1.getAllPayments);
+// SECURITY: Default payments endpoint now returns user-specific payments only
+router.get("/", authenticateJWT_1.authenticateJWT, getUserPaymentsController_1.getUserPayments);
 router.post('/initiate-web3', authenticateJWT_1.authenticateJWT, paymentController_1.initiateWeb3Payment);
+router.post("/initiate", authenticateJWT_1.authenticateJWT, paymentController_1.initiatePayment);
 router.post("/request", authenticateJWT_1.authenticateJWT, requestPaymentController_1.requestPayment);
 router.post("/webhook/juno", paymentController_1.junoWebhook);
 router.get("/user-payments", authenticateJWT_1.authenticateJWT, getUserPaymentsController_1.getUserPayments);

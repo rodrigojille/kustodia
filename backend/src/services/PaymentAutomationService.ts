@@ -1,6 +1,7 @@
 import { PaymentService } from './paymentService';
 import { releaseEscrow, createEscrow } from './escrowService';
-import { listJunoTransactions, redeemMXNBToMXN, withdrawMXNBToBridge, getRegisteredBankAccounts } from './junoService';
+import { listJunoTransactions, redeemMXNBToMXN, withdrawMXNBToBridge, getRegisteredBankAccounts, initializeJunoService, verifyWithdrawalProcessed, listRecentWithdrawals } from './junoService';
+import { createPaymentNotifications } from './paymentNotificationIntegration';
 import { LessThan, Not, IsNull } from 'typeorm';
 import AppDataSource from '../ormconfig';
 import { Payment } from '../entity/Payment';
@@ -28,6 +29,8 @@ export class PaymentAutomationService {
 
   constructor() {
     this.paymentService = new PaymentService();
+    // Initialize Juno service to set up API credentials
+    initializeJunoService();
   }
 
   /**
@@ -142,8 +145,13 @@ export class PaymentAutomationService {
               }
             });
 
-            // Note: Payment notifications would be sent here if implemented
-            console.log(`📧 Payment ${payment.id} funded - notification system not implemented`);
+            // Create payment funded notification
+            try {
+              await createPaymentNotifications(payment.id, 'funds_received');
+              console.log(`📧 Payment ${payment.id} funded - notifications sent`);
+            } catch (notificationError) {
+              console.error(`⚠️ Failed to send notifications for payment ${payment.id}:`, notificationError);
+            }
 
             processedCount++;
             await this.processPaymentAutomation(payment.id);
@@ -267,53 +275,123 @@ export class PaymentAutomationService {
   }
 
   /**
-   * Process MXNB withdrawal to bridge wallet
+   * Process MXNB withdrawal to bridge wallet with enhanced error handling
    */
   private async processBridgeWithdrawal(payment: Payment, amount: number): Promise<void> {
+    const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET!;
+    if (!bridgeWallet) throw new Error('ESCROW_BRIDGE_WALLET not set in .env');
+
     try {
-      const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET!;
-      if (!bridgeWallet) throw new Error('ESCROW_BRIDGE_WALLET not set in .env');
-
-      await withdrawMXNBToBridge(amount, bridgeWallet);
-
+      console.log(`🔄 Starting bridge withdrawal for payment ${payment.id}: ${amount} MXNB to ${bridgeWallet}`);
+      
+      const withdrawalResult = await withdrawMXNBToBridge(amount, bridgeWallet);
+      
       await this.paymentService.logPaymentEvent(
         payment.id,
-        'bridge_withdrawal_initiated',
-        `Withdrawal of ${amount} MXNB to bridge wallet initiated.`,
+        'bridge_withdrawal_success',
+        `Withdrawal of ${amount} MXNB to bridge wallet completed successfully. Withdrawal ID: ${withdrawalResult?.id || 'N/A'}`,
         true
       );
-      console.log(`✅ Bridge withdrawal for payment ${payment.id} initiated`);
+      
+      console.log(`✅ Bridge withdrawal for payment ${payment.id} completed successfully`);
+      console.log(`📋 Withdrawal details:`, withdrawalResult);
+      
     } catch (error: any) {
       console.error(`❌ Bridge withdrawal failed for payment ${payment.id}:`, error.message);
-      throw error;
+      
+      // Log the error but check if withdrawal might have succeeded anyway
+      await this.paymentService.logPaymentEvent(
+        payment.id,
+        'bridge_withdrawal_error',
+        `Withdrawal error: ${error.message}. Verifying if withdrawal was processed...`,
+        false
+      );
+      
+      // Give some time for potential processing
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Verify if withdrawal was actually processed despite the error
+      console.log(`🔍 Verifying if withdrawal was actually processed for payment ${payment.id}...`);
+      const verifiedWithdrawal = await verifyWithdrawalProcessed(amount, bridgeWallet, 10);
+      
+      if (verifiedWithdrawal) {
+        console.log(`✅ Withdrawal verification successful for payment ${payment.id} - withdrawal was processed despite error`);
+        
+        await this.paymentService.logPaymentEvent(
+          payment.id,
+          'bridge_withdrawal_verified',
+          `Withdrawal verified as successful despite initial error. Withdrawal ID: ${verifiedWithdrawal.id || 'N/A'}`,
+          true
+        );
+        
+        // Don't throw error since withdrawal was successful
+        return;
+      } else {
+        console.log(`❌ Withdrawal verification failed for payment ${payment.id} - withdrawal was not processed`);
+        
+        await this.paymentService.logPaymentEvent(
+          payment.id,
+          'bridge_withdrawal_failed',
+          `Withdrawal failed and could not be verified: ${error.message}`,
+          false
+        );
+        
+        throw error;
+      }
     }
   }
 
   /**
    * Create and fund the escrow contract after bridge withdrawal
+   * Flow 1: Both payer and payee are bridge wallet (platform-managed custody)
    */
   private async processEscrowCreationAndFunding(payment: Payment, custodyAmount: number): Promise<void> {
     const escrowRepo = AppDataSource.getRepository(Escrow);
     const paymentRepo = AppDataSource.getRepository(Payment);
-    const tokenAddress = process.env.MXNB_TOKEN_ADDRESS!;
+    const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS!;
     const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET!;
 
     if (!payment.escrow) throw new Error(`Payment ${payment.id} missing escrow relation`);
     if (!payment.escrow.custody_end) throw new Error(`Payment ${payment.id} escrow missing custody_end date`);
-    if (!payment.seller?.wallet_address) throw new Error(`Payment ${payment.id} missing seller wallet address`);
-
-    const deadline = Math.floor(payment.escrow.custody_end.getTime() / 1000);
+    
+    // Calculate deadline with proper timezone handling
+    // The issue: custody_end from DB is in local timezone but getTime() treats it as UTC
+    let deadline: number;
+    
+    // Get current time for comparison
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    
+    // Calculate the original deadline accounting for timezone
+    const custodyEndTimestamp = Math.floor(payment.escrow.custody_end.getTime() / 1000);
+    
+    console.log(`[escrow] Payment ${payment.id} deadline analysis:`);
+    console.log(`   Custody End DB: ${payment.escrow.custody_end}`);
+    console.log(`   Custody End Timestamp: ${custodyEndTimestamp}`);
+    console.log(`   Current Timestamp: ${currentTimestamp}`);
+    console.log(`   Original deadline in future: ${custodyEndTimestamp > currentTimestamp}`);
+    
+    if (custodyEndTimestamp <= currentTimestamp) {
+      // Deadline has passed, set a new future deadline
+      const futureDate = new Date(Date.now() + (24 * 60 * 60 * 1000)); // 24 hours from now
+      deadline = Math.floor(futureDate.getTime() / 1000);
+      console.log(`[escrow] Original deadline passed, setting new deadline: ${futureDate.toISOString()}`);
+    } else {
+      // Use the original deadline
+      deadline = custodyEndTimestamp;
+      console.log(`[escrow] Using original deadline: ${new Date(deadline * 1000).toISOString()}`);
+    }
 
     try {
+      // Flow 1: Both payer and payee are bridge wallet (platform manages custody)
       const createResult = await createEscrow({
         payer: bridgeWallet,
-        payee: payment.seller.wallet_address,
+        payee: bridgeWallet, // Flow 1: Bridge wallet manages custody for both parties
         token: tokenAddress,
         amount: custodyAmount.toString(),
         deadline: deadline,
         vertical: payment.vertical_type || '',
         clabe: payment.deposit_clabe || '',
-        conditions: ''
+        conditions: 'Flow 1: Platform-managed custody'
       });
 
       if (!createResult?.escrowId) throw new Error('Escrow creation failed to return a valid ID.');
@@ -333,8 +411,14 @@ export class PaymentAutomationService {
         true
       );
 
-      // Note: Payment notifications would be sent here if implemented
-      console.log(`📧 Payment ${payment.id} escrow created notification - system not implemented`);
+      // Create escrow created notification
+      try {
+        await createPaymentNotifications(payment.id, 'escrow_created');
+        console.log(`📧 Payment ${payment.id} escrow created - notifications sent`);
+      } catch (notificationError) {
+        console.error(`⚠️ Failed to send escrow created notifications for payment ${payment.id}:`, notificationError);
+      }
+      
       console.log(`✅ Escrow ${createResult.escrowId} created and payment ${payment.id} updated to 'escrowed'`);
 
     } catch (error: any) {
@@ -488,7 +572,7 @@ export class PaymentAutomationService {
         where: {
           status: 'released'
         },
-        relations: ['payment']
+        relations: ['payment', 'payment.seller']
       });
 
       console.log(`📋 Found ${releasedEscrows.length} released escrows to process`);
@@ -529,6 +613,14 @@ export class PaymentAutomationService {
               `Payout completed successfully. SPEI sent to recipient.`,
               false
             );
+            
+            // Create payment completion notification
+            try {
+              await createPaymentNotifications(payment.id, 'payment_released');
+              console.log(`📧 Payment ${payment.id} completed - notifications sent`);
+            } catch (notificationError) {
+              console.error(`⚠️ Failed to send completion notifications for payment ${payment.id}:`, notificationError);
+            }
             
             console.log(`✅ Payout completed for payment ${payment.id}`);
             

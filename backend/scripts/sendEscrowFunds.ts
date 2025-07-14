@@ -30,8 +30,9 @@ async function main() {
   }
 
   // Map escrow data to createEscrow parameters
+  // Flow 1: Both payer and payee are bridge wallet (platform-managed custody)
   const payer = process.env.ESCROW_BRIDGE_WALLET!; // Bridge wallet acts as payer
-  const payee = payment.recipient_email || 'unknown@kustodia.com'; // Use recipient from payment
+  const payee = process.env.ESCROW_BRIDGE_WALLET!; // Bridge wallet acts as payee (Flow 1)
   const token = process.env.MOCK_ERC20_ADDRESS!; // MXNB token address
   // MXNB uses 6 decimals (e.g., 1000 MXNB = 1000000000)
   const amount = (Number(escrow.custody_amount) * 1e6).toFixed(0); // string in base units

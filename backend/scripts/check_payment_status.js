@@ -1,9 +1,14 @@
 require('dotenv').config({ path: './backend/.env' });
 const axios = require('axios');
 
-// Set these as needed
-const PAYMENT_ID = 88; // The payment you want to check
+// Get payment ID from command line arguments
+const PAYMENT_ID = process.argv[2] || 88; // Default to 88 if no argument provided
 const BASE_URL = process.env.PAYMENT_API_BASE_URL || 'http://localhost:4000'; // Updated to backend port 4000
+
+if (!process.argv[2]) {
+  console.log('Usage: node check_payment_status.js <payment_id>');
+  console.log('Using default payment ID: 88');
+}
 
 async function checkPaymentStatus() {
   try {

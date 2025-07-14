@@ -6,7 +6,7 @@ import { generateToken } from "./emailTokenUtil";
 import { sendEmail } from "../utils/emailService";
 import { createJunoClabe } from "../services/junoService";
 import { createPortalClient } from "../services/portalService";
-import { AuthenticatedRequest } from "../AuthenticatedRequest";
+
 import ormconfig from "../ormconfig";
 
 /**
@@ -14,7 +14,7 @@ import ormconfig from "../ormconfig";
  * This is called from the frontend after a user creates or recovers their wallet.
  */
 export const getPortalShare = async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as AuthenticatedRequest).user.id;
+  const userId = (req.user as any).id;
 
   try {
     const userRepo = ormconfig.getRepository(User);
@@ -41,7 +41,7 @@ export const savePortalShare = async (req: Request, res: Response): Promise<void
   console.log('🔍 Request body size:', JSON.stringify(req.body).length, 'characters');
   
   const { portal_share } = req.body;
-  const userId = (req as AuthenticatedRequest).user.id; // Cast to access user property
+  const userId = (req.user as any).id;
 
   console.log('🔍 User ID:', userId);
   console.log('🔍 portal_share present:', !!portal_share);
@@ -318,9 +318,90 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
 
 import jwt from 'jsonwebtoken';
 
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req.user as any).id;
+
+  try {
+    const userRepo = ormconfig.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: userId } });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Ensure deposit_clabe exists for dashboard display
+    if (!user.deposit_clabe) {
+      try {
+        console.log(`[DASHBOARD] Creating missing deposit CLABE for user ${user.id}`);
+        const depositClabe = await createJunoClabe();
+        user.deposit_clabe = depositClabe;
+        await userRepo.save(user);
+        console.log(`[DASHBOARD] ✅ Created deposit CLABE: ${depositClabe}`);
+      } catch (clabeErr) {
+        console.error('[DASHBOARD] ❌ Failed to create deposit CLABE:', clabeErr);
+        // Continue without CLABE - frontend should handle this gracefully
+      }
+    }
+
+    // Return user data wrapped in 'user' property to match frontend expectations
+    res.json({
+      user: {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        role: user.role,
+        wallet_address: user.wallet_address,
+        deposit_clabe: user.deposit_clabe,
+        payout_clabe: user.payout_clabe,
+        kyc_status: user.kyc_status,
+        email_verified: user.email_verified,
+        mxnb_balance: user.mxnb_balance || 0, // Include MXNB balance for wallet display
+        juno_bank_account_id: user.juno_bank_account_id,
+        truora_process_id: user.truora_process_id,
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updatePayoutClabe = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req.user as any).id;
+  const { payout_clabe } = req.body;
+
+  if (!payout_clabe || typeof payout_clabe !== 'string' || !/^\d{18}$/.test(payout_clabe)) {
+    res.status(400).json({ message: 'A valid 18-digit CLABE is required.' });
+    return;
+  }
+
+  try {
+    const userRepo = ormconfig.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: userId } });
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found.' });
+      return;
+    }
+
+    user.payout_clabe = payout_clabe;
+    await userRepo.save(user);
+
+    // Return the updated user object, excluding sensitive info
+    const { password_hash, portal_share, ...userResponse } = user;
+
+    res.status(200).json({ message: 'Payout CLABE updated successfully.', user: userResponse });
+  } catch (error) {
+    console.error('Error updating payout CLABE:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
 export const updateMyProfile = async (req: Request, res: Response): Promise<void> => {
-  const authReq = req as AuthenticatedRequest;
-  const id = authReq.user?.id;
+  const id = (req.user as any).id;
 
   if (!id) {
     res.status(401).json({ error: "Not authenticated" });
@@ -347,8 +428,7 @@ export const updateMyProfile = async (req: Request, res: Response): Promise<void
 };
 
 export const changePassword = async (req: Request, res: Response): Promise<void> => {
-  const authReq = req as AuthenticatedRequest;
-  const id = authReq.user?.id;
+  const id = (req.user as any).id;
 
   if (!id) {
     res.status(401).json({ error: "Not authenticated" });

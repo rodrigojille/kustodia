@@ -527,7 +527,18 @@ export const getUserAnalytics = async (req: Request, res: Response): Promise<voi
 
 // Legacy function - preserved for backward compatibility
 export const getAllPayments = async (req: Request, res: Response): Promise<void> => {
-  const paymentRepo = ormconfig.getRepository(Payment);
-  const payments = await paymentRepo.find({ relations: ["user", "escrow"] });
-  res.json({ payments });
+  try {
+    const paymentRepo = ormconfig.getRepository(Payment);
+    const payments = await paymentRepo.find({ 
+      relations: ["user", "escrow"],
+      order: { created_at: "DESC" },
+      take: 1000 // Limit to prevent memory issues
+    });
+    
+    // Return array directly for frontend compatibility
+    res.json(payments);
+  } catch (error) {
+    console.error('Error fetching payments:', error);
+    res.status(500).json({ error: 'Failed to fetch payments' });
+  }
 };

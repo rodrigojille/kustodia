@@ -2,11 +2,14 @@ require('dotenv').config({ path: './.env' });
 const crypto = require('crypto');
 const axios = require('axios');
 
+// Mock deposit data - testing Payment 111 with valid CLABE
 const defaults = {
-  amount: "1000",
-  receiver_clabe: "710969000000400730", // Payment ID 85 correct CLABE
-  receiver_name: "test-seller@kustodia.mx", // Receiver's full name
-  sender_name: "rodrigojille6@gmail.com" // Sender's full name
+  amount: 1000.00, // Match Payment 111 amount
+  receiver_clabe: '710969000000410937', // Valid CLABE from Payment 111
+  receiver_name: 'Kustodia', // Business name registered in Juno
+  sender_clabe: '032180000118359719',
+  sender_name: 'Kustodia', // Must match registered business name
+  reference: 'Test deposit Payment 111 - New Payment Test'
 };
 
 console.log('--- MOCK DEPOSIT PAYLOAD ---');
@@ -25,8 +28,8 @@ if (!JUNO_API_KEY || !JUNO_API_SECRET) {
 const nonce = Date.now().toString();
 const method = 'POST';
 const requestPath = '/spei/test/deposits';
-const body = JSON.stringify(defaults);
-const stringToSign = nonce + method + requestPath + body;
+const bodyString = JSON.stringify(defaults); // For signature calculation
+const stringToSign = nonce + method + requestPath + bodyString;
 const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(stringToSign).digest('hex');
 const headers = {
   'Content-Type': 'application/json',
@@ -37,9 +40,11 @@ console.log('--- JUNO MOCK DEPOSIT DEBUG ---');
 console.log('String to sign:', stringToSign);
 console.log('Signature:', signature);
 console.log('Headers:', headers);
-console.log('Body:', body);
+console.log('Request payload:', defaults);
+console.log('Body for signature:', bodyString);
 
-axios.post('https://stage.buildwithjuno.com/spei/test/deposits', body, { headers })
+// Pass the object directly to axios, not the JSON string
+axios.post('https://stage.buildwithjuno.com/spei/test/deposits', defaults, { headers })
   .then(res => console.log('Mock deposit response:', res.data))
   .catch(err => {
     if (err.response) {

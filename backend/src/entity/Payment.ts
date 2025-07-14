@@ -33,7 +33,7 @@ export class Payment {
   description!: string;
 
   @Column({ nullable: true })
-  reference!: string;
+  reference?: string;
 
   @Column({ nullable: true })
   transaction_id?: string;

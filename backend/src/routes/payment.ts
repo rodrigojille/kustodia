@@ -1,16 +1,18 @@
 import { Router, RequestHandler } from "express";
 import { authenticateJWT } from '../authenticateJWT';
-import { initiateWeb3Payment, junoWebhook, fundWeb3Escrow, releaseWeb3Payment } from '../controllers/paymentController';
+import { initiatePayment, initiateWeb3Payment, junoWebhook, fundWeb3Escrow, releaseWeb3Payment } from '../controllers/paymentController';
 import { getUserPayments } from "../controllers/getUserPaymentsController";
 import { getPaymentEvents } from "../controllers/paymentEventController";
 import { getPaymentById } from "../controllers/getPaymentByIdController";
 import { requestPayment } from "../controllers/requestPaymentController";
-import { getAllPayments } from "../controllers/getAllPaymentsController";
+// getAllPayments moved to admin routes for security
 import { approvePaymentPayer, approvePaymentPayee } from "../controllers/paymentApprovalController";
 const router = Router();
 
-router.get("/", getAllPayments); 
+// SECURITY: Default payments endpoint now returns user-specific payments only
+router.get("/", authenticateJWT, getUserPayments); 
 router.post('/initiate-web3', authenticateJWT, initiateWeb3Payment as unknown as RequestHandler);
+router.post("/initiate", authenticateJWT, initiatePayment as unknown as RequestHandler);
 router.post("/request", authenticateJWT, requestPayment);
 router.post("/webhook/juno", junoWebhook);
 router.get("/user-payments", authenticateJWT, getUserPayments);

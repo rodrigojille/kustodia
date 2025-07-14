@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.changePassword = exports.updateMyProfile = exports.verifyEmail = exports.resetPassword = exports.requestPasswordReset = exports.register = exports.getRecipientClabe = exports.verifyRecipient = exports.savePortalShare = exports.getPortalShare = void 0;
+exports.login = exports.changePassword = exports.updateMyProfile = exports.updatePayoutClabe = exports.getMe = exports.verifyEmail = exports.resetPassword = exports.requestPasswordReset = exports.register = exports.getRecipientClabe = exports.verifyRecipient = exports.savePortalShare = exports.getPortalShare = void 0;
 exports.resendVerificationEmail = resendVerificationEmail;
 const User_1 = require("../entity/User");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
@@ -43,7 +43,7 @@ const savePortalShare = async (req, res) => {
     console.log('🔍 Request body keys:', Object.keys(req.body));
     console.log('🔍 Request body size:', JSON.stringify(req.body).length, 'characters');
     const { portal_share } = req.body;
-    const userId = req.user.id; // Cast to access user property
+    const userId = req.user.id;
     console.log('🔍 User ID:', userId);
     console.log('🔍 portal_share present:', !!portal_share);
     console.log('🔍 portal_share type:', typeof portal_share);
@@ -319,9 +319,83 @@ const verifyEmail = async (req, res) => {
 };
 exports.verifyEmail = verifyEmail;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const getMe = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const userRepo = ormconfig_1.default.getRepository(User_1.User);
+        const user = await userRepo.findOne({ where: { id: userId } });
+        if (!user) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+        // Ensure deposit_clabe exists for dashboard display
+        if (!user.deposit_clabe) {
+            try {
+                console.log(`[DASHBOARD] Creating missing deposit CLABE for user ${user.id}`);
+                const depositClabe = await (0, junoService_1.createJunoClabe)();
+                user.deposit_clabe = depositClabe;
+                await userRepo.save(user);
+                console.log(`[DASHBOARD] ✅ Created deposit CLABE: ${depositClabe}`);
+            }
+            catch (clabeErr) {
+                console.error('[DASHBOARD] ❌ Failed to create deposit CLABE:', clabeErr);
+                // Continue without CLABE - frontend should handle this gracefully
+            }
+        }
+        // Return user data wrapped in 'user' property to match frontend expectations
+        res.json({
+            user: {
+                id: user.id,
+                full_name: user.full_name,
+                email: user.email,
+                role: user.role,
+                wallet_address: user.wallet_address,
+                deposit_clabe: user.deposit_clabe,
+                payout_clabe: user.payout_clabe,
+                kyc_status: user.kyc_status,
+                email_verified: user.email_verified,
+                mxnb_balance: user.mxnb_balance || 0, // Include MXNB balance for wallet display
+                juno_bank_account_id: user.juno_bank_account_id,
+                truora_process_id: user.truora_process_id,
+                created_at: user.created_at,
+                updated_at: user.updated_at
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+exports.getMe = getMe;
+const updatePayoutClabe = async (req, res) => {
+    const userId = req.user.id;
+    const { payout_clabe } = req.body;
+    if (!payout_clabe || typeof payout_clabe !== 'string' || !/^\d{18}$/.test(payout_clabe)) {
+        res.status(400).json({ message: 'A valid 18-digit CLABE is required.' });
+        return;
+    }
+    try {
+        const userRepo = ormconfig_1.default.getRepository(User_1.User);
+        const user = await userRepo.findOne({ where: { id: userId } });
+        if (!user) {
+            res.status(404).json({ message: 'User not found.' });
+            return;
+        }
+        user.payout_clabe = payout_clabe;
+        await userRepo.save(user);
+        // Return the updated user object, excluding sensitive info
+        const { password_hash, portal_share, ...userResponse } = user;
+        res.status(200).json({ message: 'Payout CLABE updated successfully.', user: userResponse });
+    }
+    catch (error) {
+        console.error('Error updating payout CLABE:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+exports.updatePayoutClabe = updatePayoutClabe;
 const updateMyProfile = async (req, res) => {
-    const authReq = req;
-    const id = authReq.user?.id;
+    const id = req.user.id;
     if (!id) {
         res.status(401).json({ error: "Not authenticated" });
         return;
@@ -344,8 +418,7 @@ const updateMyProfile = async (req, res) => {
 };
 exports.updateMyProfile = updateMyProfile;
 const changePassword = async (req, res) => {
-    const authReq = req;
-    const id = authReq.user?.id;
+    const id = req.user.id;
     if (!id) {
         res.status(401).json({ error: "Not authenticated" });
         return;

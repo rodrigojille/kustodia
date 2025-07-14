@@ -16,6 +16,7 @@ import {
   getJunoApiStatus,
   getUserAnalytics
 } from "../controllers/adminController";
+import { getTicketsForAdmin } from "../controllers/ticketController";
 
 const router = Router();
 
@@ -37,6 +38,8 @@ router.get("/users/:userId/clabes", authenticateJWT, asyncHandler(getUserClabes)
 router.get("/users/:userId/deposits", authenticateJWT, asyncHandler(getUserDeposits));
 // Transaction/escrow management
 router.get("/payments", authenticateJWT, asyncHandler(getAllPayments));
+// Support tickets
+router.get("/tickets", authenticateJWT, asyncHandler(getTicketsForAdmin));
 
 // =============================================================================
 // 🎯 PAYMENT OPERATIONS CONTROL ROOM ROUTES

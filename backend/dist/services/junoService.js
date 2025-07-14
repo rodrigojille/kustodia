@@ -43,6 +43,9 @@ exports.getJunoTxHashFromTimeline = getJunoTxHashFromTimeline;
 exports.withdrawCryptoToBridgeWallet = withdrawCryptoToBridgeWallet;
 exports.listJunoTransactions = listJunoTransactions;
 exports.redeemMXNBToMXN = redeemMXNBToMXN;
+exports.getWithdrawalStatus = getWithdrawalStatus;
+exports.listRecentWithdrawals = listRecentWithdrawals;
+exports.verifyWithdrawalProcessed = verifyWithdrawalProcessed;
 exports.withdrawMXNBToBridge = withdrawMXNBToBridge;
 exports.registerBankAccount = registerBankAccount;
 exports.getRegisteredBankAccounts = getRegisteredBankAccounts;
@@ -291,7 +294,91 @@ async function redeemMXNBToMXN(amount, destinationBankAccountId, idempotencyKey)
     }
 }
 /**
- * Withdraw MXNB tokens to external crypto wallet (bridge wallet)
+ * Get withdrawal status by ID
+ * @param withdrawalId - Withdrawal ID to check
+ * @returns Withdrawal status details
+ */
+async function getWithdrawalStatus(withdrawalId) {
+    const url = `${JUNO_BASE_URL}/mint_platform/v1/withdrawals/${withdrawalId}`;
+    const requestPath = `/mint_platform/v1/withdrawals/${withdrawalId}`;
+    const method = 'GET';
+    const nonce = Date.now().toString();
+    const body = '';
+    // Build signature
+    const dataToSign = nonce + method + requestPath + body;
+    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`
+    };
+    try {
+        const response = await axios_1.default.get(url, { headers });
+        return response.data.payload;
+    }
+    catch (error) {
+        console.error(`[JUNO] Error checking withdrawal status for ${withdrawalId}:`, error?.response?.data || error.message);
+        return null;
+    }
+}
+/**
+ * List recent withdrawals to verify if a withdrawal was actually processed
+ * @returns Array of recent withdrawals
+ */
+async function listRecentWithdrawals() {
+    const url = `${JUNO_BASE_URL}/mint_platform/v1/withdrawals`;
+    const requestPath = '/mint_platform/v1/withdrawals';
+    const method = 'GET';
+    const nonce = Date.now().toString();
+    const body = '';
+    // Build signature
+    const dataToSign = nonce + method + requestPath + body;
+    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`
+    };
+    try {
+        const response = await axios_1.default.get(url, { headers });
+        return response.data.payload || [];
+    }
+    catch (error) {
+        console.error('[JUNO] Error fetching recent withdrawals:', error?.response?.data || error.message);
+        return [];
+    }
+}
+/**
+ * Verify if a withdrawal was actually processed by checking recent withdrawals
+ * @param amount - Amount that was withdrawn
+ * @param walletAddress - Destination wallet address
+ * @param timeWindow - Time window in minutes to check (default: 5 minutes)
+ * @returns Withdrawal details if found, null otherwise
+ */
+async function verifyWithdrawalProcessed(amount, walletAddress, timeWindow = 5) {
+    try {
+        const recentWithdrawals = await listRecentWithdrawals();
+        const cutoffTime = new Date(Date.now() - timeWindow * 60 * 1000);
+        // Look for a matching withdrawal in recent history
+        const matchingWithdrawal = recentWithdrawals.find((withdrawal) => {
+            const withdrawalTime = new Date(withdrawal.created_at || withdrawal.timestamp);
+            return (withdrawal.amount === amount &&
+                withdrawal.address === walletAddress &&
+                withdrawal.asset === 'MXNB' &&
+                withdrawalTime >= cutoffTime &&
+                (withdrawal.status === 'completed' || withdrawal.status === 'pending' || withdrawal.status === 'processing'));
+        });
+        if (matchingWithdrawal) {
+            console.log(`[JUNO] Found matching withdrawal:`, matchingWithdrawal);
+            return matchingWithdrawal;
+        }
+        return null;
+    }
+    catch (error) {
+        console.error('[JUNO] Error verifying withdrawal:', error.message);
+        return null;
+    }
+}
+/**
+ * Withdraw MXNB tokens to external crypto wallet (bridge wallet) with improved error handling
  * @param amount - Amount in MXNB to withdraw
  * @param walletAddress - Destination wallet address on Arbitrum
  * @returns Withdrawal transaction details
@@ -301,6 +388,13 @@ async function withdrawMXNBToBridge(amount, walletAddress) {
     const requestPath = '/mint_platform/v1/withdrawals';
     const method = 'POST';
     const nonce = Date.now().toString();
+    // Generate a deterministic idempotency key based on amount, address, and timestamp (rounded to minute)
+    // This helps prevent duplicate withdrawals while allowing retries
+    const timestampMinute = Math.floor(Date.now() / 60000) * 60000;
+    const idempotencyKey = crypto.createHash('sha256')
+        .update(`${amount}-${walletAddress}-${timestampMinute}`)
+        .digest('hex')
+        .substring(0, 32);
     const bodyData = {
         amount: amount,
         asset: 'MXNB',
@@ -321,18 +415,46 @@ async function withdrawMXNBToBridge(amount, walletAddress) {
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
-        'X-Idempotency-Key': crypto.randomUUID() // Unique for each withdrawal
+        'X-Idempotency-Key': idempotencyKey
     };
     console.log(`[JUNO] Withdrawing ${amount} MXNB to bridge wallet ${walletAddress}`);
     console.log('[JUNO] Withdrawal request:', bodyData);
+    console.log(`[JUNO] Using idempotency key: ${idempotencyKey}`);
     try {
         const response = await axios_1.default.post(url, bodyData, { headers });
         console.log(`[JUNO] Withdrawal successful:`, response.data);
         return response.data.payload;
     }
     catch (error) {
-        console.error('[JUNO] Withdrawal failed:', error?.response?.data || error.message);
-        throw new Error(`Juno withdrawal failed: ${error?.response?.data?.error || error.message}`);
+        const errorData = error?.response?.data;
+        const errorCode = errorData?.error_code || errorData?.code;
+        const errorMessage = errorData?.error || errorData?.message || error.message;
+        console.error('[JUNO] Withdrawal failed:', errorData || error.message);
+        // Handle specific error codes that might be false negatives
+        if (errorCode === 34003 || errorCode === '34003' || errorMessage.includes('34003')) {
+            console.log('[JUNO] Error 34003 detected - checking if withdrawal was actually processed...');
+            // Wait a moment for the withdrawal to be processed
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Check if the withdrawal was actually processed despite the error
+            const verifiedWithdrawal = await verifyWithdrawalProcessed(amount, walletAddress);
+            if (verifiedWithdrawal) {
+                console.log('[JUNO] ✅ Withdrawal was actually successful despite error 34003');
+                return verifiedWithdrawal;
+            }
+            else {
+                console.log('[JUNO] ❌ Withdrawal was not found in recent transactions');
+            }
+        }
+        // Handle duplicate/idempotency errors
+        if (errorMessage.includes('idempotency') || errorMessage.includes('duplicate')) {
+            console.log('[JUNO] Idempotency/duplicate error detected - checking recent withdrawals...');
+            const verifiedWithdrawal = await verifyWithdrawalProcessed(amount, walletAddress, 10); // Check last 10 minutes
+            if (verifiedWithdrawal) {
+                console.log('[JUNO] ✅ Found existing withdrawal for this request');
+                return verifiedWithdrawal;
+            }
+        }
+        throw new Error(`Juno withdrawal failed: ${errorMessage} (Code: ${errorCode})`);
     }
 }
 /**

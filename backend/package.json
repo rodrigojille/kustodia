@@ -8,7 +8,15 @@
     "start": "node dist/index.js",
     "build": "npx copyfiles src/artifacts/**/* dist/ && tsc",
     "heroku-prebuild": "mkdir -p src/artifacts/contracts || true",
-    "typeorm": "ts-node-dev -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
+    "heroku-postbuild": "npm run setup-prod-db",
+    "typeorm": "ts-node-dev -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- migration:generate",
+    "migration:run": "npm run typeorm -- migration:run",
+    "migration:revert": "npm run typeorm -- migration:revert",
+    "setup-prod-db": "ts-node scripts/setup-production-database.ts",
+    "fix-prod-db": "ts-node scripts/fix-production-database.ts",
+    "health-check": "ts-node scripts/check-production-health.ts",
+    "db:sync": "ts-node -e \"import AppDataSource from './src/ormconfig'; AppDataSource.initialize().then(() => AppDataSource.synchronize()).then(() => process.exit(0))\""
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",

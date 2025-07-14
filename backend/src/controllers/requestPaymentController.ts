@@ -69,6 +69,14 @@ export const requestPayment = async (req: Request, res: Response): Promise<void>
     });
     await paymentRepo.save(payment);
 
+    // Create in-app notifications
+    try {
+      const { createPaymentNotifications } = await import('../services/paymentNotificationIntegration');
+      await createPaymentNotifications(payment.id, 'payment_created');
+    } catch (error) {
+      console.error('Error creating in-app notifications:', error);
+    }
+
     // Notificación por email a pagador, vendedor y beneficiario de comisión (si existe)
     const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
     const recipients = [
