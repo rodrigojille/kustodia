@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     }
     
     // Forward cookies from client to backend (HTTP-only cookie auth)
-    const cookieHeader = request.headers.get('cookie');
+    const cookieHeader = req.headers.get('cookie');
     if (cookieHeader) {
       headers['Cookie'] = cookieHeader;
     }
