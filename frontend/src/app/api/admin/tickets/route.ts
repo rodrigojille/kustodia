@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
 
     // Forward the request to the backend (use env var or fallback)
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
-    const backendResponse = await fetch(`${backendUrl}/api/admin/tickets`, {
+    // Try alternative endpoint first - /api/tickets/admin (less restrictive)
+    const backendResponse = await fetch(`${backendUrl}/api/tickets/admin`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

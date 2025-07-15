@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 // Change this URL to your backend disputes endpoint
-const BACKEND_URL = process.env.DISPUTES_API_URL || "http://localhost:4000/api/admin/disputes";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:4000";
+const DISPUTES_ENDPOINT = `${BACKEND_URL}/api/admin/disputes`;
 
 export async function GET(req: Request) {
   try {
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`,
     };
-    const res = await fetch(BACKEND_URL, {
+    const res = await fetch(DISPUTES_ENDPOINT, {
       headers,
       // credentials: 'include', // Uncomment if you need to send cookies
     });
