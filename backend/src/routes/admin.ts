@@ -3,6 +3,8 @@ import { authenticateJWT } from '../authenticateJWT';
 import { requireAdminRole } from '../middleware/requireAdminRole';
 import systemStatusRouter from './admin/systemStatus';
 import herokuLogsRouter from './admin/herokuLogs';
+import systemLogsRouter from './admin/systemLogs';
+import unifiedLogsRouter from './admin/logs';
 import { 
   // Legacy functions
   getAllDisputes, 
@@ -63,8 +65,12 @@ router.get("/monitoring/juno-status", authenticateJWT, requireAdminRole, asyncHa
 
 // 🎮 System Status & Operations Center
 router.use("/system", systemStatusRouter);
+router.use("/system", systemLogsRouter);
 
 // 📊 Heroku Platform Logs & Monitoring
 router.use("/heroku", herokuLogsRouter);
+
+// 📋 Unified Logs Endpoint (Auto-detects Environment)
+router.use("/", unifiedLogsRouter);
 
 export default router;

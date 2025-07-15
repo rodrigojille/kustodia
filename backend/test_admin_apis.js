@@ -20,10 +20,11 @@ async function testAdminAPIs() {
     { name: 'Admin Disputes', url: '/api/disputes/admin', expectedStatus: [401, 200], critical: true },
     { name: 'Disputes Base', url: '/api/disputes', expectedStatus: [401, 200, 404] },
     
-    // Operations Center / Logs
+    // Operations Center / Logs (UPDATED UNIFIED ENDPOINTS)
     { name: 'Admin Operations', url: '/api/admin/operations', expectedStatus: [401, 200, 404] },
-    { name: 'Admin Logs', url: '/api/admin/logs', expectedStatus: [401, 200, 404] },
-    { name: 'Production Logs', url: '/api/logs/production', expectedStatus: [401, 200, 404] },
+    { name: 'Unified Logs (Auto-detect)', url: '/api/admin/logs?environment=auto&lines=10', expectedStatus: [401, 200], critical: true },
+    { name: 'Unified Dynos (Auto-detect)', url: '/api/admin/dynos?environment=auto', expectedStatus: [401, 200], critical: true },
+    { name: 'Legacy Production Logs', url: '/api/logs/production', expectedStatus: [401, 200, 404] },
     
     // Payment APIs for admin
     { name: 'Admin Payments', url: '/api/payments/admin', expectedStatus: [401, 200, 404] },
