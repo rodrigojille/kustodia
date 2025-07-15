@@ -8,6 +8,7 @@ import evidenceRoutes from "./evidence";
 import junoRoutes from "./juno";
 import automationRoutes from "./automation";
 import notificationRoutes from "./notification";
+import ticketRoutes from "./ticket";
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.use("/payments", paymentRoutes);
 router.use("/truora", truoraRoutes);
 router.use("/dispute", disputeRoutes);
 router.use("/admin", adminRoutes);
+router.use("/tickets", ticketRoutes);
 router.use("/evidence", evidenceRoutes);
 router.use("/juno", junoRoutes);
 router.use("/automation", automationRoutes);

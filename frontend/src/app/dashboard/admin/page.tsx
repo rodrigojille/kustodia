@@ -139,7 +139,7 @@ const AdminDashboardPage = () => {
         const pendingDisputes = disputes.filter((d: Dispute) => d.status === 'pending');
         if (pendingDisputes.length > 0) {
           try {
-            const aiResponse = await authFetch('/api/dispute/ai-assessment/batch', {
+            const aiResponse = await authFetch('dispute/ai-assessment/batch', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -312,7 +312,7 @@ const AdminDashboardPage = () => {
       }
       
       // Refresh disputes
-      const disputesResponse = await authFetch('/api/admin/disputes');
+      const disputesResponse = await authFetch('admin/disputes');
       if (disputesResponse.ok) {
         const disputesData = await disputesResponse.json();
         setDisputes(disputesData.disputes || []);
