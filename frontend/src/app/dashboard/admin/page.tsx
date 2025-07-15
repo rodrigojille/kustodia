@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { authFetch } from '../../../utils/authFetch';
-import SupportTicketsTable from '../../../components/admin/SupportTicketsTable';
+import SoporteTable from '../../../components/SoporteTable';
 import DisputeCard from '../../../components/admin/DisputeCard';
 import DisputeDetailsModal from '../../../components/admin/DisputeDetailsModal';
 import HerokuLogsViewer from '../../../components/admin/HerokuLogsViewer';
@@ -469,7 +469,7 @@ const AdminDashboardPage = () => {
           {activeTab === 'tickets' && (
             <div className="bg-white rounded-xl shadow p-6 md:p-8 border border-gray-200">
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Tickets de Soporte</h2>
-              <SupportTicketsTable tickets={tickets} />
+              <SoporteTable />
             </div>
           )}
 
