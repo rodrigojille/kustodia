@@ -1,4 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
 
 // Change this URL to your backend disputes endpoint
 const BACKEND_URL = process.env.DISPUTES_API_URL || "http://localhost:4000/api/admin/disputes";
