@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { authFetch } from '../../utils/authFetch';
 
 interface HerokuLog {
   timestamp: string;
@@ -31,11 +32,25 @@ interface HerokuDyno {
   command: string;
 }
 
-export default function HerokuLogsViewer() {
-  const [logs, setLogs] = useState<HerokuLog[]>([]);
-  const [dynos, setDynos] = useState<HerokuDyno[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface HerokuLogsViewerProps {
+  environmentOverride?: 'production' | 'local';
+  logs?: HerokuLog[];
+  dynos?: HerokuDyno[];
+  loading?: boolean;
+  error?: string | null;
+  onFetchLogs?: (filters: any) => Promise<void>;
+  onFetchDynos?: () => Promise<void>;
+}
+
+const HerokuLogsViewer: React.FC<HerokuLogsViewerProps> = ({ 
+  environmentOverride,
+  logs = [],
+  dynos = [],
+  loading = false,
+  error = null,
+  onFetchLogs,
+  onFetchDynos
+}) => {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [filters, setFilters] = useState({
     lines: 100,
@@ -43,51 +58,24 @@ export default function HerokuLogsViewer() {
     source: '',
     dyno: ''
   });
+  
+  // Environment detection
+  const isProduction = environmentOverride === 'production' || 
+    (environmentOverride === undefined && typeof window !== 'undefined' && window.location.hostname === 'kustodia.mx');
+  const environment = environmentOverride || (isProduction ? 'production' : 'local');
 
-  const fetchLogs = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const params = new URLSearchParams({
-        lines: String(filters.lines),
-        level: filters.level
+  const fetchLogs = () => {
+    if (onFetchLogs) {
+      onFetchLogs({
+        ...filters,
+        environment
       });
-
-      if (filters.source) params.append('source', filters.source);
-      if (filters.dyno) params.append('dyno', filters.dyno);
-
-      const response = await fetch(`/api/admin/heroku/heroku-logs?${params}`, {
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch Heroku logs');
-      }
-
-      const data: HerokuLogsResponse = await response.json();
-      setLogs(data.logs);
-    } catch (err: any) {
-      setError(err.message);
-      console.error('Error fetching Heroku logs:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchDynos = async () => {
-    try {
-      const response = await fetch('/api/admin/heroku/heroku-dynos', {
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDynos(data.dynos);
-      }
-    } catch (err) {
-      console.error('Error fetching dynos:', err);
+  const fetchDynos = () => {
+    if (onFetchDynos && isProduction) {
+      onFetchDynos();
     }
   };
 
@@ -125,7 +113,18 @@ export default function HerokuLogsViewer() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Heroku Production Logs</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {isProduction ? 'Heroku Production Logs' : 'Local System Logs'}
+          </h2>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+            isProduction 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-orange-100 text-orange-800'
+          }`}>
+            {isProduction ? 'Producción' : 'Desarrollo'}
+          </span>
+        </div>
         <div className="flex items-center space-x-3">
           <label className="flex items-center space-x-2">
             <input
@@ -202,8 +201,8 @@ export default function HerokuLogsViewer() {
         </div>
       </div>
 
-      {/* Dynos Status */}
-      {dynos.length > 0 && (
+      {/* Dynos Status - Only in production */}
+      {isProduction && dynos.length > 0 && (
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Dyno Status</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -242,7 +241,7 @@ export default function HerokuLogsViewer() {
       <div className="bg-white rounded-lg shadow">
         <div className="border-b border-gray-200 px-4 py-3">
           <h3 className="text-lg font-semibold text-gray-900">
-            Production Logs ({logs.length} entries)
+            {isProduction ? 'Production' : 'Local'} Logs ({logs.length} entries)
           </h3>
         </div>
         
@@ -250,7 +249,7 @@ export default function HerokuLogsViewer() {
           {loading && logs.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-              Loading Heroku logs...
+              Loading {isProduction ? 'Heroku' : 'local'} logs...
             </div>
           ) : logs.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
@@ -283,4 +282,6 @@ export default function HerokuLogsViewer() {
       </div>
     </div>
   );
-}
+};
+
+export default HerokuLogsViewer;
