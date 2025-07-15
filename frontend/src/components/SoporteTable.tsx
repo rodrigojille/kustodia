@@ -15,7 +15,11 @@ interface Ticket {
   };
 }
 
-export default function SoporteTable() {
+interface SoporteTableProps {
+  onViewTicketDetails?: (ticketId: string) => void;
+}
+
+const SoporteTable: React.FC<SoporteTableProps> = ({ onViewTicketDetails }) => {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -204,8 +208,11 @@ export default function SoporteTable() {
                       className="inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-100 text-blue-700 font-medium text-xs" 
                       title="Ver detalle"
                       onClick={() => {
-                        // TODO: Implement ticket detail modal
-                        console.log('Ver ticket:', t.id);
+                        if (onViewTicketDetails) {
+                          onViewTicketDetails(t.id);
+                        } else {
+                          console.log('Ver ticket:', t.id);
+                        }
                       }}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -223,4 +230,6 @@ export default function SoporteTable() {
       )}
     </div>
   );
-}
+};
+
+export default SoporteTable;
