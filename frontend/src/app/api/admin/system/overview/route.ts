@@ -21,8 +21,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
     }
 
-    // Forward the request to the backend on port 4000
-    const backendResponse = await fetch('http://localhost:4000/api/admin/system/overview', {
+    // Forward the request to the backend (use env var or fallback)
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
+    const backendResponse = await fetch(`${backendUrl}/api/admin/system/overview`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -24,9 +24,10 @@ export async function GET(request: NextRequest) {
     // Get query parameters and forward them
     const { searchParams } = new URL(request.url);
     const queryString = searchParams.toString();
-    const backendUrl = `http://localhost:4000/api/admin/system/activity${queryString ? `?${queryString}` : ''}`;
+    const baseBackendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
+    const backendUrl = `${baseBackendUrl}/api/admin/system/activity${queryString ? `?${queryString}` : ''}`;
 
-    // Forward the request to the backend on port 4000
+    // Forward the request to the backend
     const backendResponse = await fetch(backendUrl, {
       method: 'GET',
       headers: {
