@@ -24,14 +24,24 @@ export async function GET(req: Request) {
       token = customToken;
     }
     
-    if (!token) {
-      return NextResponse.json({ error: 'Authorization token required' }, { status: 401 });
-    }
+    // Token is optional since we now support both localStorage and cookie auth
+    // The backend will handle authentication validation
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
     };
+    
+    // Add token if available (localStorage auth)
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    // Forward cookies from client to backend (HTTP-only cookie auth)
+    const cookieHeader = request.headers.get('cookie');
+    if (cookieHeader) {
+      headers['Cookie'] = cookieHeader;
+    }
+    
     const res = await fetch(DISPUTES_ENDPOINT, {
       headers,
       // credentials: 'include', // Uncomment if you need to send cookies

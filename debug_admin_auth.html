@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Admin Authentication</title>
+</head>
+<body>
+    <h1>Debug Admin Authentication</h1>
+    <div id="results"></div>
+
+    <script>
+        function log(message) {
+            const results = document.getElementById('results');
+            results.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+
+        // Check localStorage token
+        const token = localStorage.getItem('auth_token');
+        log('localStorage auth_token: ' + (token ? 'EXISTS (length: ' + token.length + ')' : 'NOT FOUND'));
+        
+        if (token) {
+            log('Token preview: ' + token.substring(0, 50) + '...');
+            
+            // Test the admin tickets API directly
+            log('Testing admin tickets API...');
+            
+            fetch('/api/admin/tickets', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                }
+            })
+            .then(response => {
+                log('Admin tickets response status: ' + response.status);
+                return response.text();
+            })
+            .then(text => {
+                log('Admin tickets response: ' + text.substring(0, 200) + (text.length > 200 ? '...' : ''));
+            })
+            .catch(error => {
+                log('Admin tickets error: ' + error.message);
+            });
+
+            // Test the admin disputes API directly
+            log('Testing admin disputes API...');
+            
+            fetch('/api/admin/disputes', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                }
+            })
+            .then(response => {
+                log('Admin disputes response status: ' + response.status);
+                return response.text();
+            })
+            .then(text => {
+                log('Admin disputes response: ' + text.substring(0, 200) + (text.length > 200 ? '...' : ''));
+            })
+            .catch(error => {
+                log('Admin disputes error: ' + error.message);
+            });
+        }
+
+        // Check if user is logged in via cookies (backend auth)
+        fetch('/api/users/me', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(response => {
+            log('Backend auth check status: ' + response.status);
+            return response.json();
+        })
+        .then(data => {
+            log('Backend auth user: ' + JSON.stringify(data));
+        })
+        .catch(error => {
+            log('Backend auth error: ' + error.message);
+        });
+    </script>
+</body>
+</html>
