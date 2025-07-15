@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
+import AppDataSource from '../ormconfig';
 import { Dispute } from '../entity/Dispute';
 import { DisputeMessage, MessageType } from '../entity/DisputeMessage';
 import { User } from '../entity/User';
@@ -47,8 +47,8 @@ export const getDisputeMessages = async (req: Request, res: Response) => {
     const { disputeId } = req.params;
     const userId = (req as any).user.id;
 
-    const disputeRepo = getRepository(Dispute);
-    const messageRepo = getRepository(DisputeMessage);
+    const disputeRepo = AppDataSource.getRepository(Dispute);
+    const messageRepo = AppDataSource.getRepository(DisputeMessage);
 
     // Verify user has access to this dispute
     const dispute = await disputeRepo.findOne({
@@ -91,8 +91,8 @@ export const addDisputeMessage = async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const userRole = (req as any).user.role;
 
-    const disputeRepo = getRepository(Dispute);
-    const messageRepo = getRepository(DisputeMessage);
+    const disputeRepo = AppDataSource.getRepository(Dispute);
+    const messageRepo = AppDataSource.getRepository(DisputeMessage);
 
     // Verify dispute exists and user has access
     const dispute = await disputeRepo.findOne({
@@ -150,7 +150,7 @@ export const getDisputeDetails = async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const userRole = (req as any).user.role;
 
-    const disputeRepo = getRepository(Dispute);
+    const disputeRepo = AppDataSource.getRepository(Dispute);
 
     const dispute = await disputeRepo.findOne({
       where: { id: parseInt(disputeId) },

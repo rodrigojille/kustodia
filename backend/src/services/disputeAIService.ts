@@ -1,4 +1,4 @@
-import { getRepository } from 'typeorm';
+import AppDataSource from '../ormconfig';
 import { Dispute } from '../entity/Dispute';
 import { User } from '../entity/User';
 import { Payment } from '../entity/Payment';
@@ -42,9 +42,9 @@ export class DisputeAIService {
         return this.fallbackRiskAssessment(disputeId);
       }
 
-      const disputeRepo = getRepository(Dispute);
-      const paymentRepo = getRepository(Payment);
-      const userRepo = getRepository(User);
+      const disputeRepo = AppDataSource.getRepository(Dispute);
+      const paymentRepo = AppDataSource.getRepository(Payment);
+      const userRepo = AppDataSource.getRepository(User);
 
       // Fetch dispute with full context
       const dispute = await disputeRepo.findOne({
@@ -197,8 +197,8 @@ Respond ONLY with valid JSON, no additional text.`;
    * Fallback rule-based assessment when AI is unavailable
    */
   private async fallbackRiskAssessment(disputeId: number): Promise<AIRiskAssessment> {
-    const disputeRepo = getRepository(Dispute);
-    const paymentRepo = getRepository(Payment);
+    const disputeRepo = AppDataSource.getRepository(Dispute);
+    const paymentRepo = AppDataSource.getRepository(Payment);
 
     const dispute = await disputeRepo.findOne({
       where: { id: disputeId },
