@@ -118,30 +118,32 @@ const DisputeCard: React.FC<DisputeCardProps> = ({
           </div>
         </div>
         
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            {showDetails ? 'Ocultar detalles' : 'Ver detalles'}
-          </button>
-          {dispute.aiAssessment && (
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2">
             <button
-              onClick={() => setShowAIAssessment(!showAIAssessment)}
-              className="text-purple-600 hover:text-purple-800 text-sm font-medium ml-2"
+              onClick={() => setShowDetails(!showDetails)}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
-              🤖 {showAIAssessment ? 'Ocultar AI' : 'Ver AI'}
+              {showDetails ? 'Ocultar detalles' : 'Ver detalles'}
+            </button>
+            {dispute.aiAssessment && (
+              <button
+                onClick={() => setShowAIAssessment(!showAIAssessment)}
+                className="text-purple-600 hover:text-purple-800 text-sm font-medium ml-2"
+              >
+                🤖 {showAIAssessment ? 'Ocultar AI' : 'Ver AI'}
+              </button>
+            )}
+          </div>
+          {onViewDetails && (
+            <button
+              onClick={() => onViewDetails(dispute.id)}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+            >
+              💬 Detalle Completo
             </button>
           )}
         </div>
-        {onViewDetails && (
-          <button
-            onClick={() => onViewDetails(dispute.id)}
-            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 ml-2"
-          >
-            💬 Ver Detalles y Mensajes
-          </button>
-        )}
       </div>
 
       <div className="mb-3">

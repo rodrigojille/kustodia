@@ -248,7 +248,7 @@ const AdminDashboardPage = () => {
       const params = new URLSearchParams({
         lines: String(filters.lines),
         level: filters.level,
-        environment: filters.environment
+        environment: filters.environment || 'auto'
       });
 
       if (filters.source) params.append('source', filters.source);
@@ -258,11 +258,17 @@ const AdminDashboardPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to fetch ${filters.environment} logs`);
+        throw new Error(errorData.message || `Failed to fetch ${filters.environment || 'auto'} logs`);
       }
 
       const data = await response.json();
       setLogs(data.logs);
+      
+      // Show success message if configuration is required
+      if (data.configurationRequired) {
+        console.warn('[ADMIN] Heroku configuration required:', data.message);
+      }
+      
     } catch (err: any) {
       setLogsError(err.message);
       console.error(`Error fetching logs:`, err);
@@ -273,10 +279,15 @@ const AdminDashboardPage = () => {
 
   const fetchDynos = async () => {
     try {
-      const response = await authFetch('/api/admin/heroku/heroku-dynos');
+      const response = await authFetch('/api/admin/dynos?environment=auto');
       if (response.ok) {
         const data = await response.json();
         setDynos(data.dynos);
+        
+        // Show success message if configuration is required
+        if (data.configurationRequired) {
+          console.warn('[ADMIN] Dyno monitoring configuration required:', data.message);
+        }
       }
     } catch (err) {
       console.error('Error fetching dynos:', err);

@@ -1,9 +1,41 @@
+"use client";
+import { useEffect } from 'react';
 import Header from '../../../components/Header';
 import { FaHome, FaShieldAlt, FaRegSmile, FaShareAlt } from 'react-icons/fa';
 import Link from 'next/link';
 import SocialShare from '../../../components/SocialShare';
+import { useAnalyticsContext } from '../../../components/AnalyticsProvider';
+import analytics from '../../../lib/analytics';
 
 export default function BlogEvitarFraudesInmobiliarias() {
+  // 🔥 ANALYTICS: Initialize fraud prevention education tracking
+  const { trackEvent, trackUserAction } = useAnalyticsContext();
+  
+  // 🔥 Track page load - KEY FRAUD EDUCATION METRIC
+  useEffect(() => {
+    trackEvent('fraud_prevention_education_viewed', {
+      journey_stage: 'education',
+      content_type: 'blog_post',
+      fraud_category: 'real_estate', // Based on Reddit scraper insights
+      educational_content: 'fraud_prevention_guide',
+      target_audience: 'real_estate_agents_and_clients',
+      mexican_market: true,
+      referrer: typeof window !== 'undefined' ? document.referrer || 'direct' : 'unknown'
+    });
+    
+    // Track content engagement
+    analytics.track({
+      event_name: 'educational_content_loaded',
+      category: 'fraud_prevention',
+      properties: {
+        content_category: 'real_estate_fraud_prevention',
+        page_title: 'Evitar fraudes inmobiliarias',
+        content_length: 'long_form_guide',
+        user_intent: 'fraud_protection_education'
+      }
+    });
+  }, []);
+  
   return (
     <>
       <header>
@@ -109,6 +141,21 @@ export default function BlogEvitarFraudesInmobiliarias() {
             <div className="text-center mb-12">
               <Link 
                 href="/inmobiliarias" 
+                onClick={() => {
+                  // 🔥 ANALYTICS: Track conversion to real estate solution
+                  trackUserAction('real_estate_solution_clicked', {
+                    source: 'fraud_prevention_blog',
+                    journey_stage: 'conversion',
+                    conversion_type: 'education_to_solution',
+                    fraud_category: 'real_estate'
+                  });
+                  
+                  trackEvent('fraud_education_conversion', {
+                    content_type: 'blog_to_solution',
+                    target_solution: 'real_estate_escrow',
+                    education_effectiveness: 'high_intent_conversion'
+                  });
+                }}
                 className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
               >
                 Ver cómo funciona para inmobiliarias
@@ -131,6 +178,14 @@ export default function BlogEvitarFraudesInmobiliarias() {
         <div className="w-full max-w-4xl mx-auto text-center mt-8">
           <Link 
             href="/" 
+            onClick={() => {
+              // 🔥 ANALYTICS: Track return to homepage from education
+              trackUserAction('education_to_homepage', {
+                source: 'fraud_prevention_blog',
+                journey_stage: 'navigation',
+                content_engagement: 'completed_reading'
+              });
+            }}
             className="inline-block bg-gray-100 text-blue-700 font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
           >
             Volver al inicio

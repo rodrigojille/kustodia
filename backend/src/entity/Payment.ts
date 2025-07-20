@@ -130,6 +130,84 @@ export class Payment {
   @Column({ nullable: true, length: 100 })
   vertical_type?: string; // e.g., 'freelance', 'marketplace', 'escrow'
 
+  // Operation type field (reused from existing)
+  @Column({ nullable: true, length: 50 })
+  operation_type?: string; // 'Enganche', 'Apartado', 'Renta', 'Compra-venta'
+
+  @Column({ nullable: true, length: 20, default: 'payer' })
+  initiator_type?: string; // 'payer' or 'payee'
+
+  // Product-specific fields for dynamic forms
+  @Column({ nullable: true, type: "text" })
+  transaction_subtype?: string; // 'Apartado', 'Enganche', 'Compraventa'
+
+  // Vehicle-specific fields
+  @Column({ nullable: true, length: 100 })
+  vehicle_brand?: string;
+
+  @Column({ nullable: true, length: 100 })
+  vehicle_model?: string;
+
+  @Column({ nullable: true })
+  vehicle_year?: number;
+
+  @Column({ nullable: true, length: 17 })
+  vehicle_vin?: string;
+
+  @Column({ nullable: true })
+  vehicle_mileage?: number;
+
+  @Column({ nullable: true, length: 50 })
+  vehicle_condition?: string;
+
+  // Electronics-specific fields
+  @Column({ nullable: true, length: 100 })
+  electronics_brand?: string;
+
+  @Column({ nullable: true, length: 100 })
+  electronics_model?: string;
+
+  @Column({ nullable: true, length: 50 })
+  electronics_condition?: string;
+
+  @Column({ nullable: true, length: 100 })
+  electronics_warranty?: string;
+
+  @Column({ nullable: true, length: 100 })
+  electronics_serial?: string;
+
+  // Appliances-specific fields
+  @Column({ nullable: true, length: 100 })
+  appliance_type?: string;
+
+  @Column({ nullable: true, length: 100 })
+  appliance_brand?: string;
+
+  @Column({ nullable: true })
+  appliance_years_use?: number;
+
+  @Column({ nullable: true, length: 50 })
+  appliance_efficiency?: string;
+
+  @Column({ nullable: true, length: 50 })
+  appliance_condition?: string;
+
+  @Column({ nullable: true, length: 100 })
+  appliance_serial?: string;
+
+  // Furniture-specific fields
+  @Column({ nullable: true, length: 100 })
+  furniture_type?: string;
+
+  @Column({ nullable: true, length: 100 })
+  furniture_material?: string;
+
+  @Column({ nullable: true, length: 100 })
+  furniture_dimensions?: string;
+
+  @Column({ nullable: true, length: 50 })
+  furniture_condition?: string;
+
   @OneToOne(() => Escrow, escrow => escrow.payment)
   @JoinColumn({ name: "escrow_id" })
   escrow?: Escrow;

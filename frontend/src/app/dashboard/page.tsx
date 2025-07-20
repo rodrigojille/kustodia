@@ -14,8 +14,13 @@ import { authFetch } from '../../utils/authFetch';
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useAnalyticsContext } from '../../components/AnalyticsProvider';
+import analytics from '../../lib/analytics';
 
 export default function DashboardHomePage() {
+  // 🔥 ANALYTICS: Initialize dashboard engagement tracking  
+  const { trackEvent, trackUserAction } = useAnalyticsContext();
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -57,6 +62,15 @@ export default function DashboardHomePage() {
         // Update both state and localStorage
         setUser(userData);
         localStorage.setItem('userData', JSON.stringify(userData));
+        
+        // 🔥 ANALYTICS: Track user dashboard engagement
+        trackEvent('dashboard_loaded', {
+          journey_stage: 'engagement',
+          user_id: userData.id,
+          user_type: userData.role || 'user',
+          has_payments: userData.payments?.length > 0,
+          account_age_days: userData.createdAt ? Math.floor((Date.now() - new Date(userData.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0
+        });
       } else {
         console.log('[DASHBOARD] Background user fetch failed:', res.status);
       }
@@ -265,7 +279,14 @@ export default function DashboardHomePage() {
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">Acciones Rápidas</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               <button 
-                onClick={() => router.push('/dashboard/crear-pago')}
+                onClick={() => {
+                  // 🔥 ANALYTICS: Track new payment creation intent
+                  trackUserAction('new_payment_clicked', {
+                    source: 'dashboard_quick_actions',
+                    journey_stage: 'payment_creation'
+                  });
+                  router.push('/dashboard/nuevo-flujo');
+                }}
                 className="card-primary p-4 hover:shadow-lg transition-all duration-200 text-left group"
               >
                 <div className="flex items-center space-x-3">
@@ -282,7 +303,14 @@ export default function DashboardHomePage() {
               </button>
               
               <button 
-                onClick={() => router.push('/dashboard/soporte')}
+                onClick={() => {
+                  // 🔥 ANALYTICS: Track support engagement
+                  trackUserAction('support_clicked', {
+                    source: 'dashboard_quick_actions',
+                    journey_stage: 'support_engagement'
+                  });
+                  router.push('/dashboard/soporte');
+                }}
                 className="card-primary p-4 hover:shadow-lg transition-all duration-200 text-left group"
               >
                 <div className="flex items-center space-x-3">
@@ -299,7 +327,14 @@ export default function DashboardHomePage() {
               </button>
               
               <button 
-                onClick={() => router.push('/dashboard/configuracion')}
+                onClick={() => {
+                  // 🔥 ANALYTICS: Track settings access
+                  trackUserAction('settings_clicked', {
+                    source: 'dashboard_quick_actions',
+                    journey_stage: 'account_management'
+                  });
+                  router.push('/dashboard/configuracion');
+                }}
                 className="card-primary p-4 hover:shadow-lg transition-all duration-200 text-left group"
               >
                 <div className="flex items-center space-x-3">

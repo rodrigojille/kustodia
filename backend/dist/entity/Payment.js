@@ -165,6 +165,102 @@ __decorate([
     __metadata("design:type", String)
 ], Payment.prototype, "vertical_type", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "operation_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 20, default: 'payer' }),
+    __metadata("design:type", String)
+], Payment.prototype, "initiator_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "text" }),
+    __metadata("design:type", String)
+], Payment.prototype, "transaction_subtype", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "vehicle_brand", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "vehicle_model", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Payment.prototype, "vehicle_year", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 17 }),
+    __metadata("design:type", String)
+], Payment.prototype, "vehicle_vin", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Payment.prototype, "vehicle_mileage", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "vehicle_condition", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "electronics_brand", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "electronics_model", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "electronics_condition", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "electronics_warranty", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "electronics_serial", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "appliance_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "appliance_brand", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Payment.prototype, "appliance_years_use", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "appliance_efficiency", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "appliance_condition", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "appliance_serial", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "furniture_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "furniture_material", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 100 }),
+    __metadata("design:type", String)
+], Payment.prototype, "furniture_dimensions", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "furniture_condition", void 0);
+__decorate([
     (0, typeorm_1.OneToOne)(() => Escrow_1.Escrow, escrow => escrow.payment),
     (0, typeorm_1.JoinColumn)({ name: "escrow_id" }),
     __metadata("design:type", Escrow_1.Escrow)

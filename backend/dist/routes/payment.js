@@ -9,6 +9,7 @@ const getPaymentByIdController_1 = require("../controllers/getPaymentByIdControl
 const requestPaymentController_1 = require("../controllers/requestPaymentController");
 // getAllPayments moved to admin routes for security
 const paymentApprovalController_1 = require("../controllers/paymentApprovalController");
+const cobroPaymentController_1 = require("../controllers/cobroPaymentController");
 const router = (0, express_1.Router)();
 // SECURITY: Default payments endpoint now returns user-specific payments only
 router.get("/", authenticateJWT_1.authenticateJWT, getUserPaymentsController_1.getUserPayments);
@@ -24,4 +25,9 @@ router.post("/:id/approve/payee", authenticateJWT_1.authenticateJWT, paymentAppr
 // Web3 escrow management routes
 router.post("/fund-web3-escrow", authenticateJWT_1.authenticateJWT, paymentController_1.fundWeb3Escrow);
 router.post("/release-web3-escrow", authenticateJWT_1.authenticateJWT, paymentController_1.releaseWeb3Payment);
+// Cobro Inteligente routes
+router.post("/cobro-inteligente", authenticateJWT_1.authenticateJWT, cobroPaymentController_1.createCobroPayment);
+router.get("/cobro-inteligente/:id", authenticateJWT_1.authenticateJWT, cobroPaymentController_1.getCobroPayment);
+router.post("/cobro-inteligente/:id/approve", authenticateJWT_1.authenticateJWT, cobroPaymentController_1.approveCobroPayment);
+router.post("/cobro-inteligente/:id/release", authenticateJWT_1.authenticateJWT, cobroPaymentController_1.releaseCobroPayment);
 exports.default = router;

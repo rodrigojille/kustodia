@@ -4,6 +4,7 @@ import { ethers, Interface, ZeroAddress } from 'ethers';
 import { authFetch } from '@/utils/authFetch';
 import ERC20_ABI from '@/abis/ERC20.json';
 import { getPortalInstance } from '@/utils/portalInstance';
+import useAnalytics from '@/hooks/useAnalytics';
 
 interface Web3PaymentFormProps {
   onBack: () => void;
@@ -13,6 +14,9 @@ const ESCROW_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS
 const MXNB_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS;
 
 export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
+  // Analytics integration
+  const { paymentFlow, formTracking } = useAnalytics();
+  
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [recipient, setRecipient] = useState("");
@@ -97,6 +101,13 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
     setLoading(true);
     setStatusMessage('Iniciando proceso de pago Web3...');
 
+    // 🔥 ANALYTICS: Track payment flow start
+    formTracking.trackFormStart('web3_payment_form', 'web3_payment');
+    paymentFlow.trackPaymentStep('start', {
+      transaction_type: 'web3_payment',
+      amount: parseFloat(amount || '0')
+    });
+
     try {
       if (!recipientWallet) throw new Error("La wallet del destinatario no es válida.");
       if (parseFloat(balance || '0') < parseFloat(amount)) throw new Error('Saldo MXNB insuficiente.');
@@ -117,11 +128,25 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
       });
       const approvalTxHash = approveTx.hash;
 
+      // 🔥 ANALYTICS: Track payment method selection
+      paymentFlow.trackPaymentStep('payment_method', {
+        method: 'crypto',
+        transaction_type: 'web3_payment',
+        amount: parseFloat(amount || '0')
+      });
+
       // 2. Create Escrow
       setStatusMessage('Creando el escrow en la blockchain...');
       const custodyAmount = (parseFloat(amount) * parseFloat(warrantyPercent)) / 100;
       const releaseAmount = parseFloat(amount) - custodyAmount;
       const custodyDaysInt = parseInt(custodyDays);
+
+      // 🔥 ANALYTICS: Track custody settings
+      paymentFlow.trackPaymentStep('custody_settings', {
+        percentage: parseFloat(warrantyPercent || '0'),
+        timeline: `${custodyDaysInt} days`,
+        transaction_type: 'web3_payment'
+      });
 
       const escrowInterface = new Interface(["function createEscrow(address payer, address seller, uint256 amount, uint256 custodyAmount, uint256 custodyPeriod, uint256 releaseAmount, address token, string memory description) returns (uint256)"]);
       const escrowCalldata = escrowInterface.encodeFunctionData('createEscrow', [
@@ -166,10 +191,24 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
       setSuccess(`¡Pago Web3 creado con éxito! ID del pago: ${result.payment.id}`);
       setStatusMessage(null);
 
+      // 🔥 ANALYTICS: Track successful payment completion
+      paymentFlow.trackPaymentStep('completion', {
+        amount: parseFloat(amount || '0'),
+        method: 'crypto',
+        transaction_type: 'web3_payment',
+        percentage: parseFloat(warrantyPercent || '0')
+      });
+      
+      formTracking.trackFormCompletion('web3_payment_form', true);
+
     } catch (err: any) {
       console.error('Error during Web3 payment flow:', err);
       setError(err.message || 'Ocurrió un error inesperado.');
       setStatusMessage(null);
+      
+      // 🔥 ANALYTICS: Track payment failure
+      formTracking.trackFormCompletion('web3_payment_form', false, [err.message]);
+      
     } finally {
       setLoading(false);
     }

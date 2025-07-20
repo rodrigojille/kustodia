@@ -1,12 +1,38 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAnalyticsContext } from '../../components/AnalyticsProvider';
+import analytics from '../../lib/analytics';
 
 export default function RegisterPage() {
+  // 🔥 ANALYTICS: Initialize registration funnel tracking
+  const { trackEvent, trackUserAction } = useAnalyticsContext();
+  
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "", acceptTerms: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  
+  // 🔥 Track registration page load - key acquisition metric
+  useEffect(() => {
+    trackEvent('registration_page_loaded', {
+      journey_stage: 'acquisition',
+      referrer: document.referrer || 'direct',
+      utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+      utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+      utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
+    });
+    
+    // Track registration form start using available method
+    analytics.track({
+      event_name: 'registration_form_start',
+      category: 'user_acquisition',
+      properties: {
+        form_type: 'registration',
+        conversion_stage: 'awareness'
+      }
+    });
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -14,10 +40,30 @@ export default function RegisterPage() {
     setSuccess("");
     if (!form.name || !form.email || !form.password || !form.confirm) {
       setError("Completa todos los campos.");
+      
+      // 🔥 ANALYTICS: Track validation errors
+      analytics.track({
+        event_name: 'registration_form_error',
+        category: 'user_acquisition',
+        properties: {
+          error_type: 'incomplete_fields',
+          form_completed: false
+        }
+      });
       return;
     }
     if (form.password !== form.confirm) {
       setError("Las contraseñas no coinciden.");
+      
+      // 🔥 ANALYTICS: Track password mismatch
+      analytics.track({
+        event_name: 'registration_form_error',
+        category: 'user_acquisition',
+        properties: {
+          error_type: 'password_mismatch',
+          form_completed: false
+        }
+      });
       return;
     }
     setLoading(true);
@@ -31,11 +77,59 @@ export default function RegisterPage() {
       if (res.ok) {
         setSuccess("¡Registro exitoso! Revisa tu correo para verificar tu cuenta.");
         setForm({ name: "", email: "", password: "", confirm: "", acceptTerms: false });
+        
+        // 🔥 ANALYTICS: Track successful registration - KEY CONVERSION
+        analytics.trackUserRegistration({
+          source: 'registration_form',
+          mexican_market: true
+        });
+        trackEvent('user_registered', {
+          registration_method: 'email',
+          journey_stage: 'acquisition',
+          conversion_type: 'registration_success',
+          user_email_domain: form.email.split('@')[1] || 'unknown'
+        });
+        
+        // Track the user acquisition success
+        trackUserAction('registration_completed', {
+          method: 'standard_form',
+          has_name: !!form.name,
+          email_domain: form.email.split('@')[1] || 'unknown'
+        });
+        
       } else {
         setError(data.message || "Error al registrar. Intenta de nuevo.");
+        
+        // 🔥 ANALYTICS: Track registration failure
+        analytics.track({
+          event_name: 'registration_form_error',
+          category: 'user_acquisition',
+          properties: {
+            error_type: data.message || 'registration_failed',
+            form_completed: false
+          }
+        });
+        trackUserAction('registration_failed', {
+          error_type: data.message || 'unknown_error',
+          method: 'standard_form'
+        });
       }
-    } catch {
+    } catch (err: any) {
       setError("Error de red. Intenta más tarde.");
+      
+      // 🔥 ANALYTICS: Track network errors
+      analytics.track({
+        event_name: 'registration_form_error',
+        category: 'user_acquisition',
+        properties: {
+          error_type: 'network_error',
+          form_completed: false
+        }
+      });
+      trackUserAction('registration_error', {
+        error_type: 'network_error',
+        method: 'standard_form'
+      });
     }
     setLoading(false);
   }
@@ -113,6 +207,12 @@ export default function RegisterPage() {
         <button
           type="button"
           onClick={() => {
+            // 🔥 ANALYTICS: Track Google OAuth registration attempt
+            trackUserAction('google_registration_clicked', {
+              registration_method: 'google_oauth',
+              journey_stage: 'acquisition'
+            });
+            
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
             window.location.href = `${apiUrl}/api/auth/google`;
           }}

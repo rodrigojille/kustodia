@@ -469,8 +469,17 @@ const initiatePayment = async (req, res) => {
         // Nuevo flujo parameters
         payment_type = 'traditional', // 'traditional' | 'nuevo_flujo' | 'web3'
         vertical_type, // e.g., 'freelance', 'inmobiliaria', 'marketplace'
-        release_conditions // Custom release conditions for nuevo_flujo
-         } = req.body;
+        release_conditions, // Custom release conditions for nuevo_flujo
+        // Product-specific fields
+        transaction_subtype, 
+        // Vehicle fields
+        vehicle_brand, vehicle_model, vehicle_year, vehicle_vin, vehicle_mileage, vehicle_condition, 
+        // Electronics fields
+        electronics_brand, electronics_model, electronics_condition, electronics_warranty, electronics_serial, 
+        // Appliance fields
+        appliance_type, appliance_brand, appliance_years_use, appliance_efficiency, appliance_condition, appliance_serial, 
+        // Furniture fields
+        furniture_type, furniture_material, furniture_dimensions, furniture_condition } = req.body;
         // Validate required fields
         if (!recipient_email || !amount || amount <= 0) {
             res.status(400).json({ error: 'Recipient email and positive amount are required' });
@@ -563,6 +572,33 @@ const initiatePayment = async (req, res) => {
         payment.payment_type = payment_type;
         payment.vertical_type = vertical_type || undefined;
         payment.release_conditions = release_conditions || undefined;
+        // Set product-specific fields
+        payment.transaction_subtype = transaction_subtype || undefined;
+        // Vehicle fields
+        payment.vehicle_brand = vehicle_brand || undefined;
+        payment.vehicle_model = vehicle_model || undefined;
+        payment.vehicle_year = vehicle_year ? parseInt(vehicle_year.toString()) : undefined;
+        payment.vehicle_vin = vehicle_vin || undefined;
+        payment.vehicle_mileage = vehicle_mileage ? parseInt(vehicle_mileage.toString()) : undefined;
+        payment.vehicle_condition = vehicle_condition || undefined;
+        // Electronics fields
+        payment.electronics_brand = electronics_brand || undefined;
+        payment.electronics_model = electronics_model || undefined;
+        payment.electronics_condition = electronics_condition || undefined;
+        payment.electronics_warranty = electronics_warranty || undefined;
+        payment.electronics_serial = electronics_serial || undefined;
+        // Appliance fields
+        payment.appliance_type = appliance_type || undefined;
+        payment.appliance_brand = appliance_brand || undefined;
+        payment.appliance_years_use = appliance_years_use ? parseInt(appliance_years_use.toString()) : undefined;
+        payment.appliance_efficiency = appliance_efficiency || undefined;
+        payment.appliance_condition = appliance_condition || undefined;
+        payment.appliance_serial = appliance_serial || undefined;
+        // Furniture fields
+        payment.furniture_type = furniture_type || undefined;
+        payment.furniture_material = furniture_material || undefined;
+        payment.furniture_dimensions = furniture_dimensions || undefined;
+        payment.furniture_condition = furniture_condition || undefined;
         // Initialize approval fields for nuevo_flujo
         if (payment_type === 'nuevo_flujo') {
             payment.payer_approval = false;

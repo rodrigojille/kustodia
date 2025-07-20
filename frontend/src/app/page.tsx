@@ -12,6 +12,7 @@ import EarlyAccessForm from '../components/EarlyAccessForm';
 import UrgencyNotice from '../components/UrgencyNotice';
 import RevealAnimation from '../components/RevealAnimation';
 import VideoAvatar from '../components/VideoAvatar';
+import { useAnalyticsContext } from '../components/AnalyticsProvider';
 
 const benefits = [
   {
@@ -41,13 +42,34 @@ const benefits = [
 ];
 
 export default function LandingPage() {
+  // 🔥 ANALYTICS: Initialize landing page tracking
+  const { trackEvent, trackUserAction } = useAnalyticsContext();
+  
   // TODO: Replace with real auth state
   const isAuthenticated = false;
   const userName = '';
   const [currentExample, setCurrentExample] = useState(1);
+  
+  // 🔥 Track landing page load and customer journey start
+  useEffect(() => {
+    trackEvent('landing_page_loaded', {
+      journey_stage: 'awareness',
+      has_auth: isAuthenticated,
+      referrer: document.referrer || 'direct',
+      utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+      utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+      utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
+    });
+  }, []);
 
   const showExample = (num: number) => {
     setCurrentExample(num);
+    
+    // 🔥 ANALYTICS: Track carousel manual navigation
+    trackUserAction('carousel_navigation', {
+      example_number: num,
+      interaction_type: 'manual_select'
+    });
   };
 
   // Handle hash navigation on page load
@@ -78,11 +100,23 @@ export default function LandingPage() {
   const nextExample = () => {
     const next = currentExample === 3 ? 1 : currentExample + 1;
     setCurrentExample(next);
+    
+    // 🔥 ANALYTICS: Track carousel next navigation
+    trackUserAction('carousel_navigation', {
+      example_number: next,
+      interaction_type: 'next_button'
+    });
   };
 
   const prevExample = () => {
     const prev = currentExample === 1 ? 3 : currentExample - 1;
     setCurrentExample(prev);
+    
+    // 🔥 ANALYTICS: Track carousel prev navigation
+    trackUserAction('carousel_navigation', {
+      example_number: prev,
+      interaction_type: 'prev_button'
+    });
   };
 
   // Auto-advance carousel

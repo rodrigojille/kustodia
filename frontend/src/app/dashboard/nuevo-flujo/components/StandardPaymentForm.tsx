@@ -2,12 +2,16 @@
 import React, { useState } from "react";
 import { authFetch } from '@/utils/authFetch';
 import PaymentLoadingModal from '@/components/PaymentLoadingModal';
+import useAnalytics from '@/hooks/useAnalytics';
 
 interface StandardPaymentFormProps {
   onBack: () => void;
 }
 
 export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps) {
+  // 🔥 ANALYTICS: Initialize comprehensive tracking
+  const { paymentFlow, formTracking, fraudPrevention } = useAnalytics();
+  
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -21,6 +25,42 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // 🔥 Track form initialization (customer journey: payment creation start)
+  React.useEffect(() => {
+    formTracking.trackFormStart('standard_payment_form', 'standard_payment');
+    paymentFlow.trackPaymentStep('start', {
+      transaction_type: 'standard_payment',
+      source_form: 'standard'
+    });
+  }, []);
+
+  // 🔥 Fraud category detection based on Reddit scraper insights
+  const determineFraudCategory = (text: string): string | null => {
+    if (!text) return null;
+    
+    const lowerText = text.toLowerCase();
+    
+    // Based on enhanced scraper results - top fraud categories:
+    const categories = {
+      'real_estate': ['inmobiliaria', 'bienes raices', 'casa', 'departamento', 'renta', 'venta casa', 'anticipo renta', 'propiedad'],
+      'service_contracts': ['trabajo remoto', 'freelance', 'proyecto', 'servicios', 'contrato', 'desarrollo', 'diseño'],
+      'spei_banking': ['banco', 'spei', 'transferencia', 'deposito', 'cuenta bancaria', 'bbva', 'banamex', 'santander'],
+      'automotive': ['auto', 'coche', 'carro', 'vehiculo', 'moto', 'motocicleta', 'venta auto', 'usado'],
+      'online_marketplace': ['mercadolibre', 'facebook marketplace', 'olx', 'segundamano', 'compra venta online'],
+      'employment': ['trabajo', 'empleo', 'sueldo', 'nomina', 'empresa', 'puesto'],
+      'investment': ['inversion', 'negocio', 'piramide', 'multinivel', 'forex', 'bitcoin', 'cripto'],
+      'payment_platform': ['mercadopago', 'paypal', 'oxxo', 'oxxo pay', 'transferencia digital']
+    };
+
+    for (const [category, keywords] of Object.entries(categories)) {
+      if (keywords.some(keyword => lowerText.includes(keyword))) {
+        return category;
+      }
+    }
+    
+    return null;
+  };
 
   const [recipientValid, setRecipientValid] = useState<boolean | undefined>(undefined);
   const [recipientVerified, setRecipientVerified] = useState<boolean | undefined>(undefined);
@@ -104,6 +144,31 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
     setLoading(true);
     setError(null);
     setSuccess(null);
+    
+    // 🔥 ANALYTICS: Track payment submission start
+    const trackingData = {
+      amount: parseFloat(amount || '0'),
+      warranty_percentage: parseFloat(warrantyPercent || '0'),
+      custody_days: parseInt(custodyDays || '0'),
+      has_commission: !!commissionPercent,
+      commission_percentage: parseFloat(commissionPercent || '0'),
+      transaction_type: 'standard_payment'
+    };
+    
+    paymentFlow.trackPaymentStep('payment_method', {
+      method: 'standard',
+      ...trackingData
+    });
+    
+    // Determine fraud category from description (based on scraper insights)
+    const fraudCategory = determineFraudCategory(description);
+    if (fraudCategory) {
+      fraudPrevention.trackFraudPrevention(fraudCategory, 'payment_creation', {
+        user_intent: 'seeking_solutions',
+        transaction_amount: parseFloat(amount || '0')
+      });
+    }
+    
     try {
       const commissionFields = commissionPercent
         ? {
@@ -143,11 +208,40 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
       const data = await res.json();
       if (res.ok && data.success) {
         setSuccess(`¡Pago creado con éxito! ID del pago: ${data.payment?.id || data.id}`);
+        
+        // 🔥 ANALYTICS: Track successful payment completion
+        paymentFlow.trackPaymentStep('completion', {
+          amount: parseFloat(amount || '0'),
+          method: 'standard',
+          warranty_percentage: parseFloat(warrantyPercent || '0'),
+          custody_days: parseInt(custodyDays || '0'),
+          has_commission: !!commissionPercent,
+          payment_id: data.payment?.id || data.id,
+          transaction_type: 'standard_payment'
+        });
+        
+        formTracking.trackFormCompletion('standard_payment_form', true);
+        
+        // Track specific fraud category success
+        const fraudCategory = determineFraudCategory(description);
+        if (fraudCategory) {
+          fraudPrevention.trackFraudPrevention(fraudCategory, 'escrow_created', {
+            transaction_amount: parseFloat(amount || '0'),
+            user_intent: 'solution_implemented'
+          });
+        }
+        
       } else {
         setError(data.error || "No se pudo crear el pago.");
+        
+        // 🔥 ANALYTICS: Track payment failure
+        formTracking.trackFormCompletion('standard_payment_form', false, [data.error || 'Payment creation failed']);
       }
     } catch (err: any) {
       setError("Error de red o servidor. Por favor, intenta de nuevo.");
+      
+      // 🔥 ANALYTICS: Track payment error
+      formTracking.trackFormCompletion('standard_payment_form', false, [err.message || 'Network error']);
     }
     setLoading(false);
   }
@@ -191,7 +285,21 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
           <button
             type="button"
             className="w-full flex items-center justify-between py-2 px-4 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors font-semibold"
-            onClick={() => setShowCommission(v => !v)}
+            onClick={() => {
+              const newValue = !showCommission;
+              setShowCommission(newValue);
+              
+              // 🔥 ANALYTICS: Track commission feature usage
+              formTracking.trackFieldInteraction('standard_payment_form', 'commission_toggle', 'change');
+              
+              // Track additional commission data
+              if (newValue) {
+                paymentFlow.trackPaymentStep('custody_settings', {
+                  commission_enabled: true,
+                  transaction_amount: parseFloat(amount || '0')
+                });
+              }
+            }}
           >
             Añadir Comisión (opcional)
             <span>{showCommission ? '▲' : '▼'}</span>

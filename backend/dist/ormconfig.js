@@ -15,6 +15,7 @@ const Ticket_1 = require("./entity/Ticket");
 const TicketReply_1 = require("./entity/TicketReply");
 const Token_1 = require("./entity/Token");
 const WalletTransaction_1 = require("./entity/WalletTransaction");
+const CommissionRecipient_1 = require("./entity/CommissionRecipient");
 const AppDataSource = new typeorm_1.DataSource({
     name: "default",
     type: "postgres",
@@ -35,9 +36,10 @@ const AppDataSource = new typeorm_1.DataSource({
         Ticket_1.Ticket,
         TicketReply_1.TicketReply,
         Token_1.Token,
-        WalletTransaction_1.WalletTransaction
+        WalletTransaction_1.WalletTransaction,
+        CommissionRecipient_1.CommissionRecipient
     ],
-    migrations: ["dist/migration/**/*.js"],
+    migrations: process.env.NODE_ENV === "production" ? ["dist/migration/**/*.js"] : ["src/migration/**/*.ts"],
     subscribers: ["dist/subscriber/**/*.js"],
     ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });

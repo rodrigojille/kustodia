@@ -1,0 +1,30 @@
+{
+  "name": "kustodia-market-research",
+  "version": "1.0.0",
+  "description": "Reddit scraper for payment fraud market research to validate Kustodia's value proposition",
+  "main": "reddit-scraper.js",
+  "scripts": {
+    "start": "node reddit-scraper.js",
+    "analyze": "node sentiment-analyzer.js",
+    "report": "node generate-report.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "csv-writer": "^1.6.0",
+    "fs-extra": "^11.1.1",
+    "moment": "^2.29.4",
+    "sentiment": "^5.0.2",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [
+    "reddit",
+    "scraping",
+    "market-research",
+    "payment-fraud",
+    "escrow",
+    "kustodia"
+  ],
+  "author": "Rodrigo Jille",
+  "license": "MIT"
+}

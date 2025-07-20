@@ -68,6 +68,23 @@ export default function CrearPagoPage() {
       available: true
     },
     {
+      id: 'cobro_inteligente',
+      title: 'Cobro Condicional Premium',
+      subtitle: 'Solicitudes de pago inteligente',
+      icon: '🧠',
+      description: 'Crea solicitudes de pago para que tus clientes te paguen con comisiones automáticas. Ideal para brokers y vendedores.',
+      features: [
+        'Solicitudes de pago personalizadas',
+        'Comisiones automáticas ocultas',
+        'Múltiples beneficiarios de comisión',
+        'Distribución automática de fondos',
+        'Ideal para brokers y vendedores'
+      ],
+      route: '/dashboard/cobros/tipo',
+      color: 'from-orange-500 to-red-500',
+      available: true
+    },
+    {
       id: 'web3',
       title: 'Pago Web3',
       subtitle: 'Wallet a Wallet',
@@ -111,10 +128,10 @@ export default function CrearPagoPage() {
         {/* Page Header */}
         <div className="text-center mb-8 sm:mb-12">
           <h1 className="page-title mb-4">
-            Crear Nuevo Pago
+            Crear Nuevo Movimiento
           </h1>
           <p className="page-description text-base sm:text-lg lg:text-xl max-w-3xl mx-auto px-4">
-            Elige el tipo de pago que mejor se adapte a tus necesidades. 
+            Elige el tipo de movimiento que mejor se adapte a tus necesidades. 
             Cada opción está diseñada para diferentes casos de uso.
           </p>
         </div>

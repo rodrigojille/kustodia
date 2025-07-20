@@ -13,6 +13,7 @@ import { Ticket } from './entity/Ticket';
 import { TicketReply } from './entity/TicketReply';
 import { Token } from './entity/Token';
 import { WalletTransaction } from './entity/WalletTransaction';
+import { CommissionRecipient } from './entity/CommissionRecipient';
 
 const AppDataSource = new DataSource({
   name: "default",
@@ -34,9 +35,10 @@ const AppDataSource = new DataSource({
     Ticket,
     TicketReply,
     Token,
-    WalletTransaction
+    WalletTransaction,
+    CommissionRecipient
   ],
-  migrations: ["dist/migration/**/*.js"],
+  migrations: process.env.NODE_ENV === "production" ? ["dist/migration/**/*.js"] : ["src/migration/**/*.ts"],
   subscribers: ["dist/subscriber/**/*.js"],
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });

@@ -466,6 +466,501 @@ function PaymentDetailsForm({ data, setData, vertical }: {
   );
 }
 
+// Product-specific fields component
+function ProductSpecificFields({ transactionType, data, setData, width }: {
+  transactionType: string;
+  data: FormDataType;
+  setData: (d: FormDataType) => void;
+  width: number;
+}) {
+  const isVehicle = transactionType.toLowerCase().includes('vehículo');
+  const isElectronics = transactionType === 'Electrónicos';
+  const isAppliances = transactionType === 'Electrodomésticos';
+  const isFurniture = transactionType === 'Muebles';
+
+  return (
+    <div style={{ marginTop: '24px', padding: '20px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+      <h4 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: '16px', fontWeight: '600' }}>
+        📝 Información del producto
+      </h4>
+      
+      {/* Transaction Type - Common for all categories */}
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Tipo de transacción</label>
+        <select
+          value={data['transaction_subtype'] || ''}
+          onChange={e => setData({ ...data, transaction_subtype: e.target.value })}
+          style={{
+            width: '100%',
+            padding: '10px',
+            fontSize: '14px',
+            borderRadius: '6px',
+            border: '1px solid #d1d5db'
+          }}
+        >
+          <option value="">Selecciona el tipo</option>
+          <option value="Apartado">Apartado</option>
+          <option value="Enganche">Enganche</option>
+          <option value="Compraventa">Compraventa</option>
+        </select>
+      </div>
+      
+      {/* Vehicle-specific fields */}
+      {isVehicle && (
+        <div style={{ display: 'grid', gridTemplateColumns: width < 768 ? '1fr' : '1fr 1fr', gap: '16px' }}>
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Marca</label>
+            <select
+              value={data['vehicle_brand'] || ''}
+              onChange={e => setData({ ...data, vehicle_brand: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona la marca</option>
+              <option value="Toyota">Toyota</option>
+              <option value="Honda">Honda</option>
+              <option value="Ford">Ford</option>
+              <option value="Chevrolet">Chevrolet</option>
+              <option value="Nissan">Nissan</option>
+              <option value="Hyundai">Hyundai</option>
+              <option value="Kia">Kia</option>
+              <option value="Mazda">Mazda</option>
+              <option value="Volkswagen">Volkswagen</option>
+              <option value="BMW">BMW</option>
+              <option value="Mercedes-Benz">Mercedes-Benz</option>
+              <option value="Audi">Audi</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Modelo</label>
+            <input
+              type="text"
+              value={data['vehicle_model'] || ''}
+              onChange={e => setData({ ...data, vehicle_model: e.target.value })}
+              placeholder="Ej: Corolla, Civic, F-150"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Año</label>
+            <input
+              type="number"
+              value={data['vehicle_year'] || ''}
+              onChange={e => setData({ ...data, vehicle_year: e.target.value })}
+              placeholder="2020"
+              min="1990"
+              max="2025"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Kilometraje</label>
+            <input
+              type="number"
+              value={data['vehicle_mileage'] || ''}
+              onChange={e => setData({ ...data, vehicle_mileage: e.target.value })}
+              placeholder="50000"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Condición</label>
+            <select
+              value={data['vehicle_condition'] || ''}
+              onChange={e => setData({ ...data, vehicle_condition: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="Nuevo">Nuevo</option>
+              <option value="Seminuevo">Seminuevo</option>
+              <option value="Usado">Usado</option>
+              <option value="Para reparar">Para reparar</option>
+            </select>
+          </div>
+          
+          <div style={{ gridColumn: width < 768 ? '1' : '1 / -1' }}>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Número de serie/VIN</label>
+            <input
+              type="text"
+              value={data['vehicle_serial'] || ''}
+              onChange={e => setData({ ...data, vehicle_serial: e.target.value.toUpperCase() })}
+              placeholder="Ej: 1HGBH41JXMN109186"
+              maxLength={17}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontFamily: 'monospace'
+              }}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Electronics-specific fields */}
+      {isElectronics && (
+        <div style={{ display: 'grid', gridTemplateColumns: width < 768 ? '1fr' : '1fr 1fr', gap: '16px' }}>
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Marca</label>
+            <input
+              type="text"
+              value={data['electronics_brand'] || ''}
+              onChange={e => setData({ ...data, electronics_brand: e.target.value })}
+              placeholder="Ej: Apple, Samsung, Sony"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Modelo</label>
+            <input
+              type="text"
+              value={data['electronics_model'] || ''}
+              onChange={e => setData({ ...data, electronics_model: e.target.value })}
+              placeholder="Ej: iPhone 15, Galaxy S24"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Condición</label>
+            <select
+              value={data['electronics_condition'] || ''}
+              onChange={e => setData({ ...data, electronics_condition: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="Nuevo">Nuevo</option>
+              <option value="Como nuevo">Como nuevo</option>
+              <option value="Muy bueno">Muy bueno</option>
+              <option value="Bueno">Bueno</option>
+              <option value="Usado">Usado</option>
+            </select>
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Garantía</label>
+            <select
+              value={data['electronics_warranty'] || ''}
+              onChange={e => setData({ ...data, electronics_warranty: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="Sin garantía">Sin garantía</option>
+              <option value="Garantía del fabricante">Garantía del fabricante</option>
+              <option value="Garantía extendida">Garantía extendida</option>
+            </select>
+          </div>
+          
+          <div style={{ gridColumn: width < 768 ? '1' : '1 / -1' }}>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Número de serie</label>
+            <input
+              type="text"
+              value={data['electronics_serial'] || ''}
+              onChange={e => setData({ ...data, electronics_serial: e.target.value })}
+              placeholder="Ej: ABC123456789"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontFamily: 'monospace'
+              }}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Appliances-specific fields */}
+      {isAppliances && (
+        <div style={{ display: 'grid', gridTemplateColumns: width < 768 ? '1fr' : '1fr 1fr', gap: '16px' }}>
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Tipo de electrodoméstico</label>
+            <select
+              value={data['appliance_type'] || ''}
+              onChange={e => setData({ ...data, appliance_type: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="Refrigerador">Refrigerador</option>
+              <option value="Lavadora">Lavadora</option>
+              <option value="Secadora">Secadora</option>
+              <option value="Lavavajillas">Lavavajillas</option>
+              <option value="Microondas">Microondas</option>
+              <option value="Estufa">Estufa</option>
+              <option value="Horno">Horno</option>
+              <option value="Aire acondicionado">Aire acondicionado</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Marca</label>
+            <input
+              type="text"
+              value={data['appliance_brand'] || ''}
+              onChange={e => setData({ ...data, appliance_brand: e.target.value })}
+              placeholder="Ej: LG, Samsung, Whirlpool"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Años de uso</label>
+            <input
+              type="number"
+              value={data['appliance_age'] || ''}
+              onChange={e => setData({ ...data, appliance_age: e.target.value })}
+              placeholder="2"
+              min="0"
+              max="20"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Eficiencia energética</label>
+            <select
+              value={data['appliance_efficiency'] || ''}
+              onChange={e => setData({ ...data, appliance_efficiency: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="A++">A++</option>
+              <option value="A+">A+</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="No aplica">No aplica</option>
+            </select>
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Condición</label>
+            <select
+              value={data['appliance_condition'] || ''}
+              onChange={e => setData({ ...data, appliance_condition: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="Nuevo">Nuevo</option>
+              <option value="Como nuevo">Como nuevo</option>
+              <option value="Muy bueno">Muy bueno</option>
+              <option value="Bueno">Bueno</option>
+              <option value="Regular">Regular</option>
+              <option value="Necesita reparación">Necesita reparación</option>
+            </select>
+          </div>
+          
+          <div style={{ gridColumn: width < 768 ? '1' : '1 / -1' }}>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Número de serie/modelo</label>
+            <input
+              type="text"
+              value={data['appliance_serial'] || ''}
+              onChange={e => setData({ ...data, appliance_serial: e.target.value })}
+              placeholder="Ej: LG12345ABC789"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontFamily: 'monospace'
+              }}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Furniture-specific fields */}
+      {isFurniture && (
+        <div style={{ display: 'grid', gridTemplateColumns: width < 768 ? '1fr' : '1fr 1fr', gap: '16px' }}>
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Tipo de mueble</label>
+            <select
+              value={data['furniture_type'] || ''}
+              onChange={e => setData({ ...data, furniture_type: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="Sofá">Sofá</option>
+              <option value="Mesa">Mesa</option>
+              <option value="Silla">Silla</option>
+              <option value="Cama">Cama</option>
+              <option value="Armario">Armario</option>
+              <option value="Librero">Librero</option>
+              <option value="Escritorio">Escritorio</option>
+              <option value="Cómoda">Cómoda</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Material</label>
+            <select
+              value={data['furniture_material'] || ''}
+              onChange={e => setData({ ...data, furniture_material: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="Madera">Madera</option>
+              <option value="Metal">Metal</option>
+              <option value="Plástico">Plástico</option>
+              <option value="Vidrio">Vidrio</option>
+              <option value="Tela">Tela</option>
+              <option value="Cuero">Cuero</option>
+              <option value="Mixto">Mixto</option>
+            </select>
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Dimensiones (aprox.)</label>
+            <input
+              type="text"
+              value={data['furniture_dimensions'] || ''}
+              onChange={e => setData({ ...data, furniture_dimensions: e.target.value })}
+              placeholder="Ej: 200x100x80 cm"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Condición</label>
+            <select
+              value={data['furniture_condition'] || ''}
+              onChange={e => setData({ ...data, furniture_condition: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db'
+              }}
+            >
+              <option value="">Selecciona</option>
+              <option value="Nuevo">Nuevo</option>
+              <option value="Como nuevo">Como nuevo</option>
+              <option value="Muy bueno">Muy bueno</option>
+              <option value="Bueno">Bueno</option>
+              <option value="Regular">Regular</option>
+              <option value="Necesita reparación">Necesita reparación</option>
+            </select>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StepInputs({ vertical, stepIndex, data, setData }: {
   vertical: string;
   stepIndex: number;
@@ -509,7 +1004,7 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
     },
   
     // Particulares
-    particulares_step_1: { type: 'select', label: 'Tipo de transacción', options: ['Venta de vehículo', 'Electrodomésticos', 'Muebles', 'Electrónicos', 'Otro'] },
+    particulares_step_1: { type: 'select', label: 'Tipo de transacción', options: ['Compra-venta de vehículo', 'Venta de vehículo', 'Electrodomésticos', 'Muebles', 'Electrónicos', 'Otro'] },
     particulares_step_2: { 
       type: 'textarea', 
       label: 'Condiciones de liberación y entrega', 
@@ -536,6 +1031,10 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
   const input = stepInputs[stepKey];
   if (!input) return null;
   const value = data[stepKey] ?? (input.type === 'checkbox' ? false : '');
+  
+  // Get the selected transaction type for particulares to show conditional fields
+  const transactionType = vertical === 'particulares' && stepIndex === 1 ? data['particulares_step_1'] : null;
+  
   return (
     <div style={{ margin: '24px 0' }}>
       <label style={{ fontWeight: 500, fontSize: 16, display: 'block', marginBottom: 8 }}>{input.label}</label>
@@ -635,6 +1134,151 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
           <span style={{ fontSize: '16px', color: '#6b7280', fontWeight: 500 }}>{input.suffix}</span>
         </div>
       )}
+      
+      {/* Product-specific fields for particulares vertical */}
+      {vertical === 'particulares' && stepIndex === 1 && transactionType && (
+        <ProductSpecificFields 
+          transactionType={transactionType} 
+          data={data} 
+          setData={setData} 
+          width={width}
+        />
+      )}
+    </div>
+  );
+}
+
+// Product summary component for particulares
+function ProductSummary({ data, transactionType }: { data: FormDataType; transactionType: string }) {
+  const isVehicle = transactionType.toLowerCase().includes('vehículo');
+  const isElectronics = transactionType === 'Electrónicos';
+  const isAppliances = transactionType === 'Electrodomésticos';
+  const isFurniture = transactionType === 'Muebles';
+  
+  const hasProductInfo = (
+    (isVehicle && (data['vehicle_brand'] || data['vehicle_model'])) ||
+    (isElectronics && (data['electronics_brand'] || data['electronics_model'])) ||
+    (isAppliances && (data['appliance_type'] || data['appliance_brand'])) ||
+    (isFurniture && (data['furniture_type'] || data['furniture_material']))
+  );
+  
+  if (!hasProductInfo) return null;
+  
+  return (
+    <div style={{
+      marginTop: '16px',
+      padding: '16px',
+      backgroundColor: '#f0f9ff',
+      borderRadius: '8px',
+      border: '1px solid #bae6fd'
+    }}>
+      <h4 style={{ 
+        fontSize: '16px', 
+        fontWeight: '600', 
+        marginBottom: '12px', 
+        color: '#0c4a6e',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
+      }}>
+        📝 Información del producto
+      </h4>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '14px' }}>
+        {/* Transaction Type - Always show if present */}
+        {data['transaction_subtype'] && (
+          <div style={{ gridColumn: '1 / -1', marginBottom: '8px', padding: '8px', backgroundColor: '#dbeafe', borderRadius: '4px' }}>
+            <strong>💳 Tipo de transacción:</strong> {data['transaction_subtype']}
+          </div>
+        )}
+        
+        {/* Vehicle info */}
+        {isVehicle && (
+          <>
+            {data['vehicle_brand'] && (
+              <div><strong>Marca:</strong> {data['vehicle_brand']}</div>
+            )}
+            {data['vehicle_model'] && (
+              <div><strong>Modelo:</strong> {data['vehicle_model']}</div>
+            )}
+            {data['vehicle_year'] && (
+              <div><strong>Año:</strong> {data['vehicle_year']}</div>
+            )}
+            {data['vehicle_mileage'] && (
+              <div><strong>Kilometraje:</strong> {Number(data['vehicle_mileage']).toLocaleString()} km</div>
+            )}
+            {data['vehicle_condition'] && (
+              <div><strong>Condición:</strong> {data['vehicle_condition']}</div>
+            )}
+            {data['vehicle_serial'] && (
+              <div style={{ gridColumn: '1 / -1', fontFamily: 'monospace' }}><strong>VIN/Serie:</strong> {data['vehicle_serial']}</div>
+            )}
+          </>
+        )}
+        
+        {/* Electronics info */}
+        {isElectronics && (
+          <>
+            {data['electronics_brand'] && (
+              <div><strong>Marca:</strong> {data['electronics_brand']}</div>
+            )}
+            {data['electronics_model'] && (
+              <div><strong>Modelo:</strong> {data['electronics_model']}</div>
+            )}
+            {data['electronics_condition'] && (
+              <div><strong>Condición:</strong> {data['electronics_condition']}</div>
+            )}
+            {data['electronics_warranty'] && (
+              <div><strong>Garantía:</strong> {data['electronics_warranty']}</div>
+            )}
+            {data['electronics_serial'] && (
+              <div style={{ gridColumn: '1 / -1', fontFamily: 'monospace' }}><strong>Número de serie:</strong> {data['electronics_serial']}</div>
+            )}
+          </>
+        )}
+        
+        {/* Appliances info */}
+        {isAppliances && (
+          <>
+            {data['appliance_type'] && (
+              <div><strong>Tipo:</strong> {data['appliance_type']}</div>
+            )}
+            {data['appliance_brand'] && (
+              <div><strong>Marca:</strong> {data['appliance_brand']}</div>
+            )}
+            {data['appliance_age'] && (
+              <div><strong>Años de uso:</strong> {data['appliance_age']}</div>
+            )}
+            {data['appliance_efficiency'] && (
+              <div><strong>Eficiencia:</strong> {data['appliance_efficiency']}</div>
+            )}
+            {data['appliance_condition'] && (
+              <div><strong>Condición:</strong> {data['appliance_condition']}</div>
+            )}
+            {data['appliance_serial'] && (
+              <div style={{ gridColumn: '1 / -1', fontFamily: 'monospace' }}><strong>Número de serie:</strong> {data['appliance_serial']}</div>
+            )}
+          </>
+        )}
+        
+        {/* Furniture info */}
+        {isFurniture && (
+          <>
+            {data['furniture_type'] && (
+              <div><strong>Tipo:</strong> {data['furniture_type']}</div>
+            )}
+            {data['furniture_material'] && (
+              <div><strong>Material:</strong> {data['furniture_material']}</div>
+            )}
+            {data['furniture_dimensions'] && (
+              <div><strong>Dimensiones:</strong> {data['furniture_dimensions']}</div>
+            )}
+            {data['furniture_condition'] && (
+              <div><strong>Condición:</strong> {data['furniture_condition']}</div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -678,6 +1322,11 @@ function SummaryView({ vertical, data }: { vertical: string; data: FormDataType 
             );
           })}
         </ol>
+        
+        {/* Product-specific information for particulares vertical */}
+        {vertical === 'particulares' && data['particulares_step_1'] && (
+          <ProductSummary data={data} transactionType={data['particulares_step_1']} />
+        )}
       </div>
     </div>
   );
@@ -727,7 +1376,34 @@ async function handleCreatePayment(vertical: string, data: FormDataType, router:
       ...(data.broker_email && data.broker_commission ? {
         commission_beneficiary_email: data.broker_email,
         commission_percent: Number(data.broker_commission)
-      } : {})
+      } : {}),
+      // Add product-specific fields
+      transaction_subtype: data.transaction_subtype || null,
+      // Vehicle fields
+      vehicle_brand: data.vehicle_brand || null,
+      vehicle_model: data.vehicle_model || null,
+      vehicle_year: data.vehicle_year ? Number(data.vehicle_year) : null,
+      vehicle_vin: data.vehicle_vin || null,
+      vehicle_mileage: data.vehicle_mileage ? Number(data.vehicle_mileage) : null,
+      vehicle_condition: data.vehicle_condition || null,
+      // Electronics fields
+      electronics_brand: data.electronics_brand || null,
+      electronics_model: data.electronics_model || null,
+      electronics_condition: data.electronics_condition || null,
+      electronics_warranty: data.electronics_warranty || null,
+      electronics_serial: data.electronics_serial || null,
+      // Appliance fields
+      appliance_type: data.appliance_type || null,
+      appliance_brand: data.appliance_brand || null,
+      appliance_years_use: data.appliance_years_use ? Number(data.appliance_years_use) : null,
+      appliance_efficiency: data.appliance_efficiency || null,
+      appliance_condition: data.appliance_condition || null,
+      appliance_serial: data.appliance_serial || null,
+      // Furniture fields
+      furniture_type: data.furniture_type || null,
+      furniture_material: data.furniture_material || null,
+      furniture_dimensions: data.furniture_dimensions || null,
+      furniture_condition: data.furniture_condition || null
     };
 
     console.log('Creating nuevo-flujo payment with payload:', payload);

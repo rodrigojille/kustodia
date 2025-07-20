@@ -1,8 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAnalyticsContext } from '../../components/AnalyticsProvider';
+import useAnalytics from '../../hooks/useAnalytics';
 
 export default function LoginPage() {
+  // 🔥 ANALYTICS: Initialize authentication journey tracking
+  const { trackEvent, trackUserAction } = useAnalyticsContext();
+  const analytics = useAnalytics();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -12,6 +18,16 @@ export default function LoginPage() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState<string | null>(null);
   const router = useRouter();
+  
+  // 🔥 Track login page load
+  useEffect(() => {
+    trackEvent('login_page_loaded', {
+      journey_stage: 'authentication',
+      referrer: document.referrer || 'direct'
+    });
+    
+    analytics.formTracking.trackFormStart('login_form', 'authentication');
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +55,14 @@ export default function LoginPage() {
       if (!res.ok) {
         setError(data.error || "Error en el inicio de sesión");
         console.log("Login failed:", data.error);
+        
+        // 🔥 ANALYTICS: Track login failure
+        analytics.formTracking.trackFormCompletion('login_form', false, [data.error || 'Login failed']);
+        trackUserAction('login_failed', {
+          error_type: data.error || 'unknown_error',
+          journey_stage: 'authentication'
+        });
+        
         setLoading(false);
         return;
       }
