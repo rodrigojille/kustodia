@@ -9,6 +9,7 @@ import junoRoutes from "./juno";
 import automationRoutes from "./automation";
 import notificationRoutes from "./notification";
 import ticketRoutes from "./ticket";
+import speiReceiptRoutes from "./speiReceipt";
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router.use("/evidence", evidenceRoutes);
 router.use("/juno", junoRoutes);
 router.use("/automation", automationRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/payments", speiReceiptRoutes);
 
 export default router;

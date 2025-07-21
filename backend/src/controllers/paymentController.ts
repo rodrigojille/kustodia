@@ -63,6 +63,13 @@ const handlePermanentClabeDeposit = async (user: User, amount: number) => {
   // TODO: Implement actual deposit handling logic
 };
 
+// Helper function to check if SPEI receipt is available for a payment
+const isSPEIReceiptAvailable = (payment: Payment): boolean => {
+  // SPEI receipt is available for completed payments that have been paid out via SPEI
+  return payment.status === 'paid' && 
+         (payment.juno_payment_id !== null || payment.payout_clabe !== null);
+};
+
 // GET all payments for the authenticated user
 export const getPayments = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -78,7 +85,13 @@ export const getPayments = async (req: AuthenticatedRequest, res: Response) => {
       .orderBy("payment.created_at", "DESC")
       .getMany();
 
-    res.status(200).json(payments);
+    // Add SPEI receipt availability info to each payment
+    const paymentsWithReceiptInfo = payments.map(payment => ({
+      ...payment,
+      spei_receipt_available: isSPEIReceiptAvailable(payment)
+    }));
+
+    res.status(200).json(paymentsWithReceiptInfo);
   } catch (error) {
     console.error("Error fetching payments:", error);
     res.status(500).json({ message: 'Internal server error while fetching payments.' });
@@ -107,7 +120,13 @@ export const getPaymentById = async (req: AuthenticatedRequest, res: Response) =
       return res.status(404).json({ message: 'Payment not found or you do not have permission to view it.' });
     }
 
-    res.status(200).json(payment);
+    // Add SPEI receipt availability info
+    const paymentWithReceiptInfo = {
+      ...payment,
+      spei_receipt_available: isSPEIReceiptAvailable(payment)
+    };
+
+    res.status(200).json(paymentWithReceiptInfo);
   } catch (error) {
     console.error(`Error fetching payment with ID ${req.params.id}:`, error);
     res.status(500).json({ message: 'Internal server error while fetching the payment.' });
