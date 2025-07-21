@@ -1,9 +1,9 @@
-import puppeteer from 'puppeteer';
-import path from 'path';
-import fs from 'fs';
-import crypto from 'crypto';
+import * as puppeteer from 'puppeteer';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as crypto from 'crypto';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es } from 'date-fns/locale/es';
 import { Payment } from '../entity/Payment';
 import { User } from '../entity/User';
 import { JunoTransaction } from '../entity/JunoTransaction';
