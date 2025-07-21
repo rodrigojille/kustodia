@@ -289,7 +289,7 @@ export class PaymentAutomationService {
       await this.paymentService.logPaymentEvent(
         payment.id,
         'bridge_withdrawal_success',
-        `Withdrawal of ${amount} MXNB to bridge wallet completed successfully. Withdrawal ID: ${withdrawalResult?.id || 'N/A'}`,
+        `Retiro de ${amount} MXNB a billetera puente completado exitosamente. ID de retiro: ${withdrawalResult?.id || 'N/A'}`,
         true
       );
       
@@ -407,10 +407,10 @@ export class PaymentAutomationService {
       await this.paymentService.logPaymentEvent(
         payment.id,
         'escrow_created',
-        `Escrow ${createResult.escrowId} created. Tx: ${createResult.txHash}`,
+        `Custodia ${createResult.escrowId} creada en blockchain. Tx: ${createResult.txHash}`,
         true
       );
-
+      
       // Create escrow created notification
       try {
         await createPaymentNotifications(payment.id, 'escrow_created');
@@ -423,7 +423,7 @@ export class PaymentAutomationService {
 
     } catch (error: any) {
       console.error(`❌ Escrow creation failed for payment ${payment.id}:`, error.message);
-      await this.paymentService.logPaymentEvent(payment.id, 'escrow_error', `Escrow creation failed: ${error.message}`, true);
+      await this.paymentService.logPaymentEvent(payment.id, 'escrow_error', `Error al crear custodia: ${error.message}`, true);
       throw error;
     }
   }
@@ -521,9 +521,9 @@ export class PaymentAutomationService {
           // Log the release event with transaction hash
           await this.paymentService.logPaymentEvent(
             escrow.payment.id,
-            'escrow_released',
-            `Escrow ${escrow.id} released automatically. TX: ${releaseTxHash}`,
-            false
+            'escrow_release_success',
+            `Custodia ${escrow.smart_contract_escrow_id} liberada del contrato. Tx: ${releaseTxHash}`,
+            true
           );
           
           console.log(`✅ Escrow ${escrow.id} released successfully.`);
@@ -606,8 +606,8 @@ export class PaymentAutomationService {
             await this.paymentService.logPaymentEvent(
               payment.id,
               'payout_completed',
-              `Payout completed successfully. SPEI sent to recipient.`,
-              false
+              `Pago completado exitosamente. SPEI enviado al beneficiario.`,
+              true
             );
             
             // Create payment completion notification
@@ -632,7 +632,7 @@ export class PaymentAutomationService {
           await this.paymentService.logPaymentEvent(
             payment.id,
             'payout_error',
-            `Payout failed: ${errorMessage}`,
+            `Pago fallido: ${errorMessage}`,
             true
           );
           
@@ -652,7 +652,7 @@ export class PaymentAutomationService {
           await this.paymentService.logPaymentEvent(
             escrow.payment.id,
             'payout_processing_error',
-            `Failed to process payout for escrow ${escrow.id}: ${error.message}`,
+            `Error al procesar pago para custodia ${escrow.id}: ${error.message}`,
             true
           );
         }

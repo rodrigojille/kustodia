@@ -41,7 +41,12 @@ export async function sendPaymentEventNotification({
     escrow_executing: 'Custodia en ejecución',
     escrow_finished: 'Custodia finalizada',
     payment_released: 'Pago liberado',
-    dispute_started: 'Disputa iniciada'
+    dispute_started: 'Disputa iniciada',
+    bridge_withdrawal_success: 'Retiro exitoso',
+    payout_completed: 'Pago completado',
+    escrow_release_success: 'Custodia liberada',
+    payout_processing_error: 'Error en pago',
+    escrow_error: 'Error en custodia'
   };
 
   const subject = subjectMap[eventType] || 'Notificación de evento de pago';
@@ -102,6 +107,16 @@ function getDefaultMessage(eventType: PaymentEventType, paymentDetails: any) {
       return 'El pago ha sido liberado.';
     case 'dispute_started':
       return 'Se ha iniciado una disputa en este pago.';
+    case 'bridge_withdrawal_success':
+      return 'El retiro de fondos se completó exitosamente.';
+    case 'payout_completed':
+      return 'El pago ha sido completado y enviado al beneficiario.';
+    case 'escrow_release_success':
+      return 'La custodia ha sido liberada del contrato inteligente.';
+    case 'payout_processing_error':
+      return 'Ocurrió un error al procesar el pago.';
+    case 'escrow_error':
+      return 'Ocurrió un error con la custodia.';
     default:
       return 'Hay una actualización en tu pago.';
   }

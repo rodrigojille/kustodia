@@ -218,8 +218,7 @@ export const initiateWeb3Payment = async (req: AuthenticatedRequest, res: Respon
     savedPayment.status = escrowTxHash ? 'escrow_created' : 'pending_escrow';
     await paymentRepo.save(savedPayment);
 
-    await createPaymentEvent(savedPayment, 'payment_initiated', `Payment of ${amount} initiated by ${payer.email} to ${recipient.email}.`);
-    await createPaymentEvent(savedPayment, 'escrow_created', `On-chain escrow created with ID: ${savedEscrow.id}.`);
+    await createPaymentEvent(savedPayment, 'payment_created', `Pago directo iniciado por ${payer.email} a ${recipient.email}`);
 
     await queryRunner.commitTransaction();
 
