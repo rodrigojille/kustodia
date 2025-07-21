@@ -7,7 +7,7 @@ import { PaymentEvent } from '../entity/PaymentEvent';
 import { sendJunoPayout } from '../utils/junoClient';
 import { isValidReference, sanitizeReference } from '../utils/referenceValidation';
 import { getJunoTxHashFromTimeline } from '../services/junoService';
-import { releaseCustody } from './escrowService'; // Import on-chain release function
+import { releaseEscrow } from './escrowService'; // Import on-chain release function
 import axios from 'axios';
 import crypto from 'crypto';
 
@@ -41,11 +41,12 @@ export async function releaseEscrowAndPayout(escrowId: number) {
   }
 
   // --- 0. Release from on-chain Escrow Contract ---
+  let releaseTxHash: string;
   try {
     console.log(`[Payout] Releasing escrow ID ${escrow.smart_contract_escrow_id} from V2 contract...`);
-    await releaseCustody(Number(escrow.smart_contract_escrow_id));
-    console.log(`[Payout] On-chain release successful for escrow ID ${escrow.smart_contract_escrow_id}.`);
-    await logPaymentEvent(payment.id, 'onchain_release_success', `Escrow ${escrow.smart_contract_escrow_id} released from contract.`);
+    releaseTxHash = await releaseEscrow(Number(escrow.smart_contract_escrow_id));
+    console.log(`[Payout] On-chain release successful for escrow ID ${escrow.smart_contract_escrow_id}. Tx: ${releaseTxHash}`);
+    await logPaymentEvent(payment.id, 'onchain_release_success', `Escrow ${escrow.smart_contract_escrow_id} released from contract. Tx: ${releaseTxHash}`);
   } catch (onchainError) {
     console.error(`[Payout] CRITICAL: On-chain release failed for escrow ${escrow.smart_contract_escrow_id}:`, onchainError);
     await logPaymentEvent(payment.id, 'onchain_release_failed', `Failed to release escrow ${escrow.smart_contract_escrow_id} from contract.`);
@@ -53,6 +54,12 @@ export async function releaseEscrowAndPayout(escrowId: number) {
     throw new Error('On-chain escrow release failed.');
   }
 
+
+  // Update escrow status to prevent double release
+  escrow.status = 'released';
+  escrow.release_tx_hash = releaseTxHash;
+  await escrowRepo.save(escrow);
+  console.log(`[Payout] Escrow ${escrow.id} status updated to 'released' with tx: ${releaseTxHash}`);
 
   // Prepare payout
   const totalAmount = Number(escrow.release_amount);

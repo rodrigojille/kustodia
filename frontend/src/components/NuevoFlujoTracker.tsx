@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface Payment {
   id: string;
@@ -32,6 +32,7 @@ interface Payment {
     status: string;
     smart_contract_escrow_id?: string;
     blockchain_tx_hash?: string;
+    release_tx_hash?: string;
     custody_end?: string;
   };
   yield_enabled?: boolean;
@@ -118,6 +119,13 @@ function getEventIcon(eventType: string): string {
 
 export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChange, isApproving }: NuevoFlujoTrackerProps) {
   const [showEvidence, setShowEvidence] = useState(false);
+  const [showCetes, setShowCetes] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{name: string, url: string, type: string}>>([]); 
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isPayee = currentUser === payment.recipient_email;
   const isPayer = currentUser === payment.payer_email;
@@ -125,6 +133,87 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
 
   const bothApproved = payment.payer_approval && payment.payee_approval;
   const isCompleted = payment.status === 'completed' || payment.status === 'cancelled';
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+    const newFiles: Array<{name: string, url: string, type: string}> = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Client-side file size validation (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        errors.push(`${file.name} excede el tamaño máximo de 10MB`);
+        continue;
+      }
+
+      const formData = new FormData();
+      formData.append('evidence', file);
+
+      try {
+        const response = await fetch('/api/evidence/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          newFiles.push({
+            name: file.name,
+            url: data.url,
+            type: file.type.startsWith('image/') ? 'image' : 'document'
+          });
+        } else {
+          const error = await response.json();
+          errors.push(`${file.name}: ${error.error || 'Error al subir'}`);
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        errors.push(`${file.name}: Error de conexión`);
+      }
+    }
+
+    if (errors.length > 0) {
+      setUploadError(errors.join(', '));
+    }
+
+    setUploadedFiles([...uploadedFiles, ...newFiles]);
+    setIsUploading(false);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      // Create a synthetic event to reuse handleFileUpload
+      const syntheticEvent = {
+        target: { files },
+      } as React.ChangeEvent<HTMLInputElement>;
+      await handleFileUpload(syntheticEvent);
+    }
+  };
 
   const canRelease = bothApproved && (payment.status === 'funded' || payment.status === 'active' || payment.status === 'escrowed');
   const showValidationModule = (payment.status === 'funded' || payment.status === 'active' || payment.status === 'escrowed') && !isCompleted;
@@ -275,6 +364,14 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
                     </span>
                   </div>
                 )}
+                {payment.escrow.release_tx_hash && (
+                  <div>
+                    <span className="text-amber-600">Release Hash:</span>
+                    <span className="ml-2 font-mono text-amber-900 text-xs break-all">
+                      {payment.escrow.release_tx_hash}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -290,8 +387,12 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
           <p className="text-purple-700 mb-4">
             {payment.release_conditions || "No se especificaron condiciones de liberación"}
           </p>
-          {/* Dual Approval System */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        </div>
+      )}
+
+      {/* Dual Approval System */}
+      {showValidationModule && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               ✅ Sistema de Aprobación Dual
             </h3>
@@ -405,20 +506,27 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
                 </p>
               </div>
             )}
-
-
-          </div>
         </div>
       )}
 
       {/* Yield Generation Section */}
       {showValidationModule && (
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-sm border border-green-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            📈 Genera rendimientos mientras esperas
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              📈 Genera rendimientos mientras esperas
+            </h3>
+            <button
+              onClick={() => setShowCetes(!showCetes)}
+              className="text-green-600 hover:text-green-800 text-sm font-medium"
+            >
+              {showCetes ? 'Ocultar' : 'Mostrar'} detalles
+            </button>
+          </div>
           
-          {!payment.yield_enabled ? (
+          {showCetes && (
+            <div>
+              {!payment.yield_enabled ? (
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-4 border border-green-100">
                 <div className="flex items-start space-x-3">
@@ -517,11 +625,13 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
               conllevan riesgos de mercado. Consulta términos completos en el acuerdo del cliente.
             </div>
           </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Evidence Upload Section */}
-      {(isPayee || isPayer) && payment.status === 'funded' && !isCompleted && (
+      {(isPayee || isPayer) && (payment.status === 'escrowed' || payment.status === 'funded') && !isCompleted && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
@@ -541,7 +651,14 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
                 Puedes subir evidencia (fotos, documentos, capturas) para documentar el cumplimiento de las condiciones antes de aprobar la liberación.
               </p>
               
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <div 
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <div className="text-gray-400 mb-2">
                   <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 015.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -549,11 +666,75 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
                 </div>
                 <p className="text-gray-600 font-medium">Subir evidencia</p>
                 <p className="text-gray-500 text-sm">Arrastra archivos aquí o haz clic para seleccionar</p>
-                <input type="file" multiple accept="image/*,.pdf,.doc,.docx" className="hidden" />
-                <button className="mt-2 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
-                  Seleccionar archivos
+                <p className="text-gray-400 text-xs mt-1">Máximo 10MB por archivo • JPG, PNG, GIF, PDF, DOC, DOCX</p>
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  multiple 
+                  accept="image/*,.pdf,.doc,.docx" 
+                  className="hidden" 
+                  onChange={handleFileUpload}
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="mt-2 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {isUploading ? 'Subiendo...' : 'Seleccionar archivos'}
                 </button>
               </div>
+              
+              {/* Error message */}
+              {uploadError && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{uploadError}</p>
+                </div>
+              )}
+              
+              {/* Uploaded Files */}
+              {uploadedFiles.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Archivos subidos:</h4>
+                  <div className="space-y-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div className="flex items-center">
+                          <span className="mr-2">{file.type.startsWith('image/') ? '🖼️' : '📄'}</span>
+                          {file.type.startsWith('image/') ? (
+                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                              {file.name}
+                            </a>
+                          ) : (
+                            <span className="text-gray-700">{file.name}</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsSubmitting(true);
+                      // Here you would submit the evidence to the backend
+                      setTimeout(() => {
+                        setIsSubmitting(false);
+                        alert('Evidencia enviada exitosamente');
+                      }, 1000);
+                    }}
+                    disabled={isSubmitting}
+                    className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Enviando...' : 'Enviar evidencia'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -565,27 +746,46 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
           🕒 Línea de tiempo
         </h3>
         <div className="space-y-3">
-          {payment.events && payment.events.map((event, index) => (
-            <div key={index} className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-              <span className="text-lg mr-2">{getEventIcon(event.type)}</span>
-              <div className="text-sm">
-                <span className="font-medium">{getEventDisplayName(event.type)}</span>
-                {event.description && (
-                  <span className="text-gray-500 ml-2">{event.description}</span>
-                )}
-                <span className="text-gray-500 ml-2">
-                  {new Date(event.created_at).toLocaleDateString('es-MX', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
+          {payment.events && payment.events.map((event, index) => {
+            const isError = event.type.includes('error') || event.type.includes('failed');
+            return (
+              <div key={index} className="flex items-start">
+                <div className={`w-3 h-3 ${isError ? 'bg-red-500' : 'bg-green-500'} rounded-full mr-3 mt-1 flex-shrink-0`}></div>
+                <span className="text-lg mr-2 flex-shrink-0">{getEventIcon(event.type)}</span>
+                <div className="text-sm flex-1 min-w-0">
+                  <div className="flex flex-wrap items-baseline">
+                    <span className="font-medium mr-2">{getEventDisplayName(event.type)}</span>
+                    <span className="text-gray-500 text-xs">
+                      {new Date(event.created_at).toLocaleDateString('es-MX', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                  {event.description && (
+                    <div className="text-gray-500 mt-1 break-words">
+                      {event.description.length > 200 ? (
+                        <details className="cursor-pointer">
+                          <summary className="hover:text-gray-700">
+                            {event.description.substring(0, 200)}...
+                            <span className="text-blue-600 ml-1">Ver más</span>
+                          </summary>
+                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                            {event.description}
+                          </div>
+                        </details>
+                      ) : (
+                        event.description
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

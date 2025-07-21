@@ -2,7 +2,7 @@ import { PaymentService } from './paymentService';
 import { releaseEscrow, createEscrow } from './escrowService';
 import { listJunoTransactions, redeemMXNBToMXN, withdrawMXNBToBridge, getRegisteredBankAccounts, initializeJunoService, verifyWithdrawalProcessed, listRecentWithdrawals } from './junoService';
 import { createPaymentNotifications } from './paymentNotificationIntegration';
-import { LessThan, Not, IsNull } from 'typeorm';
+import { LessThan, Not, IsNull, In } from 'typeorm';
 import AppDataSource from '../ormconfig';
 import { Payment } from '../entity/Payment';
 import { Escrow } from '../entity/Escrow';
@@ -452,24 +452,20 @@ export class PaymentAutomationService {
       // 1. Traditional payments: funded/active and past deadline
       // 2. Nuevo flujo with dual approval: immediate release (ignore deadline)
       // 3. Nuevo flujo without dual approval: BLOCK release even after deadline
+      // IMPORTANT: Only process escrows that haven't been released yet
       const expiredEscrows = await escrowRepo.find({
         where: [
           {
-            status: 'funded',
+            status: In(['funded', 'active']), // Not 'released'
+            release_tx_hash: IsNull(), // No existing release transaction
             custody_end: LessThan(now),
             payment: {
               payment_type: Not('nuevo_flujo') // Traditional payments only
             }
           },
           {
-            status: 'active',
-            custody_end: LessThan(now),
-            payment: {
-              payment_type: Not('nuevo_flujo') // Traditional payments only
-            }
-          },
-          {
-            status: 'active',
+            status: In(['funded', 'active']), // Not 'released'
+            release_tx_hash: IsNull(), // No existing release transaction
             payment: {
               payment_type: 'nuevo_flujo',
               payer_approval: true,

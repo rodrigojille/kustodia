@@ -5,6 +5,8 @@ import { Payment } from '../entity/Payment';
 import { PaymentEvent } from '../entity/PaymentEvent';
 import { Escrow } from '../entity/Escrow';
 import { releaseEscrowAndPayout } from '../services/payoutService';
+import { createNotification } from '../services/notificationService';
+import { User } from '../entity/User';
 
 
 
@@ -64,6 +66,20 @@ export const approvePaymentPayer = async (req: AuthenticatedRequest, res: Respon
     });
     await eventRepo.save(approvalEvent);
 
+    // Send notification to payee about payer approval
+    const userRepo = AppDataSource.getRepository(User);
+    const payeeUser = await userRepo.findOne({ where: { email: payment.recipient_email } });
+    if (payeeUser) {
+      await createNotification(
+        payeeUser.id,
+        `El comprador ha aprobado la liberación del pago #${payment.id}`,
+        `/dashboard/payments/${payment.id}`,
+        'info',
+        payment.id,
+        'payment'
+      );
+    }
+
     // Check if both parties have approved
     if (payment.payer_approval && payment.payee_approval) {
       console.log(`[APPROVAL] Both parties approved Payment ${id}, triggering release`);
@@ -72,6 +88,31 @@ export const approvePaymentPayer = async (req: AuthenticatedRequest, res: Respon
         // Trigger escrow release and payout
         const releaseResult = await releaseEscrowAndPayout(payment.escrow.id);
         console.log(`[APPROVAL] Payment ${id} released successfully`);
+        
+        // Send success notifications to both parties
+        const payerUser = await userRepo.findOne({ where: { email: payment.payer_email } });
+        const payeeUser = await userRepo.findOne({ where: { email: payment.recipient_email } });
+        
+        if (payerUser) {
+          await createNotification(
+            payerUser.id,
+            `¡Pago #${payment.id} liberado exitosamente! Los fondos están en camino al vendedor.`,
+            `/dashboard/payments/${payment.id}`,
+            'success',
+            payment.id,
+            'payment'
+          );
+        }
+        if (payeeUser) {
+          await createNotification(
+            payeeUser.id,
+            `¡Pago #${payment.id} liberado! Los fondos serán transferidos a tu cuenta bancaria.`,
+            `/dashboard/payments/${payment.id}`,
+            'success',
+            payment.id,
+            'payment'
+          );
+        }
         
         res.json({ 
           success: true, 
@@ -160,6 +201,20 @@ export const approvePaymentPayee = async (req: AuthenticatedRequest, res: Respon
     });
     await eventRepo.save(approvalEvent);
 
+    // Send notification to payer about payee approval
+    const userRepo = AppDataSource.getRepository(User);
+    const payerUser = await userRepo.findOne({ where: { email: payment.payer_email } });
+    if (payerUser) {
+      await createNotification(
+        payerUser.id,
+        `El vendedor ha aprobado la liberación del pago #${payment.id}`,
+        `/dashboard/payments/${payment.id}`,
+        'info',
+        payment.id,
+        'payment'
+      );
+    }
+
     // Check if both parties have approved
     if (payment.payer_approval && payment.payee_approval) {
       console.log(`[APPROVAL] Both parties approved Payment ${id}, triggering release`);
@@ -168,6 +223,31 @@ export const approvePaymentPayee = async (req: AuthenticatedRequest, res: Respon
         // Trigger escrow release and payout
         const releaseResult = await releaseEscrowAndPayout(payment.escrow.id);
         console.log(`[APPROVAL] Payment ${id} released successfully`);
+        
+        // Send success notifications to both parties
+        const payerUser = await userRepo.findOne({ where: { email: payment.payer_email } });
+        const payeeUser = await userRepo.findOne({ where: { email: payment.recipient_email } });
+        
+        if (payerUser) {
+          await createNotification(
+            payerUser.id,
+            `¡Pago #${payment.id} liberado exitosamente! Los fondos están en camino al vendedor.`,
+            `/dashboard/payments/${payment.id}`,
+            'success',
+            payment.id,
+            'payment'
+          );
+        }
+        if (payeeUser) {
+          await createNotification(
+            payeeUser.id,
+            `¡Pago #${payment.id} liberado! Los fondos serán transferidos a tu cuenta bancaria.`,
+            `/dashboard/payments/${payment.id}`,
+            'success',
+            payment.id,
+            'payment'
+          );
+        }
         
         res.json({ 
           success: true, 
