@@ -76,6 +76,5 @@ router.use("/heroku-debug", herokuDebugRouter); // Debug Heroku API issues
 
 // 📋 Unified Logs Endpoint (Auto-detects Environment)
 router.use("/logs-unified", unifiedLogsRouter); // Move to different path
-router.use("/", simpleLogsRouter); // Use simple logs as default
 
 export default router;
