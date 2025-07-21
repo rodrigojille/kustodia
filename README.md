@@ -46,94 +46,47 @@ Kustodia is a revolutionary P2P payment platform that leverages **MXNB (Mexican 
 - **PostgreSQL**: Relational database with comprehensive audit trails
 - **JWT Authentication**: Secure user session management
 - **Role-based Access**: Admin panel with granular permissions
-- **Webhook Integration**: Real-time Juno API event processing
-
-### Frontend Stack
-- **Next.js 14**: Modern React framework with App Router
-- **Tailwind CSS**: Responsive, mobile-first design
-- **TypeScript**: End-to-end type safety
-- **Real-time Updates**: Live payment status and analytics
-- **Export Functionality**: PDF and Excel report generation
-
-## ⚙️ Setup Instructions
 
 ### Prerequisites
-- **Node.js**: v18+ (LTS recommended)
-- **PostgreSQL**: v14+ for database
-- **Git**: For repository cloning
-- **Juno API Access**: For MXNB operations (sandbox/production)
+- Node.js (v18 or higher)
+- PostgreSQL (v13 or higher)
+- Git
+- Heroku CLI (for deployment)
 
-### Local Development Setup
+### Installation
 
-#### 1. Clone Repository
+1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/kustodia.git
+git clone https://github.com/rodrigojille/kustodia.git
 cd kustodia
 ```
 
-#### 2. Backend Setup
+2. Backend Setup:
 ```bash
 cd backend
 npm install
-
-# Copy environment variables
 cp .env.example .env
-
-# Configure database
-npm run db:migrate
-npm run db:seed
-
-# Start backend server
-npm run dev
+# Edit .env with your configuration
+npm run build
 ```
 
-#### 3. Frontend Setup
+3. Frontend Setup:
 ```bash
 cd ../frontend
 npm install
-
-# Copy environment variables
-cp .env.local.example .env.local
-
-# Start frontend development server
-npm run dev
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
-#### 4. Smart Contract Setup
+4. Database Setup:
 ```bash
-cd ../contracts
-npm install
-
-# Deploy contracts to Arbitrum Sepolia (testnet)
-npx hardhat deploy --network arbitrum-sepolia
-
-# Verify contract deployment
-npx hardhat verify --network arbitrum-sepolia <CONTRACT_ADDRESS>
-```
-
-### Quick Test with Demo Data
-```bash
-# Test payment 113 (featured in demo)
 cd backend
-node check_payment_113.js
-
-# Test analytics API
-node test_analytics_enhanced.js
+npm run migration:run
 ```
 
----
-
-## 🔐 Environment Variables
-
-### Backend (.env)
+5. Start Development Servers:
 ```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/kustodia
-PORT=4000
-
-# JWT Authentication
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=7d
+# Terminal 1 - Backend
 
 # Juno API (MXNB Provider)
 JUNO_STAGE_API_KEY=your-juno-api-key

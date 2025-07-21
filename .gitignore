@@ -18,6 +18,15 @@ dist/
 .env.test
 .env.example
 backend/.env
+
+# Utility folders
+tools/
+temp/
+archive/
+
+# Legacy folders
+frontend-legacy/
+figma_starter/
 frontend/.env
 contracts/.env
 
