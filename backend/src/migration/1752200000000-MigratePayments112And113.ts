@@ -52,7 +52,7 @@ export class MigratePayments112And1131752200000000 implements MigrationInterface
 
         // Add migration event for payment 112
         await queryRunner.query(`
-            INSERT INTO payment_event (payment_id, type, description, is_automatic, created_at)
+            INSERT INTO payment_event ("paymentId", type, description, is_automatic, created_at)
             VALUES (
                 112,
                 'production_migration',
@@ -91,7 +91,7 @@ export class MigratePayments112And1131752200000000 implements MigrationInterface
 
         // Add migration event for payment 113
         await queryRunner.query(`
-            INSERT INTO payment_event (payment_id, type, description, is_automatic, created_at)
+            INSERT INTO payment_event ("paymentId", type, description, is_automatic, created_at)
             VALUES (
                 113,
                 'production_migration',
