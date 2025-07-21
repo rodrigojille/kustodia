@@ -1,19 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    CUSTOM_API_URL: process.env.NODE_ENV === 'production' 
+      ? 'https://kustodia-backend-f991a7cb1824.herokuapp.com'
+      : 'http://localhost:4000'
+  },
+  
   async rewrites() {
-    if (process.env.NODE_ENV === 'development') {
-      return [
-        {
-          source: '/api/:path*',
-          destination: 'http://localhost:4000/api/:path*',
-        },
-      ];
-    }
-    // Production: forward to Heroku backend
+    const apiUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://kustodia-backend-f991a7cb1824.herokuapp.com'
+      : 'http://localhost:4000';
+    
+    console.log(`[Next.js] API Rewrites configured for: ${apiUrl}`);
+    
     return [
       {
         source: '/api/:path*',
-        destination: 'https://kustodia-backend-f991a7cb1824.herokuapp.com/api/:path*',
+        destination: `${apiUrl}/api/:path*`,
       },
     ];
   },
