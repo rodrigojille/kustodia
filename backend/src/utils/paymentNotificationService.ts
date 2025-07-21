@@ -7,7 +7,12 @@ export type PaymentEventType =
   | 'escrow_executing'
   | 'escrow_finished'
   | 'payment_released'
-  | 'dispute_started';
+  | 'dispute_started'
+  | 'bridge_withdrawal_success'
+  | 'payout_completed'
+  | 'escrow_release_success'
+  | 'payout_processing_error'
+  | 'escrow_error';
 
 interface NotificationRecipient {
   email: string;

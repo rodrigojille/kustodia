@@ -13,7 +13,13 @@ export type PaymentEventType =
   | 'payment_released'
   | 'payment_cancelled'
   | 'payment_failed'
-  | 'escrow_funded';
+  | 'escrow_funded'
+  | 'dispute_started'
+  | 'bridge_withdrawal_success'
+  | 'payout_completed'
+  | 'escrow_release_success'
+  | 'payout_processing_error'
+  | 'escrow_error';
 
 export type DisputeEventType =
   | 'dispute_created'
@@ -93,6 +99,42 @@ const PAYMENT_NOTIFICATION_CONFIGS: Record<PaymentEventType, NotificationConfig>
   },
   payment_failed: {
     message: 'El pago ha fallado. Por favor, revisa los detalles',
+    type: 'error',
+    notifyBuyer: true,
+    notifySeller: true
+  },
+  dispute_started: {
+    message: 'Se ha iniciado una disputa en este pago',
+    type: 'warning',
+    notifyBuyer: true,
+    notifySeller: true
+  },
+  bridge_withdrawal_success: {
+    message: 'El retiro de fondos se completó exitosamente',
+    type: 'success',
+    notifyBuyer: false,
+    notifySeller: true
+  },
+  payout_completed: {
+    message: 'El pago ha sido completado y enviado al beneficiario',
+    type: 'success',
+    notifyBuyer: true,
+    notifySeller: true
+  },
+  escrow_release_success: {
+    message: 'La custodia ha sido liberada del contrato inteligente',
+    type: 'info',
+    notifyBuyer: true,
+    notifySeller: true
+  },
+  payout_processing_error: {
+    message: 'Ocurrió un error al procesar el pago',
+    type: 'error',
+    notifyBuyer: true,
+    notifySeller: true
+  },
+  escrow_error: {
+    message: 'Ocurrió un error con la custodia',
     type: 'error',
     notifyBuyer: true,
     notifySeller: true
