@@ -1,4 +1,7 @@
 import { sendEmail } from './emailService';
+import { SPEIReceiptService, SPEIReceiptData } from '../services/speiReceiptService';
+import fs from 'fs';
+import path from 'path';
 
 export type PaymentEventType =
   | 'payment_created'
@@ -12,7 +15,9 @@ export type PaymentEventType =
   | 'payout_completed'
   | 'escrow_release_success'
   | 'payout_processing_error'
-  | 'escrow_error';
+  | 'escrow_error'
+  | 'spei_transfer_completed'
+  | 'spei_transfer_processing';
 
 interface NotificationRecipient {
   email: string;
@@ -27,6 +32,10 @@ interface PaymentEventNotification {
   timeline?: Array<any>;
   customMessage?: string;
   commissionBeneficiaryEmail?: string;
+  // SPEI Receipt options
+  includeSPEIReceipt?: boolean;
+  speiReceiptData?: SPEIReceiptData;
+  junoTransactionId?: string;
 }
 
 // Flexible function for sending payment notifications
@@ -37,7 +46,10 @@ export async function sendPaymentEventNotification({
   recipients,
   timeline = [],
   customMessage,
-  commissionBeneficiaryEmail
+  commissionBeneficiaryEmail,
+  includeSPEIReceipt = false,
+  speiReceiptData,
+  junoTransactionId
 }: PaymentEventNotification) {
   const subjectMap: Record<PaymentEventType, string> = {
     payment_created: 'Pago creado en Kustodia',
@@ -51,10 +63,27 @@ export async function sendPaymentEventNotification({
     payout_completed: 'Pago completado',
     escrow_release_success: 'Custodia liberada',
     payout_processing_error: 'Error en pago',
-    escrow_error: 'Error en custodia'
+    escrow_error: 'Error en custodia',
+    spei_transfer_completed: 'Transferencia SPEI completada',
+    spei_transfer_processing: 'Transferencia SPEI en proceso'
   };
 
   const subject = subjectMap[eventType] || 'Notificación de evento de pago';
+
+  // Generate SPEI receipt if requested
+  let receiptAttachment: { filename: string; path: string } | undefined;
+  if (includeSPEIReceipt && speiReceiptData) {
+    try {
+      const receiptPath = await SPEIReceiptService.saveReceiptToFile(speiReceiptData, { format: 'pdf' });
+      receiptAttachment = {
+        filename: `Comprobante-SPEI-${paymentId}.pdf`,
+        path: receiptPath
+      };
+      console.log(`[Notification] SPEI receipt generated: ${receiptPath}`);
+    } catch (error) {
+      console.error('[Notification] Failed to generate SPEI receipt:', error);
+    }
+  }
 
   // Simple HTML template (replace with your own)
   const buildHtml = (recipient: NotificationRecipient) => `
@@ -73,11 +102,28 @@ export async function sendPaymentEventNotification({
   `;
 
   for (const recipient of recipients) {
-    await sendEmail({
+    const emailOptions: any = {
       to: recipient.email,
       subject,
       html: buildHtml(recipient)
-    });
+    };
+
+    // Add SPEI receipt attachment if available
+    if (receiptAttachment) {
+      emailOptions.attachments = [receiptAttachment];
+    }
+
+    await sendEmail(emailOptions);
+  }
+
+  // Clean up temporary receipt file
+  if (receiptAttachment) {
+    try {
+      fs.unlinkSync(receiptAttachment.path);
+      console.log(`[Notification] Cleaned up receipt file: ${receiptAttachment.path}`);
+    } catch (error) {
+      console.warn('[Notification] Failed to clean up receipt file:', error);
+    }
   }
   // Notifica al beneficiario de comisión si aplica
   if (commissionBeneficiaryEmail) {
@@ -122,6 +168,10 @@ function getDefaultMessage(eventType: PaymentEventType, paymentDetails: any) {
       return 'Ocurrió un error al procesar el pago.';
     case 'escrow_error':
       return 'Ocurrió un error con la custodia.';
+    case 'spei_transfer_completed':
+      return 'Tu transferencia SPEI ha sido completada exitosamente. Adjuntamos el comprobante oficial.';
+    case 'spei_transfer_processing':
+      return 'Tu transferencia SPEI está siendo procesada. Te notificaremos cuando esté completada.';
     default:
       return 'Hay una actualización en tu pago.';
   }

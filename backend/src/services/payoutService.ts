@@ -8,6 +8,8 @@ import { sendJunoPayout } from '../utils/junoClient';
 import { isValidReference, sanitizeReference } from '../utils/referenceValidation';
 import { getJunoTxHashFromTimeline } from '../services/junoService';
 import { releaseEscrow } from './escrowService'; // Import on-chain release function
+import { sendPaymentEventNotification } from '../utils/paymentNotificationService';
+import { SPEIReceiptData } from './speiReceiptService';
 import axios from 'axios';
 import crypto from 'crypto';
 
@@ -170,6 +172,72 @@ export async function releaseEscrowAndPayout(escrowId: number) {
     payment.status = 'paid';
     await escrowRepo.save(escrow);
     await paymentRepo.save(payment);
+
+    // Send SPEI completion notification with receipt
+    try {
+      // Get original buyer information from payment (user field represents the buyer)
+      const buyer = payment.user;
+      
+      const speiReceiptData: SPEIReceiptData = {
+        transactionId: sellerJunoReference || `PAY-${payment.id}-${Date.now()}`,
+        junoTransactionId: sellerJunoReference,
+        amount: netSellerAmount,
+        currency: currency.toUpperCase(),
+        status: 'SUCCEEDED',
+        createdAt: new Date(),
+        
+        paymentId: payment.id,
+        paymentDescription: payment.description,
+        escrowId: escrow.id,
+        
+        recipientName: seller.full_name || seller.email,
+        recipientEmail: seller.email,
+        bankAccountId: payment.payout_juno_bank_account_id,
+        clabe: seller.payout_clabe,
+        
+        senderName: 'Kustodia',
+        senderInfo: 'Plataforma de Pagos Seguros',
+        
+        reference: payment.reference || `KUSTODIA-${payment.id}`,
+        concept: payment.description || 'Pago de custodia liberada',
+        speiReference: `KUS${payment.id.toString().padStart(6, '0')}`,
+        
+        // Original deposit information (buyer's bank → Nvio flow)
+        originalSenderName: buyer?.full_name || buyer?.email || 'Comprador',
+        custodyProvider: 'Kustodia',
+        paymentProcessor: 'Nvio Pagos México',
+        originalDepositAmount: payment.amount ? Number(payment.amount) : netSellerAmount,
+        
+        originalAmount: Number(payment.amount),
+        commissionAmount: commissionAmount,
+        netAmount: netSellerAmount
+      };
+
+      await sendPaymentEventNotification({
+        eventType: 'spei_transfer_completed',
+        paymentId: payment.id.toString(),
+        paymentDetails: {
+          amount: payment.amount,
+          currency: payment.currency,
+          status: payment.status,
+          description: payment.description,
+          netAmount: netSellerAmount,
+          commissionAmount: commissionAmount
+        },
+        recipients: [{
+          email: seller.email,
+          role: 'seller'
+        }],
+        includeSPEIReceipt: true,
+        speiReceiptData,
+        junoTransactionId: sellerJunoReference
+      });
+
+      console.log(`[Payout] SPEI receipt notification sent to ${seller.email}`);
+    } catch (notificationError) {
+      console.error('[Payout] Failed to send SPEI receipt notification:', notificationError);
+      // Don't fail the payout if notification fails
+    }
   }
 
   return {
@@ -275,9 +343,77 @@ export async function redeemMXNBToMXNAndPayout(escrowId: number, amountMXNB: num
   const junoTx = junoTxRepo.create({ type: 'redemption', reference: redemptionReference ?? undefined, amount: amountMXNB, status: redemptionStatus });
   await junoTxRepo.save(junoTx);
 
-  await logPaymentEvent(payment.id, 'payout_completed', 'Redemption and payout to seller completed.');
+  // Update payment status to completed
+  payment.status = 'completed';
+  await paymentRepo.save(payment);
 
-  return { escrow, payment, seller, redemptionResult };
+  console.log(`[Payout] MXNB redemption successful for payment ${payment.id}. Amount: ${amountMXNB} MXNB. Reference: ${redemptionReference}`);
+  await logPaymentEvent(payment.id, 'redemption_success', `MXNB redemption successful. Amount: ${amountMXNB} MXNB. Reference: ${redemptionReference}`);
+
+  // Send SPEI completion notification with receipt for MXNB redemption
+  try {
+    // Get original buyer information from payment (user field represents the buyer)
+    const buyer = payment.user;
+    
+    const speiReceiptData: SPEIReceiptData = {
+      transactionId: redemptionReference || `MXNB-${payment.id}-${Date.now()}`,
+      junoTransactionId: redemptionReference,
+      amount: amountMXNB,
+      currency: 'MXN',
+      status: 'SUCCEEDED',
+      createdAt: new Date(),
+      
+      paymentId: payment.id,
+      paymentDescription: payment.description,
+      escrowId: escrow.id,
+      
+      recipientName: seller.full_name || seller.email,
+      recipientEmail: seller.email,
+      bankAccountId: seller.juno_bank_account_id,
+      clabe: seller.payout_clabe,
+      
+      senderName: 'Kustodia',
+      senderInfo: 'Plataforma de Pagos Seguros - Redención MXNB',
+      
+      reference: payment.reference || `KUSTODIA-${payment.id}`,
+      concept: payment.description || 'Redención MXNB a MXN',
+      speiReference: `MXNB${payment.id.toString().padStart(6, '0')}`,
+      
+      // Original deposit information (buyer's bank → Nvio flow)
+      originalSenderName: buyer?.full_name || buyer?.email || 'Comprador',
+      custodyProvider: 'Kustodia',
+      paymentProcessor: 'Nvio Pagos México',
+      originalDepositAmount: payment.amount ? Number(payment.amount) : amountMXNB,
+      
+      originalAmount: amountMXNB,
+      commissionAmount: 0, // No commission on MXNB redemption
+      netAmount: amountMXNB
+    };
+
+    await sendPaymentEventNotification({
+      eventType: 'spei_transfer_completed',
+      paymentId: payment.id.toString(),
+      paymentDetails: {
+        amount: amountMXNB,
+        currency: 'MXN',
+        status: payment.status,
+        description: payment.description || 'Redención MXNB'
+      },
+      recipients: [{
+        email: seller.email,
+        role: 'seller'
+      }],
+      includeSPEIReceipt: true,
+      speiReceiptData,
+      junoTransactionId: redemptionReference
+    });
+
+    console.log(`[Payout] MXNB redemption SPEI receipt sent to ${seller.email}`);
+  } catch (notificationError) {
+    console.error('[Payout] Failed to send MXNB redemption notification:', notificationError);
+  }
+
+  return { escrow, payment, redemptionResult };
 }
 
 // (legacy) Redeems MXNB from Juno (crypto withdrawal to platform wallet), then triggers payout to seller.
@@ -355,4 +491,3 @@ export async function redeemAndPayout(escrowId: number, destAddress: string) {
 
   return { escrow, payment, redemptionResult, payoutResult };
 }
-

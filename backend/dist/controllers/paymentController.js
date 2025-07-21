@@ -92,6 +92,12 @@ const handlePermanentClabeDeposit = async (user, amount) => {
     console.log(`Handling permanent CLABE deposit for user ${user.id}, amount: ${amount}`);
     // TODO: Implement actual deposit handling logic
 };
+// Helper function to check if SPEI receipt is available for a payment
+const isSPEIReceiptAvailable = (payment) => {
+    // SPEI receipt is available for completed payments that have been paid out via SPEI
+    return payment.status === 'paid' &&
+        (payment.juno_payment_id !== null || payment.payout_clabe !== null);
+};
 // GET all payments for the authenticated user
 const getPayments = async (req, res) => {
     try {
@@ -105,7 +111,12 @@ const getPayments = async (req, res) => {
             .where("payment.payerId = :userId OR payment.recipientId = :userId", { userId })
             .orderBy("payment.created_at", "DESC")
             .getMany();
-        res.status(200).json(payments);
+        // Add SPEI receipt availability info to each payment
+        const paymentsWithReceiptInfo = payments.map(payment => ({
+            ...payment,
+            spei_receipt_available: isSPEIReceiptAvailable(payment)
+        }));
+        res.status(200).json(paymentsWithReceiptInfo);
     }
     catch (error) {
         console.error("Error fetching payments:", error);
@@ -132,7 +143,12 @@ const getPaymentById = async (req, res) => {
         if (!payment) {
             return res.status(404).json({ message: 'Payment not found or you do not have permission to view it.' });
         }
-        res.status(200).json(payment);
+        // Add SPEI receipt availability info
+        const paymentWithReceiptInfo = {
+            ...payment,
+            spei_receipt_available: isSPEIReceiptAvailable(payment)
+        };
+        res.status(200).json(paymentWithReceiptInfo);
     }
     catch (error) {
         console.error(`Error fetching payment with ID ${req.params.id}:`, error);
@@ -228,8 +244,7 @@ const initiateWeb3Payment = async (req, res) => {
         console.log(`[Payment] Payment and escrow records updated with real transaction hashes.`);
         savedPayment.status = escrowTxHash ? 'escrow_created' : 'pending_escrow';
         await paymentRepo.save(savedPayment);
-        await createPaymentEvent(savedPayment, 'payment_initiated', `Payment of ${amount} initiated by ${payer.email} to ${recipient.email}.`);
-        await createPaymentEvent(savedPayment, 'escrow_created', `On-chain escrow created with ID: ${savedEscrow.id}.`);
+        await createPaymentEvent(savedPayment, 'payment_created', `Pago directo iniciado por ${payer.email} a ${recipient.email}`);
         await queryRunner.commitTransaction();
         console.log(`[Payment] Web3 payment initiated successfully. ID: ${savedPayment.id}`);
         // Return payment with tracker URL
