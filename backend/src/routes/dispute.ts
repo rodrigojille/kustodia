@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticateJWT } from '../authenticateJWT';
+import { requireAdminRole } from '../middleware/requireAdminRole';
 import { raiseDispute, getDisputeTimeline, adminResolveDispute, getUserDisputes, getDisputeRiskAssessment, getBatchDisputeRiskAssessments } from "../controllers/disputeController";
 import { Dispute } from '../entity/Dispute';
 
@@ -21,8 +22,8 @@ router.get("/:escrowId/timeline", authenticateJWT, asyncHandler(getDisputeTimeli
 // Admin resolves dispute
 router.post("/:escrowId/admin-resolve", authenticateJWT, asyncHandler(adminResolveDispute));
 // Get AI risk assessment for a dispute (admin only)
-router.get("/ai-assessment/:disputeId", authenticateJWT, asyncHandler(getDisputeRiskAssessment));
+router.get("/ai-assessment/:disputeId", authenticateJWT, requireAdminRole, asyncHandler(getDisputeRiskAssessment));
 // Get batch AI risk assessments (admin only)
-router.post("/ai-assessment/batch", authenticateJWT, asyncHandler(getBatchDisputeRiskAssessments));
+router.post("/ai-assessment/batch", authenticateJWT, requireAdminRole, asyncHandler(getBatchDisputeRiskAssessments));
 
 export default router;

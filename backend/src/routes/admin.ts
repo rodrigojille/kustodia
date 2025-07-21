@@ -66,11 +66,11 @@ router.post("/operations/bulk-fix-uuids", authenticateJWT, requireAdminRole, asy
 router.get("/monitoring/juno-status", authenticateJWT, requireAdminRole, asyncHandler(getJunoApiStatus));
 
 // 🎮 System Status & Operations Center
-router.use("/system", simpleLogsRouter); // Use simple logs for production
-router.use("/system-original", systemStatusRouter); // Keep original as backup
-router.use("/system", systemLogsRouter);
-
-// 📊 Heroku Platform Logs & Monitoring
+// Use system routers
+router.use("/system", systemStatusRouter); // Main system status routes (/overview, /activity)
+router.use("/logs", simpleLogsRouter); // Simple logs for production - matches /api/admin/logs
+router.use("/dynos", herokuLogsRouter); // Heroku dynos endpoint - matches /api/admin/dynos
+router.use("/system-logs", systemLogsRouter); // Enhanced system logs with filtering
 router.use("/heroku", herokuLogsRouter);
 router.use("/heroku-debug", herokuDebugRouter); // Debug Heroku API issues
 
