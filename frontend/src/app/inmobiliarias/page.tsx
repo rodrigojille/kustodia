@@ -1,6 +1,7 @@
 import Header from '../../components/Header';
 import { FaHome, FaShieldAlt, FaRegSmile, FaHandshake, FaArrowRight } from 'react-icons/fa';
 import Link from 'next/link';
+import LandingPageSurvey from '../../components/LandingPageSurvey';
 
 export default function InmobiliariasUseCase() {
   return (
@@ -193,14 +194,34 @@ export default function InmobiliariasUseCase() {
             <p className="text-lg md:text-xl text-gray-600 mb-8">
               Lee nuestro blog: <Link href="/blog/evitar-fraudes-inmobiliarias" className="text-blue-600 underline hover:text-blue-800 font-semibold transition-colors">Cómo evitar fraudes en ventas inmobiliarias</Link>
             </p>
+            
+            <div className="flex justify-center mb-6">
+              <Link 
+                href="/#early-access" 
+                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                🚀 Acceso Anticipado Gratis
+              </Link>
+            </div>
+            
             <Link 
               href="/" 
-              className="inline-block bg-gray-100 text-blue-700 font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+              className="inline-block bg-gray-100 text-blue-700 font-semibold px-6 py-3 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
             >
               Volver al inicio
             </Link>
           </div>
         </section>
+
+        {/* Landing Page Survey */}
+        <LandingPageSurvey 
+          vertical="inmobiliarias"
+          pageName="inmobiliarias"
+          variant="original"
+          triggerAfterSeconds={45}
+          showOnScrollPercentage={70}
+          showOnExit={true}
+        />
       </main>
     </>
   );

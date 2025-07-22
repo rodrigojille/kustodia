@@ -18,6 +18,7 @@ import {
 } from 'react-icons/fa';
 import Link from 'next/link';
 import { useAnalyticsContext } from '../../../components/AnalyticsProvider';
+import PostHogSurvey from '../../../components/PostHogSurvey';
 
 // Mock CLABE generation for demo
 const generateMockClabe = () => {
@@ -249,86 +250,484 @@ function DocumentUploadPreview() {
   );
 }
 
-function DisputeResolutionPreview() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const steps = [
-    {
-      title: 'Disputa Reportada',
-      description: 'El comprador reporta un problema con la propiedad',
-      icon: <FaGavel className="text-red-600" />,
-      status: 'completed'
-    },
-    {
-      title: 'Análisis IA',
-      description: 'Nuestro sistema de IA analiza la evidencia automáticamente',
-      icon: <FaRobot className="text-blue-600" />,
-      status: currentStep >= 1 ? 'completed' : 'pending'
-    },
-    {
-      title: 'Revisión Humana',
-      description: 'Un especialista revisa el caso y toma una decisión',
-      icon: <FaEye className="text-green-600" />,
-      status: currentStep >= 2 ? 'completed' : 'pending'
-    },
-    {
-      title: 'Resolución Automática',
-      description: 'Los fondos se liberan o devuelven según la decisión',
-      icon: <FaCheckCircle className="text-purple-600" />,
-      status: currentStep >= 3 ? 'completed' : 'pending'
-    }
-  ];
+function CommissionSplitPreview() {
+  const [commissions, setCommissions] = useState([
+    { id: 1, name: 'Broker Principal', email: 'broker@inmobiliaria.com', percentage: 60, amount: 0, status: 'pending', editable: false },
+    { id: 2, name: 'Co-Broker', email: 'cobroker@partner.com', percentage: 25, amount: 0, status: 'pending', editable: false },
+    { id: 3, name: 'Referido', email: 'referido@network.com', percentage: 15, amount: 0, status: 'pending', editable: false }
+  ]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [propertyValue, setPropertyValue] = useState(2500000);
+  const [commissionRate, setCommissionRate] = useState(5);
+  const [buyerEmail, setBuyerEmail] = useState('comprador@email.com');
+  const [isEditingCommissions, setIsEditingCommissions] = useState(false);
+  const [cobroSent, setCobroSent] = useState(false);
+  const [showCobroPreview, setShowCobroPreview] = useState(false);
+  
+  const totalCommission = (propertyValue * commissionRate) / 100;
 
+  // Update amounts when percentages or property value changes
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentStep(prev => (prev < 3 ? prev + 1 : 0));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    setCommissions(prev => prev.map(c => ({
+      ...c,
+      amount: (totalCommission * c.percentage) / 100
+    })));
+  }, [totalCommission, commissions.map(c => c.percentage).join(',')]);
+
+  const updateCommissionPercentage = (id: number, newPercentage: number) => {
+    setCommissions(prev => prev.map(c => 
+      c.id === id ? { ...c, percentage: Math.max(0, Math.min(100, newPercentage)) } : c
+    ));
+  };
+
+  const getTotalPercentage = () => {
+    return commissions.reduce((sum, c) => sum + c.percentage, 0);
+  };
+
+  const simulatePayment = () => {
+    setIsProcessing(true);
+    
+    // Simulate payment processing
+    commissions.forEach((commission, index) => {
+      setTimeout(() => {
+        setCommissions(prev => prev.map(c => 
+          c.id === commission.id ? { ...c, status: 'completed' } : c
+        ));
+        
+        if (index === commissions.length - 1) {
+          setIsProcessing(false);
+        }
+      }, (index + 1) * 1000);
+    });
+  };
+
+  const simulateSendCobro = () => {
+    setShowCobroPreview(true);
+    setTimeout(() => {
+      setCobroSent(true);
+      setShowCobroPreview(false);
+    }, 2000);
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
       <div className="flex items-center gap-3 mb-6">
-        <FaShieldAlt className="text-orange-600 text-2xl" />
-        <h3 className="text-2xl font-bold text-gray-900">Sistema de Resolución de Disputas</h3>
+        <FaHandshake className="text-green-600 text-2xl" />
+        <h3 className="text-2xl font-bold text-gray-900">División Automática de Comisiones</h3>
       </div>
       
-      <p className="text-gray-600 mb-8">
-        Si surge algún problema, nuestro sistema automatizado garantiza una resolución justa y rápida.
+      <p className="text-gray-600 mb-6">
+        Configura las comisiones y simula el envío del cobro al comprador.
       </p>
       
-      <div className="space-y-6">
-        {steps.map((step, index) => (
-          <div key={index} className="flex items-start gap-4">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
-              step.status === 'completed' 
-                ? 'bg-green-50 border-green-200' 
-                : index === currentStep 
-                  ? 'bg-blue-50 border-blue-200 animate-pulse'
-                  : 'bg-gray-50 border-gray-200'
-            }`}>
-              {step.icon}
+      {/* Property Value and Commission Rate Controls */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
+        <h4 className="font-semibold text-blue-800 mb-4">Configuración de la Propiedad</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Valor de la Propiedad</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+              <input
+                type="number"
+                value={propertyValue}
+                onChange={(e) => setPropertyValue(Number(e.target.value))}
+                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="2,500,000"
+              />
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">MXN</span>
             </div>
-            <div className="flex-1">
-              <h4 className={`font-semibold text-lg ${
-                step.status === 'completed' ? 'text-green-800' : 'text-gray-900'
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tasa de Comisión</label>
+            <div className="relative">
+              <input
+                type="number"
+                value={commissionRate}
+                onChange={(e) => setCommissionRate(Number(e.target.value))}
+                className="w-full pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                min="0"
+                max="10"
+                step="0.5"
+              />
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-blue-200">
+          <div className="flex justify-between items-center">
+            <span className="text-blue-800 font-semibold">Comisión Total:</span>
+            <span className="text-blue-900 font-bold text-xl">${totalCommission.toLocaleString('es-MX')} MXN</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Buyer Email Input */}
+      <div className="bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <label className="block text-sm font-medium text-purple-800 mb-2">Email del Comprador</label>
+        <input
+          type="email"
+          value={buyerEmail}
+          onChange={(e) => setBuyerEmail(e.target.value)}
+          className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="comprador@email.com"
+        />
+      </div>
+      
+      {/* Commission Distribution Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="font-semibold text-gray-900">Distribución de Comisiones</h4>
+        <button
+          onClick={() => setIsEditingCommissions(!isEditingCommissions)}
+          className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+        >
+          {isEditingCommissions ? '✅ Guardar' : '✏️ Editar %'}
+        </button>
+      </div>
+      
+      <div className="space-y-4 mb-6">
+        {commissions.map((commission) => (
+          <div key={commission.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                commission.status === 'completed' ? 'bg-green-100' : 
+                isProcessing ? 'bg-yellow-100' : 'bg-gray-100'
               }`}>
-                {step.title}
-                {step.status === 'completed' && <span className="ml-2 text-green-600">✅</span>}
-                {index === currentStep && step.status !== 'completed' && <span className="ml-2 text-blue-600">🔄</span>}
-              </h4>
-              <p className="text-gray-600 mt-1">{step.description}</p>
+                {commission.status === 'completed' ? (
+                  <FaCheckCircle className="text-green-600" />
+                ) : isProcessing ? (
+                  <FaClock className="text-yellow-600 animate-spin" />
+                ) : isEditingCommissions ? (
+                  <input
+                    type="number"
+                    value={commission.percentage}
+                    onChange={(e) => updateCommissionPercentage(commission.id, Number(e.target.value))}
+                    className="w-8 h-8 text-xs text-center border border-gray-300 rounded"
+                    min="0"
+                    max="100"
+                  />
+                ) : (
+                  <span className="text-gray-600 font-bold text-sm">{commission.percentage}%</span>
+                )}
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">{commission.name}</div>
+                <div className="text-sm text-gray-600">{commission.email}</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-bold text-gray-900">${commission.amount.toLocaleString('es-MX')} MXN</div>
+              <div className={`text-sm font-medium ${
+                commission.status === 'completed' ? 'text-green-600' :
+                isProcessing ? 'text-yellow-600' : 'text-gray-500'
+              }`}>
+                {commission.status === 'completed' ? '✅ Transferido' :
+                 isProcessing ? '🔄 Procesando...' : `${commission.percentage}% del total`}
+              </div>
             </div>
           </div>
         ))}
       </div>
       
-      <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <FaRobot className="text-blue-600" />
-          <span className="font-semibold text-blue-800">IA + Humano = Resolución Justa</span>
+      {/* Percentage Validation */}
+      {isEditingCommissions && (
+        <div className={`p-3 rounded-lg mb-4 ${
+          getTotalPercentage() === 100 
+            ? 'bg-green-50 border border-green-200' 
+            : 'bg-yellow-50 border border-yellow-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span className="font-medium">
+              Total de Porcentajes: {getTotalPercentage()}%
+            </span>
+            {getTotalPercentage() === 100 ? (
+              <span className="text-green-600">✅ Perfecto</span>
+            ) : (
+              <span className="text-yellow-600">⚠️ Debe sumar 100%</span>
+            )}
+          </div>
         </div>
-        <p className="text-blue-700 text-sm">
-          Combinamos análisis automatizado con revisión humana para garantizar decisiones justas en menos de 48 horas.
+      )}
+      
+      {/* Action Buttons */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button
+          onClick={simulateSendCobro}
+          disabled={cobroSent || showCobroPreview || getTotalPercentage() !== 100}
+          className={`py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
+            cobroSent
+              ? 'bg-green-100 text-green-700 cursor-default'
+              : showCobroPreview
+                ? 'bg-blue-100 text-blue-700 cursor-not-allowed'
+                : getTotalPercentage() !== 100
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl'
+          }`}
+        >
+          {cobroSent ? '✅ Cobro Enviado al Comprador' :
+           showCobroPreview ? '📧 Enviando Cobro...' : '📧 Enviar Cobro al Comprador'}
+        </button>
+        
+        <button
+          onClick={simulatePayment}
+          disabled={!cobroSent || isProcessing || commissions.every(c => c.status === 'completed')}
+          className={`py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
+            !cobroSent
+              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              : isProcessing || commissions.every(c => c.status === 'completed')
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl'
+          }`}
+        >
+          {!cobroSent ? '⏳ Primero envía el cobro' :
+           commissions.every(c => c.status === 'completed') ? '✅ Comisiones Distribuidas' :
+           isProcessing ? '🔄 Distribuyendo Comisiones...' : '💰 Simular Pago del Comprador'}
+        </button>
+      </div>
+      
+      {/* Cobro Preview */}
+      {showCobroPreview && (
+        <div className="mt-6 p-6 bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200 rounded-lg animate-pulse">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">📧</span>
+            <h4 className="font-semibold text-purple-800">Enviando Cobro por Email...</h4>
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-purple-200">
+            <div className="text-sm text-gray-600 mb-2">Para: {buyerEmail}</div>
+            <div className="text-sm text-gray-600 mb-2">Asunto: Solicitud de Pago - Propiedad ${propertyValue.toLocaleString('es-MX')} MXN</div>
+            <div className="text-sm text-gray-700">
+              Se ha generado una solicitud de pago seguro por ${propertyValue.toLocaleString('es-MX')} MXN.
+              Los fondos se mantendrán en custodia hasta completar la transacción.
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Success Message */}
+      {cobroSent && (
+        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <FaCheckCircle className="text-green-600" />
+            <span className="font-semibold text-green-800">Cobro Enviado Exitosamente</span>
+          </div>
+          <p className="text-green-700 text-sm">
+            El comprador ({buyerEmail}) recibirá un email con las instrucciones de pago.
+            Una vez que pague, las comisiones se distribuirán automáticamente.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PaymentTrackerPreview() {
+  const [currentStatus, setCurrentStatus] = useState(0);
+  const [approvals, setApprovals] = useState({
+    buyer: false,
+    seller: false
+  });
+  
+  const statuses = [
+    { title: 'Pago Iniciado', description: 'Comprador deposita fondos en custodia', icon: '💰', completed: true },
+    { title: 'Fondos Verificados', description: 'Sistema confirma recepción de fondos', icon: '✅', completed: true },
+    { title: 'Documentos Subidos', description: 'Vendedor sube documentos de la propiedad', icon: '📄', completed: true },
+    { title: 'Verificación Pendiente', description: 'Documentos en proceso de verificación', icon: '🔍', completed: currentStatus >= 3 },
+    { title: 'Aprobación Dual', description: 'Esperando aprobación de ambas partes', icon: '👥', completed: currentStatus >= 4 },
+    { title: 'Fondos Liberados', description: 'Pago automático al vendedor', icon: '🎉', completed: currentStatus >= 5 }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentStatus(prev => {
+        if (prev < 5) {
+          return prev + 1;
+        } else {
+          // Reset for demo
+          setApprovals({ buyer: false, seller: false });
+          return 0;
+        }
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (currentStatus === 4) {
+      // Simulate approvals
+      setTimeout(() => setApprovals(prev => ({ ...prev, buyer: true })), 500);
+      setTimeout(() => setApprovals(prev => ({ ...prev, seller: true })), 1000);
+    }
+  }, [currentStatus]);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+      <div className="flex items-center gap-3 mb-6">
+        <FaEye className="text-blue-600 text-2xl" />
+        <h3 className="text-2xl font-bold text-gray-900">Rastreador de Pagos en Tiempo Real</h3>
+      </div>
+      
+      <p className="text-gray-600 mb-6">
+        Seguimiento completo del estado de la transacción con aprobación dual automática.
+      </p>
+      
+      <div className="space-y-4 mb-6">
+        {statuses.map((status, index) => (
+          <div key={index} className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2 ${
+              status.completed 
+                ? 'bg-green-50 border-green-200' 
+                : index === currentStatus 
+                  ? 'bg-blue-50 border-blue-200 animate-pulse'
+                  : 'bg-gray-50 border-gray-200'
+            }`}>
+              {status.icon}
+            </div>
+            <div className="flex-1">
+              <h4 className={`font-semibold ${
+                status.completed ? 'text-green-800' : 'text-gray-900'
+              }`}>
+                {status.title}
+                {status.completed && <span className="ml-2 text-green-600">✅</span>}
+                {index === currentStatus && !status.completed && <span className="ml-2 text-blue-600">🔄</span>}
+              </h4>
+              <p className="text-gray-600 text-sm">{status.description}</p>
+            </div>
+            <div className="text-sm text-gray-500">
+              {status.completed ? 'Completado' : index === currentStatus ? 'En proceso' : 'Pendiente'}
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {currentStatus === 4 && (
+        <div className="bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200 rounded-lg p-4 mb-4">
+          <h4 className="font-semibold text-purple-800 mb-3">Aprobación Dual Requerida</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className={`p-3 rounded-lg border ${
+              approvals.buyer ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                {approvals.buyer ? <FaCheckCircle className="text-green-600" /> : <FaClock className="text-gray-400" />}
+                <span className={`font-medium ${
+                  approvals.buyer ? 'text-green-800' : 'text-gray-600'
+                }`}>Comprador</span>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                {approvals.buyer ? 'Aprobado ✅' : 'Esperando aprobación...'}
+              </p>
+            </div>
+            <div className={`p-3 rounded-lg border ${
+              approvals.seller ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                {approvals.seller ? <FaCheckCircle className="text-green-600" /> : <FaClock className="text-gray-400" />}
+                <span className={`font-medium ${
+                  approvals.seller ? 'text-green-800' : 'text-gray-600'
+                }`}>Vendedor</span>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                {approvals.seller ? 'Aprobado ✅' : 'Esperando aprobación...'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NotificationSystemPreview() {
+  const [notifications, setNotifications] = useState([
+    { id: 1, type: 'success', title: 'Pago Recibido', message: 'Se recibieron $250,000 MXN en custodia', time: '2 min', read: false },
+    { id: 2, type: 'info', title: 'Documentos Verificados', message: 'Escritura pública verificada exitosamente', time: '5 min', read: false },
+    { id: 3, type: 'warning', title: 'Aprobación Requerida', message: 'Se requiere tu aprobación para liberar fondos', time: '10 min', read: true }
+  ]);
+  
+  const [newNotification, setNewNotification] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNewNotification(true);
+      const newNotif = {
+        id: Date.now(),
+        type: 'success',
+        title: 'Comisión Transferida',
+        message: `Comisión de $${(Math.random() * 50000 + 10000).toFixed(0)} MXN transferida`,
+        time: 'Ahora',
+        read: false
+      };
+      
+      setNotifications(prev => [newNotif, ...prev.slice(0, 2)]);
+      
+      setTimeout(() => setNewNotification(false), 2000);
+    }, 8000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'success': return '✅';
+      case 'info': return 'ℹ️';
+      case 'warning': return '⚠️';
+      default: return '📢';
+    }
+  };
+
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'success': return 'border-green-200 bg-green-50';
+      case 'info': return 'border-blue-200 bg-blue-50';
+      case 'warning': return 'border-yellow-200 bg-yellow-50';
+      default: return 'border-gray-200 bg-gray-50';
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="relative">
+          <span className="text-2xl">🔔</span>
+          {newNotification && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+          )}
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900">Sistema de Notificaciones</h3>
+      </div>
+      
+      <p className="text-gray-600 mb-6">
+        Mantente informado de cada paso de tus transacciones inmobiliarias en tiempo real.
+      </p>
+      
+      <div className="space-y-3">
+        {notifications.map((notification) => (
+          <div key={notification.id} className={`p-4 rounded-lg border transition-all duration-300 ${
+            getNotificationColor(notification.type)
+          } ${!notification.read ? 'ring-2 ring-blue-200' : ''}`}>
+            <div className="flex items-start gap-3">
+              <span className="text-xl">{getNotificationIcon(notification.type)}</span>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-semibold text-gray-900">{notification.title}</h4>
+                  <span className="text-xs text-gray-500">{notification.time}</span>
+                </div>
+                <p className="text-gray-700 text-sm">{notification.message}</p>
+              </div>
+              {!notification.read && (
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-lg">📱</span>
+          <span className="font-semibold text-gray-800">Notificaciones Multicanal</span>
+        </div>
+        <p className="text-gray-700 text-sm">
+          Recibe notificaciones por email, SMS, WhatsApp y push notifications en tiempo real.
         </p>
       </div>
     </div>
@@ -383,22 +782,97 @@ export default function InmobiliariasEnhanced() {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-500 mb-8 max-w-4xl mx-auto leading-relaxed font-light">
-              Calcula tu custodia, sube documentos y protege cada peso con tecnología blockchain. 
-              <span className="text-blue-600 font-semibold"> Todo en un solo lugar.</span>
+              Para <span className="text-green-600 font-semibold">brokers</span>, <span className="text-blue-600 font-semibold">compradores</span> y <span className="text-purple-600 font-semibold">vendedores</span>. 
+              <span className="text-gray-900 font-semibold"> Protección total para todos.</span>
             </p>
-            
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
-                <FaCalculator className="text-blue-600" />
-                <span className="text-gray-700 font-medium">Calculadora Integrada</span>
+          </div>
+
+          {/* Three Use Cases */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {/* Brokers */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-lg border border-green-200 p-8 text-center group hover:shadow-xl transition-all duration-300">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                <FaHandshake className="text-green-700 text-2xl" />
               </div>
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
-                <FaFileContract className="text-purple-600" />
-                <span className="text-gray-700 font-medium">Verificación de Documentos</span>
+              <h3 className="text-xl font-bold text-green-800 mb-4">Para Brokers</h3>
+              <ul className="text-green-700 text-left space-y-2 mb-6">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Comisiones transferidas en tiempo real</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Reduce incertidumbre de ventas</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Distribución automática de comisiones</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Ahorra tiempo en cobros</span>
+                </li>
+              </ul>
+              <div className="bg-green-100 rounded-lg p-3">
+                <p className="text-green-800 font-semibold text-sm">💰 Genera cobros seguros con comisiones automáticas</p>
               </div>
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
-                <FaRobot className="text-green-600" />
-                <span className="text-gray-700 font-medium">Resolución IA</span>
+            </div>
+
+            {/* Buyers */}
+            <div className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-2xl shadow-lg border border-blue-200 p-8 text-center group hover:shadow-xl transition-all duration-300">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                <FaShieldAlt className="text-blue-700 text-2xl" />
+              </div>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Para Compradores</h3>
+              <ul className="text-blue-700 text-left space-y-2 mb-6">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">✓</span>
+                  <span>Tranquilidad total en la compra</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">✓</span>
+                  <span>Dinero protegido hasta entrega</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">✓</span>
+                  <span>Resolución automática de problemas</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">✓</span>
+                  <span>Reembolso garantizado si algo falla</span>
+                </li>
+              </ul>
+              <div className="bg-blue-100 rounded-lg p-3">
+                <p className="text-blue-800 font-semibold text-sm">🛡️ Protección completa de tu inversión</p>
+              </div>
+            </div>
+
+            {/* Sellers */}
+            <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl shadow-lg border border-purple-200 p-8 text-center group hover:shadow-xl transition-all duration-300">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                <FaCheckCircle className="text-purple-700 text-2xl" />
+              </div>
+              <h3 className="text-xl font-bold text-purple-800 mb-4">Para Vendedores</h3>
+              <ul className="text-purple-700 text-left space-y-2 mb-6">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 font-bold">✓</span>
+                  <span>Garantía de fondos del comprador</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 font-bold">✓</span>
+                  <span>Pago automático al cumplir condiciones</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 font-bold">✓</span>
+                  <span>Sin riesgo de transacciones fallidas</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 font-bold">✓</span>
+                  <span>Proceso transparente y seguro</span>
+                </li>
+              </ul>
+              <div className="bg-purple-100 rounded-lg p-3">
+                <p className="text-purple-800 font-semibold text-sm">💎 Vende con total seguridad y confianza</p>
               </div>
             </div>
           </div>
@@ -409,14 +883,22 @@ export default function InmobiliariasEnhanced() {
           <PropertyEscrowCalculator onCalculate={handleCalculatorUse} />
         </section>
 
-        {/* Document Upload Preview */}
+        {/* Interactive Features */}
         <section className="w-full max-w-7xl px-6 mx-auto mb-20">
-          <DocumentUploadPreview />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <DocumentUploadPreview />
+            <CommissionSplitPreview />
+          </div>
         </section>
-
-        {/* Dispute Resolution Preview */}
+        
+        {/* Payment Tracking */}
         <section className="w-full max-w-7xl px-6 mx-auto mb-20">
-          <DisputeResolutionPreview />
+          <PaymentTrackerPreview />
+        </section>
+        
+        {/* Notification System */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-20">
+          <NotificationSystemPreview />
         </section>
 
         {/* Benefits Section */}
@@ -470,27 +952,21 @@ export default function InmobiliariasEnhanced() {
               Únete a los agentes inmobiliarios que ya protegen sus transacciones con Kustodia
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex justify-center">
               <Link 
-                href="/register" 
+                href="/#early-access" 
                 onClick={() => {
-                  trackUserAction('enhanced_page_signup_clicked', {
+                  trackUserAction('enhanced_page_early_access_clicked', {
                     source: 'real_estate_enhanced',
                     journey_stage: 'conversion',
                     calculator_used: !!calculatorData,
-                    property_value: calculatorData?.propertyValue || null
+                    property_value: calculatorData?.propertyValue || null,
+                    user_type: 'all_personas' // brokers, buyers, sellers
                   });
                 }}
                 className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
               >
-                Crear Cuenta Gratis
-              </Link>
-              
-              <Link 
-                href="/inmobiliarias" 
-                className="inline-block bg-white text-blue-700 border-2 border-blue-200 text-lg font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
-              >
-                Ver Página Original
+                🚀 Acceso Anticipado Gratis
               </Link>
             </div>
             
@@ -506,6 +982,13 @@ export default function InmobiliariasEnhanced() {
             )}
           </div>
         </section>
+
+        {/* PostHog Survey Integration */}
+        <PostHogSurvey 
+          trigger="auto"
+          showOnPage={['/inmobiliarias/enhanced']}
+          className="fixed bottom-4 right-4 z-50"
+        />
       </main>
     </>
   );
