@@ -1,5 +1,7 @@
 /**
  * Authenticated fetch utility that uses direct backend calls with proper CORS and localStorage token
+ * Supports both localStorage tokens and HTTP-only cookies
+ * Handles both production and local environments
  */
 
 interface FetchOptions {
@@ -24,12 +26,12 @@ export async function authFetch(endpoint: string, options: FetchOptions = {}) {
   // Always check for localStorage token in browser environment
   const localStorageToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
   
-  // Send localStorage token via x-auth-token header (for proxy route)
+  // Send localStorage token via x-auth-token header (for proxy route) if available
   if (localStorageToken) {
     headers['x-auth-token'] = localStorageToken;
     console.log('[AUTH FETCH] Adding localStorage token to x-auth-token header');
   } else {
-    console.log('[AUTH FETCH] No localStorage token found');
+    console.log('[AUTH FETCH] No localStorage token found - relying on HTTP-only cookies');
   }
 
   // Use Next.js proxy route for all requests
@@ -40,6 +42,7 @@ export async function authFetch(endpoint: string, options: FetchOptions = {}) {
     const response = await fetch(proxyUrl, {
       ...options,
       headers,
+      credentials: 'include', // Important: Include cookies in the request
       // Add timeout to prevent hanging requests
       signal: AbortSignal.timeout(30000) // 30 second timeout
     });
