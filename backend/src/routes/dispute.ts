@@ -26,4 +26,19 @@ router.get("/ai-assessment/:disputeId", authenticateJWT, requireAdminRole, async
 // Get batch AI risk assessments (admin only)
 router.post("/ai-assessment/batch", authenticateJWT, requireAdminRole, asyncHandler(getBatchDisputeRiskAssessments));
 
+// DEBUG: Test authentication in dispute router WITHOUT asyncHandler
+router.get('/debug-auth', authenticateJWT, requireAdminRole, async (req: any, res: any) => {
+  const user = req.user;
+  res.json({
+    success: true,
+    message: 'Dispute router authentication working (no asyncHandler)',
+    user: {
+      id: user?.id,
+      email: user?.email,
+      role: user?.role
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 export default router;
