@@ -23,8 +23,14 @@ router.get("/:escrowId/timeline", authenticateJWT, asyncHandler(getDisputeTimeli
 router.post("/:escrowId/admin-resolve", authenticateJWT, asyncHandler(adminResolveDispute));
 // Get AI risk assessment for a dispute (admin only)
 router.get("/ai-assessment/:disputeId", authenticateJWT, requireAdminRole, asyncHandler(getDisputeRiskAssessment));
-// Get batch AI risk assessments (admin only)
-router.post("/ai-assessment/batch", authenticateJWT, requireAdminRole, asyncHandler(getBatchDisputeRiskAssessments));
+// Get batch AI risk assessments (admin only) - FIXED: Removed asyncHandler to fix JWT auth
+router.post("/ai-assessment/batch", authenticateJWT, requireAdminRole, async (req: any, res: any, next: any) => {
+  try {
+    await getBatchDisputeRiskAssessments(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // DEBUG: Test authentication in dispute router WITHOUT asyncHandler
 router.get('/debug-auth', authenticateJWT, requireAdminRole, async (req: any, res: any) => {
