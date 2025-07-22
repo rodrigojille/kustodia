@@ -124,9 +124,9 @@ function FreelancerBenefits() {
           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <FaClock className="text-purple-600 text-2xl" />
           </div>
-          <h4 className="font-semibold text-gray-900 mb-2">Pagos Automáticos</h4>
+          <h4 className="font-semibold text-gray-900 mb-2">Liberación Controlada</h4>
           <p className="text-sm text-gray-600">
-            Al entregar el trabajo, recibes tu pago automáticamente. Sin esperas, sin excusas.
+            Al entregar el trabajo y cumplir las condiciones, el pago se libera. Sin esperas innecesarias.
           </p>
         </div>
       </div>
@@ -140,15 +140,15 @@ export default function TrustFocusedFreelancer() {
       vertical="freelancer"
       heroIcon={<FaUserTie className="text-blue-700 text-4xl" />}
       heroTitle="Nunca más trabajes con miedo a no cobrar"
-      heroSubtitle="Tu pago protegido desde el primer día. Si el cliente no paga, nosotros te pagamos."
-      heroDescription="Somos la única plataforma que garantiza el pago de freelancers mexicanos. Tu trabajo vale, y nosotros lo protegemos."
+      heroSubtitle="Tu pago protegido desde el primer día. El cliente deposita en custodia antes de que empieces."
+      heroDescription="Plataforma de custodia que protege el pago de freelancers. Tu trabajo vale, y el dinero está seguro hasta la entrega."
       customSections={[
         <FreelancerPainPoints key="pain-points" />,
         <FreelancerBenefits key="benefits" />
       ]}
       ctaText="Proteger mis pagos gratis"
       finalCtaTitle="¿Listo para trabajar sin miedo?"
-      finalCtaDescription="Únete a más de 500 freelancers mexicanos que ya protegen sus pagos con nosotros"
+      finalCtaDescription="Únete a los freelancers que ya protegen sus pagos con custodia segura"
     />
   );
 }

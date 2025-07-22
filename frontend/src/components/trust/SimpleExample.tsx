@@ -53,10 +53,10 @@ const verticalExamples = {
     warningText: "Si el cliente cancela sin razón: Te pagamos el 50% del proyecto por el tiempo invertido."
   },
   inmobiliarias: {
-    title: "Ejemplo: Compra de casa de $2,500,000",
-    subtitle: "Ve cómo protegemos tu dinero paso a paso",
-    amount: "$2,500,000",
-    scenario: "compra_casa",
+    title: "Ejemplo: Compra de Casa con Kustodia",
+    subtitle: "Como funciona nuestro sistema de custodia",
+    scenario: "Compras una casa de $2,500,000 pesos - Casos reales de redes sociales",
+    scenarioType: "compra_casa",
     steps: [
       {
         title: "Depositas tu dinero",
@@ -65,19 +65,19 @@ const verticalExamples = {
         color: 'green' as const
       },
       {
-        title: "Verificamos la propiedad",
-        description: "Nuestro equipo confirma que todo esté en orden",
+        title: "Adjuntas documentos",
+        description: "Contratos y escrituras quedan registrados",
         icon: 'shield' as const,
         color: 'blue' as const
       },
       {
-        title: "Recibes tu casa",
-        description: "El vendedor recibe el pago automáticamente",
+        title: "Ambas partes confirman",
+        description: "El vendedor recibe el pago cuando confirmas",
         icon: 'money' as const,
         color: 'purple' as const
       }
     ],
-    warningText: "Si algo sale mal: Te devolvemos todo tu dinero en 24 horas. Sin preguntas."
+    warningText: "Si algo sale mal: Nuestro sistema de disputas protege tu dinero."
   },
   marketplaces: {
     title: "Ejemplo: Compra de laptop de $25,000",

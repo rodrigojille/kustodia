@@ -80,10 +80,10 @@ function DualProtection() {
     <div className="bg-white rounded-2xl shadow-lg p-8 mb-12">
       <div className="text-center mb-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-4">
-          Protección dual: Compradores y Vendedores seguros
+          Custodia segura: Compradores y Vendedores protegidos
         </h3>
         <p className="text-lg text-gray-600">
-          La única plataforma que protege ambos lados de la transacción
+          Plataforma de custodia que protege ambos lados de la transacción
         </p>
       </div>
       
@@ -122,8 +122,8 @@ function DualProtection() {
                 <span className="text-green-700 text-xs font-bold">✓</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-900">Vendedores verificados</p>
-                <p className="text-sm text-gray-600">Solo vendedores confiables en nuestra plataforma</p>
+                <p className="font-semibold text-gray-900">Protección total</p>
+                <p className="text-sm text-gray-600">Tu dinero está seguro hasta recibir el producto</p>
               </div>
             </div>
           </div>
@@ -153,8 +153,8 @@ function DualProtection() {
                 <span className="text-blue-700 text-xs font-bold">✓</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-900">Sin chargebacks</p>
-                <p className="text-sm text-gray-600">Protección total contra reclamos fraudulentos</p>
+                <p className="font-semibold text-gray-900">Pago en custodia</p>
+                <p className="text-sm text-gray-600">El dinero se libera solo cuando se cumplen las condiciones</p>
               </div>
             </div>
             
@@ -163,8 +163,8 @@ function DualProtection() {
                 <span className="text-blue-700 text-xs font-bold">✓</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-900">Compradores verificados</p>
-                <p className="text-sm text-gray-600">Solo tratas con compradores reales y confiables</p>
+                <p className="font-semibold text-gray-900">Resolución de disputas</p>
+                <p className="text-sm text-gray-600">Sistema de mediación si hay desacuerdos</p>
               </div>
             </div>
           </div>
@@ -190,15 +190,15 @@ export default function TrustFocusedMarketplaces() {
       vertical="marketplaces"
       heroIcon={<FaShoppingCart className="text-blue-700 text-4xl" />}
       heroTitle="Compra y vende en línea sin riesgos"
-      heroSubtitle="Protección total para compradores y vendedores. Tu dinero seguro hasta recibir el producto."
-      heroDescription="La única plataforma que protege ambos lados de la transacción. Compradores y vendedores pueden hacer negocios con total confianza."
+      heroSubtitle="Custodia segura para compradores y vendedores. El dinero se libera cuando se cumplen las condiciones."
+      heroDescription="Plataforma de custodia que protege ambos lados de la transacción. Compradores y vendedores pueden hacer negocios con mayor confianza."
       customSections={[
         <MarketplaceTrustIssues key="trust-issues" />,
         <DualProtection key="dual-protection" />
       ]}
       ctaText="Comprar con seguridad"
       finalCtaTitle="¿Listo para comprar y vender sin riesgos?"
-      finalCtaDescription="Miles de compradores y vendedores ya confían en nosotros para sus transacciones"
+      finalCtaDescription="Compradores y vendedores ya usan custodia segura para sus transacciones"
     />
   );
 }

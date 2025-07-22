@@ -2,11 +2,10 @@ import { ReactNode } from 'react';
 import Header from '../Header';
 import Link from 'next/link';
 import { useAnalyticsContext } from '../AnalyticsProvider';
-import MexicanTeam from './MexicanTeam';
+
 import SimpleGuarantee from './SimpleGuarantee';
 import SimpleExample from './SimpleExample';
 import RealTestimonials from './RealTestimonials';
-import HumanContact from './HumanContact';
 import { FaShieldAlt, FaHeart, FaCheckCircle } from 'react-icons/fa';
 
 interface TrustFocusedTemplateProps {
@@ -47,11 +46,11 @@ const finalCTATitles = {
 };
 
 const finalCTADescriptions = {
-  freelancer: "Únete a más de 500 freelancers mexicanos que ya protegen sus pagos",
-  inmobiliarias: "Únete a más de 1,000 mexicanos que ya protegen sus transacciones con nosotros",
-  marketplaces: "Miles de compradores y vendedores ya confían en nosotros",
-  ecommerce: "Cientos de tiendas mexicanas ya protegen sus ventas",
-  b2b: "Empresas líderes ya confían en nuestras soluciones"
+  freelancer: "Únete a los freelancers mexicanos que protegen sus pagos",
+  inmobiliarias: "Únete a los mexicanos que protegen sus transacciones inmobiliarias",
+  marketplaces: "Protege tus compras y ventas en línea",
+  ecommerce: "Protege las ventas de tu tienda en línea",
+  b2b: "Soluciones de pago seguro para empresas"
 };
 
 export default function TrustFocusedTemplate({
@@ -116,7 +115,7 @@ export default function TrustFocusedTemplate({
               </Link>
               
               <Link 
-                href={`/${vertical}`}
+                href={['brokers', 'desarrolladores', 'compradores'].includes(vertical) ? '/inmobiliarias' : `/${vertical}`}
                 className="inline-block bg-white text-blue-700 border-2 border-blue-200 text-lg font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
               >
                 Más información
@@ -126,7 +125,7 @@ export default function TrustFocusedTemplate({
             <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
               <div className="flex items-center">
                 <FaShieldAlt className="mr-2 text-green-600" />
-                Regulado por CNBV
+                Custodia Segura
               </div>
               <div className="flex items-center">
                 <FaHeart className="mr-2 text-red-500" />
@@ -134,7 +133,7 @@ export default function TrustFocusedTemplate({
               </div>
               <div className="flex items-center">
                 <FaCheckCircle className="mr-2 text-blue-600" />
-                +1,000 transacciones seguras
+                Soporte 24/7
               </div>
             </div>
           </div>
@@ -152,11 +151,9 @@ export default function TrustFocusedTemplate({
           {/* Default trust sections */}
           {showDefaultSections && (
             <>
-              <MexicanTeam vertical={vertical} />
               <SimpleGuarantee vertical={vertical} />
               <SimpleExample vertical={vertical} />
               <RealTestimonials vertical={vertical} />
-              <HumanContact vertical={vertical} />
             </>
           )}
           

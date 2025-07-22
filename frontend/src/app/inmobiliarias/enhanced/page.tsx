@@ -198,11 +198,11 @@ function DocumentUploadPreview() {
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
       <div className="flex items-center gap-3 mb-6">
         <FaFileContract className="text-purple-600 text-2xl" />
-        <h3 className="text-2xl font-bold text-gray-900">Verificación de Documentos</h3>
+        <h3 className="text-2xl font-bold text-gray-900">Carga de Documentos</h3>
       </div>
       
       <p className="text-gray-600 mb-6">
-        Sube los documentos requeridos para la transacción. Nuestro sistema los verificará automáticamente.
+        Sube los documentos requeridos para la transacción. Las partes pueden revisar y validar la información para mayor transparencia y seguridad.
       </p>
       
       <div className="space-y-4 mb-6">
@@ -790,11 +790,12 @@ export default function InmobiliariasEnhanced() {
           {/* Three Use Cases */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             {/* Brokers */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-lg border border-green-200 p-8 text-center group hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-                <FaHandshake className="text-green-700 text-2xl" />
-              </div>
-              <h3 className="text-xl font-bold text-green-800 mb-4">Para Brokers</h3>
+            <Link href="/inmobiliarias/brokers" className="block">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-lg border border-green-200 p-8 text-center group hover:shadow-xl transition-all duration-300 cursor-pointer">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                  <FaHandshake className="text-green-700 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-green-800 mb-4">Para Brokers</h3>
               <ul className="text-green-700 text-left space-y-2 mb-6">
                 <li className="flex items-start gap-2">
                   <span className="text-green-600 font-bold">✓</span>
@@ -816,14 +817,16 @@ export default function InmobiliariasEnhanced() {
               <div className="bg-green-100 rounded-lg p-3">
                 <p className="text-green-800 font-semibold text-sm">💰 Genera cobros seguros con comisiones automáticas</p>
               </div>
-            </div>
+              </div>
+            </Link>
 
             {/* Buyers */}
-            <div className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-2xl shadow-lg border border-blue-200 p-8 text-center group hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-                <FaShieldAlt className="text-blue-700 text-2xl" />
-              </div>
-              <h3 className="text-xl font-bold text-blue-800 mb-4">Para Compradores</h3>
+            <Link href="/inmobiliarias/compradores" className="block">
+              <div className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-2xl shadow-lg border border-blue-200 p-8 text-center group hover:shadow-xl transition-all duration-300 cursor-pointer">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                  <FaShieldAlt className="text-blue-700 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-blue-800 mb-4">Para Compradores</h3>
               <ul className="text-blue-700 text-left space-y-2 mb-6">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold">✓</span>
@@ -845,14 +848,16 @@ export default function InmobiliariasEnhanced() {
               <div className="bg-blue-100 rounded-lg p-3">
                 <p className="text-blue-800 font-semibold text-sm">🛡️ Protección completa de tu inversión</p>
               </div>
-            </div>
+              </div>
+            </Link>
 
             {/* Sellers */}
-            <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl shadow-lg border border-purple-200 p-8 text-center group hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-                <FaCheckCircle className="text-purple-700 text-2xl" />
-              </div>
-              <h3 className="text-xl font-bold text-purple-800 mb-4">Para Vendedores</h3>
+            <Link href="/inmobiliarias/desarrolladores" className="block">
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl shadow-lg border border-purple-200 p-8 text-center group hover:shadow-xl transition-all duration-300 cursor-pointer">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                  <FaCheckCircle className="text-purple-700 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-purple-800 mb-4">Para Vendedores</h3>
               <ul className="text-purple-700 text-left space-y-2 mb-6">
                 <li className="flex items-start gap-2">
                   <span className="text-purple-600 font-bold">✓</span>
@@ -874,7 +879,8 @@ export default function InmobiliariasEnhanced() {
               <div className="bg-purple-100 rounded-lg p-3">
                 <p className="text-purple-800 font-semibold text-sm">💎 Vende con total seguridad y confianza</p>
               </div>
-            </div>
+              </div>
+            </Link>
           </div>
         </section>
 
