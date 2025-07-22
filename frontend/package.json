@@ -28,7 +28,8 @@
     "react-icons": "^5.5.0",
     "react-social-media-embed": "^2.5.18",
     "recharts": "^2.15.3",
-    "swiper": "^11.2.8"
+    "swiper": "^11.2.8",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@emnapi/core": "1.4.3",
@@ -43,6 +44,7 @@
     "@types/node": "^20",
     "@types/react": "^18.2.62",
     "@types/react-dom": "^18.2.18",
+    "@types/winston": "^2.4.4",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
