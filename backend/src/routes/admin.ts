@@ -24,7 +24,6 @@ import {
   getJunoApiStatus,
   getUserAnalytics
 } from "../controllers/adminController";
-import { getTicketsForAdmin } from "../controllers/ticketController";
 
 const router = Router();
 
