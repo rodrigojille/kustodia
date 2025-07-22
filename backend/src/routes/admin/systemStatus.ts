@@ -15,14 +15,15 @@ dotenv.config();
 const router = Router();
 
 // DEBUG: Test authentication in systemStatus router
-router.get('/debug-auth', authenticateJWT, requireAdminRole, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/debug-auth', authenticateJWT, requireAdminRole, async (req: Request, res: Response) => {
+  const user = (req as any).user;
   res.json({
     success: true,
     message: 'SystemStatus router authentication working',
     user: {
-      id: req.user?.id,
-      email: req.user?.email,
-      role: req.user?.role
+      id: user?.id,
+      email: user?.email,
+      role: user?.role
     },
     timestamp: new Date().toISOString()
   });
