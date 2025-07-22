@@ -8,6 +8,7 @@ import unifiedLogsRouter from './admin/logs';
 import simpleLogsRouter from './admin/logs-simple'; // Simple logs without Heroku API
 import herokuDebugRouter from './admin/heroku-debug'; // Heroku API debugging
 import debugAuthRouter from './admin/debug-auth'; // Authentication debugging
+import { getTicketById, getTicketsForAdmin, createReply, closeTicket } from '../controllers/ticketController';
 import { 
   // Legacy functions
   getAllDisputes, 
@@ -148,5 +149,50 @@ router.use("/logs-unified", unifiedLogsRouter); // Move to different path
 
 // 🐛 Debug Authentication Issues
 router.use("/debug-auth", debugAuthRouter); // Authentication debugging
+
+// 🎫 Admin Ticket Management
+// @route   GET /api/admin/tickets
+// @desc    Get all tickets for admin
+// @access  Private (admin)
+router.get("/tickets", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getTicketsForAdmin(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   GET /api/admin/tickets/:id
+// @desc    Get individual ticket details for admin
+// @access  Private (admin)
+router.get("/tickets/:id", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getTicketById(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   POST /api/admin/tickets/:id/reply
+// @desc    Admin reply to ticket
+// @access  Private (admin)
+router.post("/tickets/:id/reply", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await createReply(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PATCH /api/admin/tickets/:id/close
+// @desc    Admin close ticket
+// @access  Private (admin)
+router.patch("/tickets/:id/close", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await closeTicket(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;

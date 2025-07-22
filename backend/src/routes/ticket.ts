@@ -17,20 +17,8 @@ router.post('/', authenticateJWT, createTicket);
 router.get('/admin', authenticateJWT, getTicketsForAdmin);
 
 // Admin-specific routes for individual tickets - these should match frontend expectations
-// @route   GET /api/admin/tickets/:id
-// @desc    Get individual ticket details for admin
-// @access  Private (admin)
-router.get('/admin/tickets/:id', authenticateJWT, getTicketById);
-
-// @route   POST /api/admin/tickets/:id/reply
-// @desc    Admin reply to ticket
-// @access  Private (admin)
-router.post('/admin/tickets/:id/reply', authenticateJWT, createReply);
-
-// @route   PATCH /api/admin/tickets/:id/close
-// @desc    Admin close ticket
-// @access  Private (admin)
-router.patch('/admin/tickets/:id/close', authenticateJWT, closeTicket);
+// Admin ticket routes moved to /src/routes/admin.ts
+// This avoids path conflicts and keeps admin routes organized
 
 // @route   GET /api/tickets/my-tickets
 // @desc    Get all support tickets for the logged-in user
