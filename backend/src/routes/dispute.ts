@@ -47,4 +47,20 @@ router.get('/debug-auth', authenticateJWT, requireAdminRole, async (req: any, re
   });
 });
 
+// DEBUG: Test POST authentication in dispute router
+router.post('/debug-auth-post', authenticateJWT, requireAdminRole, async (req: any, res: any) => {
+  const user = req.user;
+  res.json({
+    success: true,
+    message: 'Dispute router POST authentication working',
+    user: {
+      id: user?.id,
+      email: user?.email,
+      role: user?.role
+    },
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
 export default router;
