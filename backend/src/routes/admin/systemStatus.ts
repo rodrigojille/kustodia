@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authenticateJWT } from '../../authenticateJWT';
+import { authenticateJWT, AuthenticatedRequest } from '../../authenticateJWT';
 import { requireAdminRole } from '../../middleware/requireAdminRole';
 import AppDataSource from '../../ormconfig';
 import { Payment } from '../../entity/Payment';
@@ -13,6 +13,20 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const router = Router();
+
+// DEBUG: Test authentication in systemStatus router
+router.get('/debug-auth', authenticateJWT, requireAdminRole, async (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    message: 'SystemStatus router authentication working',
+    user: {
+      id: req.user?.id,
+      email: req.user?.email,
+      role: req.user?.role
+    },
+    timestamp: new Date().toISOString()
+  });
+});
 
 // System health check
 async function checkServiceHealth() {
