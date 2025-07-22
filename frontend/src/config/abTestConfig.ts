@@ -1,4 +1,4 @@
-interface ABTestVariant {
+export interface ABTestVariant {
   id: string;
   name: string;
   description: string;
@@ -7,7 +7,7 @@ interface ABTestVariant {
   config: any;
 }
 
-interface ABTest {
+export interface ABTest {
   id: string;
   name: string;
   description: string;
