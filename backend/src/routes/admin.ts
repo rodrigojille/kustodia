@@ -7,6 +7,7 @@ import systemLogsRouter from './admin/systemLogs';
 import unifiedLogsRouter from './admin/logs';
 import simpleLogsRouter from './admin/logs-simple'; // Simple logs without Heroku API
 import herokuDebugRouter from './admin/heroku-debug'; // Heroku API debugging
+import debugAuthRouter from './admin/debug-auth'; // Authentication debugging
 import { 
   // Legacy functions
   getAllDisputes, 
@@ -76,5 +77,8 @@ router.use("/heroku-debug", herokuDebugRouter); // Debug Heroku API issues
 
 // 📋 Unified Logs Endpoint (Auto-detects Environment)
 router.use("/logs-unified", unifiedLogsRouter); // Move to different path
+
+// 🐛 Debug Authentication Issues
+router.use("/debug-auth", debugAuthRouter); // Authentication debugging
 
 export default router;
