@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prepareAdminAuthHeaders, getBackendUrl } from '../../../../utils/adminAuthHeaders';
+import { prepareAdminAuthHeaders, getBackendUrl } from '../../../../../utils/adminAuthHeaders';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic';
