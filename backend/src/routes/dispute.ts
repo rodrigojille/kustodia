@@ -26,7 +26,7 @@ router.get("/ai-assessment/:disputeId", authenticateJWT, requireAdminRole, async
 // Get batch AI risk assessments (admin only) - FIXED: Removed asyncHandler to fix JWT auth
 router.post("/ai-assessment/batch", authenticateJWT, requireAdminRole, async (req: any, res: any, next: any) => {
   try {
-    await getBatchDisputeRiskAssessments(req, res, next);
+    await getBatchDisputeRiskAssessments(req, res);
   } catch (error) {
     next(error);
   }
