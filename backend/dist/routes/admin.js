@@ -10,45 +10,133 @@ const systemStatus_1 = __importDefault(require("./admin/systemStatus"));
 const herokuLogs_1 = __importDefault(require("./admin/herokuLogs"));
 const systemLogs_1 = __importDefault(require("./admin/systemLogs"));
 const logs_1 = __importDefault(require("./admin/logs"));
+const logs_simple_1 = __importDefault(require("./admin/logs-simple")); // Simple logs without Heroku API
+const heroku_debug_1 = __importDefault(require("./admin/heroku-debug")); // Heroku API debugging
+const debug_auth_1 = __importDefault(require("./admin/debug-auth")); // Authentication debugging
 const adminController_1 = require("../controllers/adminController");
 const ticketController_1 = require("../controllers/ticketController");
 const router = (0, express_1.Router)();
-function asyncHandler(fn) {
-    return function (req, res, next) {
-        Promise.resolve(fn(req, res, next)).catch(next);
-    };
-}
+// asyncHandler removed - using direct async functions to fix JWT authentication issues
 // =============================================================================
 // 🚨 LEGACY ADMIN ROUTES (Preserved for backward compatibility)
 // =============================================================================
 // Dispute management
-router.get("/disputes", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getAllDisputes));
+router.get("/disputes", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getAllDisputes)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // User management
-router.get("/users", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getAllUsersWithDetails));
-router.get("/users/:userId/clabes", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getUserClabes));
-router.get("/users/:userId/deposits", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getUserDeposits));
+router.get("/users", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getAllUsersWithDetails)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get("/users/:userId/clabes", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getUserClabes)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get("/users/:userId/deposits", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getUserDeposits)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // Transaction/escrow management
-router.get("/payments", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getAllPayments));
+router.get("/payments", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getAllPayments)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // Support tickets
-router.get("/tickets", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(ticketController_1.getTicketsForAdmin));
+router.get("/tickets", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, ticketController_1.getTicketsForAdmin)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // =============================================================================
 // 🎯 PAYMENT OPERATIONS CONTROL ROOM ROUTES
 // =============================================================================
 // 📊 Analytics Dashboard
-router.get("/analytics/payments", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getPaymentAnalytics));
-router.get("/analytics/users", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getUserAnalytics));
+router.get("/analytics/payments", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getPaymentAnalytics)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get("/analytics/users", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getUserAnalytics)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // 🔍 Advanced Search & Troubleshooting
-router.get("/payments/search", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.searchPayments));
-router.get("/health/payments", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getPaymentHealth));
+router.get("/payments/search", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.searchPayments)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get("/health/payments", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getPaymentHealth)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // 🔧 Operations & Fixes
-router.post("/operations/bulk-fix-uuids", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.bulkFixMissingUUIDs));
+router.post("/operations/bulk-fix-uuids", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.bulkFixMissingUUIDs)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // 🏦 External API Monitoring
-router.get("/monitoring/juno-status", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, asyncHandler(adminController_1.getJunoApiStatus));
+router.get("/monitoring/juno-status", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getJunoApiStatus)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // 🎮 System Status & Operations Center
-router.use("/system", systemStatus_1.default);
-router.use("/system", systemLogs_1.default);
-// 📊 Heroku Platform Logs & Monitoring
+// Use system routers
+router.use("/system", systemStatus_1.default); // Main system status routes (/overview, /activity)
+router.use("/logs", logs_simple_1.default); // Simple logs for production - matches /api/admin/logs
+router.use("/dynos", herokuLogs_1.default); // Heroku dynos endpoint - matches /api/admin/dynos
+router.use("/system-logs", systemLogs_1.default); // Enhanced system logs with filtering
 router.use("/heroku", herokuLogs_1.default);
+router.use("/heroku-debug", heroku_debug_1.default); // Debug Heroku API issues
 // 📋 Unified Logs Endpoint (Auto-detects Environment)
-router.use("/", logs_1.default);
+router.use("/logs-unified", logs_1.default); // Move to different path
+// 🐛 Debug Authentication Issues
+router.use("/debug-auth", debug_auth_1.default); // Authentication debugging
 exports.default = router;

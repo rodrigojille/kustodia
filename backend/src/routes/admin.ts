@@ -27,44 +27,112 @@ import { getTicketsForAdmin } from "../controllers/ticketController";
 
 const router = Router();
 
-function asyncHandler(fn: any) {
-  return function(req: any, res: any, next: any) {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-}
+// asyncHandler removed - using direct async functions to fix JWT authentication issues
 
 // =============================================================================
 // 🚨 LEGACY ADMIN ROUTES (Preserved for backward compatibility)
 // =============================================================================
 
 // Dispute management
-router.get("/disputes", authenticateJWT, requireAdminRole, asyncHandler(getAllDisputes));
+router.get("/disputes", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getAllDisputes(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 // User management
-router.get("/users", authenticateJWT, requireAdminRole, asyncHandler(getAllUsersWithDetails));
-router.get("/users/:userId/clabes", authenticateJWT, requireAdminRole, asyncHandler(getUserClabes));
-router.get("/users/:userId/deposits", authenticateJWT, requireAdminRole, asyncHandler(getUserDeposits));
+router.get("/users", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getAllUsersWithDetails(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+router.get("/users/:userId/clabes", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getUserClabes(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+router.get("/users/:userId/deposits", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getUserDeposits(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 // Transaction/escrow management
-router.get("/payments", authenticateJWT, requireAdminRole, asyncHandler(getAllPayments));
+router.get("/payments", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getAllPayments(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 // Support tickets
-router.get("/tickets", authenticateJWT, requireAdminRole, asyncHandler(getTicketsForAdmin));
+router.get("/tickets", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getTicketsForAdmin(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // =============================================================================
 // 🎯 PAYMENT OPERATIONS CONTROL ROOM ROUTES
 // =============================================================================
 
 // 📊 Analytics Dashboard
-router.get("/analytics/payments", authenticateJWT, requireAdminRole, asyncHandler(getPaymentAnalytics));
-router.get("/analytics/users", authenticateJWT, requireAdminRole, asyncHandler(getUserAnalytics));
+router.get("/analytics/payments", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getPaymentAnalytics(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+router.get("/analytics/users", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getUserAnalytics(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // 🔍 Advanced Search & Troubleshooting
-router.get("/payments/search", authenticateJWT, requireAdminRole, asyncHandler(searchPayments));
-router.get("/health/payments", authenticateJWT, requireAdminRole, asyncHandler(getPaymentHealth));
+router.get("/payments/search", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await searchPayments(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+router.get("/health/payments", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getPaymentHealth(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // 🔧 Operations & Fixes
-router.post("/operations/bulk-fix-uuids", authenticateJWT, requireAdminRole, asyncHandler(bulkFixMissingUUIDs));
+router.post("/operations/bulk-fix-uuids", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await bulkFixMissingUUIDs(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // 🏦 External API Monitoring
-router.get("/monitoring/juno-status", authenticateJWT, requireAdminRole, asyncHandler(getJunoApiStatus));
+router.get("/monitoring/juno-status", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getJunoApiStatus(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // 🎮 System Status & Operations Center
 // Use system routers

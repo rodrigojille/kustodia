@@ -168,7 +168,51 @@ router.get('/heroku-logs', authenticateJWT_1.authenticateJWT, requireAdminRole_1
         }
     }
 });
-// Get Heroku dyno information
+// Get Heroku dyno information (root route for frontend)
+router.get('/', authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res) => {
+    try {
+        const herokuApiToken = process.env.HEROKU_API_TOKEN;
+        const herokuAppName = process.env.HEROKU_APP_NAME || 'kustodia-backend';
+        if (!herokuApiToken) {
+            res.status(200).json({
+                dynos: [],
+                message: 'Heroku API token not configured. To enable dyno monitoring, set HEROKU_API_TOKEN environment variable.',
+                configurationRequired: true
+            });
+            return;
+        }
+        const response = await axios_1.default.get(`https://api.heroku.com/apps/${herokuAppName}/dynos`, {
+            headers: {
+                'Authorization': `Bearer ${herokuApiToken}`,
+                'Accept': 'application/vnd.heroku+json; version=3'
+            },
+            timeout: 10000
+        });
+        const dynos = response.data.map((dyno) => ({
+            id: dyno.id,
+            name: dyno.name,
+            type: dyno.type,
+            size: dyno.size,
+            state: dyno.state,
+            created_at: dyno.created_at,
+            updated_at: dyno.updated_at,
+            command: dyno.command
+        }));
+        res.json({
+            dynos,
+            appName: herokuAppName,
+            timestamp: new Date().toISOString()
+        });
+    }
+    catch (error) {
+        console.error('Error fetching Heroku dynos:', error);
+        res.status(error.response?.status || 500).json({
+            error: 'Failed to fetch Heroku dynos',
+            message: error.message
+        });
+    }
+});
+// Get Heroku dyno information (legacy route)
 router.get('/heroku-dynos', authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res) => {
     try {
         const herokuApiToken = process.env.HEROKU_API_TOKEN;

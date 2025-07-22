@@ -5,10 +5,6 @@ import { Dispute } from '../entity/Dispute';
 import { User } from '../entity/User';
 import { Payment } from '../entity/Payment';
 import { DisputeAIService } from '../services/disputeAIService';
-// Mock payment event recorder - integrate with actual service later
-const recordPaymentEvent = async (payment: any, type: string, description?: string) => {
-  console.log(`📝 [MOCK EVENT] ${type}: ${description || 'No description'} for payment ${payment.id}`);
-};
 import { processDisputeRefund, checkRefundEligibility } from '../services/refundService';
 import { v4 as uuidv4 } from 'uuid';
 import contractInstance from "../contractInstance";
@@ -25,14 +21,12 @@ export const getUserDisputes = async (req: Request, res: Response): Promise<void
   try {
     const disputeRepo = ormconfig.getRepository(Dispute);
     
-    // Find all disputes raised by the authenticated user
     const disputes = await disputeRepo.find({
       where: { raisedBy: { id: userId } },
       relations: ['escrow', 'escrow.payment', 'raisedBy'],
       order: { created_at: 'DESC' }
     });
 
-    // Transform data for frontend consumption
     const formattedDisputes = disputes.map(dispute => ({
       id: dispute.id,
       reason: dispute.reason,
@@ -68,7 +62,7 @@ export const getUserDisputes = async (req: Request, res: Response): Promise<void
   }
 };
 
-// User raises a dispute or reapplies before custody ends
+// User raises a dispute
 export const raiseDispute = async (req: Request, res: Response): Promise<void> => {
   const { escrowId } = req.params;
   const { reason, details, evidence } = req.body;
@@ -81,56 +75,44 @@ export const raiseDispute = async (req: Request, res: Response): Promise<void> =
   const disputeRepo = ormconfig.getRepository(Dispute);
   const userRepo = ormconfig.getRepository(User);
 
-  // Parse escrowId to number
-  const escrow = await escrowRepo.findOne({ where: { id: Number(escrowId) } });
+  const escrow = await escrowRepo.findOne({ where: { id: Number(escrowId) }, relations: ['payment'] });
   if (!escrow) {
-  res.status(404).json({ error: "Escrow not found" });
-  return;
-}
+    res.status(404).json({ error: "Escrow not found" });
+    return;
+  }
   const user = await userRepo.findOne({ where: { id: userId } });
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
   }
 
-  // Call smart contract to raise dispute (assume contract instance is imported)
   let contractTxHash = null;
-  if (!escrow.smart_contract_escrow_id) {
-    res.status(400).json({ error: "Escrow is missing smart_contract_escrow_id." });
-    return;
-  }
-  // Use platform wallet for contract call
-  try {
-    // Use smart_contract_escrow_id and platform wallet (no user.wallet_address)
-    const platformWallet = process.env.ESCROW_CONTRACT_ADDRESS;
-    if (!platformWallet) {
-      res.status(500).json({ error: "Platform wallet address not configured." });
-      return;
+  if (escrow.smart_contract_escrow_id) {
+    try {
+      const platformWallet = process.env.ESCROW_CONTRACT_ADDRESS;
+      if (!platformWallet) {
+        throw new Error("Platform wallet address not configured.");
+      }
+      const tx = await contractInstance.raiseDispute(escrow.smart_contract_escrow_id, { from: platformWallet });
+      await tx.wait();
+      contractTxHash = tx.hash;
+    } catch (err) {
+      console.error('Failed to call smart contract for dispute:', err);
+      // Non-fatal, we can proceed with off-chain dispute
     }
-    const tx = await contractInstance.raiseDispute(
-      escrow.smart_contract_escrow_id,
-      { from: platformWallet }
-    );
-    await tx.wait();
-    contractTxHash = tx.hash;
-  } catch (err) {
-    res.status(500).json({ error: "Failed to call smart contract: " + (err as Error).message });
-    return;
   }
 
-  // Create Dispute entity
   const dispute = disputeRepo.create({
     escrow,
     raisedBy: user,
     reason,
     details,
-    evidence_url: evidence || null,
+    evidence_url: evidence || undefined,
     status: "pending",
-    contract_dispute_raised_tx: contractTxHash,
+    contract_dispute_raised_tx: contractTxHash || undefined,
   });
   await disputeRepo.save(dispute);
 
-  // Update Escrow entity for legacy/timeline support
   escrow.dispute_status = "pending";
   escrow.dispute_reason = reason;
   escrow.dispute_details = details;
@@ -141,151 +123,114 @@ export const raiseDispute = async (req: Request, res: Response): Promise<void> =
   ];
   await escrowRepo.save(escrow);
 
-  // Add PaymentEvent for dispute raised (for timeline)
-  try {
-    const paymentEventRepo = ormconfig.getRepository(require("../entity/PaymentEvent").PaymentEvent);
-    await paymentEventRepo.save(paymentEventRepo.create({
-      paymentId: escrow.payment.id,
-      type: 'dispute_raised',
-      description: `Disputa levantada por el usuario. Motivo: ${reason}`,
-    }));
-  } catch (e) {
-    // Log but don't block dispute creation
-    console.error('Failed to create PaymentEvent for dispute:', e);
-  }
-
   res.json({ success: true, message: "Dispute submitted.", dispute: { status: escrow.dispute_status } });
 }
 
-// Get dispute timeline/tracking (combined from Dispute entity and Escrow legacy history)
+// Get dispute timeline
 export const getDisputeTimeline = async (req: Request, res: Response): Promise<void> => {
   const { escrowId } = req.params;
   const escrowRepo = ormconfig.getRepository(Escrow);
-  const disputeRepo = ormconfig.getRepository(Dispute);
   const escrow = await escrowRepo.findOne({ where: { id: Number(escrowId) } });
   if (!escrow) {
     res.status(404).json({ error: "Escrow not found" });
     return;
   }
-  // Fetch disputes for this escrow
-  const disputes = await disputeRepo.find({ where: { escrow }, order: { created_at: "ASC" } });
-  // Combine with legacy dispute_history for timeline
-  const timeline = [
-    ...(escrow.dispute_history || []),
-    ...disputes.map(d => ({
-      action: d.status,
-      by: d.raisedBy ? d.raisedBy.id : undefined,
-      reason: d.reason,
-      details: d.details,
-      evidence: d.evidence_url,
-      adminNotes: d.admin_notes,
-      contractTxHash: d.contract_dispute_raised_tx || d.contract_dispute_resolved_tx,
-      at: d.created_at
-    }))
-  ];
-  res.json({ timeline });
+  res.json({ timeline: escrow.dispute_history || [] });
 }
 
 // Admin resolves dispute
 export const adminResolveDispute = async (req: Request, res: Response): Promise<void> => {
   const { escrowId } = req.params;
   const { resolution, adminNotes } = req.body;
+  const user = (req as any).user;
+
+  if (!user || user.role !== 'admin') {
+    res.status(403).json({ error: 'Access denied. Admin role required.' });
+    return;
+  }
+
+  if (!resolution || (resolution !== 'approved' && resolution !== 'dismissed')) {
+    res.status(400).json({ error: 'Invalid resolution. Must be "approved" or "dismissed".' });
+    return;
+  }
+
   const escrowRepo = ormconfig.getRepository(Escrow);
   const disputeRepo = ormconfig.getRepository(Dispute);
-  const escrow = await escrowRepo.findOne({ where: { id: Number(escrowId) } });
-  if (!escrow) {
-    res.status(404).json({ error: "Escrow not found" });
-    return;
-  }
 
-  // Find latest dispute for this escrow
-  const dispute = await disputeRepo.findOne({ where: { escrow }, order: { created_at: "DESC" } });
-  if (!dispute) {
-    res.status(404).json({ error: "Dispute not found" });
-    return;
-  }
-
-  // Generate transaction hash for dispute resolution tracking
-  let contractTxHash = null;
   try {
-    // Generate UUID-based transaction hash for tracking
-    contractTxHash = `dispute_resolve_${uuidv4().replace(/-/g, '')}`;
-    
-    // TODO: Replace with actual contract call when contract is deployed
-    // const tx = await contract.resolveDispute(escrow.smart_contract_escrow_id, resolution === "approved");
-    // await tx.wait();
-    // contractTxHash = tx.hash;
-    
-    console.log(`📝 [DISPUTE RESOLVE] Generated TX hash: ${contractTxHash}`);
-  } catch (err) {
-    console.error(`❌ [DISPUTE RESOLVE] Hash generation failed:`, err);
-    res.status(500).json({ error: "Failed to generate dispute resolution transaction: " + (err as Error).message });
-    return;
-  }
-
-  if (resolution === "approved") {
-    // Dispute approved - buyer wins, initiate refund process
-    console.log(`✅ [DISPUTE APPROVED] Processing refund for escrow ${escrowId}`);
-    
-    escrow.dispute_status = "resolved";
-    escrow.status = "reverted";
-    dispute.status = "resolved";
-    dispute.admin_notes = adminNotes;
-    dispute.contract_dispute_resolved_tx = contractTxHash;
-    escrow.dispute_history = [
-      ...(escrow.dispute_history || []),
-      { action: "approved", by: "admin", notes: adminNotes, contractTxHash, at: new Date() }
-    ];
-
-    // Get payment for refund processing
-    const paymentRepo = ormconfig.getRepository(Payment);
-    const payment = await paymentRepo.findOne({ where: { escrow: { id: Number(escrowId) } } });
-    
-    if (payment) {
-      try {
-        // Check refund eligibility
-        const eligibility = await checkRefundEligibility(payment.id);
-        if (!eligibility.eligible) {
-          console.warn(`⚠️ [DISPUTE REFUND] Payment ${payment.id} not eligible: ${eligibility.reason}`);
-        } else {
-          // Process dispute refund to buyer
-          const refundResult = await processDisputeRefund(payment.id);
-          console.log(`💰 [DISPUTE REFUND] Completed: ${refundResult.txHash}`);
-          
-          // Add refund info to dispute history
-          escrow.dispute_history.push({
-            action: "refund_processed",
-            by: "system",
-            notes: `Refund of $${refundResult.amount} processed to ${refundResult.beneficiary}`,
-            contractTxHash: refundResult.txHash,
-            at: new Date()
-          });
-        }
-      } catch (refundError: any) {
-        console.error(`❌ [DISPUTE REFUND] Failed for payment ${payment.id}:`, refundError);
-        // Continue with dispute resolution even if refund fails
-        escrow.dispute_history.push({
-          action: "refund_failed",
-          by: "system",
-          notes: `Refund failed: ${refundError?.message || refundError}`,
-          contractTxHash: null,
-          at: new Date()
-        });
-      }
+    const escrow = await escrowRepo.findOne({ where: { id: Number(escrowId) }, relations: ['payment'] });
+    if (!escrow) {
+      res.status(404).json({ error: 'Escrow not found' });
+      return;
     }
-  } else if (resolution === "dismissed") {
-    escrow.dispute_status = "dismissed";
-    dispute.status = "dismissed";
-    dispute.admin_notes = adminNotes;
-    dispute.contract_dispute_resolved_tx = contractTxHash;
-    escrow.dispute_history = [
-      ...(escrow.dispute_history || []),
-      { action: "dismissed", by: "admin", notes: adminNotes, contractTxHash, at: new Date() }
-    ];
+
+    const dispute = await disputeRepo.findOne({ where: { escrow: { id: Number(escrowId) } }, order: { created_at: 'DESC' } });
+    if (!dispute) {
+      res.status(404).json({ error: 'Dispute not found for this escrow' });
+      return;
+    }
+
+    let contractTxHash = `0x_fake_admin_resolve_tx_${uuidv4()}`;
+    console.log(`[ADMIN ACTION] Admin ${user.full_name} (ID: ${user.id}) is resolving dispute for escrow ${escrow.id} with resolution: ${resolution}`);
+
+    const adminActor = { id: user.id, name: user.full_name };
+
+    if (resolution === "approved") {
+      escrow.dispute_status = "approved";
+      dispute.status = "resolved_favor_buyer";
+      dispute.admin_notes = adminNotes;
+      dispute.contract_dispute_resolved_tx = contractTxHash;
+      escrow.dispute_history = [
+        ...(escrow.dispute_history || []),
+        { action: "approved", by: { type: 'admin', ...adminActor }, notes: adminNotes, contractTxHash, at: new Date() }
+      ];
+
+      const payment = escrow.payment;
+      if (payment) {
+        try {
+          const eligibility = await checkRefundEligibility(payment.id);
+          if (eligibility.eligible) {
+            const refundResult = await processDisputeRefund(payment.id);
+            console.log(`💰 [DISPUTE REFUND] Completed: ${refundResult.txHash}`);
+            escrow.dispute_history = [
+              ...(escrow.dispute_history || []),
+              {
+                action: "refund_processed",
+                by: "system",
+                notes: `Refund of $${refundResult.amount} processed to ${refundResult.beneficiary}`,
+                contractTxHash: refundResult.txHash,
+                at: new Date()
+              }
+            ];
+          } else {
+            console.warn(`⚠️ [DISPUTE REFUND] Payment ${payment.id} not eligible: ${eligibility.reason}`);
+          }
+        } catch (refundError: any) {
+          console.error(`❌ [DISPUTE REFUND] Failed for payment ${payment.id}:`, refundError);
+          escrow.dispute_history = [
+            ...(escrow.dispute_history || []),
+            { action: "refund_failed", by: "system", notes: `Refund failed: ${refundError?.message || 'Unknown error'}`, at: new Date() }
+          ];
+        }
+      }
+    } else if (resolution === "dismissed") {
+      escrow.dispute_status = "dismissed";
+      dispute.status = "dismissed";
+      dispute.admin_notes = adminNotes;
+      dispute.contract_dispute_resolved_tx = contractTxHash;
+      escrow.dispute_history = [
+        ...(escrow.dispute_history || []),
+        { action: "dismissed", by: { type: 'admin', ...adminActor }, notes: adminNotes, contractTxHash, at: new Date() }
+      ];
+    }
+
+    await disputeRepo.save(dispute);
+    await escrowRepo.save(escrow);
+    res.json({ success: true, status: escrow.dispute_status, contractTxHash });
+  } catch (error: any) {
+    console.error('Error resolving dispute:', error);
+    res.status(500).json({ error: 'Failed to resolve dispute: ' + error.message });
   }
-  await disputeRepo.save(dispute);
-  await escrowRepo.save(escrow);
-  res.json({ success: true, status: escrow.dispute_status, contractTxHash });
 }
 
 // Get AI risk assessment for a dispute
@@ -293,7 +238,6 @@ export const getDisputeRiskAssessment = async (req: Request, res: Response): Pro
   const { disputeId } = req.params;
   const userRole = (req as any).user?.role;
   
-  // Only admins can access AI risk assessments
   if (userRole !== 'admin') {
     res.status(403).json({ error: 'Access denied. Admin role required.' });
     return;
@@ -314,7 +258,6 @@ export const getBatchDisputeRiskAssessments = async (req: Request, res: Response
   const { disputeIds } = req.body;
   const userRole = (req as any).user?.role;
   
-  // Only admins can access AI risk assessments
   if (userRole !== 'admin') {
     res.status(403).json({ error: 'Access denied. Admin role required.' });
     return;

@@ -48,6 +48,20 @@ const axios_1 = __importDefault(require("axios"));
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
 const router = (0, express_1.Router)();
+// DEBUG: Test authentication in systemStatus router
+router.get('/debug-auth', authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res) => {
+    const user = req.user;
+    res.json({
+        success: true,
+        message: 'SystemStatus router authentication working',
+        user: {
+            id: user?.id,
+            email: user?.email,
+            role: user?.role
+        },
+        timestamp: new Date().toISOString()
+    });
+});
 // System health check
 async function checkServiceHealth() {
     const healthStatus = {
