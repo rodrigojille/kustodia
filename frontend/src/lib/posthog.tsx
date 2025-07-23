@@ -9,12 +9,12 @@ if (typeof window !== 'undefined') {
     person_profiles: 'always',
     capture_pageview: true,
     capture_pageleave: true,
-    debug: false, // Disable debug to reduce console noise
+    debug: false,
     autocapture: true,
     
-    // Session recording configuration - more conservative approach
+    // Graceful session recording - will work when possible, fail silently when not
+    disable_session_recording: false,
     session_recording: {
-      recordCrossOriginIframes: false, // Disable cross-origin to avoid loading issues
       maskAllInputs: false,
       maskInputOptions: {
         password: true,
@@ -22,20 +22,19 @@ if (typeof window !== 'undefined') {
       }
     },
     
-    // Disable features that might cause loading issues
-    disable_surveys: true, // Disable surveys to avoid loading errors
-    
-    // Advanced loading configuration
+    // Keep surveys disabled to prevent loading errors
+    disable_surveys: true,
     persistence: 'localStorage+cookie',
     
-    // Error handling
+    // Simple loaded callback without complex retry logic
     loaded: function(posthog) {
-      console.log('PostHog loaded successfully');
-    },
-    
-    // Reduce feature loading to prevent script errors
-    bootstrap: {
-      distinctID: undefined
+      console.log('✅ PostHog analytics loaded and ready');
+      
+      // Send a test event to confirm tracking works
+      posthog.capture('posthog_initialized', {
+        timestamp: new Date().toISOString(),
+        session_recording_available: !!posthog.sessionRecording
+      });
     }
   })
 }
