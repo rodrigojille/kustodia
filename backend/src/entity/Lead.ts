@@ -15,6 +15,15 @@ export class Lead {
   @Column({ type: 'text', nullable: true })
   message?: string;
 
+  @Column({ length: 100, nullable: true })
+  empresa?: string;
+
+  @Column({ length: 20, nullable: true })
+  telefono?: string;
+
+  @Column({ length: 50, nullable: true })
+  vertical?: string;
+
   @CreateDateColumn()
   created_at!: Date;
 

@@ -275,7 +275,7 @@ export default function SimpleExample({
                 <div>Casos resueltos</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold text-gray-900">0%</div>
+                <div className="font-semibold text-gray-900">Gratis</div>
                 <div>Pérdidas de usuarios</div>
               </div>
             </div>

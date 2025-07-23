@@ -97,8 +97,8 @@ export default function DevelopersLandingPage() {
         </p>
       </div>
       
-      <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg p-6 shadow-md">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg p-4 sm:p-6 shadow-md">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <FaMoneyBillWave className="text-green-600 text-xl" />
           </div>
@@ -109,7 +109,7 @@ export default function DevelopersLandingPage() {
           </p>
         </div>
         
-        <div className="bg-white rounded-lg p-6 shadow-md">
+        <div className="bg-white rounded-lg p-4 sm:p-6 shadow-md">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <FaShieldAlt className="text-blue-600 text-xl" />
           </div>
@@ -279,7 +279,7 @@ export default function DevelopersLandingPage() {
         </p>
       </div>
       
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <span className="text-green-600 text-xl">📈</span>
@@ -337,9 +337,11 @@ export default function DevelopersLandingPage() {
         heroSubtitle="Genera rendimientos CETES + acceso inmediato a liquidez mientras esperas la escrituración. Convierte apartados en capital productivo que trabaja para ti."
         heroIcon={<FaBuilding className="text-blue-700 text-4xl" />}
         customSections={[developerPainPoints, cashflowBenefits, yieldCalculatorExample, developerBenefits]}
-        ctaText="Optimizar mi capital gratis"
+        ctaText="Acceso Prioritario"
         finalCtaTitle="¿Listo para optimizar tu capital de trabajo?"
         finalCtaDescription="Únete a los desarrolladores que ya generan rendimientos en sus apartados y enganches"
+        useInterestForm={true}
+        formSource="desarrolladores_landing"
       />
     </>
   );

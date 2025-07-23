@@ -199,6 +199,8 @@ export default function TrustFocusedMarketplaces() {
       ctaText="Comprar con seguridad"
       finalCtaTitle="¿Listo para comprar y vender sin riesgos?"
       finalCtaDescription="Compradores y vendedores ya usan custodia segura para sus transacciones"
+      useInterestForm={true}
+      formSource="marketplaces_trust_focused"
     />
   );
 }

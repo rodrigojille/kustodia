@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import Header from '../Header';
 import Link from 'next/link';
 import { useAnalyticsContext } from '../AnalyticsProvider';
+import InterestRegistrationForm from '../InterestRegistrationForm';
 
 import SimpleGuarantee from './SimpleGuarantee';
 import SimpleExample from './SimpleExample';
@@ -19,6 +20,8 @@ interface TrustFocusedTemplateProps {
   ctaText?: string;
   finalCtaTitle?: string;
   finalCtaDescription?: string;
+  useInterestForm?: boolean;
+  formSource?: string;
 }
 
 const verticalIcons = {
@@ -30,8 +33,8 @@ const verticalIcons = {
 };
 
 const verticalCTAs = {
-  freelancer: "Proteger mis pagos gratis",
-  inmobiliarias: "Proteger mi compra gratis",
+  freelancer: "Acceso Prioritario",
+  inmobiliarias: "Acceso Prioritario",
   marketplaces: "Comprar con seguridad",
   ecommerce: "Proteger mi tienda",
   b2b: "Solución empresarial"
@@ -63,11 +66,13 @@ export default function TrustFocusedTemplate({
   showDefaultSections = true,
   ctaText,
   finalCtaTitle,
-  finalCtaDescription
+  finalCtaDescription,
+  useInterestForm = false,
+  formSource
 }: TrustFocusedTemplateProps) {
   const { trackEvent } = useAnalyticsContext();
   
-  const displayCTA = ctaText || verticalCTAs[vertical as keyof typeof verticalCTAs] || "Acceso Anticipado Gratis";
+  const displayCTA = ctaText || verticalCTAs[vertical as keyof typeof verticalCTAs] || "Acceso Prioritario";
   const displayFinalTitle = finalCtaTitle || finalCTATitles[vertical as keyof typeof finalCTATitles] || "¿Listo para comenzar?";
   const displayFinalDescription = finalCtaDescription || finalCTADescriptions[vertical as keyof typeof finalCTADescriptions] || "Únete a miles de usuarios satisfechos";
   
@@ -105,22 +110,43 @@ export default function TrustFocusedTemplate({
               </p>
             )}
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Link 
-                href="/#early-access"
-                onClick={() => handleEarlyAccessClick('hero')}
-                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-lg font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
-              >
-                {verticalIcons[vertical as keyof typeof verticalIcons]} {displayCTA}
-              </Link>
-              
-              <Link 
-                href={['brokers', 'desarrolladores', 'compradores'].includes(vertical) ? '/inmobiliarias' : `/${vertical}`}
-                className="inline-block bg-white text-blue-700 border-2 border-blue-200 text-lg font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
-              >
-                Más información
-              </Link>
-            </div>
+            {useInterestForm ? (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                <button 
+                  onClick={() => {
+                    handleEarlyAccessClick('hero');
+                    document.getElementById('interest-form')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-lg font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
+                >
+                  {verticalIcons[vertical as keyof typeof verticalIcons]} Acceso Prioritario
+                </button>
+                
+                <Link 
+                  href={['brokers', 'desarrolladores', 'compradores'].includes(vertical) ? '/inmobiliarias' : `/${vertical}`}
+                  className="inline-block bg-white text-blue-700 border-2 border-blue-200 text-lg font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+                >
+                  Más información
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                <Link 
+                  href="/#early-access"
+                  onClick={() => handleEarlyAccessClick('hero')}
+                  className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-lg font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
+                >
+                  {verticalIcons[vertical as keyof typeof verticalIcons]} Acceso Prioritario
+                </Link>
+                
+                <Link 
+                  href={['brokers', 'desarrolladores', 'compradores'].includes(vertical) ? '/inmobiliarias' : `/${vertical}`}
+                  className="inline-block bg-white text-blue-700 border-2 border-blue-200 text-lg font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+                >
+                  Más información
+                </Link>
+              </div>
+            )}
             
             <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
               <div className="flex items-center">
@@ -159,37 +185,71 @@ export default function TrustFocusedTemplate({
           
           {/* Final CTA */}
           <div className="text-center">
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                {displayFinalTitle}
-              </h2>
-              <p className="text-lg text-gray-600 mb-8">
-                {displayFinalDescription}
-              </p>
-              <Link 
-                href="/#early-access"
-                onClick={() => handleEarlyAccessClick('final')}
-                className="inline-block bg-gradient-to-r from-green-600 to-green-700 text-white text-xl font-semibold px-12 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-[1.02]"
-              >
-                Comenzar ahora - Es gratis
-              </Link>
-              
-              {/* Trust indicators */}
-              <div className="flex justify-center space-x-8 mt-8 pt-6 border-t border-gray-200 text-sm text-gray-600">
-                <div className="text-center">
-                  <div className="font-semibold text-gray-900">Sin costo</div>
-                  <div>Durante acceso anticipado</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-gray-900">24/7</div>
-                  <div>Soporte en español</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-gray-900">100%</div>
-                  <div>Dinero protegido</div>
+            {useInterestForm ? (
+              <div id="interest-form" className="bg-white rounded-2xl shadow-lg p-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  {displayFinalTitle}
+                </h2>
+                <p className="text-lg text-gray-600 mb-8">
+                  {displayFinalDescription}
+                </p>
+                <InterestRegistrationForm
+                  source={formSource || `${vertical}_landing_final`}
+                  vertical={vertical}
+                  title="Registro Prioritario"
+                  subtitle="Regístrate ahora y obtén acceso prioritario exclusivo"
+                  buttonText="Registro Prioritario"
+                />
+                
+                {/* Trust indicators */}
+                <div className="flex justify-center space-x-8 mt-8 pt-6 border-t border-gray-200 text-sm text-gray-600">
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">Acceso</div>
+                    <div>Prioritario exclusivo</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">24/7</div>
+                    <div>Soporte en español</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">100%</div>
+                    <div>Dinero protegido</div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-lg p-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  {displayFinalTitle}
+                </h2>
+                <p className="text-lg text-gray-600 mb-8">
+                  {displayFinalDescription}
+                </p>
+                <Link 
+                  href="/#early-access"
+                  onClick={() => handleEarlyAccessClick('final')}
+                  className="inline-block bg-gradient-to-r from-green-600 to-green-700 text-white text-xl font-semibold px-12 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-[1.02]"
+                >
+                  Comenzar ahora - Es gratis
+                </Link>
+                
+                {/* Trust indicators */}
+                <div className="flex justify-center space-x-8 mt-8 pt-6 border-t border-gray-200 text-sm text-gray-600">
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">Acceso</div>
+                    <div>Prioritario exclusivo</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">24/7</div>
+                    <div>Soporte en español</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">100%</div>
+                    <div>Dinero protegido</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </section>
         

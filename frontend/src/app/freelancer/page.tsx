@@ -1,6 +1,7 @@
 import Header from '../../components/Header';
 import { FaUserTie, FaShieldAlt, FaRocket, FaLock } from 'react-icons/fa';
 import Link from 'next/link';
+import InterestRegistrationForm from '../../components/InterestRegistrationForm';
 
 export default function FreelancerUseCase() {
   return (
@@ -59,12 +60,12 @@ export default function FreelancerUseCase() {
                 </p>
               </div>
               
-              <a
-                href="/#early-access"
+              <button
+                onClick={() => document.getElementById('interest-form')?.scrollIntoView({ behavior: 'smooth' })}
                 className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
               >
-                Solicitar Acceso Anticipado
-              </a>
+                Registro Prioritario
+              </button>
             </div>
           </div>
         </section>
@@ -140,7 +141,7 @@ export default function FreelancerUseCase() {
               <div className="border-b border-gray-200 pb-8">
                 <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">¿Cuánto cuesta usar Kustodia?</h3>
                 <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light">
-                  Durante el acceso anticipado, los primeros usuarios tendrán 0% comisión de por vida. Aprovecha la oportunidad y regístrate.
+                  Durante el acceso anticipado, los primeros usuarios tendrán acceso prioritario exclusivo. Aprovecha la oportunidad y regístrate.
                 </p>
               </div>
               
@@ -154,24 +155,36 @@ export default function FreelancerUseCase() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="w-full max-w-7xl px-6 mx-auto mb-20 text-center">
-          <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
-              ¿Quieres saber más sobre cómo evitar fraudes como freelancer?
+        {/* Interest Registration Form */}
+        <section className="w-full max-w-4xl px-6 mx-auto mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              ¿Te interesa proteger tus pagos como freelancer?
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
-              Lee nuestro blog: 
-              <Link href="/blog/evitar-fraudes-freelancer" className="text-blue-600 underline hover:text-blue-800 font-medium ml-2">
+            <p className="text-lg text-gray-600">
+              Regístrate para acceso temprano a pagos protegidos
+            </p>
+          </div>
+          <div id="interest-form" className="text-center">
+            <InterestRegistrationForm
+              source="freelancer_landing"
+              vertical="freelancer"
+              title="Registro Prioritario"
+              subtitle="Regístrate para acceso prioritario exclusivo"
+              buttonText="Registro Prioritario"
+            />
+          </div>
+        </section>
+        
+        {/* Blog CTA Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-20 text-center">
+          <div className="bg-gray-50 rounded-2xl p-8">
+            <p className="text-lg text-gray-600 mb-4">
+              ¿Quieres saber más? Lee nuestro blog: 
+              <Link href="/blog/evitar-fraudes-freelancer" className="text-blue-600 underline hover:text-blue-800 font-semibold transition-colors ml-1">
                 Cómo evitar fraudes en pagos de servicios freelance
               </Link>
             </p>
-            <Link 
-              href="/" 
-              className="inline-block bg-gray-200 text-gray-700 text-lg font-semibold px-8 py-4 rounded-2xl hover:bg-gray-300 transition-all duration-300 transform hover:scale-[1.02]"
-            >
-              Volver al inicio
-            </Link>
           </div>
         </section>
       </main>

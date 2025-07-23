@@ -96,6 +96,22 @@ function AnalyticsProviderCore({ children }: AnalyticsProviderProps) {
       analysis.journeyStage = 'consideration';
       analysis.fraudCategory = 'real_estate';  // Top category from scraper (56 posts)
       analysis.businessValue = 'very_high';
+      
+      // Enhanced tracking for specific inmobiliarias pages
+      if (path.includes('/desarrolladores')) {
+        analysis.fraudCategory = 'real_estate_developers';
+        analysis.businessValue = 'very_high';
+      } else if (path.includes('/brokers')) {
+        analysis.fraudCategory = 'real_estate_brokers';
+        analysis.businessValue = 'very_high';
+      } else if (path.includes('/compradores')) {
+        analysis.fraudCategory = 'real_estate_buyers';
+        analysis.businessValue = 'high';
+      } else if (path.includes('/enhanced')) {
+        analysis.category = 'enhanced_demo';
+        analysis.journeyStage = 'trial';
+        analysis.businessValue = 'very_high';
+      }
     }
     else if (path.includes('freelancer')) {
       analysis.category = 'industry_solution';
@@ -108,6 +124,13 @@ function AnalyticsProviderCore({ children }: AnalyticsProviderProps) {
       analysis.journeyStage = 'consideration';
       analysis.fraudCategory = 'online_marketplace';
       analysis.businessValue = 'high';
+      
+      // Enhanced tracking for marketplace pages
+      if (path.includes('/trust-focused')) {
+        analysis.category = 'trust_demo';
+        analysis.journeyStage = 'trial';
+        analysis.businessValue = 'very_high';
+      }
     }
     else if (path.includes('b2b')) {
       analysis.category = 'industry_solution';

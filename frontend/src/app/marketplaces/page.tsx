@@ -1,6 +1,7 @@
 import Header from '../../components/Header';
 import { FaGlobe, FaShieldAlt, FaRegSmile, FaStore, FaRocket, FaCog } from 'react-icons/fa';
 import Link from 'next/link';
+import InterestRegistrationForm from '../../components/InterestRegistrationForm';
 
 export default function MarketplacesUseCase() {
   return (
@@ -59,12 +60,12 @@ export default function MarketplacesUseCase() {
                 </p>
               </div>
               
-              <a
-                href="/#early-access"
+              <button
+                onClick={() => document.getElementById('interest-form')?.scrollIntoView({ behavior: 'smooth' })}
                 className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
               >
-                Solicitar Acceso Anticipado
-              </a>
+                Registro Prioritario
+              </button>
             </div>
           </div>
         </section>
@@ -147,21 +148,36 @@ export default function MarketplacesUseCase() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="w-full max-w-7xl px-6 mx-auto mb-20 text-center" aria-labelledby="cta-heading">
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-4xl mx-auto">
-            <h2 id="cta-heading" className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
-              ¿Quieres integrar pagos seguros en tu marketplace?
+        {/* Interest Registration Form */}
+        <section className="w-full max-w-4xl px-6 mx-auto mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              ¿Te interesa integrar pagos seguros en tu marketplace?
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 mb-8">
-              Lee nuestro blog: <Link href="/blog/como-integrar-pagos-seguros-marketplace" className="text-blue-600 underline hover:text-blue-800 font-semibold transition-colors">Cómo integrar pagos seguros en marketplaces</Link>
+            <p className="text-lg text-gray-600">
+              Regístrate para acceso temprano a nuestra API de custodia
             </p>
-            <Link 
-              href="/" 
-              className="inline-block bg-gray-100 text-blue-700 font-semibold px-8 py-4 rounded-2xl shadow hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
-            >
-              Volver al inicio
-            </Link>
+          </div>
+          <div id="interest-form" className="text-center">
+            <InterestRegistrationForm
+              source="marketplaces_landing"
+              vertical="marketplaces"
+              title="Registro Prioritario"
+              subtitle="Regístrate para acceso prioritario exclusivo"
+              buttonText="Registro Prioritario"
+            />
+          </div>
+        </section>
+        
+        {/* Blog CTA Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-20 text-center">
+          <div className="bg-gray-50 rounded-2xl p-8">
+            <p className="text-lg text-gray-600 mb-4">
+              ¿Quieres saber más? Lee nuestro blog: 
+              <Link href="/blog/como-integrar-pagos-seguros-marketplace" className="text-blue-600 underline hover:text-blue-800 font-semibold transition-colors ml-1">
+                Cómo integrar pagos seguros en marketplaces
+              </Link>
+            </p>
           </div>
         </section>
       </main>

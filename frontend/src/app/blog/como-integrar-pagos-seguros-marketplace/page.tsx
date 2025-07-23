@@ -379,7 +379,7 @@ app.post('/webhook', (req, res) => {
               
               <div className="bg-green-50 rounded-2xl border border-green-200 p-6 mt-6 text-center">
                 <p className="text-lg font-bold text-green-800 mb-2">
-                  🎉 Oferta de lanzamiento: 0% de comisión durante los primeros 3 meses
+                  🎉 Oferta de lanzamiento: Acceso prioritario durante los primeros 3 meses
                 </p>
               </div>
             </section>

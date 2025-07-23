@@ -6,7 +6,7 @@ import { decrementSlot } from './EarlyAccessCounterController';
 
 export const createLead = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, message } = req.body;
+    const { name, email, message, empresa, telefono, vertical } = req.body;
     if (!name || !email) {
       res.status(400).json({ error: 'Nombre y correo son obligatorios.' });
       return;
@@ -23,20 +23,28 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
       zeroFee = slots >= 0 && slots < 100;
     }
     const repo = ormconfig.getRepository(Lead);
-    const lead = repo.create({ name, email, message, earlyAccessCounter: counter ?? undefined });
+    const lead = repo.create({ 
+      name, 
+      email, 
+      message, 
+      empresa: empresa?.trim() || undefined,
+      telefono: telefono?.trim() || undefined,
+      vertical: vertical?.trim() || undefined,
+      earlyAccessCounter: counter ?? undefined 
+    });
     await repo.save(lead);
     // Send invitation email immediately
     await sendEmail({
       to: lead.email,
-      subject: '¡Estás invitado a Kustodia Early Access!',
+      subject: '¡Confirmación de Acceso Prioritario - Kustodia!',
       html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
         <div style='text-align:left;margin-bottom:1rem;'>
           <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='80' height='80' style='display:block;'>
         </div>
         <h2 style='color:#2e7ef7;text-align:center;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
-        <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access.<br>Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
-        <p style='margin-top:1.5rem;'><b>Código de Early Access:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
-        <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</p>
+        <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para <strong>Acceso Prioritario</strong>.<br>Pronto recibirás novedades sobre el acceso exclusivo y nuevas funcionalidades.</p>
+        <p style='margin-top:1.5rem;'><b>Código de Acceso Prioritario:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
+        <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma con privilegios prioritarios.</p>
         <p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
 <p style='text-align:left;margin:12px 0 0 0;'>
   <a href='https://x.com/Kustodia_mx' style='margin:0 10px;text-decoration:underline;color:#1DA1F2;font-weight:bold;' target='_blank' rel='noopener noreferrer'>X (antes Twitter)</a>
@@ -72,15 +80,15 @@ export const inviteLead = async (req: Request, res: Response): Promise<void> => 
     // Send invitation email
     await sendEmail({
       to: lead.email,
-      subject: '¡Estás invitado a Kustodia Early Access!',
+      subject: '¡Confirmación de Acceso Prioritario - Kustodia!',
       html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
         <div style='text-align:left;margin-bottom:1rem;'>
           <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='80' height='80' style='display:block;'>
         </div>
         <h2 style='color:#2e7ef7;text-align:center;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
-        <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access.<br>Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
-        <p style='margin-top:1.5rem;'><b>Código de Early Access:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
-        <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</p>
+        <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para <strong>Acceso Prioritario</strong>.<br>Pronto recibirás novedades sobre el acceso exclusivo y nuevas funcionalidades.</p>
+        <p style='margin-top:1.5rem;'><b>Código de Acceso Prioritario:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
+        <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma con privilegios prioritarios.</p>
         <p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
 <p style='text-align:left;margin:12px 0 0 0;'>
   <a href='https://x.com/Kustodia_mx' style='margin:0 10px;text-decoration:underline;color:#1DA1F2;font-weight:bold;' target='_blank' rel='noopener noreferrer'>X (antes Twitter)</a>

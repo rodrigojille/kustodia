@@ -230,12 +230,12 @@ const testimonialsByVertical: Record<string, TestimonialData[]> = {
       location: 'Puebla',
       vertical: 'marketplaces',
       rating: 5,
-      title: 'Compra segura en marketplace',
-      content: 'Compre una laptop usada por $15,000. El vendedor queria que le depositara directo. Use Kustodia y cuando llego la laptop estaba danada. Kustodia me regreso mi dinero completo.',
+      title: 'Venta exitosa de consola',
+      content: 'Vendí mi PlayStation 5 por $12,000 en Facebook Marketplace. El comprador quería que enviara primero. Con Kustodia, el dinero ya estaba en custodia antes de enviar. Todo salió perfecto.',
       verified: true,
       date: '2024-10-03',
-      amount: '$15,000',
-      outcome: 'resolved',
+      amount: '$12,000',
+      outcome: 'protected',
       source: 'customer'
     }
   ]

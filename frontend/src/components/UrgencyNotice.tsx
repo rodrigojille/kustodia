@@ -21,7 +21,7 @@ export default function UrgencyNotice({ className = '', size = 'sm' }: UrgencyNo
         <span role="img" aria-label="alert" className={`${iconSize}`}>🚨</span>
         <span className="text-center whitespace-pre-line leading-tight">
           <span className="block sm:inline">¡Oferta limitada! Solo los primeros 100 registrados tendrán</span>
-          <span className="block sm:inline font-extrabold text-yellow-900 leading-tight"> 0% <span className={`font-bold text-yellow-900 ${commissionSize}`}>de comisión de por vida</span></span>
+          <span className="block sm:inline font-extrabold text-blue-900 leading-tight"> Acceso <span className={`font-bold text-blue-900 ${commissionSize}`}>prioritario exclusivo</span></span>
         </span>
       </div>
     </div>

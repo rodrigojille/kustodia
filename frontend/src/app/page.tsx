@@ -327,11 +327,11 @@ export default function LandingPage() {
                 
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
                   <a href="#early-access" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] min-w-[320px]" aria-describedby="cta-description">
-                    Regístrate sin costo de por vida
+                    Registro prioritario exclusivo
                   </a>
                   <div id="cta-description" className="text-base text-gray-500 flex items-center gap-3 font-medium">
                     <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></span>
-                    0% comisión primeros usuarios
+                    Acceso prioritario exclusivo
                   </div>
                 </div>
               </div>
@@ -575,7 +575,7 @@ export default function LandingPage() {
                         <div>
                           <span className="text-gray-600">Comisión Kustodia:</span>
                           <div className="font-semibold text-green-600 ml-2">
-                            <div className="text-lg">🎉 Promoción 0% de por vida</div>
+                            <div className="text-lg">🎉 Acceso prioritario exclusivo</div>
                             <div className="text-xs text-gray-500 line-through">Tarifa regular: 2.5% - $625 MXN</div>
                             <div className="text-xs text-green-600 font-bold">Ahorras: $625 MXN</div>
                           </div>
@@ -714,7 +714,7 @@ export default function LandingPage() {
                         <div>
                           <span className="text-gray-600">Comisión Kustodia:</span>
                           <div className="font-semibold text-green-600 ml-2">
-                            <div className="text-lg">🎉 Promoción 0% de por vida</div>
+                            <div className="text-lg">🎉 Acceso prioritario exclusivo</div>
                             <div className="text-xs text-gray-500 line-through">Tarifa regular: 1.5% - $5,775 MXN</div>
                             <div className="text-xs text-green-600 font-bold">Ahorras: $5,775 MXN</div>
                           </div>
@@ -853,7 +853,7 @@ export default function LandingPage() {
                         <div>
                           <span className="text-gray-600">Comisión Kustodia:</span>
                           <div className="font-semibold text-green-600 ml-2">
-                            <div className="text-lg">🎉 Promoción 0% de por vida</div>
+                            <div className="text-lg">🎉 Acceso prioritario exclusivo</div>
                             <div className="text-xs text-gray-500 line-through">Tarifa regular: 2% - $50,000 MXN</div>
                             <div className="text-xs text-green-600 font-bold">Ahorras: $50,000 MXN</div>
                           </div>
@@ -1176,16 +1176,16 @@ export default function LandingPage() {
                   <p className="text-xl md:text-2xl text-gray-500 mb-6 max-w-2xl mx-auto leading-relaxed font-light">
                     Únete a la revolución de los pagos seguros con tecnología blockchain y MXNB
                   </p>
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 mb-8 max-w-xl mx-auto">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 mb-8 max-w-xl mx-auto">
                     <div className="flex items-center justify-center gap-3 mb-3">
-                      <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
-                      <span className="text-green-700 font-bold text-lg">¡Oferta limitada!</span>
+                      <span className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
+                      <span className="text-blue-700 font-bold text-lg">¡Acceso prioritario!</span>
                     </div>
-                    <div className="text-green-800 font-semibold text-xl">
-                      0% comisión de por vida
+                    <div className="text-blue-800 font-semibold text-xl">
+                      Primeros en probar Kustodia
                     </div>
-                    <div className="text-green-600 text-sm mt-1">
-                      Solo para los primeros 100 usuarios
+                    <div className="text-blue-600 text-sm mt-1">
+                      Regístrate para acceso temprano exclusivo
                     </div>
                   </div>
                 </div>

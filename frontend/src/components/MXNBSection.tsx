@@ -66,7 +66,7 @@ const MXNBSection: React.FC = () => (
           Únete a la revolución de los pagos seguros con tecnología blockchain y MXNB
         </p>
         <a href="#early-access" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] mb-4">
-          Conseguir 0% comisión de por vida
+          Obtener acceso prioritario
         </a>
         <div className="text-sm text-gray-500 max-w-md mx-auto font-light">
           ⏰ Oferta válida solo para los primeros 100 usuarios registrados

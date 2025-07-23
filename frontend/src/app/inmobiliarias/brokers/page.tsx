@@ -400,9 +400,11 @@ export default function BrokersLandingPage() {
         heroSubtitle="Protege las comisiones de tus agentes y genera más confianza con tus clientes usando custodia profesional para apartados, enganches y rentas."
         heroIcon={<FaHandshake className="text-blue-700 text-4xl" />}
         customSections={[brokerPainPoints, commissionExample, releaseConditionsExample, brokerBenefits]}
-        ctaText="Proteger mis comisiones gratis"
+        ctaText="Acceso Prioritario"
         finalCtaTitle="¿Listo para cerrar más ventas?"
         finalCtaDescription="Únete a los brokers que ya protegen sus comisiones y generan más confianza"
+        useInterestForm={true}
+        formSource="brokers_landing"
       />
     </>
   );

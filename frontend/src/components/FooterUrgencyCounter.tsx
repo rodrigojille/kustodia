@@ -31,7 +31,7 @@ export default function FooterUrgencyCounter() {
       </div>
       <div className="text-red-600 text-sm font-medium">
         {slots !== null ? (
-          <>Solo quedan {slots} lugares con 0% comisión de por vida</>
+          <>Solo quedan {slots} lugares con acceso prioritario</>
         ) : (
           <>Cargando espacios disponibles...</>
         )}

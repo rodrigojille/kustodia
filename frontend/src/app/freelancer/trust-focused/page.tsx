@@ -146,9 +146,11 @@ export default function TrustFocusedFreelancer() {
         <FreelancerPainPoints key="pain-points" />,
         <FreelancerBenefits key="benefits" />
       ]}
-      ctaText="Proteger mis pagos gratis"
+      ctaText="Acceso Prioritario"
       finalCtaTitle="¿Listo para trabajar sin miedo?"
       finalCtaDescription="Únete a los freelancers que ya protegen sus pagos con custodia segura"
+      useInterestForm={true}
+      formSource="freelancer_trust_focused"
     />
   );
 }

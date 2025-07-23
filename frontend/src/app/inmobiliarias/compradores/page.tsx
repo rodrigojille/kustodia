@@ -219,14 +219,16 @@ export default function BuyersLandingPage() {
   return (
     <>
       <TrustFocusedTemplate
-        vertical="inmobiliarias"
+        vertical="compradores"
         heroTitle="Compra tu casa sin riesgo de fraude"
         heroSubtitle="Protege tus apartados, enganches y rentas con custodia segura. Tu dinero solo se libera cuando TODO esté verificado y correcto."
         heroIcon={<FaHome className="text-blue-700 text-4xl" />}
         customSections={[buyerPainPoints, paymentTrackingExample, buyerBenefits]}
-        ctaText="Proteger mi compra gratis"
+        ctaText="Acceso Prioritario"
         finalCtaTitle="¿Listo para comprar sin riesgo?"
         finalCtaDescription="Únete a los mexicanos que ya protegen sus compras inmobiliarias"
+        useInterestForm={true}
+        formSource="compradores_landing"
       />
     </>
   );
