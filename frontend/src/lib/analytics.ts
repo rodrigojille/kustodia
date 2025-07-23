@@ -89,45 +89,31 @@ class KustodiaAnalytics {
 
   private initializePostHog() {
     if (typeof window !== 'undefined') {
-      // Initialize PostHog - you'll need to replace with your actual project API key
-      posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY || 'phc_placeholder_key', {
-        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
-        // Enable/disable features based on environment
-        autocapture: process.env.NODE_ENV === 'production',
-        capture_pageview: false, // We'll handle page views manually
-        disable_session_recording: process.env.NODE_ENV !== 'production',
-        // Mexican market specific settings
-        persistence: 'localStorage',
-        cross_subdomain_cookie: false,
-        secure_cookie: true,
-        // Advanced settings for fraud prevention tracking
-        property_blacklist: [], // Don't block any properties for comprehensive fraud analysis
-        sanitize_properties: null,
-        xhr_headers: {},
-        // Session replay for debugging payment flows (production only)
-        session_recording: {
-          maskAllInputs: true,
-          maskInputOptions: {
-            password: true,
-            email: false // Allow email for user identification
-          }
-        },
-        // Feature flags for A/B testing fraud prevention messages
-        bootstrap: {},
-        // Custom person properties for Mexican market analysis
-        loaded: (posthog) => {
-          // Set up custom properties based on Reddit scraper insights
+      // Check if PostHog is already initialized to avoid conflicts
+      if (posthog.__loaded) {
+        this.isPostHogLoaded = true;
+        console.log('PostHog already initialized, skipping duplicate initialization');
+        return;
+      }
+      
+      // Only initialize if not already done by the main PostHog provider
+      try {
+        // Set up custom properties for Mexican market analysis without re-initializing
+        if (posthog.people) {
           posthog.people.set({
             mexican_market: true,
-            fraud_awareness_level: 'discovering', // Will be updated based on behavior
-            preferred_transaction_types: [], // Will be populated from usage
-            escrow_adoption_stage: 'unaware', // Based on zero escrow awareness from scraper
+            fraud_awareness_level: 'discovering',
+            preferred_transaction_types: [],
+            escrow_adoption_stage: 'unaware',
             total_payments_created: 0,
             total_payment_volume: 0
           });
         }
-      });
-      this.isPostHogLoaded = true;
+        this.isPostHogLoaded = true;
+      } catch (error) {
+        console.warn('PostHog initialization skipped due to existing setup:', error);
+        this.isPostHogLoaded = true; // Still mark as loaded to allow tracking
+      }
     }
   }
 
