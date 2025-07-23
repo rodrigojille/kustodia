@@ -12,6 +12,32 @@ interface InterestRegistrationFormProps {
   compactMode?: boolean; // For smaller forms
 }
 
+// Helper function to categorize customer segments for GA
+const getCustomerSegment = (vertical: string): string => {
+  const segmentMap: { [key: string]: string } = {
+    'desarrolladores': 'real_estate_developer',
+    'brokers': 'real_estate_broker', 
+    'compradores': 'real_estate_buyer',
+    'compra-venta': 'p2p_marketplace',
+    'marketplaces': 'marketplace_operator',
+    'freelancer': 'freelancer_professional',
+    'general': 'general_consumer'
+  };
+  return segmentMap[vertical] || 'unknown';
+};
+
+// Helper function to assess lead quality for GA
+const getLeadQuality = (formData: any): string => {
+  let score = 0;
+  if (formData.company && formData.company.length > 0) score += 2;
+  if (formData.phone && formData.phone.length > 0) score += 1;
+  if (formData.name && formData.name.length > 10) score += 1;
+  
+  if (score >= 3) return 'high';
+  if (score >= 2) return 'medium';
+  return 'basic';
+};
+
 export default function InterestRegistrationForm({
   source,
   vertical,
@@ -30,6 +56,7 @@ export default function InterestRegistrationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [formStarted, setFormStarted] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,19 +71,49 @@ export default function InterestRegistrationForm({
     });
   };
 
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    
+    // Track form start on first focus
+    if (!formStarted) {
+      setFormStarted(true);
+      analytics.trackEvent('interest_form_started', {
+        source,
+        vertical,
+        form_type: 'interest_registration',
+        first_field: name,
+        engagement_level: 'high'
+      });
+    }
+    
+    // Track field focus
+    analytics.trackEvent('interest_form_field_focus', {
+      field: name,
+      source,
+      vertical,
+      form_type: 'interest_registration'
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
 
     try {
-      // Track form submission attempt
+      // Track form submission attempt with comprehensive GA data
       analytics.trackEvent('interest_form_submission_attempt', {
         source,
         vertical,
         has_company: !!formData.company,
         has_phone: !!formData.phone,
-        form_type: 'interest_registration'
+        form_type: 'interest_registration',
+        // GA-specific vertical categorization
+        business_vertical: vertical,
+        customer_segment: getCustomerSegment(vertical),
+        lead_quality: getLeadQuality(formData),
+        conversion_funnel_stage: 'form_submission',
+        engagement_level: 'high'
       });
 
       const response = await fetch('/api/interest-registration', {
@@ -83,7 +140,15 @@ export default function InterestRegistrationForm({
         source,
         vertical,
         conversion_type: 'lead_generated',
-        form_type: 'interest_registration'
+        form_type: 'interest_registration',
+        // Enhanced GA tracking
+        business_vertical: vertical,
+        customer_segment: getCustomerSegment(vertical),
+        lead_quality: getLeadQuality(formData),
+        conversion_funnel_stage: 'lead_captured',
+        has_company_data: !!formData.company,
+        has_phone_data: !!formData.phone,
+        engagement_level: 'very_high'
       });
 
       setIsSubmitted(true);
@@ -134,6 +199,7 @@ export default function InterestRegistrationForm({
             placeholder="Nombre completo *"
             value={formData.name}
             onChange={handleInputChange}
+            onFocus={handleFocus}
             required
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -147,6 +213,7 @@ export default function InterestRegistrationForm({
             placeholder="Correo electrónico *"
             value={formData.email}
             onChange={handleInputChange}
+            onFocus={handleFocus}
             required
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />

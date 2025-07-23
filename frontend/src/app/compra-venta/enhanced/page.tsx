@@ -18,7 +18,8 @@ import {
   FaGavel,
   FaExclamationTriangle,
   FaMoneyBillWave,
-  FaFileContract
+  FaFileContract,
+  FaRocket
 } from 'react-icons/fa';
 import Link from 'next/link';
 import InterestRegistrationForm from '../../../components/InterestRegistrationForm';
@@ -451,11 +452,12 @@ export default function CompraVentaEnhanced() {
       <Header isAuthenticated={false} userName={''} />
       
       <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen px-4 pt-10 pb-20">
-        {/* Hero Section with Calculator */}
+        {/* Enhanced Hero Section */}
         <section className="w-full max-w-7xl px-6 mx-auto mb-20 mt-20">
-          <div className="text-center mb-16">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-8 mx-auto">
-              <FaHandshake className="text-blue-700 text-4xl" />
+          {/* Hero Content */}
+          <div className="text-center mb-12">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-8 mx-auto shadow-lg">
+              <FaHandshake className="text-blue-700 text-5xl" />
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
@@ -468,7 +470,78 @@ export default function CompraVentaEnhanced() {
             </p>
           </div>
 
-          {/* Interactive Calculator in Hero */}
+          {/* CTA Card */}
+          <div className="mb-12">
+            <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50 rounded-3xl shadow-xl border border-blue-100 p-8 lg:p-12 max-w-4xl mx-auto relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute top-0 left-0 w-32 h-32 bg-blue-600 rounded-full -translate-x-16 -translate-y-16"></div>
+                <div className="absolute bottom-0 right-0 w-24 h-24 bg-blue-400 rounded-full translate-x-12 translate-y-12"></div>
+              </div>
+              
+              <div className="relative z-10 text-center">
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  <FaShieldAlt className="text-green-600 text-3xl" />
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                    ¿Listo para comprar sin riesgos?
+                  </h2>
+                </div>
+                
+                <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+                  Únete a los mexicanos que ya protegen sus compras entre particulares con Kustodia.
+                  <span className="block mt-2 font-semibold text-blue-700">
+                    ¡Calcula tu protección y regístrate para acceso prioritario!
+                  </span>
+                </p>
+                
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+                  <div className="flex items-center gap-2 text-green-700 bg-green-50 px-4 py-2 rounded-full">
+                    <FaCheckCircle className="text-green-600" />
+                    <span className="font-medium">Protección garantizada</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-blue-700 bg-blue-50 px-4 py-2 rounded-full">
+                    <FaShieldAlt className="text-blue-600" />
+                    <span className="font-medium">Tecnología blockchain</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-purple-700 bg-purple-50 px-4 py-2 rounded-full">
+                    <FaRegSmile className="text-purple-600" />
+                    <span className="font-medium">Fácil de usar</span>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => document.getElementById('interest-form')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-10 py-5 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] group"
+                >
+                  <FaRocket className="text-lg group-hover:animate-pulse" />
+                  Acceso Prioritario
+                </button>
+                
+                {calculatorData && (
+                  <div className="mt-6 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+                    <p className="text-green-800 font-semibold text-lg">
+                      💡 Tu protección calculada: {new Intl.NumberFormat('es-MX', {
+                        style: 'currency',
+                        currency: 'MXN',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(calculatorData.protectionFee)} para {calculatorData.category}
+                    </p>
+                    <p className="text-green-700 text-sm mt-1">
+                      Valor protegido: {new Intl.NumberFormat('es-MX', {
+                        style: 'currency',
+                        currency: 'MXN',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(calculatorData.purchaseValue)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Calculator */}
           <div className="mb-8">
             <PurchaseCalculator onCalculate={handleCalculatorUse} />
           </div>
@@ -537,48 +610,7 @@ export default function CompraVentaEnhanced() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="w-full max-w-7xl px-6 mx-auto mb-20 text-center">
-          <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-lg border border-gray-200 p-12 lg:p-16 max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              ¿Listo para comprar sin riesgos?
-            </h2>
-            <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Únete a los mexicanos que ya protegen sus compras entre particulares con Kustodia
-            </p>
-            
-            <div className="flex justify-center">
-              <button 
-                onClick={() => document.getElementById('interest-form')?.scrollIntoView({ behavior: 'smooth' })}
-                className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
-              >
-                🚀 Acceso Prioritario
-              </button>
-            </div>
-            
-            {calculatorData && (
-              <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800 font-semibold">
-                  💡 Tu protección calculada: {new Intl.NumberFormat('es-MX', {
-                    style: 'currency',
-                    currency: 'MXN',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format(calculatorData.protectionFee)} para {calculatorData.category}
-                </p>
-                <p className="text-green-700 text-sm mt-1">
-                  Valor protegido: {new Intl.NumberFormat('es-MX', {
-                    style: 'currency',
-                    currency: 'MXN',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format(calculatorData.purchaseValue)}
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-        
+
         {/* Interest Registration Form */}
         <section className="w-full max-w-4xl px-6 mx-auto pb-20">
           <div className="text-center mb-12">
