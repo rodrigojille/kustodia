@@ -1,3 +1,5 @@
+'use client';
+
 import Header from '../../components/Header';
 import { FaUserTie, FaShieldAlt, FaRocket, FaLock } from 'react-icons/fa';
 import Link from 'next/link';

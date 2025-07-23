@@ -1,3 +1,5 @@
+'use client';
+
 import Header from '../../components/Header';
 import { FaHandshake, FaShieldAlt, FaRegSmile } from 'react-icons/fa';
 import Link from 'next/link';

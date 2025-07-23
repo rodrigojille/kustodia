@@ -13,8 +13,8 @@ const logs_1 = __importDefault(require("./admin/logs"));
 const logs_simple_1 = __importDefault(require("./admin/logs-simple")); // Simple logs without Heroku API
 const heroku_debug_1 = __importDefault(require("./admin/heroku-debug")); // Heroku API debugging
 const debug_auth_1 = __importDefault(require("./admin/debug-auth")); // Authentication debugging
-const adminController_1 = require("../controllers/adminController");
 const ticketController_1 = require("../controllers/ticketController");
+const adminController_1 = require("../controllers/adminController");
 const router = (0, express_1.Router)();
 // asyncHandler removed - using direct async functions to fix JWT authentication issues
 // =============================================================================
@@ -139,4 +139,49 @@ router.use("/heroku-debug", heroku_debug_1.default); // Debug Heroku API issues
 router.use("/logs-unified", logs_1.default); // Move to different path
 // 🐛 Debug Authentication Issues
 router.use("/debug-auth", debug_auth_1.default); // Authentication debugging
+// 🎫 Admin Ticket Management
+// @route   GET /api/admin/tickets
+// @desc    Get all tickets for admin
+// @access  Private (admin)
+router.get("/tickets", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, ticketController_1.getTicketsForAdmin)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// @route   GET /api/admin/tickets/:id
+// @desc    Get individual ticket details for admin
+// @access  Private (admin)
+router.get("/tickets/:id", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, ticketController_1.getTicketById)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// @route   POST /api/admin/tickets/:id/reply
+// @desc    Admin reply to ticket
+// @access  Private (admin)
+router.post("/tickets/:id/reply", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, ticketController_1.createReply)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// @route   PATCH /api/admin/tickets/:id/close
+// @desc    Admin close ticket
+// @access  Private (admin)
+router.patch("/tickets/:id/close", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, ticketController_1.closeTicket)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 exports.default = router;

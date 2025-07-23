@@ -35,6 +35,18 @@ __decorate([
     __metadata("design:type", String)
 ], Lead.prototype, "message", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "empresa", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "telefono", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 50, nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "vertical", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Lead.prototype, "created_at", void 0);

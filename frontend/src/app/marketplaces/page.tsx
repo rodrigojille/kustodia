@@ -1,3 +1,5 @@
+'use client';
+
 import Header from '../../components/Header';
 import { FaGlobe, FaShieldAlt, FaRegSmile, FaStore, FaRocket, FaCog } from 'react-icons/fa';
 import Link from 'next/link';

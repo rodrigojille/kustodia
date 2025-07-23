@@ -497,15 +497,15 @@ const login = async (req, res) => {
         // Set cookie for both environments
         res.cookie('auth_token', token, {
             httpOnly: true,
-            secure: isProduction, // Only secure in production
-            sameSite: isProduction ? 'lax' : 'none', // More permissive in development
+            secure: isProduction, // Secure in production, false for localhost
+            sameSite: 'lax', // Use 'lax' for both environments
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             path: '/'
         });
         console.log('[LOGIN DEBUG] Cookie set with settings:', {
             isProduction,
             secure: isProduction,
-            sameSite: isProduction ? 'lax' : 'none'
+            sameSite: 'lax'
         });
         if (isProduction) {
             // Production: Don't return token in response body for security
