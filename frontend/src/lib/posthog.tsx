@@ -19,16 +19,13 @@ if (typeof window !== 'undefined') {
       maskInputOptions: {
         password: true,
         email: false
-      },
-      minimumDuration: 2000 // Only record sessions longer than 2 seconds
+      }
     },
     
     // Disable features that might cause loading issues
     disable_surveys: true, // Disable surveys to avoid loading errors
-    disable_toolbar: false,
     
     // Advanced loading configuration
-    advanced_disable_decide: false,
     persistence: 'localStorage+cookie',
     
     // Error handling
