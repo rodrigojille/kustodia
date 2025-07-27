@@ -326,7 +326,18 @@ export default function LandingPage() {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
-                  <a href="#early-access" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] min-w-[320px]" aria-describedby="cta-description">
+                  <a 
+                    href="#early-access" 
+                    className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] min-w-[320px]" 
+                    aria-describedby="cta-description"
+                    onClick={() => trackUserAction('hero_cta_click', {
+                      button_text: 'Regístrate sin costo de por vida',
+                      target_section: 'early-access',
+                      conversion_stage: 'awareness',
+                      engagement_level: 'high',
+                      cta_position: 'hero_primary'
+                    })}
+                  >
                     Regístrate sin costo de por vida
                   </a>
                   <div id="cta-description" className="text-base text-gray-500 flex items-center gap-3 font-medium">
@@ -599,10 +610,18 @@ export default function LandingPage() {
                       <p className="text-sm text-gray-600 mb-2">
                         Transacción verificada en blockchain
                       </p>
-                      <a href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
+                      <a 
+                         href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
                          target="_blank" 
                          rel="noopener noreferrer"
-                         className="text-blue-600 hover:text-blue-800 text-sm font-medium underline">
+                         className="text-blue-600 hover:text-blue-800 text-sm font-medium underline"
+                         onClick={() => trackUserAction('blockchain_link_click', {
+                           button_text: 'Ver contrato inteligente en Arbitrum',
+                           target_url: 'https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543',
+                           example_context: 'iPhone 15 Pro',
+                           engagement_level: 'high',
+                           external_link: true
+                         })}>
                         Ver contrato inteligente en Arbitrum
                       </a>
                     </div>
@@ -738,10 +757,18 @@ export default function LandingPage() {
                       <p className="text-sm text-gray-600 mb-2">
                         Transacción verificada en blockchain
                       </p>
-                      <a href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
+                      <a 
+                         href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
                          target="_blank" 
                          rel="noopener noreferrer"
-                         className="text-green-600 hover:text-green-800 text-sm font-medium underline">
+                         className="text-green-600 hover:text-green-800 text-sm font-medium underline"
+                         onClick={() => trackUserAction('blockchain_link_click', {
+                           button_text: 'Ver contrato inteligente en Arbitrum',
+                           target_url: 'https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543',
+                           example_context: 'Honda Civic 2022',
+                           engagement_level: 'high',
+                           external_link: true
+                         })}>
                         Ver contrato inteligente en Arbitrum
                       </a>
                     </div>
@@ -877,10 +904,18 @@ export default function LandingPage() {
                       <p className="text-sm text-gray-600 mb-2">
                         Transacción verificada en blockchain
                       </p>
-                      <a href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
+                      <a 
+                         href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
                          target="_blank" 
                          rel="noopener noreferrer"
-                         className="text-purple-600 hover:text-purple-800 text-sm font-medium underline">
+                         className="text-purple-600 hover:text-purple-800 text-sm font-medium underline"
+                         onClick={() => trackUserAction('blockchain_link_click', {
+                           button_text: 'Ver contrato inteligente en Arbitrum',
+                           target_url: 'https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543',
+                           example_context: 'Apartamento Polanco',
+                           engagement_level: 'high',
+                           external_link: true
+                         })}>
                         Ver contrato inteligente en Arbitrum
                       </a>
                     </div>
@@ -890,7 +925,15 @@ export default function LandingPage() {
               
               {/* Navigation Arrows */}
               <button 
-                onClick={prevExample}
+                onClick={() => {
+                  trackUserAction('carousel_prev_button', {
+                    current_example: currentExample,
+                    target_example: currentExample === 1 ? 3 : currentExample - 1,
+                    interaction_type: 'navigation_arrow',
+                    engagement_level: 'medium'
+                  });
+                  prevExample();
+                }}
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 z-10"
                 aria-label="Ver ejemplo anterior"
                 type="button"
@@ -900,7 +943,15 @@ export default function LandingPage() {
                 </svg>
               </button>
               <button 
-                onClick={nextExample}
+                onClick={() => {
+                  trackUserAction('carousel_next_button', {
+                    current_example: currentExample,
+                    target_example: currentExample === 3 ? 1 : currentExample + 1,
+                    interaction_type: 'navigation_arrow',
+                    engagement_level: 'medium'
+                  });
+                  nextExample();
+                }}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 z-10"
                 aria-label="Ver siguiente ejemplo"
                 type="button"
@@ -913,7 +964,16 @@ export default function LandingPage() {
               {/* Carousel Indicators */}
               <div className="flex justify-center mt-8 gap-3" role="tablist" aria-label="Seleccionar ejemplo">
                 <button 
-                  onClick={() => showExample(1)} 
+                  onClick={() => {
+                    trackUserAction('carousel_indicator_click', {
+                      target_example: 1,
+                      example_name: 'iPhone 15 Pro',
+                      current_example: currentExample,
+                      interaction_type: 'indicator_dot',
+                      engagement_level: 'medium'
+                    });
+                    showExample(1);
+                  }} 
                   className={`w-4 h-4 rounded-full transition-all duration-200 ${currentExample === 1 ? 'bg-blue-600 scale-125' : 'bg-gray-300 hover:bg-gray-400'}`}
                   aria-label="Ver ejemplo iPhone 15 Pro"
                   role="tab"
@@ -921,7 +981,16 @@ export default function LandingPage() {
                   type="button"
                 />
                 <button 
-                  onClick={() => showExample(2)} 
+                  onClick={() => {
+                    trackUserAction('carousel_indicator_click', {
+                      target_example: 2,
+                      example_name: 'Honda Civic 2022',
+                      current_example: currentExample,
+                      interaction_type: 'indicator_dot',
+                      engagement_level: 'medium'
+                    });
+                    showExample(2);
+                  }} 
                   className={`w-4 h-4 rounded-full transition-all duration-200 ${currentExample === 2 ? 'bg-green-600 scale-125' : 'bg-gray-300 hover:bg-gray-400'}`}
                   aria-label="Ver ejemplo Honda Civic 2022"
                   role="tab"
@@ -929,7 +998,16 @@ export default function LandingPage() {
                   type="button"
                 />
                 <button 
-                  onClick={() => showExample(3)} 
+                  onClick={() => {
+                    trackUserAction('carousel_indicator_click', {
+                      target_example: 3,
+                      example_name: 'Apartamento Polanco',
+                      current_example: currentExample,
+                      interaction_type: 'indicator_dot',
+                      engagement_level: 'medium'
+                    });
+                    showExample(3);
+                  }} 
                   className={`w-4 h-4 rounded-full transition-all duration-200 ${currentExample === 3 ? 'bg-purple-600 scale-125' : 'bg-gray-300 hover:bg-gray-400'}`}
                   aria-label="Ver ejemplo apartamento en Polanco"
                   role="tab"

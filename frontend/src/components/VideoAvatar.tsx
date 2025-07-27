@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { FaPlay, FaPause, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
+import { useAnalyticsContext } from './AnalyticsProvider';
 
 interface VideoAvatarProps {
   videoUrl?: string;
@@ -26,10 +27,21 @@ export default function VideoAvatar({
   const [showControls, setShowControls] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { trackUserAction } = useAnalyticsContext();
 
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
+
+    const action = video.paused ? 'play' : 'pause';
+    
+    trackUserAction('video_avatar_control', {
+      action: action,
+      video_title: title,
+      has_played_before: hasPlayed,
+      current_time: video.currentTime,
+      engagement_level: 'high'
+    });
 
     if (video.paused) {
       video.play();
@@ -45,6 +57,13 @@ export default function VideoAvatar({
 
   const toggleMute = () => {
     if (videoRef.current) {
+      trackUserAction('video_avatar_mute_toggle', {
+        action: isMuted ? 'unmute' : 'mute',
+        video_title: title,
+        current_time: videoRef.current.currentTime,
+        engagement_level: 'medium'
+      });
+      
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
@@ -54,11 +73,32 @@ export default function VideoAvatar({
     const video = videoRef.current;
     if (!video) return;
 
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
+    const handlePlay = () => {
+      setIsPlaying(true);
+      trackUserAction('video_avatar_started', {
+        video_title: title,
+        trigger: hasPlayed ? 'user_replay' : 'user_first_play',
+        engagement_level: 'high'
+      });
+    };
+    
+    const handlePause = () => {
+      setIsPlaying(false);
+      trackUserAction('video_avatar_paused', {
+        video_title: title,
+        current_time: video.currentTime,
+        engagement_level: 'medium'
+      });
+    };
+    
     const handleEnded = () => {
       setIsPlaying(false);
       video.currentTime = 0;
+      trackUserAction('video_avatar_completed', {
+        video_title: title,
+        completion_rate: 100,
+        engagement_level: 'high'
+      });
     };
 
     video.addEventListener('play', handlePlay);
@@ -114,7 +154,14 @@ export default function VideoAvatar({
           {!isPlaying && (
             <div 
               className="absolute inset-0 bg-black/20 flex items-center justify-center cursor-pointer group"
-              onClick={togglePlay}
+              onClick={() => {
+                trackUserAction('video_avatar_overlay_click', {
+                  video_title: title,
+                  interaction_type: 'play_overlay',
+                  engagement_level: 'high'
+                });
+                togglePlay();
+              }}
             >
               <div className="bg-blue-600 hover:bg-blue-700 rounded-full p-4 transition-all duration-200 group-hover:scale-110 shadow-lg">
                 <FaPlay className="text-white text-2xl ml-1" />

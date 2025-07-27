@@ -1,4 +1,5 @@
 import React from "react";
+import { useAnalyticsContext } from './AnalyticsProvider';
 
 const casos = [
   {
@@ -34,6 +35,7 @@ const casos = [
 ];
 
 export default function CasosDeUso() {
+  const { trackUserAction } = useAnalyticsContext();
   return (
     <section className="w-full max-w-7xl mx-auto px-6 mb-32" aria-labelledby="use-cases-heading">
       <div className="text-center mb-20">
@@ -75,11 +77,31 @@ export default function CasosDeUso() {
                   <a 
                     href={href} 
                     className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-base font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] min-w-[140px]"
+                    onClick={() => trackUserAction('use_case_button_click', {
+                      button_text: 'Saber más',
+                      use_case_title: caso.title,
+                      target_url: href,
+                      fraud_category: caso.title.includes('Inmobiliarias') ? 'real_estate' : 
+                                     caso.title.includes('Freelancer') ? 'services' :
+                                     caso.title.includes('E-commerce') ? 'ecommerce' :
+                                     caso.title.includes('Compra-venta') ? 'marketplace' :
+                                     caso.title.includes('B2B') ? 'b2b' :
+                                     caso.title.includes('Marketplaces') ? 'marketplaces' : 'other',
+                      engagement_level: 'high',
+                      conversion_stage: 'consideration'
+                    })}
                   >
                     Saber más
                   </a>
                 ) : (
-                  <span className="inline-block px-8 py-4 bg-gray-200 text-gray-500 rounded-2xl font-semibold text-base shadow opacity-60 cursor-not-allowed min-w-[140px]">
+                  <span 
+                    className="inline-block px-8 py-4 bg-gray-200 text-gray-500 rounded-2xl font-semibold text-base shadow opacity-60 cursor-not-allowed min-w-[140px]"
+                    onClick={() => trackUserAction('use_case_coming_soon_click', {
+                      use_case_title: caso.title,
+                      button_text: 'Próximamente',
+                      engagement_level: 'medium'
+                    })}
+                  >
                     Próximamente
                   </span>
                 )}
