@@ -386,9 +386,9 @@ export default function CompraVentaVehiculos() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-blue-600">1</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Registra y crea tu gemelo digital</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Registra tu Vehículo</h3>
                 <p className="text-gray-600">
-                  Crea el NFT de tu vehículo con todos los datos y documentos de mantenimiento
+                  Crea el NFT de tu vehículo con todos los datos y documentos y valida en centro autorizado
                 </p>
               </div>
               
@@ -396,9 +396,9 @@ export default function CompraVentaVehiculos() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-green-600">2</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Comparte en tus publicaciones la liga de verificación</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Publica tu Venta</h3>
                 <p className="text-gray-600">
-                  Comparte el enlace de verificación en Facebook Marketplace, MercadoLibre o donde vendas
+                  Agrega y comparte el link de tu gemelo digital para agilizar la venta
                 </p>
               </div>
               
@@ -406,9 +406,9 @@ export default function CompraVentaVehiculos() {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-purple-600">3</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Vende con seguridad</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Vende seguro a través de Kustodia</h3>
                 <p className="text-gray-600">
-                  Los compradores ven el historial completo y están dispuestos a pagar <span className="font-semibold text-green-600">hasta 23% más</span> por vehículos con certificación digital verificada
+                  Con nuestro sistema de custodia digital, los compradores ven el historial completo y están dispuestos a pagar <span className="font-semibold text-green-600">hasta 23% más</span> por vehículos con certificación digital verificada
                 </p>
               </div>
             </div>
