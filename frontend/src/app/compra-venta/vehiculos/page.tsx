@@ -19,9 +19,8 @@ export default function CompraVentaVehiculos() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
-    vehicle: '',
-    message: ''
+    company: '',
+    phone: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -78,9 +77,8 @@ export default function CompraVentaVehiculos() {
       setFormData({
         name: '',
         email: '',
-        phone: '',
-        vehicle: '',
-        message: ''
+        company: '',
+        phone: ''
       });
     } catch (error) {
       setSubmitStatus('error');
@@ -388,7 +386,7 @@ export default function CompraVentaVehiculos() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-blue-600">1</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Registra tu Vehículo</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Registra y crea tu gemelo digital</h3>
                 <p className="text-gray-600">
                   Crea el NFT de tu vehículo con todos los datos y documentos de mantenimiento
                 </p>
@@ -398,9 +396,9 @@ export default function CompraVentaVehiculos() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-green-600">2</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Publica tu Venta</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Comparte en tus publicaciones la liga de verificación</h3>
                 <p className="text-gray-600">
-                  Usa nuestro sistema de pagos seguros para proteger tanto al comprador como al vendedor
+                  Comparte el enlace de verificación en Facebook Marketplace, MercadoLibre o donde vendas
                 </p>
               </div>
               
@@ -408,7 +406,7 @@ export default function CompraVentaVehiculos() {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-purple-600">3</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Vende con Confianza</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Vende con seguridad</h3>
                 <p className="text-gray-600">
                   Los compradores ven el historial completo y están dispuestos a pagar <span className="font-semibold text-green-600">hasta 23% más</span> por vehículos con certificación digital verificada
                 </p>
@@ -491,33 +489,18 @@ export default function CompraVentaVehiculos() {
                 </div>
                 
                 <div>
-                  <label htmlFor="vehicle" className="block text-sm font-medium text-gray-700 mb-2">
-                    Vehículo a vender
+                  <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
+                    Empresa (opcional)
                   </label>
                   <input
                     type="text"
-                    id="vehicle"
-                    name="vehicle"
-                    value={formData.vehicle}
+                    id="company"
+                    name="company"
+                    value={formData.company}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ej: 2020 Toyota Corolla"
+                    placeholder="Empresa (opcional)"
                   />
-                </div>
-                
-                <div className="md:col-span-2">
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                    Mensaje adicional
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    rows={4}
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Cuéntanos más sobre tu vehículo o cualquier pregunta que tengas..."
-                  ></textarea>
                 </div>
                 
 
