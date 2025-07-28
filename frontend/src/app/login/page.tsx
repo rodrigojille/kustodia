@@ -53,14 +53,22 @@ export default function LoginPage() {
       console.log("Backend response data:", data);
 
       if (!res.ok) {
-        setError(data.error || "Error en el inicio de sesión");
-        console.log("Login failed:", data.error);
+        // Handle unverified email case
+        if (res.status === 403 && data.unverified) {
+          setError(data.message || "Tu correo no ha sido verificado.");
+          setShowResend(true);
+          console.log("Email not verified for:", data.email);
+        } else {
+          setError(data.error || "Error en el inicio de sesión");
+          console.log("Login failed:", data.error);
+        }
         
         // 🔥 ANALYTICS: Track login failure
         analytics.formTracking.trackFormCompletion('login_form', false, [data.error || 'Login failed']);
         trackUserAction('login_failed', {
           error_type: data.error || 'unknown_error',
-          journey_stage: 'authentication'
+          journey_stage: 'authentication',
+          unverified_email: data.unverified || false
         });
         
         setLoading(false);
@@ -131,7 +139,39 @@ export default function LoginPage() {
       console.log("=== LOGIN FINISHED ===");
       setLoading(false);
     }
-  }
+  };
+
+  const handleResendVerification = async () => {
+    setResendLoading(true);
+    setResendSuccess(null);
+    
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/users/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        setResendSuccess("Email de verificación enviado. Revisa tu bandeja de entrada.");
+        setError(null);
+        
+        // Track successful resend
+        trackUserAction('verification_email_resent', {
+          email_domain: email.split('@')[1] || 'unknown',
+          journey_stage: 'authentication'
+        });
+      } else {
+        setError(data.error || "Error al enviar email de verificación");
+      }
+    } catch (err) {
+      setError("Error al enviar email de verificación");
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
@@ -211,7 +251,7 @@ export default function LoginPage() {
                 setResendLoading(true);
                 setResendSuccess(null);
                 try {
-                  const res = await fetch("/api/auth/resend-verification", {
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/users/resend-verification`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email }),

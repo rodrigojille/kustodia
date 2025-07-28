@@ -20,6 +20,7 @@
     "db:sync": "ts-node -e \"import AppDataSource from './src/ormconfig'; AppDataSource.initialize().then(() => AppDataSource.synchronize()).then(() => process.exit(0))\""
   },
   "dependencies": {
+    "@pinata/sdk": "^2.1.0",
     "@sendgrid/mail": "^8.1.5",
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.18",
@@ -29,7 +30,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/puppeteer": "^5.4.7",
     "@types/uuid": "^10.0.0",
-    "axios": "^1.9.0",
+    "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "copyfiles": "^2.4.1",
@@ -39,6 +40,7 @@
     "ethers": "^6.14.0",
     "express": "^4.18.2",
     "express-session": "^1.18.1",
+    "form-data": "^4.0.4",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.2",
     "node-cron": "^4.1.1",

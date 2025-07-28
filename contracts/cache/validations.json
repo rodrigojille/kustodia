@@ -163,9 +163,9 @@
       "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol:AddressUpgradeable": {
         "src": "@openzeppelin\\contracts-upgradeable\\utils\\AddressUpgradeable.sol:9",
         "version": {
-          "withMetadata": "cd01d06a864d1d6bd46a8678034825ba90aa121e20fb4b9a0887c22c9c8f557d",
-          "withoutMetadata": "08d24783a787f8a51dea0c166bb6f91a4f0865e02d03d749f102d332e6ead0ff",
-          "linkedWithoutMetadata": "08d24783a787f8a51dea0c166bb6f91a4f0865e02d03d749f102d332e6ead0ff"
+          "withMetadata": "ee9641b433c5ebaabed85fc24f6ba2fb8f3df4a298d46bf97dd2c9466a91ec58",
+          "withoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a",
+          "linkedWithoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a"
         },
         "inherit": [],
         "libraries": [],
@@ -251,6 +251,106 @@
         },
         "solcVersion": "0.8.20"
       },
+      "@openzeppelin/contracts/access/AccessControl.sol:AccessControl": {
+        "src": "@openzeppelin\\contracts\\access\\AccessControl.sol:50",
+        "inherit": [
+          "@openzeppelin/contracts/utils/introspection/ERC165.sol:ERC165",
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165",
+          "@openzeppelin/contracts/access/IAccessControl.sol:IAccessControl",
+          "@openzeppelin/contracts/utils/Context.sol:Context"
+        ],
+        "libraries": [
+          "@openzeppelin/contracts/utils/Strings.sol:Strings"
+        ],
+        "methods": [
+          "supportsInterface(bytes4)",
+          "hasRole(bytes32,address)",
+          "getRoleAdmin(bytes32)",
+          "grantRole(bytes32,address)",
+          "revokeRole(bytes32,address)",
+          "renounceRole(bytes32,address)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [
+            {
+              "label": "_roles",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)770_storage)",
+              "contract": "AccessControl",
+              "src": "@openzeppelin\\contracts\\access\\AccessControl.sol:56"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            },
+            "t_bool": {
+              "label": "bool",
+              "numberOfBytes": "1"
+            },
+            "t_bytes32": {
+              "label": "bytes32",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_bytes32,t_struct(RoleData)770_storage)": {
+              "label": "mapping(bytes32 => struct AccessControl.RoleData)",
+              "numberOfBytes": "32"
+            },
+            "t_struct(RoleData)770_storage": {
+              "label": "struct AccessControl.RoleData",
+              "members": [
+                {
+                  "label": "members",
+                  "type": "t_mapping(t_address,t_bool)",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "adminRole",
+                  "type": "t_bytes32",
+                  "offset": 0,
+                  "slot": "1"
+                }
+              ],
+              "numberOfBytes": "64"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/access/IAccessControl.sol:IAccessControl": {
+        "src": "@openzeppelin\\contracts\\access\\IAccessControl.sol:9",
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "hasRole(bytes32,address)",
+          "getRoleAdmin(bytes32)",
+          "grantRole(bytes32,address)",
+          "revokeRole(bytes32,address)",
+          "renounceRole(bytes32,address)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
       "@openzeppelin/contracts/access/Ownable.sol:Ownable": {
         "src": "@openzeppelin\\contracts\\access\\Ownable.sol:20",
         "inherit": [
@@ -293,12 +393,67 @@
         },
         "solcVersion": "0.8.20"
       },
+      "@openzeppelin/contracts/interfaces/IERC4906.sol:IERC4906": {
+        "src": "@openzeppelin\\contracts\\interfaces\\IERC4906.sol:10",
+        "inherit": [
+          "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721",
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165"
+        ],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/security/ReentrancyGuard.sol:ReentrancyGuard": {
+        "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:22",
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "ReentrancyGuard",
+            "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:39"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_status",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_uint256",
+              "contract": "ReentrancyGuard",
+              "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:37"
+            }
+          ],
+          "types": {
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
       "@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20": {
         "src": "@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol:38",
         "version": {
-          "withMetadata": "7bffa9698bdf67b5e9bf398f932a3a03783fdcdb924277a43e765aa76c548589",
-          "withoutMetadata": "a92681274947382be0406b99a11a62ccccc6f412fcb3a354d51624c87dc00569",
-          "linkedWithoutMetadata": "a92681274947382be0406b99a11a62ccccc6f412fcb3a354d51624c87dc00569"
+          "withMetadata": "f13ccfada91f548b23c6f542c5ee64e5f9c1247d555127b022de5496cdf83739",
+          "withoutMetadata": "0b706ae10b44318ff41c51c02ebeb3b5d54c0eb40fa7ee71d37754c4ef9f0e3d",
+          "linkedWithoutMetadata": "0b706ae10b44318ff41c51c02ebeb3b5d54c0eb40fa7ee71d37754c4ef9f0e3d"
         },
         "inherit": [
           "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol:IERC20Metadata",
@@ -444,8 +599,488 @@
         },
         "solcVersion": "0.8.20"
       },
+      "@openzeppelin/contracts/token/ERC721/ERC721.sol:ERC721": {
+        "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:19",
+        "version": {
+          "withMetadata": "459f3e3a3e0e1c7ed67f3ddc90f47af7718faa5a363dac2ae6fa3d8105e2f049",
+          "withoutMetadata": "4e5625881d15bc5c80ef5b9aabf9e7c6cfb0d96feca6fa29af4ab4ac4ab3c1ee",
+          "linkedWithoutMetadata": "4e5625881d15bc5c80ef5b9aabf9e7c6cfb0d96feca6fa29af4ab4ac4ab3c1ee"
+        },
+        "inherit": [
+          "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol:IERC721Metadata",
+          "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721",
+          "@openzeppelin/contracts/utils/introspection/ERC165.sol:ERC165",
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165",
+          "@openzeppelin/contracts/utils/Context.sol:Context"
+        ],
+        "libraries": [
+          "@openzeppelin/contracts/utils/Address.sol:Address",
+          "@openzeppelin/contracts/utils/Strings.sol:Strings"
+        ],
+        "methods": [
+          "(string,string)",
+          "supportsInterface(bytes4)",
+          "balanceOf(address)",
+          "ownerOf(uint256)",
+          "name()",
+          "symbol()",
+          "tokenURI(uint256)",
+          "approve(address,uint256)",
+          "getApproved(uint256)",
+          "setApprovalForAll(address,bool)",
+          "isApprovedForAll(address,address)",
+          "transferFrom(address,address,uint256)",
+          "safeTransferFrom(address,address,uint256)",
+          "safeTransferFrom(address,address,uint256,bytes)"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "ERC721",
+            "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:44"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_name",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:24"
+            },
+            {
+              "label": "_symbol",
+              "offset": 0,
+              "slot": "1",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:27"
+            },
+            {
+              "label": "_owners",
+              "offset": 0,
+              "slot": "2",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:30"
+            },
+            {
+              "label": "_balances",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_mapping(t_address,t_uint256)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:33"
+            },
+            {
+              "label": "_tokenApprovals",
+              "offset": 0,
+              "slot": "4",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:36"
+            },
+            {
+              "label": "_operatorApprovals",
+              "offset": 0,
+              "slot": "5",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:39"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            },
+            "t_bool": {
+              "label": "bool",
+              "numberOfBytes": "1"
+            },
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+              "label": "mapping(address => mapping(address => bool))",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_uint256)": {
+              "label": "mapping(address => uint256)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_address)": {
+              "label": "mapping(uint256 => address)",
+              "numberOfBytes": "32"
+            },
+            "t_string_storage": {
+              "label": "string",
+              "numberOfBytes": "32"
+            },
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721": {
+        "src": "@openzeppelin\\contracts\\token\\ERC721\\IERC721.sol:11",
+        "inherit": [
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165"
+        ],
+        "libraries": [],
+        "methods": [
+          "balanceOf(address)",
+          "ownerOf(uint256)",
+          "safeTransferFrom(address,address,uint256,bytes)",
+          "safeTransferFrom(address,address,uint256)",
+          "transferFrom(address,address,uint256)",
+          "approve(address,uint256)",
+          "setApprovalForAll(address,bool)",
+          "getApproved(uint256)",
+          "isApprovedForAll(address,address)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol:IERC721Receiver": {
+        "src": "@openzeppelin\\contracts\\token\\ERC721\\IERC721Receiver.sol:11",
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "onERC721Received(address,address,uint256,bytes)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol:ERC721URIStorage": {
+        "src": "@openzeppelin\\contracts\\token\\ERC721\\extensions\\ERC721URIStorage.sol:12",
+        "inherit": [
+          "@openzeppelin/contracts/token/ERC721/ERC721.sol:ERC721",
+          "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol:IERC721Metadata",
+          "@openzeppelin/contracts/interfaces/IERC4906.sol:IERC4906",
+          "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721",
+          "@openzeppelin/contracts/utils/introspection/ERC165.sol:ERC165",
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165",
+          "@openzeppelin/contracts/utils/Context.sol:Context"
+        ],
+        "libraries": [
+          "@openzeppelin/contracts/utils/Strings.sol:Strings"
+        ],
+        "methods": [
+          "supportsInterface(bytes4)",
+          "tokenURI(uint256)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [
+            {
+              "label": "_name",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:24"
+            },
+            {
+              "label": "_symbol",
+              "offset": 0,
+              "slot": "1",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:27"
+            },
+            {
+              "label": "_owners",
+              "offset": 0,
+              "slot": "2",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:30"
+            },
+            {
+              "label": "_balances",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_mapping(t_address,t_uint256)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:33"
+            },
+            {
+              "label": "_tokenApprovals",
+              "offset": 0,
+              "slot": "4",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:36"
+            },
+            {
+              "label": "_operatorApprovals",
+              "offset": 0,
+              "slot": "5",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:39"
+            },
+            {
+              "label": "_tokenURIs",
+              "offset": 0,
+              "slot": "6",
+              "type": "t_mapping(t_uint256,t_string_storage)",
+              "contract": "ERC721URIStorage",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\extensions\\ERC721URIStorage.sol:16"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            },
+            "t_bool": {
+              "label": "bool",
+              "numberOfBytes": "1"
+            },
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+              "label": "mapping(address => mapping(address => bool))",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_uint256)": {
+              "label": "mapping(address => uint256)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_address)": {
+              "label": "mapping(uint256 => address)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_string_storage)": {
+              "label": "mapping(uint256 => string)",
+              "numberOfBytes": "32"
+            },
+            "t_string_storage": {
+              "label": "string",
+              "numberOfBytes": "32"
+            },
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol:IERC721Metadata": {
+        "src": "@openzeppelin\\contracts\\token\\ERC721\\extensions\\IERC721Metadata.sol:12",
+        "inherit": [
+          "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721",
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165"
+        ],
+        "libraries": [],
+        "methods": [
+          "name()",
+          "symbol()",
+          "tokenURI(uint256)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/utils/Address.sol:Address": {
+        "src": "@openzeppelin\\contracts\\utils\\Address.sol:9",
+        "version": {
+          "withMetadata": "e18cb52f5a691c3746000ea0ea07bcc03af61b9da2657e33ad65f0fc60c76cd5",
+          "withoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a",
+          "linkedWithoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a"
+        },
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "delegatecall",
+            "src": "@openzeppelin\\contracts\\utils\\Address.sol:185"
+          },
+          {
+            "kind": "delegatecall",
+            "src": "@openzeppelin\\contracts\\utils\\Address.sol:185"
+          }
+        ],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
       "@openzeppelin/contracts/utils/Context.sol:Context": {
         "src": "@openzeppelin\\contracts\\utils\\Context.sol:16",
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/utils/Counters.sol:Counters": {
+        "src": "@openzeppelin\\contracts\\utils\\Counters.sol:14",
+        "version": {
+          "withMetadata": "ac647e59eb8f2158e18189fef7dc58c68884e9233b4198348d447d7cb0b83206",
+          "withoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a",
+          "linkedWithoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a"
+        },
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/utils/Strings.sol:Strings": {
+        "src": "@openzeppelin\\contracts\\utils\\Strings.sol:12",
+        "version": {
+          "withMetadata": "1a627ea345a7e9761a906567c8a1f14cbddc61ed2d29d97903d2d6e72c43245a",
+          "withoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a",
+          "linkedWithoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a"
+        },
+        "inherit": [],
+        "libraries": [
+          "@openzeppelin/contracts/utils/math/Math.sol:Math",
+          "@openzeppelin/contracts/utils/math/SignedMath.sol:SignedMath"
+        ],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/utils/introspection/ERC165.sol:ERC165": {
+        "src": "@openzeppelin\\contracts\\utils\\introspection\\ERC165.sol:22",
+        "inherit": [
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165"
+        ],
+        "libraries": [],
+        "methods": [
+          "supportsInterface(bytes4)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165": {
+        "src": "@openzeppelin\\contracts\\utils\\introspection\\IERC165.sol:15",
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "supportsInterface(bytes4)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/utils/math/Math.sol:Math": {
+        "src": "@openzeppelin\\contracts\\utils\\math\\Math.sol:9",
+        "version": {
+          "withMetadata": "ef9cde1ef2eed8a1397a7f21f560bf76df78ecbbef747c06565a1fa6dce14b3e",
+          "withoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a",
+          "linkedWithoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a"
+        },
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "@openzeppelin/contracts/utils/math/SignedMath.sol:SignedMath": {
+        "src": "@openzeppelin\\contracts\\utils\\math\\SignedMath.sol:9",
+        "version": {
+          "withMetadata": "14edb7ebe3d6205c90c90fa30e56fcd88b1f19948dcd0601f087ea81f30d5113",
+          "withoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a",
+          "linkedWithoutMetadata": "e2a89a66865458f0d9fedd4bc7faf0ee62e4c341d176ab79d29bd77a1bdfc32a"
+        },
         "inherit": [],
         "libraries": [],
         "methods": [],
@@ -463,9 +1098,9 @@
       "contracts/KustodiaEscrow.sol:KustodiaEscrow": {
         "src": "contracts\\KustodiaEscrow.sol:8",
         "version": {
-          "withMetadata": "68a4d2c034212f095088922044be14c02645a05ae02cf967bdf8efbb9532fc68",
-          "withoutMetadata": "4e41c850d14ee7b7dff50ad812df3324cae6925d0150d6316197084f4498a36b",
-          "linkedWithoutMetadata": "4e41c850d14ee7b7dff50ad812df3324cae6925d0150d6316197084f4498a36b"
+          "withMetadata": "b79d2bbb069d277b538b93cc8263b5d3907c00b7a3b3b4dfcd2c91a42df60fcf",
+          "withoutMetadata": "b8de7864d88bae2a8f354236c3684c3bc1cdf0a02cd564917ae25f089dce92c8",
+          "linkedWithoutMetadata": "b8de7864d88bae2a8f354236c3684c3bc1cdf0a02cd564917ae25f089dce92c8"
         },
         "inherit": [
           "@openzeppelin/contracts/access/Ownable.sol:Ownable",
@@ -501,7 +1136,7 @@
               "label": "mxnbToken",
               "offset": 0,
               "slot": "1",
-              "type": "t_contract(IERC20)1528",
+              "type": "t_contract(IERC20)2010",
               "contract": "KustodiaEscrow",
               "src": "contracts\\KustodiaEscrow.sol:9"
             },
@@ -525,7 +1160,7 @@
               "label": "escrows",
               "offset": 0,
               "slot": "4",
-              "type": "t_mapping(t_uint256,t_struct(Escrow)1615_storage)",
+              "type": "t_mapping(t_uint256,t_struct(Escrow)4981_storage)",
               "contract": "KustodiaEscrow",
               "src": "contracts\\KustodiaEscrow.sol:24"
             }
@@ -535,11 +1170,11 @@
               "label": "address",
               "numberOfBytes": "20"
             },
-            "t_contract(IERC20)1528": {
+            "t_contract(IERC20)2010": {
               "label": "contract IERC20",
               "numberOfBytes": "20"
             },
-            "t_enum(EscrowStatus)1603": {
+            "t_enum(EscrowStatus)4969": {
               "label": "enum KustodiaEscrow.EscrowStatus",
               "members": [
                 "Active",
@@ -550,11 +1185,11 @@
               ],
               "numberOfBytes": "1"
             },
-            "t_mapping(t_uint256,t_struct(Escrow)1615_storage)": {
+            "t_mapping(t_uint256,t_struct(Escrow)4981_storage)": {
               "label": "mapping(uint256 => struct KustodiaEscrow.Escrow)",
               "numberOfBytes": "32"
             },
-            "t_struct(Escrow)1615_storage": {
+            "t_struct(Escrow)4981_storage": {
               "label": "struct KustodiaEscrow.Escrow",
               "members": [
                 {
@@ -583,7 +1218,7 @@
                 },
                 {
                   "label": "status",
-                  "type": "t_enum(EscrowStatus)1603",
+                  "type": "t_enum(EscrowStatus)4969",
                   "offset": 0,
                   "slot": "4"
                 }
@@ -604,9 +1239,9 @@
       "contracts/KustodiaEscrow2_0.sol:KustodiaEscrow2_0": {
         "src": "contracts\\KustodiaEscrow2_0.sol:13",
         "version": {
-          "withMetadata": "446bcb6c5b9905f9f4c5ef32d08b289532f0c41d042412b602190eb2c0afd094",
-          "withoutMetadata": "68079d5393a6403f649503e2c8f2d1f5f7cacff2ea4b890da2a6ecd9a4229248",
-          "linkedWithoutMetadata": "68079d5393a6403f649503e2c8f2d1f5f7cacff2ea4b890da2a6ecd9a4229248"
+          "withMetadata": "a39ddf6d755353f4b0359425803049617d32c22ca2582f49331f5863d0833420",
+          "withoutMetadata": "0adde7e16b495d2b53272a6d86c9259d33a68de17ff089fa56a8ad5a1f63862d",
+          "linkedWithoutMetadata": "0adde7e16b495d2b53272a6d86c9259d33a68de17ff089fa56a8ad5a1f63862d"
         },
         "inherit": [
           "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:OwnableUpgradeable",
@@ -683,7 +1318,7 @@
               "label": "escrows",
               "offset": 0,
               "slot": "102",
-              "type": "t_mapping(t_uint256,t_struct(Escrow)1951_storage)",
+              "type": "t_mapping(t_uint256,t_struct(Escrow)5317_storage)",
               "contract": "KustodiaEscrow2_0",
               "src": "contracts\\KustodiaEscrow2_0.sol:29"
             },
@@ -721,7 +1356,7 @@
               "label": "bool",
               "numberOfBytes": "1"
             },
-            "t_enum(EscrowStatus)1931": {
+            "t_enum(EscrowStatus)5297": {
               "label": "enum KustodiaEscrow2_0.EscrowStatus",
               "members": [
                 "Pending",
@@ -732,7 +1367,7 @@
               ],
               "numberOfBytes": "1"
             },
-            "t_mapping(t_uint256,t_struct(Escrow)1951_storage)": {
+            "t_mapping(t_uint256,t_struct(Escrow)5317_storage)": {
               "label": "mapping(uint256 => struct KustodiaEscrow2_0.Escrow)",
               "numberOfBytes": "32"
             },
@@ -740,7 +1375,7 @@
               "label": "string",
               "numberOfBytes": "32"
             },
-            "t_struct(Escrow)1951_storage": {
+            "t_struct(Escrow)5317_storage": {
               "label": "struct KustodiaEscrow2_0.Escrow",
               "members": [
                 {
@@ -781,7 +1416,7 @@
                 },
                 {
                   "label": "status",
-                  "type": "t_enum(EscrowStatus)1931",
+                  "type": "t_enum(EscrowStatus)5297",
                   "offset": 0,
                   "slot": "6"
                 },
@@ -818,9 +1453,9 @@
       "contracts/KustodiaEscrow3_0.sol:KustodiaEscrow3_0": {
         "src": "contracts\\KustodiaEscrow3_0.sol:8",
         "version": {
-          "withMetadata": "997f375c7e2d956a72e472cb5ec245294b6e41083035b211ae79d8b241ba72d4",
-          "withoutMetadata": "23dde38170638a5691bbedb6b391f7c0acbae95e04489472f922e7832f194eb7",
-          "linkedWithoutMetadata": "23dde38170638a5691bbedb6b391f7c0acbae95e04489472f922e7832f194eb7"
+          "withMetadata": "0644eecb54f7e2d7680ac9d196c2f23353155d08e64b4305da4cb24f62e5d7c5",
+          "withoutMetadata": "dcf17b5c8a6a6c0621b95afae71b8de606b34995e74ea390b8728240b0b48ba5",
+          "linkedWithoutMetadata": "dcf17b5c8a6a6c0621b95afae71b8de606b34995e74ea390b8728240b0b48ba5"
         },
         "inherit": [
           "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:OwnableUpgradeable",
@@ -901,7 +1536,7 @@
               "label": "escrows",
               "offset": 0,
               "slot": "103",
-              "type": "t_mapping(t_uint256,t_struct(Escrow)2531_storage)",
+              "type": "t_mapping(t_uint256,t_struct(Escrow)5897_storage)",
               "contract": "KustodiaEscrow3_0",
               "src": "contracts\\KustodiaEscrow3_0.sol:29"
             }
@@ -927,7 +1562,7 @@
               "label": "contract IERC20Upgradeable",
               "numberOfBytes": "20"
             },
-            "t_enum(Status)2507": {
+            "t_enum(Status)5873": {
               "label": "enum KustodiaEscrow3_0.Status",
               "members": [
                 "Pending",
@@ -939,11 +1574,11 @@
               ],
               "numberOfBytes": "1"
             },
-            "t_mapping(t_uint256,t_struct(Escrow)2531_storage)": {
+            "t_mapping(t_uint256,t_struct(Escrow)5897_storage)": {
               "label": "mapping(uint256 => struct KustodiaEscrow3_0.Escrow)",
               "numberOfBytes": "32"
             },
-            "t_struct(Escrow)2531_storage": {
+            "t_struct(Escrow)5897_storage": {
               "label": "struct KustodiaEscrow3_0.Escrow",
               "members": [
                 {
@@ -984,7 +1619,7 @@
                 },
                 {
                   "label": "status",
-                  "type": "t_enum(Status)2507",
+                  "type": "t_enum(Status)5873",
                   "offset": 0,
                   "slot": "6"
                 },
@@ -1033,9 +1668,9 @@
       "contracts/MockERC20.sol:MockERC20": {
         "src": "contracts\\MockERC20.sol:6",
         "version": {
-          "withMetadata": "3dc316d042bc56aee468557076bd05cd28da444937c9f1957162a2c0f21c3f3c",
-          "withoutMetadata": "71798f1c4dd681cb7a5a3f43283dbabdfb927500fb406754363b77a1aa6ea5ad",
-          "linkedWithoutMetadata": "71798f1c4dd681cb7a5a3f43283dbabdfb927500fb406754363b77a1aa6ea5ad"
+          "withMetadata": "02a16e6f2f9f041dff0c17058157c82975b71d033a4ed01f26fa964ac29e8819",
+          "withoutMetadata": "0b902e121f43c3848731d1b2e80e76b1591636f7a2b3198cded5b75530b41b26",
+          "linkedWithoutMetadata": "0b902e121f43c3848731d1b2e80e76b1591636f7a2b3198cded5b75530b41b26"
         },
         "inherit": [
           "@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20",
@@ -1132,6 +1767,1567 @@
             "t_uint8": {
               "label": "uint8",
               "numberOfBytes": "1"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "contracts/PropertyAssetNFT.sol:PropertyAssetNFT": {
+        "src": "contracts\\PropertyAssetNFT.sol:11",
+        "version": {
+          "withMetadata": "67b484d0e3198c9a911cae97c3a50b5be0b3c72503357ce63cf77e30b595ba36",
+          "withoutMetadata": "67b484d0e3198c9a911cae97c3a50b5be0b3c72503357ce63cf77e30b595ba36",
+          "linkedWithoutMetadata": "67b484d0e3198c9a911cae97c3a50b5be0b3c72503357ce63cf77e30b595ba36"
+        },
+        "inherit": [
+          "contracts/UniversalAssetNFT.sol:UniversalAssetNFT",
+          "@openzeppelin/contracts/security/ReentrancyGuard.sol:ReentrancyGuard",
+          "@openzeppelin/contracts/access/AccessControl.sol:AccessControl",
+          "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol:ERC721URIStorage",
+          "@openzeppelin/contracts/token/ERC721/ERC721.sol:ERC721",
+          "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol:IERC721Metadata",
+          "@openzeppelin/contracts/interfaces/IERC4906.sol:IERC4906",
+          "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721",
+          "@openzeppelin/contracts/utils/introspection/ERC165.sol:ERC165",
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165",
+          "@openzeppelin/contracts/access/IAccessControl.sol:IAccessControl",
+          "@openzeppelin/contracts/utils/Context.sol:Context"
+        ],
+        "libraries": [],
+        "methods": [
+          "()",
+          "createProperty(string,address,string,string,string,string,string,uint8,uint256,uint256,uint256,uint256,uint256,uint256,string,string)",
+          "addAppraisal(uint256,uint256,string,string,string[])",
+          "addLien(uint256,string,uint256,address,string)",
+          "releaseLien(uint256,uint256,string)",
+          "getPropertyData(uint256)",
+          "getPropertyByCadastralId(string)",
+          "getPropertyLiens(uint256)",
+          "getLienDetails(uint256,uint256)",
+          "getAppraisalHistory(uint256)"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "PropertyAssetNFT",
+            "src": "contracts\\PropertyAssetNFT.sol:72"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_name",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:24"
+            },
+            {
+              "label": "_symbol",
+              "offset": 0,
+              "slot": "1",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:27"
+            },
+            {
+              "label": "_owners",
+              "offset": 0,
+              "slot": "2",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:30"
+            },
+            {
+              "label": "_balances",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_mapping(t_address,t_uint256)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:33"
+            },
+            {
+              "label": "_tokenApprovals",
+              "offset": 0,
+              "slot": "4",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:36"
+            },
+            {
+              "label": "_operatorApprovals",
+              "offset": 0,
+              "slot": "5",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:39"
+            },
+            {
+              "label": "_tokenURIs",
+              "offset": 0,
+              "slot": "6",
+              "type": "t_mapping(t_uint256,t_string_storage)",
+              "contract": "ERC721URIStorage",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\extensions\\ERC721URIStorage.sol:16"
+            },
+            {
+              "label": "_roles",
+              "offset": 0,
+              "slot": "7",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)770_storage)",
+              "contract": "AccessControl",
+              "src": "@openzeppelin\\contracts\\access\\AccessControl.sol:56"
+            },
+            {
+              "label": "_status",
+              "offset": 0,
+              "slot": "8",
+              "type": "t_uint256",
+              "contract": "ReentrancyGuard",
+              "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:37"
+            },
+            {
+              "label": "_tokenIdCounter",
+              "offset": 0,
+              "slot": "9",
+              "type": "t_struct(Counter)3645_storage",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:23"
+            },
+            {
+              "label": "assets",
+              "offset": 0,
+              "slot": "10",
+              "type": "t_mapping(t_uint256,t_struct(Asset)7896_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:81"
+            },
+            {
+              "label": "assetHistory",
+              "offset": 0,
+              "slot": "11",
+              "type": "t_mapping(t_uint256,t_array(t_struct(AssetEvent)7876_storage)dyn_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:82"
+            },
+            {
+              "label": "assetIdToTokenId",
+              "offset": 0,
+              "slot": "12",
+              "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:83"
+            },
+            {
+              "label": "ownerAssets",
+              "offset": 0,
+              "slot": "13",
+              "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:84"
+            },
+            {
+              "label": "propertyData",
+              "offset": 0,
+              "slot": "14",
+              "type": "t_mapping(t_uint256,t_struct(PropertyData)6437_storage)",
+              "contract": "PropertyAssetNFT",
+              "src": "contracts\\PropertyAssetNFT.sol:59"
+            },
+            {
+              "label": "propertyLiens",
+              "offset": 0,
+              "slot": "15",
+              "type": "t_mapping(t_uint256,t_array(t_struct(PropertyLien)6450_storage)dyn_storage)",
+              "contract": "PropertyAssetNFT",
+              "src": "contracts\\PropertyAssetNFT.sol:60"
+            },
+            {
+              "label": "cadastralIdToTokenId",
+              "offset": 0,
+              "slot": "16",
+              "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+              "contract": "PropertyAssetNFT",
+              "src": "contracts\\PropertyAssetNFT.sol:61"
+            },
+            {
+              "label": "propertyAppraisalHistory",
+              "offset": 0,
+              "slot": "17",
+              "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+              "contract": "PropertyAssetNFT",
+              "src": "contracts\\PropertyAssetNFT.sol:62"
+            },
+            {
+              "label": "propertyAppraisalDates",
+              "offset": 0,
+              "slot": "18",
+              "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+              "contract": "PropertyAssetNFT",
+              "src": "contracts\\PropertyAssetNFT.sol:63"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            },
+            "t_array(t_string_storage)dyn_storage": {
+              "label": "string[]",
+              "numberOfBytes": "32"
+            },
+            "t_array(t_struct(AssetEvent)7876_storage)dyn_storage": {
+              "label": "struct UniversalAssetNFT.AssetEvent[]",
+              "numberOfBytes": "32"
+            },
+            "t_array(t_struct(PropertyLien)6450_storage)dyn_storage": {
+              "label": "struct PropertyAssetNFT.PropertyLien[]",
+              "numberOfBytes": "32"
+            },
+            "t_array(t_uint256)dyn_storage": {
+              "label": "uint256[]",
+              "numberOfBytes": "32"
+            },
+            "t_bool": {
+              "label": "bool",
+              "numberOfBytes": "1"
+            },
+            "t_bytes32": {
+              "label": "bytes32",
+              "numberOfBytes": "32"
+            },
+            "t_enum(AssetType)7842": {
+              "label": "enum UniversalAssetNFT.AssetType",
+              "members": [
+                "VEHICLE",
+                "PROPERTY",
+                "MACHINERY",
+                "LUXURY_GOODS",
+                "ELECTRONICS",
+                "AGRICULTURAL",
+                "COMMERCIAL",
+                "FURNITURE",
+                "COLLECTIBLE",
+                "OTHER"
+              ],
+              "numberOfBytes": "1"
+            },
+            "t_enum(EventType)7857": {
+              "label": "enum UniversalAssetNFT.EventType",
+              "members": [
+                "CREATION",
+                "SALE",
+                "TRANSFER",
+                "MAINTENANCE",
+                "INSPECTION",
+                "DAMAGE",
+                "REPAIR",
+                "UPGRADE",
+                "RENTAL",
+                "LEASE",
+                "INSURANCE_CLAIM",
+                "LEGAL_ACTION",
+                "VERIFICATION",
+                "CUSTOM"
+              ],
+              "numberOfBytes": "1"
+            },
+            "t_enum(PropertyType)6401": {
+              "label": "enum PropertyAssetNFT.PropertyType",
+              "members": [
+                "RESIDENTIAL_HOUSE",
+                "RESIDENTIAL_CONDO",
+                "COMMERCIAL_OFFICE",
+                "COMMERCIAL_RETAIL",
+                "COMMERCIAL_WAREHOUSE",
+                "LAND_RESIDENTIAL",
+                "LAND_COMMERCIAL",
+                "LAND_AGRICULTURAL",
+                "MIXED_USE",
+                "OTHER"
+              ],
+              "numberOfBytes": "1"
+            },
+            "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
+              "label": "mapping(address => uint256[])",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+              "label": "mapping(address => mapping(address => bool))",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_uint256)": {
+              "label": "mapping(address => uint256)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_bytes32,t_struct(RoleData)770_storage)": {
+              "label": "mapping(bytes32 => struct AccessControl.RoleData)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_string_memory_ptr,t_string_storage)": {
+              "label": "mapping(string => string)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_string_memory_ptr,t_uint256)": {
+              "label": "mapping(string => uint256)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_address)": {
+              "label": "mapping(uint256 => address)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_array(t_struct(AssetEvent)7876_storage)dyn_storage)": {
+              "label": "mapping(uint256 => struct UniversalAssetNFT.AssetEvent[])",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_array(t_struct(PropertyLien)6450_storage)dyn_storage)": {
+              "label": "mapping(uint256 => struct PropertyAssetNFT.PropertyLien[])",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+              "label": "mapping(uint256 => uint256[])",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_string_storage)": {
+              "label": "mapping(uint256 => string)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_struct(Asset)7896_storage)": {
+              "label": "mapping(uint256 => struct UniversalAssetNFT.Asset)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_struct(PropertyData)6437_storage)": {
+              "label": "mapping(uint256 => struct PropertyAssetNFT.PropertyData)",
+              "numberOfBytes": "32"
+            },
+            "t_string_memory_ptr": {
+              "label": "string",
+              "numberOfBytes": "32"
+            },
+            "t_string_storage": {
+              "label": "string",
+              "numberOfBytes": "32"
+            },
+            "t_struct(Asset)7896_storage": {
+              "label": "struct UniversalAssetNFT.Asset",
+              "members": [
+                {
+                  "label": "assetId",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "assetType",
+                  "type": "t_enum(AssetType)7842",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "currentOwner",
+                  "type": "t_address",
+                  "offset": 1,
+                  "slot": "1"
+                },
+                {
+                  "label": "creationDate",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "isVerified",
+                  "type": "t_bool",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "isActive",
+                  "type": "t_bool",
+                  "offset": 1,
+                  "slot": "3"
+                },
+                {
+                  "label": "lastUpdated",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "metadata",
+                  "type": "t_mapping(t_string_memory_ptr,t_string_storage)",
+                  "offset": 0,
+                  "slot": "5"
+                }
+              ],
+              "numberOfBytes": "192"
+            },
+            "t_struct(AssetEvent)7876_storage": {
+              "label": "struct UniversalAssetNFT.AssetEvent",
+              "members": [
+                {
+                  "label": "eventType",
+                  "type": "t_enum(EventType)7857",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "timestamp",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "authorizedBy",
+                  "type": "t_address",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "description",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "transactionAmount",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "supportingDocs",
+                  "type": "t_array(t_string_storage)dyn_storage",
+                  "offset": 0,
+                  "slot": "5"
+                },
+                {
+                  "label": "customFields",
+                  "type": "t_mapping(t_string_memory_ptr,t_string_storage)",
+                  "offset": 0,
+                  "slot": "6"
+                }
+              ],
+              "numberOfBytes": "224"
+            },
+            "t_struct(Counter)3645_storage": {
+              "label": "struct Counters.Counter",
+              "members": [
+                {
+                  "label": "_value",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "0"
+                }
+              ],
+              "numberOfBytes": "32"
+            },
+            "t_struct(PropertyData)6437_storage": {
+              "label": "struct PropertyAssetNFT.PropertyData",
+              "members": [
+                {
+                  "label": "cadastralId",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "fullAddress",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "city",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "state",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "postalCode",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "country",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "5"
+                },
+                {
+                  "label": "propertyType",
+                  "type": "t_enum(PropertyType)6401",
+                  "offset": 0,
+                  "slot": "6"
+                },
+                {
+                  "label": "squareMeters",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "7"
+                },
+                {
+                  "label": "builtArea",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "8"
+                },
+                {
+                  "label": "bedrooms",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "9"
+                },
+                {
+                  "label": "bathrooms",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "10"
+                },
+                {
+                  "label": "parkingSpaces",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "11"
+                },
+                {
+                  "label": "yearBuilt",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "12"
+                },
+                {
+                  "label": "legalDescription",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "13"
+                },
+                {
+                  "label": "hasLiens",
+                  "type": "t_bool",
+                  "offset": 0,
+                  "slot": "14"
+                },
+                {
+                  "label": "lastAppraisal",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "15"
+                },
+                {
+                  "label": "appraisalDate",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "16"
+                }
+              ],
+              "numberOfBytes": "544"
+            },
+            "t_struct(PropertyLien)6450_storage": {
+              "label": "struct PropertyAssetNFT.PropertyLien",
+              "members": [
+                {
+                  "label": "lienType",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "amount",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "lienholder",
+                  "type": "t_address",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "dateRecorded",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "isActive",
+                  "type": "t_bool",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "documentHash",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "5"
+                }
+              ],
+              "numberOfBytes": "192"
+            },
+            "t_struct(RoleData)770_storage": {
+              "label": "struct AccessControl.RoleData",
+              "members": [
+                {
+                  "label": "members",
+                  "type": "t_mapping(t_address,t_bool)",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "adminRole",
+                  "type": "t_bytes32",
+                  "offset": 0,
+                  "slot": "1"
+                }
+              ],
+              "numberOfBytes": "64"
+            },
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "contracts/UniversalAssetNFT.sol:UniversalAssetNFT": {
+        "src": "contracts\\UniversalAssetNFT.sol:15",
+        "version": {
+          "withMetadata": "a6261ecf2101df36a8070a8f7a27d6af49a78fe3cd5b55cefc4d157a77b86a6c",
+          "withoutMetadata": "a6261ecf2101df36a8070a8f7a27d6af49a78fe3cd5b55cefc4d157a77b86a6c",
+          "linkedWithoutMetadata": "a6261ecf2101df36a8070a8f7a27d6af49a78fe3cd5b55cefc4d157a77b86a6c"
+        },
+        "inherit": [
+          "@openzeppelin/contracts/security/ReentrancyGuard.sol:ReentrancyGuard",
+          "@openzeppelin/contracts/access/AccessControl.sol:AccessControl",
+          "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol:ERC721URIStorage",
+          "@openzeppelin/contracts/token/ERC721/ERC721.sol:ERC721",
+          "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol:IERC721Metadata",
+          "@openzeppelin/contracts/interfaces/IERC4906.sol:IERC4906",
+          "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721",
+          "@openzeppelin/contracts/utils/introspection/ERC165.sol:ERC165",
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165",
+          "@openzeppelin/contracts/access/IAccessControl.sol:IAccessControl",
+          "@openzeppelin/contracts/utils/Context.sol:Context"
+        ],
+        "libraries": [
+          "@openzeppelin/contracts/utils/Counters.sol:Counters"
+        ],
+        "methods": [
+          "()",
+          "createAsset(string,uint8,address,string,string[],string[])",
+          "addAssetEvent(uint256,uint8,string,uint256,string[],string[],string[])",
+          "transferAssetWithEscrow(uint256,address,uint256,string)",
+          "verifyAsset(uint256)",
+          "updateAssetMetadata(uint256,string,string)",
+          "getAssetMetadata(uint256,string)",
+          "getAssetHistoryLength(uint256)",
+          "getAssetEvent(uint256,uint256)",
+          "getOwnerAssets(address)",
+          "tokenURI(uint256)",
+          "supportsInterface(bytes4)"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "UniversalAssetNFT",
+            "src": "contracts\\UniversalAssetNFT.sol:93"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_name",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:24"
+            },
+            {
+              "label": "_symbol",
+              "offset": 0,
+              "slot": "1",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:27"
+            },
+            {
+              "label": "_owners",
+              "offset": 0,
+              "slot": "2",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:30"
+            },
+            {
+              "label": "_balances",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_mapping(t_address,t_uint256)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:33"
+            },
+            {
+              "label": "_tokenApprovals",
+              "offset": 0,
+              "slot": "4",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:36"
+            },
+            {
+              "label": "_operatorApprovals",
+              "offset": 0,
+              "slot": "5",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:39"
+            },
+            {
+              "label": "_tokenURIs",
+              "offset": 0,
+              "slot": "6",
+              "type": "t_mapping(t_uint256,t_string_storage)",
+              "contract": "ERC721URIStorage",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\extensions\\ERC721URIStorage.sol:16"
+            },
+            {
+              "label": "_roles",
+              "offset": 0,
+              "slot": "7",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)770_storage)",
+              "contract": "AccessControl",
+              "src": "@openzeppelin\\contracts\\access\\AccessControl.sol:56"
+            },
+            {
+              "label": "_status",
+              "offset": 0,
+              "slot": "8",
+              "type": "t_uint256",
+              "contract": "ReentrancyGuard",
+              "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:37"
+            },
+            {
+              "label": "_tokenIdCounter",
+              "offset": 0,
+              "slot": "9",
+              "type": "t_struct(Counter)3645_storage",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:23"
+            },
+            {
+              "label": "assets",
+              "offset": 0,
+              "slot": "10",
+              "type": "t_mapping(t_uint256,t_struct(Asset)7896_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:81"
+            },
+            {
+              "label": "assetHistory",
+              "offset": 0,
+              "slot": "11",
+              "type": "t_mapping(t_uint256,t_array(t_struct(AssetEvent)7876_storage)dyn_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:82"
+            },
+            {
+              "label": "assetIdToTokenId",
+              "offset": 0,
+              "slot": "12",
+              "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:83"
+            },
+            {
+              "label": "ownerAssets",
+              "offset": 0,
+              "slot": "13",
+              "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:84"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            },
+            "t_array(t_string_storage)dyn_storage": {
+              "label": "string[]",
+              "numberOfBytes": "32"
+            },
+            "t_array(t_struct(AssetEvent)7876_storage)dyn_storage": {
+              "label": "struct UniversalAssetNFT.AssetEvent[]",
+              "numberOfBytes": "32"
+            },
+            "t_array(t_uint256)dyn_storage": {
+              "label": "uint256[]",
+              "numberOfBytes": "32"
+            },
+            "t_bool": {
+              "label": "bool",
+              "numberOfBytes": "1"
+            },
+            "t_bytes32": {
+              "label": "bytes32",
+              "numberOfBytes": "32"
+            },
+            "t_enum(AssetType)7842": {
+              "label": "enum UniversalAssetNFT.AssetType",
+              "members": [
+                "VEHICLE",
+                "PROPERTY",
+                "MACHINERY",
+                "LUXURY_GOODS",
+                "ELECTRONICS",
+                "AGRICULTURAL",
+                "COMMERCIAL",
+                "FURNITURE",
+                "COLLECTIBLE",
+                "OTHER"
+              ],
+              "numberOfBytes": "1"
+            },
+            "t_enum(EventType)7857": {
+              "label": "enum UniversalAssetNFT.EventType",
+              "members": [
+                "CREATION",
+                "SALE",
+                "TRANSFER",
+                "MAINTENANCE",
+                "INSPECTION",
+                "DAMAGE",
+                "REPAIR",
+                "UPGRADE",
+                "RENTAL",
+                "LEASE",
+                "INSURANCE_CLAIM",
+                "LEGAL_ACTION",
+                "VERIFICATION",
+                "CUSTOM"
+              ],
+              "numberOfBytes": "1"
+            },
+            "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
+              "label": "mapping(address => uint256[])",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+              "label": "mapping(address => mapping(address => bool))",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_uint256)": {
+              "label": "mapping(address => uint256)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_bytes32,t_struct(RoleData)770_storage)": {
+              "label": "mapping(bytes32 => struct AccessControl.RoleData)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_string_memory_ptr,t_string_storage)": {
+              "label": "mapping(string => string)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_string_memory_ptr,t_uint256)": {
+              "label": "mapping(string => uint256)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_address)": {
+              "label": "mapping(uint256 => address)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_array(t_struct(AssetEvent)7876_storage)dyn_storage)": {
+              "label": "mapping(uint256 => struct UniversalAssetNFT.AssetEvent[])",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_string_storage)": {
+              "label": "mapping(uint256 => string)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_struct(Asset)7896_storage)": {
+              "label": "mapping(uint256 => struct UniversalAssetNFT.Asset)",
+              "numberOfBytes": "32"
+            },
+            "t_string_memory_ptr": {
+              "label": "string",
+              "numberOfBytes": "32"
+            },
+            "t_string_storage": {
+              "label": "string",
+              "numberOfBytes": "32"
+            },
+            "t_struct(Asset)7896_storage": {
+              "label": "struct UniversalAssetNFT.Asset",
+              "members": [
+                {
+                  "label": "assetId",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "assetType",
+                  "type": "t_enum(AssetType)7842",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "currentOwner",
+                  "type": "t_address",
+                  "offset": 1,
+                  "slot": "1"
+                },
+                {
+                  "label": "creationDate",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "isVerified",
+                  "type": "t_bool",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "isActive",
+                  "type": "t_bool",
+                  "offset": 1,
+                  "slot": "3"
+                },
+                {
+                  "label": "lastUpdated",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "metadata",
+                  "type": "t_mapping(t_string_memory_ptr,t_string_storage)",
+                  "offset": 0,
+                  "slot": "5"
+                }
+              ],
+              "numberOfBytes": "192"
+            },
+            "t_struct(AssetEvent)7876_storage": {
+              "label": "struct UniversalAssetNFT.AssetEvent",
+              "members": [
+                {
+                  "label": "eventType",
+                  "type": "t_enum(EventType)7857",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "timestamp",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "authorizedBy",
+                  "type": "t_address",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "description",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "transactionAmount",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "supportingDocs",
+                  "type": "t_array(t_string_storage)dyn_storage",
+                  "offset": 0,
+                  "slot": "5"
+                },
+                {
+                  "label": "customFields",
+                  "type": "t_mapping(t_string_memory_ptr,t_string_storage)",
+                  "offset": 0,
+                  "slot": "6"
+                }
+              ],
+              "numberOfBytes": "224"
+            },
+            "t_struct(Counter)3645_storage": {
+              "label": "struct Counters.Counter",
+              "members": [
+                {
+                  "label": "_value",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "0"
+                }
+              ],
+              "numberOfBytes": "32"
+            },
+            "t_struct(RoleData)770_storage": {
+              "label": "struct AccessControl.RoleData",
+              "members": [
+                {
+                  "label": "members",
+                  "type": "t_mapping(t_address,t_bool)",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "adminRole",
+                  "type": "t_bytes32",
+                  "offset": 0,
+                  "slot": "1"
+                }
+              ],
+              "numberOfBytes": "64"
+            },
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.20"
+      },
+      "contracts/VehicleAssetNFT.sol:VehicleAssetNFT": {
+        "src": "contracts\\VehicleAssetNFT.sol:11",
+        "version": {
+          "withMetadata": "a1e438c9e97e947e273e73111f561d79773851fedd9edaf6c226e9e62d219f72",
+          "withoutMetadata": "a1e438c9e97e947e273e73111f561d79773851fedd9edaf6c226e9e62d219f72",
+          "linkedWithoutMetadata": "a1e438c9e97e947e273e73111f561d79773851fedd9edaf6c226e9e62d219f72"
+        },
+        "inherit": [
+          "contracts/UniversalAssetNFT.sol:UniversalAssetNFT",
+          "@openzeppelin/contracts/security/ReentrancyGuard.sol:ReentrancyGuard",
+          "@openzeppelin/contracts/access/AccessControl.sol:AccessControl",
+          "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol:ERC721URIStorage",
+          "@openzeppelin/contracts/token/ERC721/ERC721.sol:ERC721",
+          "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol:IERC721Metadata",
+          "@openzeppelin/contracts/interfaces/IERC4906.sol:IERC4906",
+          "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721",
+          "@openzeppelin/contracts/utils/introspection/ERC165.sol:ERC165",
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165",
+          "@openzeppelin/contracts/access/IAccessControl.sol:IAccessControl",
+          "@openzeppelin/contracts/utils/Context.sol:Context"
+        ],
+        "libraries": [],
+        "methods": [
+          "()",
+          "createVehicle(string,address,string,string,uint256,string,string,string,uint256,uint256,bool,string,string)",
+          "updateMileage(uint256,uint256,string,string[])",
+          "recordInspection(uint256,string,bool,string,uint256,string[])",
+          "reportAccident(uint256,string,string,uint256,string,string[])",
+          "getVehicleData(uint256)",
+          "getVehicleByVIN(string)",
+          "hasCleanHistory(uint256)",
+          "getAccidentCount(uint256)"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "VehicleAssetNFT",
+            "src": "contracts\\VehicleAssetNFT.sol:52"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_name",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:24"
+            },
+            {
+              "label": "_symbol",
+              "offset": 0,
+              "slot": "1",
+              "type": "t_string_storage",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:27"
+            },
+            {
+              "label": "_owners",
+              "offset": 0,
+              "slot": "2",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:30"
+            },
+            {
+              "label": "_balances",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_mapping(t_address,t_uint256)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:33"
+            },
+            {
+              "label": "_tokenApprovals",
+              "offset": 0,
+              "slot": "4",
+              "type": "t_mapping(t_uint256,t_address)",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:36"
+            },
+            {
+              "label": "_operatorApprovals",
+              "offset": 0,
+              "slot": "5",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "contract": "ERC721",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol:39"
+            },
+            {
+              "label": "_tokenURIs",
+              "offset": 0,
+              "slot": "6",
+              "type": "t_mapping(t_uint256,t_string_storage)",
+              "contract": "ERC721URIStorage",
+              "src": "@openzeppelin\\contracts\\token\\ERC721\\extensions\\ERC721URIStorage.sol:16"
+            },
+            {
+              "label": "_roles",
+              "offset": 0,
+              "slot": "7",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)770_storage)",
+              "contract": "AccessControl",
+              "src": "@openzeppelin\\contracts\\access\\AccessControl.sol:56"
+            },
+            {
+              "label": "_status",
+              "offset": 0,
+              "slot": "8",
+              "type": "t_uint256",
+              "contract": "ReentrancyGuard",
+              "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:37"
+            },
+            {
+              "label": "_tokenIdCounter",
+              "offset": 0,
+              "slot": "9",
+              "type": "t_struct(Counter)3645_storage",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:23"
+            },
+            {
+              "label": "assets",
+              "offset": 0,
+              "slot": "10",
+              "type": "t_mapping(t_uint256,t_struct(Asset)7896_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:81"
+            },
+            {
+              "label": "assetHistory",
+              "offset": 0,
+              "slot": "11",
+              "type": "t_mapping(t_uint256,t_array(t_struct(AssetEvent)7876_storage)dyn_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:82"
+            },
+            {
+              "label": "assetIdToTokenId",
+              "offset": 0,
+              "slot": "12",
+              "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:83"
+            },
+            {
+              "label": "ownerAssets",
+              "offset": 0,
+              "slot": "13",
+              "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)",
+              "contract": "UniversalAssetNFT",
+              "src": "contracts\\UniversalAssetNFT.sol:84"
+            },
+            {
+              "label": "vehicleData",
+              "offset": 0,
+              "slot": "14",
+              "type": "t_mapping(t_uint256,t_struct(VehicleData)9113_storage)",
+              "contract": "VehicleAssetNFT",
+              "src": "contracts\\VehicleAssetNFT.sol:43"
+            },
+            {
+              "label": "vinToTokenId",
+              "offset": 0,
+              "slot": "15",
+              "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+              "contract": "VehicleAssetNFT",
+              "src": "contracts\\VehicleAssetNFT.sol:44"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            },
+            "t_array(t_string_storage)dyn_storage": {
+              "label": "string[]",
+              "numberOfBytes": "32"
+            },
+            "t_array(t_struct(AssetEvent)7876_storage)dyn_storage": {
+              "label": "struct UniversalAssetNFT.AssetEvent[]",
+              "numberOfBytes": "32"
+            },
+            "t_array(t_uint256)dyn_storage": {
+              "label": "uint256[]",
+              "numberOfBytes": "32"
+            },
+            "t_bool": {
+              "label": "bool",
+              "numberOfBytes": "1"
+            },
+            "t_bytes32": {
+              "label": "bytes32",
+              "numberOfBytes": "32"
+            },
+            "t_enum(AssetType)7842": {
+              "label": "enum UniversalAssetNFT.AssetType",
+              "members": [
+                "VEHICLE",
+                "PROPERTY",
+                "MACHINERY",
+                "LUXURY_GOODS",
+                "ELECTRONICS",
+                "AGRICULTURAL",
+                "COMMERCIAL",
+                "FURNITURE",
+                "COLLECTIBLE",
+                "OTHER"
+              ],
+              "numberOfBytes": "1"
+            },
+            "t_enum(EventType)7857": {
+              "label": "enum UniversalAssetNFT.EventType",
+              "members": [
+                "CREATION",
+                "SALE",
+                "TRANSFER",
+                "MAINTENANCE",
+                "INSPECTION",
+                "DAMAGE",
+                "REPAIR",
+                "UPGRADE",
+                "RENTAL",
+                "LEASE",
+                "INSURANCE_CLAIM",
+                "LEGAL_ACTION",
+                "VERIFICATION",
+                "CUSTOM"
+              ],
+              "numberOfBytes": "1"
+            },
+            "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
+              "label": "mapping(address => uint256[])",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+              "label": "mapping(address => mapping(address => bool))",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_uint256)": {
+              "label": "mapping(address => uint256)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_bytes32,t_struct(RoleData)770_storage)": {
+              "label": "mapping(bytes32 => struct AccessControl.RoleData)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_string_memory_ptr,t_string_storage)": {
+              "label": "mapping(string => string)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_string_memory_ptr,t_uint256)": {
+              "label": "mapping(string => uint256)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_address)": {
+              "label": "mapping(uint256 => address)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_array(t_struct(AssetEvent)7876_storage)dyn_storage)": {
+              "label": "mapping(uint256 => struct UniversalAssetNFT.AssetEvent[])",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_string_storage)": {
+              "label": "mapping(uint256 => string)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_struct(Asset)7896_storage)": {
+              "label": "mapping(uint256 => struct UniversalAssetNFT.Asset)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_struct(VehicleData)9113_storage)": {
+              "label": "mapping(uint256 => struct VehicleAssetNFT.VehicleData)",
+              "numberOfBytes": "32"
+            },
+            "t_string_memory_ptr": {
+              "label": "string",
+              "numberOfBytes": "32"
+            },
+            "t_string_storage": {
+              "label": "string",
+              "numberOfBytes": "32"
+            },
+            "t_struct(Asset)7896_storage": {
+              "label": "struct UniversalAssetNFT.Asset",
+              "members": [
+                {
+                  "label": "assetId",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "assetType",
+                  "type": "t_enum(AssetType)7842",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "currentOwner",
+                  "type": "t_address",
+                  "offset": 1,
+                  "slot": "1"
+                },
+                {
+                  "label": "creationDate",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "isVerified",
+                  "type": "t_bool",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "isActive",
+                  "type": "t_bool",
+                  "offset": 1,
+                  "slot": "3"
+                },
+                {
+                  "label": "lastUpdated",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "metadata",
+                  "type": "t_mapping(t_string_memory_ptr,t_string_storage)",
+                  "offset": 0,
+                  "slot": "5"
+                }
+              ],
+              "numberOfBytes": "192"
+            },
+            "t_struct(AssetEvent)7876_storage": {
+              "label": "struct UniversalAssetNFT.AssetEvent",
+              "members": [
+                {
+                  "label": "eventType",
+                  "type": "t_enum(EventType)7857",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "timestamp",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "authorizedBy",
+                  "type": "t_address",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "description",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "transactionAmount",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "supportingDocs",
+                  "type": "t_array(t_string_storage)dyn_storage",
+                  "offset": 0,
+                  "slot": "5"
+                },
+                {
+                  "label": "customFields",
+                  "type": "t_mapping(t_string_memory_ptr,t_string_storage)",
+                  "offset": 0,
+                  "slot": "6"
+                }
+              ],
+              "numberOfBytes": "224"
+            },
+            "t_struct(Counter)3645_storage": {
+              "label": "struct Counters.Counter",
+              "members": [
+                {
+                  "label": "_value",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "0"
+                }
+              ],
+              "numberOfBytes": "32"
+            },
+            "t_struct(RoleData)770_storage": {
+              "label": "struct AccessControl.RoleData",
+              "members": [
+                {
+                  "label": "members",
+                  "type": "t_mapping(t_address,t_bool)",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "adminRole",
+                  "type": "t_bytes32",
+                  "offset": 0,
+                  "slot": "1"
+                }
+              ],
+              "numberOfBytes": "64"
+            },
+            "t_struct(VehicleData)9113_storage": {
+              "label": "struct VehicleAssetNFT.VehicleData",
+              "members": [
+                {
+                  "label": "vin",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "make",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "model",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "year",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "engineNumber",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "4"
+                },
+                {
+                  "label": "color",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "5"
+                },
+                {
+                  "label": "fuelType",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "6"
+                },
+                {
+                  "label": "engineSize",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "7"
+                },
+                {
+                  "label": "currentMileage",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "8"
+                },
+                {
+                  "label": "isCommercial",
+                  "type": "t_bool",
+                  "offset": 0,
+                  "slot": "9"
+                },
+                {
+                  "label": "plateNumber",
+                  "type": "t_string_storage",
+                  "offset": 0,
+                  "slot": "10"
+                },
+                {
+                  "label": "registrationExpiry",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "11"
+                }
+              ],
+              "numberOfBytes": "384"
+            },
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
             }
           },
           "layoutVersion": "1.2",

@@ -16,7 +16,7 @@ async function checkProductionHealth() {
     const expectedTables = [
       'user', 'payment', 'payment_event', 'escrow', 'dispute', 
       'dispute_message', 'notification', 'early_access_counter',
-      'juno_transaction', 'lead', 'ticket', 'ticket_reply', 
+      'juno_transaction', 'lead', 'tickets', 'ticket_replies', 
       'token', 'wallet_transaction'
     ];
 

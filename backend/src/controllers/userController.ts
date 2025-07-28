@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "./emailTokenUtil";
 import { sendEmail } from "../utils/emailService";
 import { createJunoClabe } from "../services/junoService";
-import { createPortalClient } from "../services/portalService";
+import { createPortalClientSession, createPortalWallet, notifyPortalSharesStored, getPortalClientDetails } from '../services/portalService';
 
 import ormconfig from "../ormconfig";
 
@@ -137,22 +137,53 @@ export const register = async (req: Request, res: Response) => {
 
     // Create Portal wallet and save to user
     try {
-      const portalClient = await createPortalClient();
-      user.wallet_address = portalClient.wallet.address;
-      user.portal_share = portalClient.wallet.portalShare;
+      console.log('[REGISTRATION] Attempting Portal wallet creation...');
+      const portalApiKey = process.env.PORTAL_CUSTODIAN_API_KEY;
+      if (!portalApiKey) {
+        throw new Error('PORTAL_CUSTODIAN_API_KEY not configured');
+      }
+      
+      // Step 1: Create a Portal client to get a Client Session Token
+      const clientResponse = await createPortalClientSession(portalApiKey);
+      console.log('[REGISTRATION] Portal client created:', { clientId: clientResponse.id });
+      
+      // Step 2: Use the Client Session Token to create a wallet
+      const portalResponse = await createPortalWallet(clientResponse.clientSessionToken);
+      console.log('[REGISTRATION] Portal response:', portalResponse);
+      
+      // Get the actual Web3 address from Portal
+      const clientDetails = await getPortalClientDetails(clientResponse.clientSessionToken);
+      const ethereumAddress = clientDetails.metadata?.namespaces?.eip155?.address;
+      
+      if (!ethereumAddress) {
+        throw new Error('Failed to retrieve Ethereum address from Portal');
+      }
+      
+      // Store the wallet data
+      const secp256k1Share = portalResponse.secp256k1 || portalResponse.SECP256K1;
+      const ed25519Share = portalResponse.ed25519 || portalResponse.ED25519;
+      
+      user.portal_share = secp256k1Share.share;
+      user.wallet_address = ethereumAddress; // Actual Ethereum address
+      
+      console.log('[REGISTRATION] Portal wallet created successfully:', user.wallet_address);
       await userRepo.save(user);
     } catch (portalErr) {
-      console.error('Portal wallet creation failed:', portalErr);
+      console.error('[REGISTRATION] Portal wallet creation failed:', portalErr);
+      console.log('[REGISTRATION] Continuing registration without wallet - can be created later');
       // Continue registration even if wallet creation fails
     }
 
     // Create deposit CLABE for pay-ins and save to user
     try {
+      console.log('[REGISTRATION] Attempting CLABE creation...');
       const depositClabe = await createJunoClabe();
       user.deposit_clabe = depositClabe;
       await userRepo.save(user);
+      console.log('[REGISTRATION] CLABE created successfully:', depositClabe);
     } catch (clabeErr) {
-      console.error('Deposit CLABE creation failed:', clabeErr);
+      console.error('[REGISTRATION] Deposit CLABE creation failed:', clabeErr);
+      console.log('[REGISTRATION] Continuing registration without CLABE - can be created later');
       // Continue registration even if CLABE creation fails
       // Optionally, you can add a field to track CLABE creation failure for retry
     }
@@ -307,8 +338,12 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
     await userRepo.save(user);
     // Send welcome email
     await sendWelcomeEmail(user.email, user.full_name);
-    // Redirect to login page after successful verification
-    res.redirect(302, 'https://kustodia.mx/login');
+    
+    // Return success response instead of redirect
+    res.status(200).json({ 
+      success: true, 
+      message: "¡Correo verificado exitosamente! Ya puedes iniciar sesión."
+    });
     return;
   } catch (err) {
     res.status(500).json({ error: "No se pudo verificar el correo.", details: err instanceof Error ? err.message : err });
@@ -486,7 +521,12 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
     if (!user.email_verified) {
-      res.status(403).json({ error: "Correo no verificado. Por favor verifica tu correo.", unverified: true });
+      res.status(403).json({ 
+        error: "Correo no verificado. Por favor verifica tu correo.", 
+        unverified: true,
+        email: user.email,
+        message: "Tu correo no ha sido verificado. Revisa tu bandeja de entrada o solicita un nuevo email de verificación."
+      });
       return;
     }
 
@@ -544,5 +584,100 @@ export const login = async (req: Request, res: Response) => {
   } catch (err) {
     res.status(500).json({ error: "Login failed", details: err });
     return;
+  }
+};
+
+// Retry wallet creation for existing users who don't have a wallet
+export const retryWalletCreation = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req.user as any).id;
+  
+  try {
+    const userRepo = ormconfig.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: userId } });
+    
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    
+    // Check if user already has a wallet
+    if (user.wallet_address) {
+      res.status(400).json({ error: 'User already has a wallet', wallet_address: user.wallet_address });
+      return;
+    }
+    
+    // Try to create Portal wallet
+    try {
+      console.log(`[RETRY_WALLET] Attempting Portal wallet creation for user ${userId}...`);
+      const portalApiKey = process.env.PORTAL_CUSTODIAN_API_KEY;
+      if (!portalApiKey) {
+        throw new Error('PORTAL_CUSTODIAN_API_KEY not configured');
+      }
+      
+      // Step 1: Create a Portal client to get a Client Session Token
+      console.log('[RETRY_WALLET] Creating Portal client...');
+      const clientResponse = await createPortalClientSession(portalApiKey);
+      console.log('[RETRY_WALLET] Portal client created:', { clientId: clientResponse.id });
+      
+      // Step 2: Use the Client Session Token to create a wallet
+      console.log('[RETRY_WALLET] Creating Portal wallet...');
+      const portalResponse = await createPortalWallet(clientResponse.clientSessionToken);
+      console.log('[RETRY_WALLET] Portal response:', portalResponse);
+      
+      // Get the actual Web3 address from Portal
+      const clientDetails = await getPortalClientDetails(clientResponse.clientSessionToken);
+      const ethereumAddress = clientDetails.metadata?.namespaces?.eip155?.address;
+      
+      if (!ethereumAddress) {
+        throw new Error('Failed to retrieve Ethereum address from Portal');
+      }
+      
+      // Portal returns { secp256k1: { share: "...", id: "..." }, ed25519: { share: "...", id: "..." } }
+      // or { SECP256K1: { share: "...", id: "..." }, ED25519: { share: "...", id: "..." } }
+      const secp256k1Share = portalResponse.secp256k1 || portalResponse.SECP256K1;
+      const ed25519Share = portalResponse.ed25519 || portalResponse.ED25519;
+      
+      if (!secp256k1Share) {
+        throw new Error('Invalid Portal response: missing secp256k1 share');
+      }
+      
+      // Store the encrypted share and actual Ethereum address
+      user.portal_share = secp256k1Share.share;
+      user.wallet_address = ethereumAddress; // Actual Ethereum address
+      
+      // Notify Portal that we've stored the shares
+      try {
+        const shareIds = [];
+        if (secp256k1Share) shareIds.push(secp256k1Share.id);
+        if (ed25519Share) shareIds.push(ed25519Share.id);
+        
+        await notifyPortalSharesStored(clientResponse.clientSessionToken, shareIds);
+        console.log('[RETRY_WALLET] Portal shares notification sent successfully');
+      } catch (notifyErr) {
+        console.warn('[RETRY_WALLET] Failed to notify Portal about stored shares:', notifyErr);
+        // Don't fail the wallet creation if notification fails
+      }
+      
+      await userRepo.save(user);
+      console.log(`[RETRY_WALLET] Portal wallet created successfully:`, user.wallet_address);
+      
+      res.status(200).json({ 
+        success: true, 
+        message: 'Wallet created successfully',
+        wallet_address: user.wallet_address 
+      });
+    } catch (portalErr) {
+      console.error('[RETRY_WALLET] Portal wallet creation failed:', portalErr);
+      res.status(500).json({ 
+        error: 'Failed to create wallet', 
+        details: portalErr instanceof Error ? portalErr.message : String(portalErr)
+      });
+    }
+  } catch (err) {
+    console.error('[RETRY_WALLET] Error:', err);
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      details: err instanceof Error ? err.message : String(err)
+    });
   }
 };

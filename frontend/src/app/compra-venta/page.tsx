@@ -116,6 +116,128 @@ export default function CompraVentaUseCase() {
           </div>
         </section>
 
+        {/* Vehicle Transparency Section */}
+        <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="vehicle-transparency-heading">
+          <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl shadow-xl p-12 lg:p-16 text-white relative overflow-hidden">
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" aria-hidden="true"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16" aria-hidden="true"></div>
+            
+            <div className="relative z-10">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                  <div className="inline-flex items-center bg-white/20 rounded-full px-4 py-2 mb-6">
+                    <span className="text-white font-semibold text-sm">🚗 NUEVO: Transparencia Vehicular</span>
+                  </div>
+                  
+                  <h2 id="vehicle-transparency-heading" className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                    Vende tu auto con historial verificado
+                  </h2>
+                  
+                  <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+                    Primera plataforma que combina pagos seguros con transparencia vehicular blockchain. 
+                    Los compradores pagan hasta 15% más por vehículos con historial verificado.
+                  </p>
+                  
+                  <div className="space-y-4 mb-8">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center flex-shrink-0">
+                        <FaShieldAlt className="text-green-800 text-sm" />
+                      </div>
+                      <span className="text-white">Historial de mantenimiento en blockchain</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center flex-shrink-0">
+                        <FaShieldAlt className="text-green-800 text-sm" />
+                      </div>
+                      <span className="text-white">Puntuación de confianza automática</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center flex-shrink-0">
+                        <FaShieldAlt className="text-green-800 text-sm" />
+                      </div>
+                      <span className="text-white">NFT vehicular único e inmutable</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Link 
+                      href="/compra-venta/vehiculos" 
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.gtag) {
+                          window.gtag('event', 'click', {
+                            event_category: 'Vehicle Transparency',
+                            event_label: 'View Vehicle Transparency',
+                            page_location: window.location.href
+                          });
+                        }
+                      }}
+                      className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-center"
+                    >
+                      Ver Transparencia Vehicular
+                    </Link>
+                    <Link 
+                      href="/public/vehicle/0" 
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.gtag) {
+                          window.gtag('event', 'click', {
+                            event_category: 'Vehicle Transparency',
+                            event_label: 'View Example Vehicle',
+                            page_location: window.location.href
+                          });
+                        }
+                      }}
+                      className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300 text-center"
+                    >
+                      Ver Ejemplo
+                    </Link>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-white">2022 CUPRA ATECA</h3>
+                      <span className="bg-green-400 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                        ✅ Verificado
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3 mb-6">
+                      <div className="flex justify-between text-white">
+                        <span className="text-blue-100">Puntuación de Confianza:</span>
+                        <span className="font-semibold text-green-400">85/100</span>
+                      </div>
+                      <div className="flex justify-between text-white">
+                        <span className="text-blue-100">Eventos Verificados:</span>
+                        <span className="font-semibold">2/2</span>
+                      </div>
+                      <div className="flex justify-between text-white">
+                        <span className="text-blue-100">Último Mantenimiento:</span>
+                        <span className="font-semibold">25 jul 2025</span>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-white/20 pt-4">
+                      <h4 className="font-semibold text-white mb-3">Historial Reciente:</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                          <span className="text-sm text-blue-100">Mantenimiento - hace 2 días</span>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <span className="text-sm text-blue-100">Creación del NFT - hace 3 días</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* FAQ Section */}
         <section className="w-full max-w-7xl px-6 mx-auto mb-32" aria-labelledby="faq-heading">
           <div className="text-center mb-20">

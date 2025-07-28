@@ -57,6 +57,8 @@ const disputeMessages_1 = __importDefault(require("./routes/disputeMessages"));
 const earlyAccessCounter_1 = __importDefault(require("./routes/earlyAccessCounter"));
 const yield_1 = require("./routes/yield");
 const analytics_1 = __importDefault(require("./routes/analytics"));
+const assetNFTRoutes_1 = __importDefault(require("./routes/assetNFTRoutes"));
+const publicHistory_1 = __importDefault(require("./routes/publicHistory"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json({ limit: '5mb' }));
 app.use((0, cookie_parser_1.default)()); // Enable cookie parsing for JWT authentication
@@ -121,6 +123,27 @@ async function main() {
         app.get("/", (req, res) => {
             res.json({ status: "Kustodia backend running" });
         });
+        app.get("/health", (req, res) => {
+            res.json({ status: "OK", timestamp: new Date().toISOString() });
+        });
+        app.get("/api/health/db", async (req, res) => {
+            try {
+                const isConnected = ormconfig_1.default.isInitialized;
+                if (isConnected) {
+                    await ormconfig_1.default.query('SELECT 1');
+                    res.json({ status: "connected", database: ormconfig_1.default.options.database });
+                }
+                else {
+                    res.status(500).json({ status: "not_initialized" });
+                }
+            }
+            catch (error) {
+                res.status(500).json({
+                    status: "error",
+                    details: error instanceof Error ? error.message : String(error)
+                });
+            }
+        });
         // Mount all API routes
         console.log('Mounting mainRouter at /api');
         app.use("/api", routes_1.default);
@@ -135,6 +158,8 @@ async function main() {
         app.use('/api/early-access-counter', earlyAccessCounter_1.default);
         app.use('/api/yield', (0, yield_1.createYieldRoutes)(ormconfig_1.default));
         app.use('/api/analytics', analytics_1.default);
+        app.use('/api/assets', assetNFTRoutes_1.default);
+        app.use('/api/public', publicHistory_1.default);
         const PORT = process.env.PORT || 4000;
         app.listen(PORT, () => {
             console.log(`Server started on port ${PORT}`);

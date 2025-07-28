@@ -1,0 +1,16 @@
+{
+  "network": "arbitrum-sepolia",
+  "chainId": "421614",
+  "deployer": "0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b",
+  "deployedAt": "2025-07-24T21:37:20.536Z",
+  "contracts": {
+    "UNIVERSAL_ASSET_CONTRACT_ADDRESS": "0x6405221eeC9bdD02EEcc2c722fDf7d8829BD8E84",
+    "VEHICLE_ASSET_CONTRACT_ADDRESS": "0xF7d19DcCb36d10D33270705540e2e82cbdb6fa34",
+    "PROPERTY_ASSET_CONTRACT_ADDRESS": "0x59AB0Ba13CB5712Ce24d1ae54328A0154Ad93efC"
+  },
+  "transactionHashes": {
+    "universalAsset": "0x840c4853045400164e59fde244980f118b9ab987ccb360d4e751f15cf9de8d3f",
+    "vehicleAsset": "0x57f25c00a9a916a2e82da545e016ffcb9b544cef9d9fc224853130898e8b2fc9",
+    "propertyAsset": "0x47aaf57271778b1ec8638a58194742f588467aa825d444bac63fe902800b4544"
+  }
+}

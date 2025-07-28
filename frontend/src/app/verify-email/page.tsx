@@ -23,12 +23,14 @@ function VerifyEmailInner() {
           body: JSON.stringify({ token })
         });
         const data = await res.json();
-        if (res.ok) {
+        console.log('Verification response:', { status: res.status, data });
+        
+        if (res.ok && data.success) {
           setStatus("success");
-          setMessage("¡Correo verificado! Ya puedes iniciar sesión.");
+          setMessage(data.message || "¡Correo verificado! Ya puedes iniciar sesión.");
         } else {
           setStatus("error");
-          setMessage(data.message || "No se pudo verificar el correo.");
+          setMessage(data.error || data.message || "No se pudo verificar el correo.");
         }
       } catch {
         setStatus("error");

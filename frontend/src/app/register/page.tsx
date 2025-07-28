@@ -68,13 +68,17 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password })
+        body: JSON.stringify({ full_name: form.name, email: form.email, password: form.password })
       });
+      
+      console.log('Registration response status:', res.status);
       const data = await res.json();
-      if (res.ok) {
+      console.log('Registration response data:', data);
+      
+      if (res.ok || res.status === 201) {
         setSuccess("¡Registro exitoso! Revisa tu correo para verificar tu cuenta.");
         setForm({ name: "", email: "", password: "", confirm: "", acceptTerms: false });
         
@@ -98,7 +102,18 @@ export default function RegisterPage() {
         });
         
       } else {
-        setError(data.message || "Error al registrar. Intenta de nuevo.");
+        // Handle specific error cases
+        let errorMessage = "Error al registrar. Intenta de nuevo.";
+        
+        if (res.status === 409) {
+          errorMessage = "Este email ya está registrado. ¿Ya tienes cuenta?";
+        } else if (data.error) {
+          errorMessage = data.error;
+        } else if (data.message) {
+          errorMessage = data.message;
+        }
+        
+        setError(errorMessage);
         
         // 🔥 ANALYTICS: Track registration failure
         analytics.track({

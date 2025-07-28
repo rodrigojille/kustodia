@@ -16,6 +16,8 @@ router.post("/resend-verification", userController_1.resendVerificationEmail);
 router.post('/save-portal-share', authenticateJWT_1.authenticateJWT, userController_1.savePortalShare);
 // Get the user's portal share for recovery
 router.get('/get-portal-share', authenticateJWT_1.authenticateJWT, userController_1.getPortalShare);
+// Retry wallet creation for users without wallet
+router.post('/retry-wallet', authenticateJWT_1.authenticateJWT, userController_1.retryWalletCreation);
 // Get current user info
 router.get("/me", authenticateJWT_1.authenticateJWT, userController_1.getMe);
 router.patch("/me", authenticateJWT_1.authenticateJWT, userController_1.updateMyProfile);

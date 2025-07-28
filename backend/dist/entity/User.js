@@ -45,7 +45,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "portal_client_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "portal_share", void 0);
 __decorate([

@@ -2,6 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { authFetch } from "../utils/authFetch";
 
+interface NFTAsset {
+  tokenId: string;
+  contractAddress: string;
+  blockchain: string;
+  verificationUrl: string;
+  kustodiaCertified: boolean;
+}
+
 export default function CobroFormFull() {
   const [payerEmail, setPayerEmail] = useState("");
   const [amount, setAmount] = useState("");
@@ -12,9 +20,17 @@ export default function CobroFormFull() {
   const [commissionBeneficiaryName, setCommissionBeneficiaryName] = useState("");
   const [commissionBeneficiaryEmail, setCommissionBeneficiaryEmail] = useState("");
   const [commissionAmount, setCommissionAmount] = useState("N/A");
+  const [selectedNFT, setSelectedNFT] = useState("");
+  const [userNFTs, setUserNFTs] = useState<NFTAsset[]>([]);
+  const [loadingNFTs, setLoadingNFTs] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Load user NFTs on component mount
+  useEffect(() => {
+    loadUserNFTs();
+  }, []);
 
   React.useEffect(() => {
     if (amount && commissionPercent) {
@@ -24,6 +40,24 @@ export default function CobroFormFull() {
       setCommissionAmount("N/A");
     }
   }, [amount, commissionPercent]);
+
+  const loadUserNFTs = async () => {
+    try {
+      setLoadingNFTs(true);
+      const response = await authFetch('/api/assets/user/assets');
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && Array.isArray(data.assets)) {
+          setUserNFTs(data.assets);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading user NFTs:', err);
+    } finally {
+      setLoadingNFTs(false);
+    }
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,6 +77,7 @@ export default function CobroFormFull() {
           commission_percent: commissionPercent ? Number(commissionPercent) : undefined,
           commission_beneficiary_name: commissionBeneficiaryName || undefined,
           commission_beneficiary_email: commissionBeneficiaryEmail || undefined,
+          nft_token_id: selectedNFT || undefined,
         }),
       });
       const data = await res.json();
@@ -62,6 +97,30 @@ export default function CobroFormFull() {
       <h2 className="text-xl font-bold text-center mb-4 text-black">Solicitar pago</h2>
       <input type="email" className="input w-full text-black placeholder-black" placeholder="Email del pagador" value={payerEmail} onChange={e => setPayerEmail(e.target.value)} required />
       <input type="number" className="input w-full text-black placeholder-black" placeholder="Monto (MXN)" value={amount} onChange={e => setAmount(e.target.value)} required min={1} />
+      
+      {/* NFT Selection */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-black">🎨 Gemelo Digital (opcional)</label>
+        <select 
+          className="w-full p-2 border border-gray-300 rounded-md text-black bg-white"
+          value={selectedNFT}
+          onChange={e => setSelectedNFT(e.target.value)}
+          disabled={loadingNFTs}
+        >
+          <option value="">Seleccionar gemelo digital (opcional)</option>
+          {userNFTs.map((nft) => (
+            <option key={nft.tokenId} value={nft.tokenId}>
+              🎨 Token #{nft.tokenId} - {nft.blockchain} {nft.kustodiaCertified ? '✅' : ''}
+            </option>
+          ))}
+        </select>
+        {loadingNFTs && <p className="text-sm text-gray-500">Cargando gemelos digitales...</p>}
+        {selectedNFT && (
+          <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+            💎 Este cobro estará respaldado por tu Gemelo Digital Token #{selectedNFT}
+          </div>
+        )}
+      </div>
       <input type="number" className="input w-full text-black placeholder-black" placeholder="% bajo garantía (0-100)" value={warrantyPercent} onChange={e => setWarrantyPercent(e.target.value)} min={0} max={100} />
       <input type="number" className="input w-full text-black placeholder-black" placeholder="Días en custodia (mínimo 1)" value={custodyDays} onChange={e => setCustodyDays(e.target.value)} min={1} />
       <input type="text" className="input w-full text-black placeholder-black" placeholder="Descripción o propósito del pago (opcional)" value={description} onChange={e => setDescription(e.target.value)} />

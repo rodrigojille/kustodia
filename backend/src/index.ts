@@ -25,6 +25,9 @@ import disputeMessageRoutes from './routes/disputeMessages';
 import earlyAccessCounterRoutes from './routes/earlyAccessCounter';
 import { createYieldRoutes } from './routes/yield';
 import analyticsRoutes from './routes/analytics';
+import assetNFTRoutes from './routes/assetNFTRoutes';
+import publicHistoryRoutes from './routes/publicHistory';
+
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
@@ -98,6 +101,27 @@ async function main() {
       res.json({ status: "Kustodia backend running" });
     });
 
+    app.get("/health", (req, res) => {
+      res.json({ status: "OK", timestamp: new Date().toISOString() });
+    });
+
+    app.get("/api/health/db", async (req, res) => {
+      try {
+        const isConnected = ormconfig.isInitialized;
+        if (isConnected) {
+          await ormconfig.query('SELECT 1');
+          res.json({ status: "connected", database: ormconfig.options.database });
+        } else {
+          res.status(500).json({ status: "not_initialized" });
+        }
+      } catch (error) {
+        res.status(500).json({ 
+          status: "error", 
+          details: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    });
+
     // Mount all API routes
     console.log('Mounting mainRouter at /api');
     app.use("/api", mainRouter);
@@ -113,6 +137,9 @@ async function main() {
     app.use('/api/early-access-counter', earlyAccessCounterRoutes);
     app.use('/api/yield', createYieldRoutes(ormconfig));
     app.use('/api/analytics', analyticsRoutes);
+    app.use('/api/assets', assetNFTRoutes);
+    app.use('/api/public', publicHistoryRoutes);
+
 
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {

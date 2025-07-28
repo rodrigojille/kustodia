@@ -1,0 +1,248 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "./UniversalAssetNFT.sol";
+
+/**
+ * @title VehicleEscrowSystem
+ * @dev Mandatory escrow system for vehicle transactions with 1-2% fees
+ * Core revenue generator for Kustodia platform
+ */
+contract VehicleEscrowSystem is ReentrancyGuard, AccessControl, Pausable {
+    
+    bytes32 public constant ESCROW_MANAGER_ROLE = keccak256("ESCROW_MANAGER_ROLE");
+    bytes32 public constant DISPUTE_RESOLVER_ROLE = keccak256("DISPUTE_RESOLVER_ROLE");
+    
+    UniversalAssetNFT public immutable assetContract;
+    
+    // Fee structure (basis points: 100 = 1%)
+    uint256 public constant MIN_FEE_BPS = 100;  // 1%
+    uint256 public constant MAX_FEE_BPS = 200;  // 2%
+    uint256 public constant BASIS_POINTS = 10000;
+    
+    // Transaction states
+    enum TransactionState {
+        PENDING,
+        FUNDED,
+        INSPECTION_PERIOD,
+        COMPLETED,
+        DISPUTED,
+        CANCELLED,
+        REFUNDED
+    }
+    
+    // Transaction structure
+    struct VehicleTransaction {
+        uint256 tokenId;
+        address seller;
+        address buyer;
+        uint256 vehiclePrice;
+        uint256 escrowFee;
+        uint256 totalAmount;
+        TransactionState state;
+        uint256 createdAt;
+        uint256 inspectionDeadline;
+        string inspectionReport;
+        bool sellerApproved;
+        bool buyerApproved;
+    }
+    
+    // Storage
+    mapping(bytes32 => VehicleTransaction) public transactions;
+    mapping(uint256 => bytes32) public tokenToActiveTransaction;
+    mapping(address => bytes32[]) public userTransactions;
+    
+    // Events
+    event TransactionCreated(
+        bytes32 indexed transactionId,
+        uint256 indexed tokenId,
+        address indexed seller,
+        address buyer,
+        uint256 vehiclePrice,
+        uint256 escrowFee
+    );
+    
+    event TransactionFunded(bytes32 indexed transactionId, uint256 amount);
+    event TransactionCompleted(bytes32 indexed transactionId);
+    event TransactionCancelled(bytes32 indexed transactionId);
+    event DisputeRaised(bytes32 indexed transactionId, address by);
+    event DisputeResolved(bytes32 indexed transactionId, address winner);
+    
+    constructor(address _assetContract) {
+        assetContract = UniversalAssetNFT(_assetContract);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ESCROW_MANAGER_ROLE, msg.sender);
+        _grantRole(DISPUTE_RESOLVER_ROLE, msg.sender);
+    }
+    
+    /**
+     * @dev Calculate escrow fee based on vehicle price
+     * Tiered structure: <$10k=1%, $10k-$25k=1.5%, >$25k=2%
+     */
+    function calculateEscrowFee(uint256 vehiclePrice) public pure returns (uint256) {
+        if (vehiclePrice < 10000 * 1e18) { // < $10,000
+            return (vehiclePrice * 100) / BASIS_POINTS; // 1%
+        } else if (vehiclePrice < 25000 * 1e18) { // $10k-$25k
+            return (vehiclePrice * 150) / BASIS_POINTS; // 1.5%
+        } else { // > $25,000
+            return (vehiclePrice * 200) / BASIS_POINTS; // 2%
+        }
+    }
+    
+    /**
+     * @dev Create new vehicle transaction
+     * Only vehicle owner can initiate sale
+     */
+    function createTransaction(
+        uint256 tokenId,
+        address buyer,
+        uint256 vehiclePrice
+    ) external nonReentrant whenNotPaused returns (bytes32) {
+        require(assetContract.ownerOf(tokenId) == msg.sender, "Not vehicle owner");
+        require(buyer != address(0), "Invalid buyer address");
+        require(buyer != msg.sender, "Cannot sell to yourself");
+        require(vehiclePrice > 0, "Invalid vehicle price");
+        require(tokenToActiveTransaction[tokenId] == bytes32(0), "Vehicle already in transaction");
+        
+        uint256 escrowFee = calculateEscrowFee(vehiclePrice);
+        uint256 totalAmount = vehiclePrice + escrowFee;
+        
+        bytes32 transactionId = keccak256(
+            abi.encodePacked(tokenId, msg.sender, buyer, vehiclePrice, block.timestamp)
+        );
+        
+        transactions[transactionId] = VehicleTransaction({
+            tokenId: tokenId,
+            seller: msg.sender,
+            buyer: buyer,
+            vehiclePrice: vehiclePrice,
+            escrowFee: escrowFee,
+            totalAmount: totalAmount,
+            state: TransactionState.PENDING,
+            createdAt: block.timestamp,
+            inspectionDeadline: block.timestamp + 7 days, // 7-day inspection period
+            inspectionReport: "",
+            sellerApproved: false,
+            buyerApproved: false
+        });
+        
+        tokenToActiveTransaction[tokenId] = transactionId;
+        userTransactions[msg.sender].push(transactionId);
+        userTransactions[buyer].push(transactionId);
+        
+        emit TransactionCreated(transactionId, tokenId, msg.sender, buyer, vehiclePrice, escrowFee);
+        
+        return transactionId;
+    }
+    
+    /**
+     * @dev Buyer funds the escrow
+     */
+    function fundTransaction(bytes32 transactionId) external payable nonReentrant {
+        VehicleTransaction storage txn = transactions[transactionId];
+        require(txn.buyer == msg.sender, "Not the buyer");
+        require(txn.state == TransactionState.PENDING, "Invalid transaction state");
+        require(msg.value == txn.totalAmount, "Incorrect amount");
+        
+        txn.state = TransactionState.FUNDED;
+        
+        emit TransactionFunded(transactionId, msg.value);
+    }
+    
+    /**
+     * @dev Complete transaction after both parties approve
+     */
+    function completeTransaction(bytes32 transactionId) external nonReentrant {
+        VehicleTransaction storage txn = transactions[transactionId];
+        require(
+            txn.state == TransactionState.FUNDED || txn.state == TransactionState.INSPECTION_PERIOD,
+            "Invalid state"
+        );
+        require(txn.sellerApproved && txn.buyerApproved, "Both parties must approve");
+        
+        // Transfer NFT to buyer
+        assetContract.safeTransferFrom(txn.seller, txn.buyer, txn.tokenId);
+        
+        // Transfer payment to seller (minus escrow fee)
+        payable(txn.seller).transfer(txn.vehiclePrice);
+        
+        // Escrow fee stays in contract (Kustodia revenue)
+        
+        txn.state = TransactionState.COMPLETED;
+        delete tokenToActiveTransaction[txn.tokenId];
+        
+        emit TransactionCompleted(transactionId);
+    }
+    
+    /**
+     * @dev Approve transaction (buyer or seller)
+     */
+    function approveTransaction(bytes32 transactionId) external {
+        VehicleTransaction storage txn = transactions[transactionId];
+        require(txn.seller == msg.sender || txn.buyer == msg.sender, "Not authorized");
+        require(txn.state == TransactionState.FUNDED, "Invalid state");
+        
+        if (txn.seller == msg.sender) {
+            txn.sellerApproved = true;
+        } else {
+            txn.buyerApproved = true;
+        }
+        
+        // Auto-complete if both approved
+        if (txn.sellerApproved && txn.buyerApproved) {
+            this.completeTransaction(transactionId);
+        }
+    }
+    
+    /**
+     * @dev Cancel transaction (before funding)
+     */
+    function cancelTransaction(bytes32 transactionId) external {
+        VehicleTransaction storage txn = transactions[transactionId];
+        require(txn.seller == msg.sender, "Only seller can cancel");
+        require(txn.state == TransactionState.PENDING, "Cannot cancel funded transaction");
+        
+        txn.state = TransactionState.CANCELLED;
+        delete tokenToActiveTransaction[txn.tokenId];
+        
+        emit TransactionCancelled(transactionId);
+    }
+    
+    /**
+     * @dev Withdraw accumulated escrow fees (Kustodia revenue)
+     */
+    function withdrawFees(address to, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(to != address(0), "Invalid address");
+        require(amount <= address(this).balance, "Insufficient balance");
+        
+        payable(to).transfer(amount);
+    }
+    
+    /**
+     * @dev Get transaction details
+     */
+    function getTransaction(bytes32 transactionId) external view returns (VehicleTransaction memory) {
+        return transactions[transactionId];
+    }
+    
+    /**
+     * @dev Get user's transaction history
+     */
+    function getUserTransactions(address user) external view returns (bytes32[] memory) {
+        return userTransactions[user];
+    }
+    
+    /**
+     * @dev Emergency pause
+     */
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+    
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+    }
+}

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { authFetch } from "../../../utils/authFetch";
 
+
 // Minimal utility for fetch with auth from localStorage
 type FetchOptions = RequestInit & { headers?: Record<string, string> };
 
@@ -466,501 +467,6 @@ function PaymentDetailsForm({ data, setData, vertical }: {
   );
 }
 
-// Product-specific fields component
-function ProductSpecificFields({ transactionType, data, setData, width }: {
-  transactionType: string;
-  data: FormDataType;
-  setData: (d: FormDataType) => void;
-  width: number;
-}) {
-  const isVehicle = transactionType.toLowerCase().includes('vehículo');
-  const isElectronics = transactionType === 'Electrónicos';
-  const isAppliances = transactionType === 'Electrodomésticos';
-  const isFurniture = transactionType === 'Muebles';
-
-  return (
-    <div style={{ marginTop: '24px', padding: '20px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-      <h4 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: '16px', fontWeight: '600' }}>
-        📝 Información del producto
-      </h4>
-      
-      {/* Transaction Type - Common for all categories */}
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Tipo de transacción</label>
-        <select
-          value={data['transaction_subtype'] || ''}
-          onChange={e => setData({ ...data, transaction_subtype: e.target.value })}
-          style={{
-            width: '100%',
-            padding: '10px',
-            fontSize: '14px',
-            borderRadius: '6px',
-            border: '1px solid #d1d5db'
-          }}
-        >
-          <option value="">Selecciona el tipo</option>
-          <option value="Apartado">Apartado</option>
-          <option value="Enganche">Enganche</option>
-          <option value="Compraventa">Compraventa</option>
-        </select>
-      </div>
-      
-      {/* Vehicle-specific fields */}
-      {isVehicle && (
-        <div style={{ display: 'grid', gridTemplateColumns: width < 768 ? '1fr' : '1fr 1fr', gap: '16px' }}>
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Marca</label>
-            <select
-              value={data['vehicle_brand'] || ''}
-              onChange={e => setData({ ...data, vehicle_brand: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona la marca</option>
-              <option value="Toyota">Toyota</option>
-              <option value="Honda">Honda</option>
-              <option value="Ford">Ford</option>
-              <option value="Chevrolet">Chevrolet</option>
-              <option value="Nissan">Nissan</option>
-              <option value="Hyundai">Hyundai</option>
-              <option value="Kia">Kia</option>
-              <option value="Mazda">Mazda</option>
-              <option value="Volkswagen">Volkswagen</option>
-              <option value="BMW">BMW</option>
-              <option value="Mercedes-Benz">Mercedes-Benz</option>
-              <option value="Audi">Audi</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Modelo</label>
-            <input
-              type="text"
-              value={data['vehicle_model'] || ''}
-              onChange={e => setData({ ...data, vehicle_model: e.target.value })}
-              placeholder="Ej: Corolla, Civic, F-150"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Año</label>
-            <input
-              type="number"
-              value={data['vehicle_year'] || ''}
-              onChange={e => setData({ ...data, vehicle_year: e.target.value })}
-              placeholder="2020"
-              min="1990"
-              max="2025"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Kilometraje</label>
-            <input
-              type="number"
-              value={data['vehicle_mileage'] || ''}
-              onChange={e => setData({ ...data, vehicle_mileage: e.target.value })}
-              placeholder="50000"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Condición</label>
-            <select
-              value={data['vehicle_condition'] || ''}
-              onChange={e => setData({ ...data, vehicle_condition: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="Nuevo">Nuevo</option>
-              <option value="Seminuevo">Seminuevo</option>
-              <option value="Usado">Usado</option>
-              <option value="Para reparar">Para reparar</option>
-            </select>
-          </div>
-          
-          <div style={{ gridColumn: width < 768 ? '1' : '1 / -1' }}>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Número de serie/VIN</label>
-            <input
-              type="text"
-              value={data['vehicle_serial'] || ''}
-              onChange={e => setData({ ...data, vehicle_serial: e.target.value.toUpperCase() })}
-              placeholder="Ej: 1HGBH41JXMN109186"
-              maxLength={17}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db',
-                fontFamily: 'monospace'
-              }}
-            />
-          </div>
-        </div>
-      )}
-      
-      {/* Electronics-specific fields */}
-      {isElectronics && (
-        <div style={{ display: 'grid', gridTemplateColumns: width < 768 ? '1fr' : '1fr 1fr', gap: '16px' }}>
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Marca</label>
-            <input
-              type="text"
-              value={data['electronics_brand'] || ''}
-              onChange={e => setData({ ...data, electronics_brand: e.target.value })}
-              placeholder="Ej: Apple, Samsung, Sony"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Modelo</label>
-            <input
-              type="text"
-              value={data['electronics_model'] || ''}
-              onChange={e => setData({ ...data, electronics_model: e.target.value })}
-              placeholder="Ej: iPhone 15, Galaxy S24"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Condición</label>
-            <select
-              value={data['electronics_condition'] || ''}
-              onChange={e => setData({ ...data, electronics_condition: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="Nuevo">Nuevo</option>
-              <option value="Como nuevo">Como nuevo</option>
-              <option value="Muy bueno">Muy bueno</option>
-              <option value="Bueno">Bueno</option>
-              <option value="Usado">Usado</option>
-            </select>
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Garantía</label>
-            <select
-              value={data['electronics_warranty'] || ''}
-              onChange={e => setData({ ...data, electronics_warranty: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="Sin garantía">Sin garantía</option>
-              <option value="Garantía del fabricante">Garantía del fabricante</option>
-              <option value="Garantía extendida">Garantía extendida</option>
-            </select>
-          </div>
-          
-          <div style={{ gridColumn: width < 768 ? '1' : '1 / -1' }}>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Número de serie</label>
-            <input
-              type="text"
-              value={data['electronics_serial'] || ''}
-              onChange={e => setData({ ...data, electronics_serial: e.target.value })}
-              placeholder="Ej: ABC123456789"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db',
-                fontFamily: 'monospace'
-              }}
-            />
-          </div>
-        </div>
-      )}
-      
-      {/* Appliances-specific fields */}
-      {isAppliances && (
-        <div style={{ display: 'grid', gridTemplateColumns: width < 768 ? '1fr' : '1fr 1fr', gap: '16px' }}>
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Tipo de electrodoméstico</label>
-            <select
-              value={data['appliance_type'] || ''}
-              onChange={e => setData({ ...data, appliance_type: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="Refrigerador">Refrigerador</option>
-              <option value="Lavadora">Lavadora</option>
-              <option value="Secadora">Secadora</option>
-              <option value="Lavavajillas">Lavavajillas</option>
-              <option value="Microondas">Microondas</option>
-              <option value="Estufa">Estufa</option>
-              <option value="Horno">Horno</option>
-              <option value="Aire acondicionado">Aire acondicionado</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Marca</label>
-            <input
-              type="text"
-              value={data['appliance_brand'] || ''}
-              onChange={e => setData({ ...data, appliance_brand: e.target.value })}
-              placeholder="Ej: LG, Samsung, Whirlpool"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Años de uso</label>
-            <input
-              type="number"
-              value={data['appliance_age'] || ''}
-              onChange={e => setData({ ...data, appliance_age: e.target.value })}
-              placeholder="2"
-              min="0"
-              max="20"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Eficiencia energética</label>
-            <select
-              value={data['appliance_efficiency'] || ''}
-              onChange={e => setData({ ...data, appliance_efficiency: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="A++">A++</option>
-              <option value="A+">A+</option>
-              <option value="A">A</option>
-              <option value="B">B</option>
-              <option value="C">C</option>
-              <option value="No aplica">No aplica</option>
-            </select>
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Condición</label>
-            <select
-              value={data['appliance_condition'] || ''}
-              onChange={e => setData({ ...data, appliance_condition: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="Nuevo">Nuevo</option>
-              <option value="Como nuevo">Como nuevo</option>
-              <option value="Muy bueno">Muy bueno</option>
-              <option value="Bueno">Bueno</option>
-              <option value="Regular">Regular</option>
-              <option value="Necesita reparación">Necesita reparación</option>
-            </select>
-          </div>
-          
-          <div style={{ gridColumn: width < 768 ? '1' : '1 / -1' }}>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Número de serie/modelo</label>
-            <input
-              type="text"
-              value={data['appliance_serial'] || ''}
-              onChange={e => setData({ ...data, appliance_serial: e.target.value })}
-              placeholder="Ej: LG12345ABC789"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db',
-                fontFamily: 'monospace'
-              }}
-            />
-          </div>
-        </div>
-      )}
-      
-      {/* Furniture-specific fields */}
-      {isFurniture && (
-        <div style={{ display: 'grid', gridTemplateColumns: width < 768 ? '1fr' : '1fr 1fr', gap: '16px' }}>
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Tipo de mueble</label>
-            <select
-              value={data['furniture_type'] || ''}
-              onChange={e => setData({ ...data, furniture_type: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="Sofá">Sofá</option>
-              <option value="Mesa">Mesa</option>
-              <option value="Silla">Silla</option>
-              <option value="Cama">Cama</option>
-              <option value="Armario">Armario</option>
-              <option value="Librero">Librero</option>
-              <option value="Escritorio">Escritorio</option>
-              <option value="Cómoda">Cómoda</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Material</label>
-            <select
-              value={data['furniture_material'] || ''}
-              onChange={e => setData({ ...data, furniture_material: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="Madera">Madera</option>
-              <option value="Metal">Metal</option>
-              <option value="Plástico">Plástico</option>
-              <option value="Vidrio">Vidrio</option>
-              <option value="Tela">Tela</option>
-              <option value="Cuero">Cuero</option>
-              <option value="Mixto">Mixto</option>
-            </select>
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Dimensiones (aprox.)</label>
-            <input
-              type="text"
-              value={data['furniture_dimensions'] || ''}
-              onChange={e => setData({ ...data, furniture_dimensions: e.target.value })}
-              placeholder="Ej: 200x100x80 cm"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            />
-          </div>
-          
-          <div>
-            <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>Condición</label>
-            <select
-              value={data['furniture_condition'] || ''}
-              onChange={e => setData({ ...data, furniture_condition: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db'
-              }}
-            >
-              <option value="">Selecciona</option>
-              <option value="Nuevo">Nuevo</option>
-              <option value="Como nuevo">Como nuevo</option>
-              <option value="Muy bueno">Muy bueno</option>
-              <option value="Bueno">Bueno</option>
-              <option value="Regular">Regular</option>
-              <option value="Necesita reparación">Necesita reparación</option>
-            </select>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function StepInputs({ vertical, stepIndex, data, setData }: {
   vertical: string;
   stepIndex: number;
@@ -975,8 +481,6 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
   }
 
   // Define the input type and label for each step of each vertical
-  // For MVP: text, select, checkbox, file (if needed)
-  // You can expand this logic for richer forms later
   const stepInputs: Record<string, { type: string; label: string; options?: string[]; placeholder?: string; min?: number; max?: number; step?: number; suffix?: string }> = {
     // Inmobiliaria
     inmobiliaria_step_1: { type: 'select', label: 'Tipo de operación', options: ['Enganche', 'Apartado', 'Renta', 'Compra-venta'] },
@@ -985,8 +489,7 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
       label: 'Condiciones de liberación y documentación', 
       placeholder: 'Ejemplo: El pago se liberará cuando el contrato de compra-venta esté firmado por ambas partes y se haya entregado la documentación requerida (escrituras, identificaciones, etc.)'
     },
-    // Removed inmobiliaria_step_3 and inmobiliaria_step_4
-  
+    
     // Freelancer
     freelancer_step_1: { type: 'select', label: 'Tipo de servicio', options: ['Desarrollo web', 'Diseño gráfico', 'Marketing digital', 'Redacción', 'Consultoría', 'Otro'] },
     freelancer_step_2: { 
@@ -994,356 +497,94 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
       label: 'Condiciones de liberación y entregables', 
       placeholder: 'Ejemplo: El pago se liberará cuando se entregue el sitio web completamente funcional, con diseño responsive y cumpliendo todos los requisitos especificados en el brief.'
     },
-  
-    // E-commerce
-    ecommerce_step_1: { type: 'select', label: 'Tipo de producto/servicio', options: ['Producto físico', 'Producto digital', 'Suscripción', 'Servicio'] },
-    ecommerce_step_2: { 
-      type: 'textarea', 
-      label: 'Condiciones de liberación y entrega', 
-      placeholder: 'Ejemplo: El pago se liberará cuando el comprador confirme que recibió el producto en buen estado y cumple con las especificaciones descritas.'
-    },
-  
+    
     // Particulares
-    particulares_step_1: { type: 'select', label: 'Tipo de transacción', options: ['Compra-venta de vehículo', 'Venta de vehículo', 'Electrodomésticos', 'Muebles', 'Electrónicos', 'Otro'] },
+    particulares_step_1: { type: 'select', label: 'Tipo de producto', options: ['Compra-venta de vehículo', 'Venta de vehículo', 'Electrónicos', 'Electrodomésticos', 'Muebles', 'Otro'] },
     particulares_step_2: { 
       type: 'textarea', 
-      label: 'Condiciones de liberación y entrega', 
-      placeholder: 'Ejemplo: El pago se liberará cuando se haga la entrega física del artículo y el comprador verifique que está en las condiciones acordadas.'
-    },
-  
-    // B2B
-    b2b_step_1: { type: 'select', label: 'Tipo de servicio empresarial', options: ['Consultoría', 'Software/IT', 'Logística', 'Marketing', 'Legal', 'Contabilidad'] },
-    b2b_step_2: { 
-      type: 'textarea', 
-      label: 'Condiciones de liberación y entregables', 
-      placeholder: 'Ejemplo: El pago se liberará cuando se complete la implementación del sistema y se proporcione la capacitación acordada al equipo.'
-    },
-  
-    // Marketplace
-    marketplace_step_1: { type: 'select', label: 'Categoría del servicio', options: ['Servicios domésticos', 'Profesionales', 'Creativos', 'Técnicos', 'Educativos'] },
-    marketplace_step_2: { 
-      type: 'textarea', 
-      label: 'Condiciones de liberación y servicio', 
-      placeholder: 'Ejemplo: El pago se liberará cuando el servicio sea completado satisfactoriamente según los términos acordados y el cliente confirme su satisfacción.'
+      label: 'Condiciones de liberación', 
+      placeholder: 'Ejemplo: El pago se liberará cuando el producto sea entregado en las condiciones acordadas y el comprador confirme que está satisfecho con la compra.'
     }
   };
-  const stepKey = getStepKey(vertical, stepIndex);
-  const input = stepInputs[stepKey];
-  if (!input) return null;
-  const value = data[stepKey] ?? (input.type === 'checkbox' ? false : '');
-  
-  // Get the selected transaction type for particulares to show conditional fields
-  const transactionType = vertical === 'particulares' && stepIndex === 1 ? data['particulares_step_1'] : null;
-  
-  return (
-    <div style={{ margin: '24px 0' }}>
-      <label style={{ fontWeight: 500, fontSize: 16, display: 'block', marginBottom: 8 }}>{input.label}</label>
-      {input.type === 'text' && (
-        <input
-          type="text"
-          value={value}
-          onChange={e => setData({ ...data, [stepKey]: e.target.value })}
-          style={{
-            width: '100%',
-            padding: width < 640 ? '14px' : '12px',
-            fontSize: width < 640 ? '16px' : '16px',
-            borderRadius: '8px',
-            border: '1px solid #c6d2e6'
-          }}
-        />
-      )}
-      {input.type === 'select' && input.options && (
-        <select
-          value={value}
-          onChange={e => setData({ ...data, [stepKey]: e.target.value })}
-          style={{
-            width: '100%',
-            padding: width < 640 ? '14px' : '12px',
-            fontSize: width < 640 ? '16px' : '16px',
-            borderRadius: '8px',
-            border: '1px solid #c6d2e6'
-          }}
-        >
-          <option value="">Selecciona una opción</option>
-          {input.options.map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
-      )}
-      {input.type === 'textarea' && (
-        <textarea
-          value={value}
-          onChange={e => setData({ ...data, [stepKey]: e.target.value })}
-          style={{
-            width: '100%',
-            padding: width < 640 ? '14px' : '12px',
-            fontSize: width < 640 ? '16px' : '16px',
-            borderRadius: '8px',
-            border: '1px solid #c6d2e6',
-            minHeight: width < 640 ? '120px' : '120px',
-            resize: 'vertical',
-            fontFamily: 'inherit'
-          }}
-          placeholder={input.placeholder}
-          rows={5}
-        />
-      )}
-      {input.type === 'checkbox' && (
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-          <input
-            type="checkbox"
-            checked={!!value}
-            onChange={e => setData({ ...data, [stepKey]: e.target.checked })}
-          />
-          Sí
-        </label>
-      )}
-      {input.type === 'email' && (
-        <input
-          type="email"
-          value={value}
-          onChange={e => setData({ ...data, [stepKey]: e.target.value })}
-          style={{
-            width: '100%',
-            padding: width < 640 ? '14px' : '12px',
-            fontSize: width < 640 ? '16px' : '16px',
-            borderRadius: '8px',
-            border: '1px solid #c6d2e6'
-          }}
-          placeholder={input.placeholder}
-        />
-      )}
-      {input.type === 'number' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <input
-            type="number"
-            min={input.min}
-            max={input.max}
-            step={input.step}
-            value={value}
+
+  const stepKey = `${vertical}_step_${stepIndex}`;
+  const stepConfig = stepInputs[stepKey];
+
+  if (!stepConfig) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+        Configuración del paso no encontrada
+      </div>
+    );
+  }
+
+  const renderInput = () => {
+    const baseStyle = {
+      width: '100%',
+      padding: '10px',
+      fontSize: '14px',
+      borderRadius: '6px',
+      border: '1px solid #d1d5db'
+    };
+
+    switch (stepConfig.type) {
+      case 'select':
+        return (
+          <select
+            value={data[stepKey] || ''}
             onChange={e => setData({ ...data, [stepKey]: e.target.value })}
-            style={{
-              width: '100%',
-              padding: width < 640 ? '14px' : '12px',
-              fontSize: width < 640 ? '16px' : '16px',
-              borderRadius: '8px',
-              border: '1px solid #c6d2e6'
-            }}
-            placeholder={input.placeholder}
+            style={baseStyle}
+          >
+            <option value="">Selecciona una opción</option>
+            {stepConfig.options?.map(option => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        );
+      
+      case 'textarea':
+        return (
+          <textarea
+            value={data[stepKey] || ''}
+            onChange={e => setData({ ...data, [stepKey]: e.target.value })}
+            placeholder={stepConfig.placeholder}
+            rows={4}
+            style={{ ...baseStyle, resize: 'vertical' }}
           />
-          <span style={{ fontSize: '16px', color: '#6b7280', fontWeight: 500 }}>{input.suffix}</span>
-        </div>
-      )}
+        );
       
-      {/* Product-specific fields for particulares vertical */}
-      {vertical === 'particulares' && stepIndex === 1 && transactionType && (
-        <ProductSpecificFields 
-          transactionType={transactionType} 
-          data={data} 
-          setData={setData} 
-          width={width}
-        />
-      )}
-    </div>
-  );
-}
-
-// Product summary component for particulares
-function ProductSummary({ data, transactionType }: { data: FormDataType; transactionType: string }) {
-  const isVehicle = transactionType.toLowerCase().includes('vehículo');
-  const isElectronics = transactionType === 'Electrónicos';
-  const isAppliances = transactionType === 'Electrodomésticos';
-  const isFurniture = transactionType === 'Muebles';
-  
-  const hasProductInfo = (
-    (isVehicle && (data['vehicle_brand'] || data['vehicle_model'])) ||
-    (isElectronics && (data['electronics_brand'] || data['electronics_model'])) ||
-    (isAppliances && (data['appliance_type'] || data['appliance_brand'])) ||
-    (isFurniture && (data['furniture_type'] || data['furniture_material']))
-  );
-  
-  if (!hasProductInfo) return null;
-  
-  return (
-    <div style={{
-      marginTop: '16px',
-      padding: '16px',
-      backgroundColor: '#f0f9ff',
-      borderRadius: '8px',
-      border: '1px solid #bae6fd'
-    }}>
-      <h4 style={{ 
-        fontSize: '16px', 
-        fontWeight: '600', 
-        marginBottom: '12px', 
-        color: '#0c4a6e',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}>
-        📝 Información del producto
-      </h4>
-      
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '14px' }}>
-        {/* Transaction Type - Always show if present */}
-        {data['transaction_subtype'] && (
-          <div style={{ gridColumn: '1 / -1', marginBottom: '8px', padding: '8px', backgroundColor: '#dbeafe', borderRadius: '4px' }}>
-            <strong>💳 Tipo de transacción:</strong> {data['transaction_subtype']}
-          </div>
-        )}
-        
-        {/* Vehicle info */}
-        {isVehicle && (
-          <>
-            {data['vehicle_brand'] && (
-              <div><strong>Marca:</strong> {data['vehicle_brand']}</div>
-            )}
-            {data['vehicle_model'] && (
-              <div><strong>Modelo:</strong> {data['vehicle_model']}</div>
-            )}
-            {data['vehicle_year'] && (
-              <div><strong>Año:</strong> {data['vehicle_year']}</div>
-            )}
-            {data['vehicle_mileage'] && (
-              <div><strong>Kilometraje:</strong> {Number(data['vehicle_mileage']).toLocaleString()} km</div>
-            )}
-            {data['vehicle_condition'] && (
-              <div><strong>Condición:</strong> {data['vehicle_condition']}</div>
-            )}
-            {data['vehicle_serial'] && (
-              <div style={{ gridColumn: '1 / -1', fontFamily: 'monospace' }}><strong>VIN/Serie:</strong> {data['vehicle_serial']}</div>
-            )}
-          </>
-        )}
-        
-        {/* Electronics info */}
-        {isElectronics && (
-          <>
-            {data['electronics_brand'] && (
-              <div><strong>Marca:</strong> {data['electronics_brand']}</div>
-            )}
-            {data['electronics_model'] && (
-              <div><strong>Modelo:</strong> {data['electronics_model']}</div>
-            )}
-            {data['electronics_condition'] && (
-              <div><strong>Condición:</strong> {data['electronics_condition']}</div>
-            )}
-            {data['electronics_warranty'] && (
-              <div><strong>Garantía:</strong> {data['electronics_warranty']}</div>
-            )}
-            {data['electronics_serial'] && (
-              <div style={{ gridColumn: '1 / -1', fontFamily: 'monospace' }}><strong>Número de serie:</strong> {data['electronics_serial']}</div>
-            )}
-          </>
-        )}
-        
-        {/* Appliances info */}
-        {isAppliances && (
-          <>
-            {data['appliance_type'] && (
-              <div><strong>Tipo:</strong> {data['appliance_type']}</div>
-            )}
-            {data['appliance_brand'] && (
-              <div><strong>Marca:</strong> {data['appliance_brand']}</div>
-            )}
-            {data['appliance_age'] && (
-              <div><strong>Años de uso:</strong> {data['appliance_age']}</div>
-            )}
-            {data['appliance_efficiency'] && (
-              <div><strong>Eficiencia:</strong> {data['appliance_efficiency']}</div>
-            )}
-            {data['appliance_condition'] && (
-              <div><strong>Condición:</strong> {data['appliance_condition']}</div>
-            )}
-            {data['appliance_serial'] && (
-              <div style={{ gridColumn: '1 / -1', fontFamily: 'monospace' }}><strong>Número de serie:</strong> {data['appliance_serial']}</div>
-            )}
-          </>
-        )}
-        
-        {/* Furniture info */}
-        {isFurniture && (
-          <>
-            {data['furniture_type'] && (
-              <div><strong>Tipo:</strong> {data['furniture_type']}</div>
-            )}
-            {data['furniture_material'] && (
-              <div><strong>Material:</strong> {data['furniture_material']}</div>
-            )}
-            {data['furniture_dimensions'] && (
-              <div><strong>Dimensiones:</strong> {data['furniture_dimensions']}</div>
-            )}
-            {data['furniture_condition'] && (
-              <div><strong>Condición:</strong> {data['furniture_condition']}</div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function SummaryView({ vertical, data }: { vertical: string; data: FormDataType }) {
-  const steps = stepsByVertical[vertical] || [];
-  return (
-    <div>
-      <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, color: '#1e40af' }}>
-        ✅ Configuración completada
-      </h2>
-      
-      {/* Payment Summary */}
-      <PaymentSummary data={data} vertical={vertical} />
-
-      {/* Vertical Configuration Summary */}
-      <div style={{ 
-        backgroundColor: '#fafafa', 
-        padding: 20, 
-        borderRadius: 12, 
-        border: '1px solid #e5e7eb',
-        marginBottom: 24
-      }}>
-        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12, color: '#374151' }}>
-          🔧 Configuración del flujo {getVerticalDisplayName(vertical)}
-        </h3>
-        <ol style={{ paddingLeft: 18, margin: 0 }}>
-          {steps.map((label, idx) => {
-            // Skip payment details step (0) and summary step (last step)
-            if (idx === 0 || idx === steps.length - 1) return null;
-            const stepKey = getStepKey(vertical, idx);
-            const value = data[stepKey];
-            let displayValue = value;
-            if (typeof value === 'boolean') {
-              displayValue = value ? 'Sí' : 'No';
-            }
-            return (
-              <li key={idx} style={{ marginBottom: 8, fontSize: 14 }}>
-                <strong>{label}:</strong> {displayValue || 'No especificado'}
-              </li>
-            );
-          })}
-        </ol>
-        
-        {/* Product-specific information for particulares vertical */}
-        {vertical === 'particulares' && data['particulares_step_1'] && (
-          <ProductSummary data={data} transactionType={data['particulares_step_1']} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function getVerticalDisplayName(vertical: string) {
-  const verticals: Record<string, string> = {
-    inmobiliaria: 'Inmobiliarias y agentes',
-    freelancer: 'Freelancers y servicios',
-    ecommerce: 'E-commerce y ventas online',
-    particulares: 'Compra-venta entre particulares',
-    b2b: 'Empresas B2B y control de entregas',
-    marketplace: 'Marketplaces de servicios'
+      default:
+        return (
+          <input
+            type={stepConfig.type || 'text'}
+            value={data[stepKey] || ''}
+            onChange={e => setData({ ...data, [stepKey]: e.target.value })}
+            placeholder={stepConfig.placeholder}
+            min={stepConfig.min}
+            max={stepConfig.max}
+            step={stepConfig.step}
+            style={baseStyle}
+          />
+        );
+    }
   };
-  return verticals[vertical] || 'Vertical no especificado';
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <label style={{ fontWeight: 500, fontSize: 14, display: 'block', marginBottom: 6, color: '#374151' }}>
+        {stepConfig.label}
+      </label>
+      {renderInput()}
+      {stepConfig.suffix && (
+        <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+          {stepConfig.suffix}
+        </span>
+      )}
+    </div>
+  );
 }
 
+// Helper function to handle payment creation
 async function handleCreatePayment(vertical: string, data: FormDataType, router: any) {
   try {
     // Get current user
@@ -1371,39 +612,12 @@ async function handleCreatePayment(vertical: string, data: FormDataType, router:
       // Add nuevo-flujo specific fields
       payment_type: 'nuevo_flujo',
       vertical_type: vertical,
-      release_conditions: data[`${vertical}_step_2`] || null, // Release conditions are in step 2 for most verticals
+      release_conditions: data[`${vertical}_step_2`] || null,
       // Add commission fields if broker data exists
       ...(data.broker_email && data.broker_commission ? {
         commission_beneficiary_email: data.broker_email,
         commission_percent: Number(data.broker_commission)
-      } : {}),
-      // Add product-specific fields
-      transaction_subtype: data.transaction_subtype || null,
-      // Vehicle fields
-      vehicle_brand: data.vehicle_brand || null,
-      vehicle_model: data.vehicle_model || null,
-      vehicle_year: data.vehicle_year ? Number(data.vehicle_year) : null,
-      vehicle_vin: data.vehicle_vin || null,
-      vehicle_mileage: data.vehicle_mileage ? Number(data.vehicle_mileage) : null,
-      vehicle_condition: data.vehicle_condition || null,
-      // Electronics fields
-      electronics_brand: data.electronics_brand || null,
-      electronics_model: data.electronics_model || null,
-      electronics_condition: data.electronics_condition || null,
-      electronics_warranty: data.electronics_warranty || null,
-      electronics_serial: data.electronics_serial || null,
-      // Appliance fields
-      appliance_type: data.appliance_type || null,
-      appliance_brand: data.appliance_brand || null,
-      appliance_years_use: data.appliance_years_use ? Number(data.appliance_years_use) : null,
-      appliance_efficiency: data.appliance_efficiency || null,
-      appliance_condition: data.appliance_condition || null,
-      appliance_serial: data.appliance_serial || null,
-      // Furniture fields
-      furniture_type: data.furniture_type || null,
-      furniture_material: data.furniture_material || null,
-      furniture_dimensions: data.furniture_dimensions || null,
-      furniture_condition: data.furniture_condition || null
+      } : {})
     };
 
     console.log('Creating nuevo-flujo payment with payload:', payload);
@@ -1435,17 +649,20 @@ async function handleCreatePayment(vertical: string, data: FormDataType, router:
   }
 }
 
-function PaymentSummary({ data, vertical }: { data: FormDataType; vertical: string }) {
+// Summary view component
+function SummaryView({ vertical, data }: { vertical: string; data: FormDataType }) {
+  const steps = stepsByVertical[vertical] || [];
   return (
     <div>
-      <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px', color: '#1f2937' }}>
-        📋 Resumen del pago
-      </h3>
+      <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, color: '#1e40af' }}>
+        ✅ Configuración completada
+      </h2>
       
-      <div style={{ 
-        backgroundColor: '#f9fafb', 
-        padding: '20px', 
-        borderRadius: '12px', 
+      {/* Payment Summary */}
+      <div style={{
+        backgroundColor: '#f9fafb',
+        padding: '20px',
+        borderRadius: '12px',
         border: '1px solid #e5e7eb',
         marginBottom: '24px'
       }}>
@@ -1490,53 +707,55 @@ function PaymentSummary({ data, vertical }: { data: FormDataType; vertical: stri
           <strong style={{ color: '#374151' }}>🏭 Sector:</strong> 
           <span style={{ marginLeft: '8px', color: '#6b7280' }}>{getVerticalDisplayName(vertical)}</span>
         </div>
-        
-        {data.warranty_percentage && (
-          <div style={{ marginBottom: '12px' }}>
-            <strong style={{ color: '#374151' }}>Porcentaje en custodia:</strong> 
-            <span style={{ marginLeft: '8px', color: '#6b7280' }}>{data.warranty_percentage}%</span>
-          </div>
-        )}
-        
-        {data.timeline && (
-          <div style={{ marginBottom: '12px' }}>
-            <strong style={{ color: '#374151' }}>Custodia:</strong> 
-            <span style={{ marginLeft: '8px', color: '#6b7280' }}>{data.timeline} días</span>
-          </div>
-        )}
       </div>
 
-      <div style={{
-        backgroundColor: '#fef3c7',
-        border: '1px solid #f59e0b',
-        borderRadius: '8px',
-        padding: '16px',
-        marginBottom: '20px'
+      {/* Vertical Configuration Summary */}
+      <div style={{ 
+        backgroundColor: '#fafafa', 
+        padding: 20, 
+        borderRadius: 12, 
+        border: '1px solid #e5e7eb',
+        marginBottom: 24
       }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          marginBottom: '8px' 
-        }}>
-          <span style={{ fontSize: '20px', marginRight: '8px' }}>⚡</span>
-          <strong style={{ color: '#92400e' }}>¡Listo para crear!</strong>
-        </div>
-        <p style={{ 
-          margin: 0, 
-          fontSize: '14px', 
-          color: '#a16207' 
-        }}>
-          Una vez creado el pago, podrás hacer seguimiento del progreso y las condiciones de liberación desde el rastreador de pagos.
-        </p>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12, color: '#374151' }}>
+          🔧 Configuración del flujo {getVerticalDisplayName(vertical)}
+        </h3>
+        <ol style={{ paddingLeft: 18, margin: 0 }}>
+          {steps.map((label, idx) => {
+            // Skip payment details step (0) and summary step (last step)
+            if (idx === 0 || idx === steps.length - 1) return null;
+            const stepKey = `${vertical}_step_${idx}`;
+            const value = data[stepKey];
+            let displayValue = value;
+            if (typeof value === 'boolean') {
+              displayValue = value ? 'Sí' : 'No';
+            }
+            return (
+              <li key={idx} style={{ marginBottom: 8, fontSize: 14 }}>
+                <strong>{label}:</strong> {displayValue || 'No especificado'}
+              </li>
+            );
+          })}
+        </ol>
       </div>
     </div>
   );
 }
 
+// Helper function to get vertical display name
+function getVerticalDisplayName(vertical: string) {
+  const verticals: Record<string, string> = {
+    inmobiliaria: 'Inmobiliarias y agentes',
+    freelancer: 'Freelancers y servicios',
+    particulares: 'Compra-venta entre particulares'
+  };
+  return verticals[vertical] || 'Vertical no especificado';
+}
+
 export default function NuevoFlujoPage() {
   const [selected, setSelected] = useState<string | null>(null);
-  const [step, setStep] = useState(1); // 1 = selección vertical, 2+ = pasos del wizard
-  const [wizardStep, setWizardStep] = useState(0); // 0 = primer paso del wizard
+  const [step, setStep] = useState(1);
+  const [wizardStep, setWizardStep] = useState(0);
   const [formData, setFormData] = useState<FormDataType>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1544,7 +763,6 @@ export default function NuevoFlujoPage() {
 
   const currentSteps = selected ? stepsByVertical[selected] : [];
   const isWizard = step === 2 && selected;
-
   const { width } = useWindowSize();
 
   function isStep0Valid(data: FormDataType) {

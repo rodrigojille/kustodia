@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { authFetch } from "../../../../utils/authFetch";
+import { DigitalTwinSelector } from "../../../../components/DigitalTwinSelector";
 
 type CommissionRecipient = {
   id: string;
@@ -15,6 +16,8 @@ type FormDataType = {
   payment_description: string;
   buyer_email: string;
   seller_email: string;
+  // Commission fields - now optional
+  has_commission: boolean;
   total_commission_percentage: string;
   commission_recipients: CommissionRecipient[];
   custody_percent: string;
@@ -30,6 +33,9 @@ type FormDataType = {
   vehicle_vin: string;
   vehicle_mileage: string;
   vehicle_condition: string;
+  // Digital twin integration
+  selected_digital_twin?: any;
+  digital_twin_token_id?: string;
 };
 
 // Custom hook for responsive design
@@ -72,6 +78,8 @@ export default function CobroAutosPage() {
     payment_description: '',
     buyer_email: '',
     seller_email: '',
+    // Commission fields - default to no commission
+    has_commission: false,
     total_commission_percentage: '5',
     commission_recipients: [],
     custody_percent: '100',
@@ -96,6 +104,26 @@ export default function CobroAutosPage() {
   const [sellerError, setSellerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { width } = useWindowSize();
+
+  // Load user data
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const response = await authFetch('/api/users/me');
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('[COBROS DEBUG] Raw API response:', userData);
+          console.log('[COBROS DEBUG] User wallet address:', userData?.user?.wallet_address);
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
 
   const steps: string[] = [
     "Datos del cobro y comprador",
@@ -406,116 +434,160 @@ export default function CobroAutosPage() {
               </p>
             </div>
 
-            {/* Broker Commission Section */}
-            <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-              <h4 className="font-semibold text-blue-800 mb-3">
-                🏢 Distribución de comisiones
-              </h4>
-              
-              <div className="space-y-4">
-                <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
-                  <label className="block font-medium text-gray-700 mb-2">
-                    💰 Porcentaje total de comisión
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      placeholder="5.0"
-                      min="0"
-                      max="50"
-                      step="0.1"
-                      value={data.total_commission_percentage}
-                      onChange={(e) => setData({ ...data, total_commission_percentage: e.target.value })}
-                      className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+            {/* Commission Toggle */}
+            <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-gray-800">
+                  🏢 Comisiones de brokers
+                </h4>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={data.has_commission}
+                    onChange={(e) => setData({ ...data, has_commission: e.target.checked })}
+                    className="sr-only"
+                  />
+                  <div className={`relative w-11 h-6 rounded-full transition-colors ${
+                    data.has_commission ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}>
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                      data.has_commission ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Porcentaje total que se deducirá del monto y se distribuirá entre brokers
+                  <span className="ml-3 text-sm font-medium text-gray-700">
+                    {data.has_commission ? 'Activado' : 'Desactivado'}
+                  </span>
+                </label>
+              </div>
+              
+              <p className="text-sm text-gray-600 mb-3">
+                {data.has_commission 
+                  ? '✅ Se aplicarán comisiones a este pago' 
+                  : '💰 Venta directa sin comisiones - el vendedor recibe el 100% del monto'
+                }
+              </p>
+              
+              {!data.has_commission && (
+                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                  <p className="text-sm text-green-700">
+                    💡 <strong>Venta directa:</strong> Ideal cuando vendes tu propio vehículo sin intermediarios. El comprador paga directamente al vendedor.
                   </p>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <p className="text-sm text-blue-700 font-medium mb-2">💡 Broker principal</p>
-                  <p className="text-sm text-blue-600">Recibirás la comisión restante después de splits adicionales</p>
-                </div>
+              )}
+            </div>
+
+            {/* Broker Commission Section - Only show if commissions are enabled */}
+            {data.has_commission && (
+              <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                <h4 className="font-semibold text-blue-800 mb-3">
+                  🏢 Distribución de comisiones
+                </h4>
                 
-                {data.commission_recipients.map((recipient, index) => (
-                  <div key={recipient.id} className="bg-white p-4 rounded-lg border-2 border-blue-200">
-                    <div className="flex justify-between items-start mb-3">
-                      <h5 className="font-medium text-gray-800">Broker adicional #{index + 1}</h5>
-                      <button
-                        type="button"
-                        onClick={() => removeCommissionRecipient(recipient.id)}
-                        className="text-red-500 hover:text-red-700 font-medium"
-                      >
-                        ✕ Eliminar
-                      </button>
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                    <label className="block font-medium text-gray-700 mb-2">
+                      💰 Porcentaje total de comisión
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        placeholder="5.0"
+                        min="0"
+                        max="50"
+                        step="0.1"
+                        value={data.total_commission_percentage}
+                        onChange={(e) => setData({ ...data, total_commission_percentage: e.target.value })}
+                        className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      />
+                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block font-medium text-gray-700 mb-2">
-                          📧 Email del broker
-                        </label>
-                        <input
-                          type="email"
-                          placeholder="broker@automotriz.com"
-                          value={recipient.email}
-                          onChange={(e) => updateCommissionRecipient(recipient.id, 'email', e.target.value)}
-                          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Porcentaje total que se deducirá del monto y se distribuirá entre brokers
+                    </p>
+                  </div>
+                  <div className="bg-blue-100 p-3 rounded-lg">
+                    <p className="text-sm text-blue-700 font-medium mb-2">💡 Broker principal</p>
+                    <p className="text-sm text-blue-600">Recibirás la comisión restante después de splits adicionales</p>
+                  </div>
+                  
+                  {data.commission_recipients.map((recipient, index) => (
+                    <div key={recipient.id} className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                      <div className="flex justify-between items-start mb-3">
+                        <h5 className="font-medium text-gray-800">Broker adicional #{index + 1}</h5>
+                        <button
+                          type="button"
+                          onClick={() => removeCommissionRecipient(recipient.id)}
+                          className="text-red-500 hover:text-red-700 font-medium"
+                        >
+                          ✕ Eliminar
+                        </button>
                       </div>
                       
-                      <div>
-                        <label className="block font-medium text-gray-700 mb-2">
-                          💰 Porcentaje de la comisión total
-                        </label>
-                        <div className="relative">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            📧 Email del broker
+                          </label>
                           <input
-                            type="number"
-                            placeholder="50"
-                            min="0"
-                            max="100"
-                            step="1"
-                            value={recipient.percentage}
-                            onChange={(e) => updateCommissionRecipient(recipient.id, 'percentage', e.target.value)}
-                            className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                            type="email"
+                            placeholder="broker@automotriz.com"
+                            value={recipient.email}
+                            onChange={(e) => updateCommissionRecipient(recipient.id, 'email', e.target.value)}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                           />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Porcentaje de la comisión total que recibirá este broker
+                        
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            💰 Porcentaje de la comisión total
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              placeholder="50"
+                              min="0"
+                              max="100"
+                              step="1"
+                              value={recipient.percentage}
+                              onChange={(e) => updateCommissionRecipient(recipient.id, 'percentage', e.target.value)}
+                              className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                            />
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Porcentaje de la comisión total que recibirá este broker
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={addCommissionRecipient}
+                    className="w-full p-3 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                  >
+                    ➕ Agregar broker adicional
+                  </button>
+                  
+                  {data.commission_recipients.length > 0 && (
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <p className="text-sm text-blue-700 font-medium mb-1">📊 Resumen de comisiones:</p>
+                      <div className="space-y-1">
+                        {data.commission_recipients.map((recipient, index) => (
+                          <p key={recipient.id} className="text-sm text-blue-600">
+                            Broker #{index + 1}: {recipient.percentage}%
+                          </p>
+                        ))}
+                        <p className="text-sm text-blue-700 font-medium border-t border-blue-200 pt-1">
+                          Tu comisión: {(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}%
                         </p>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                <button
-                  type="button"
-                  onClick={addCommissionRecipient}
-                  className="w-full p-3 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-colors"
-                >
-                  ➕ Agregar broker adicional
-                </button>
-                
-                {data.commission_recipients.length > 0 && (
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <p className="text-sm text-blue-700 font-medium mb-1">📊 Resumen de comisiones:</p>
-                    <div className="space-y-1">
-                      {data.commission_recipients.map((recipient, index) => (
-                        <p key={recipient.id} className="text-sm text-blue-600">
-                          Broker #{index + 1}: {recipient.percentage}%
-                        </p>
-                      ))}
-                      <p className="text-sm text-blue-700 font-medium border-t border-blue-200 pt-1">
-                        Tu comisión: {(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -556,15 +628,54 @@ export default function CobroAutosPage() {
       case 1:
         return (
           <div className="space-y-6">
+            {/* Digital Twin Selector */}
+            <DigitalTwinSelector
+              onVehicleSelect={(vehicle) => {
+                if (vehicle) {
+                  // Auto-fill form with digital twin data
+                  setData({
+                    ...data,
+                    selected_digital_twin: vehicle,
+                    digital_twin_token_id: vehicle.tokenId,
+                    vehicle_brand: vehicle.metadata.make,
+                    vehicle_model: vehicle.metadata.model,
+                    vehicle_year: vehicle.metadata.year,
+                    vehicle_vin: vehicle.metadata.vin,
+                    vehicle_mileage: vehicle.metadata.currentMileage
+                  });
+                } else {
+                  // Clear digital twin data but keep manual entries
+                  setData({
+                    ...data,
+                    selected_digital_twin: undefined,
+                    digital_twin_token_id: undefined
+                  });
+                }
+              }}
+              selectedVehicle={data.selected_digital_twin}
+              userAddress={(() => {
+                console.log('[COBROS DEBUG] Passing userAddress to DigitalTwinSelector:', user?.wallet_address);
+                console.log('[COBROS DEBUG] Full user object:', user);
+                console.log('[COBROS DEBUG] Loading state:', loading);
+                return user?.wallet_address;
+              })()}
+              className="mb-6"
+            />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block font-medium text-gray-700 mb-2">
-                  🚗 Marca del vehículo
+                  🚗 Marca del vehículo {data.selected_digital_twin && <span className="text-green-600 text-sm">(desde gemelo digital)</span>}
                 </label>
                 <select
                   value={data.vehicle_brand}
                   onChange={(e) => setData({ ...data, vehicle_brand: e.target.value })}
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
+                    data.selected_digital_twin 
+                      ? 'border-green-500 bg-green-50 focus:border-green-600' 
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                  disabled={!!data.selected_digital_twin}
                 >
                   <option value="">Selecciona la marca</option>
                   <option value="Toyota">Toyota</option>
@@ -587,14 +698,19 @@ export default function CobroAutosPage() {
               
               <div>
                 <label className="block font-medium text-gray-700 mb-2">
-                  📝 Modelo
+                  📝 Modelo {data.selected_digital_twin && <span className="text-green-600 text-sm">(desde gemelo digital)</span>}
                 </label>
                 <input
                   type="text"
                   placeholder="Ej: Corolla, Civic, F-150"
                   value={data.vehicle_model}
                   onChange={(e) => setData({ ...data, vehicle_model: e.target.value })}
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
+                    data.selected_digital_twin 
+                      ? 'border-green-500 bg-green-50 focus:border-green-600' 
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                  disabled={!!data.selected_digital_twin}
                 />
               </div>
             </div>
@@ -602,7 +718,7 @@ export default function CobroAutosPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block font-medium text-gray-700 mb-2">
-                  📅 Año
+                  📅 Año {data.selected_digital_twin && <span className="text-green-600 text-sm">(desde gemelo digital)</span>}
                 </label>
                 <input
                   type="number"
@@ -611,20 +727,30 @@ export default function CobroAutosPage() {
                   max="2025"
                   value={data.vehicle_year}
                   onChange={(e) => setData({ ...data, vehicle_year: e.target.value })}
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
+                    data.selected_digital_twin 
+                      ? 'border-green-500 bg-green-50 focus:border-green-600' 
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                  disabled={!!data.selected_digital_twin}
                 />
               </div>
               
               <div>
                 <label className="block font-medium text-gray-700 mb-2">
-                  📊 Kilometraje
+                  📊 Kilometraje {data.selected_digital_twin && <span className="text-green-600 text-sm">(desde gemelo digital)</span>}
                 </label>
                 <input
                   type="number"
                   placeholder="50000"
                   value={data.vehicle_mileage}
                   onChange={(e) => setData({ ...data, vehicle_mileage: e.target.value })}
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
+                    data.selected_digital_twin 
+                      ? 'border-green-500 bg-green-50 focus:border-green-600' 
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                  disabled={!!data.selected_digital_twin}
                 />
               </div>
               
@@ -647,17 +773,31 @@ export default function CobroAutosPage() {
             
             <div>
               <label className="block font-medium text-gray-700 mb-2">
-                💳 Número de serie (VIN)
+                💳 Número de serie (VIN) {data.selected_digital_twin && <span className="text-green-600 text-sm">(desde gemelo digital)</span>}
               </label>
               <input
                 type="text"
                 placeholder="Ej: 1HGBH41JXMN109186"
                 value={data.vehicle_vin}
                 onChange={(e) => setData({ ...data, vehicle_vin: e.target.value.toUpperCase() })}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none font-mono"
+                className={`w-full p-3 border-2 rounded-lg focus:outline-none font-mono ${
+                  data.selected_digital_twin 
+                    ? 'border-green-500 bg-green-50 focus:border-green-600' 
+                    : 'border-gray-300 focus:border-blue-500'
+                }`}
                 maxLength={17}
+                disabled={!!data.selected_digital_twin}
               />
-              <p className="text-sm text-gray-500 mt-1">El VIN debe tener 17 caracteres</p>
+              <p className={`text-sm mt-1 ${
+                data.selected_digital_twin 
+                  ? 'text-green-600' 
+                  : 'text-gray-500'
+              }`}>
+                {data.selected_digital_twin 
+                  ? '✓ VIN verificado desde gemelo digital blockchain' 
+                  : 'El VIN debe tener 17 caracteres'
+                }
+              </p>
             </div>
             
             <div>
@@ -720,7 +860,14 @@ export default function CobroAutosPage() {
                 
                 {data.vehicle_brand && data.vehicle_model && (
                   <div className="bg-green-50 p-4 rounded-lg border-t">
-                    <h4 className="font-semibold text-green-900 mb-2">🚗 Información del Vehículo</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-green-900">🚗 Información del Vehículo</h4>
+                      {data.selected_digital_twin && (
+                        <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">
+                          🔗 Gemelo Digital NFT #{data.digital_twin_token_id}
+                        </span>
+                      )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Vehículo:</span>

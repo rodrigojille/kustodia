@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticateJWT } from '../authenticateJWT';
-import { verifyEmail, resendVerificationEmail, register, login, requestPasswordReset, resetPassword, getRecipientClabe, updateMyProfile, changePassword, verifyRecipient, savePortalShare, getPortalShare, getMe, updatePayoutClabe } from '../controllers/userController';
+import { verifyEmail, resendVerificationEmail, register, login, requestPasswordReset, resetPassword, getRecipientClabe, updateMyProfile, changePassword, verifyRecipient, savePortalShare, getPortalShare, getMe, updatePayoutClabe, retryWalletCreation } from '../controllers/userController';
 import { getKYCStatus } from "../controllers/kycController";
 
 import ormconfig from "../ormconfig";
@@ -22,6 +22,9 @@ router.post('/save-portal-share', authenticateJWT, savePortalShare);
 
 // Get the user's portal share for recovery
 router.get('/get-portal-share', authenticateJWT, getPortalShare);
+
+// Retry wallet creation for users without wallet
+router.post('/retry-wallet', authenticateJWT, retryWalletCreation);
 
 // Get current user info
 

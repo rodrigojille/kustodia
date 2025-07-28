@@ -21,6 +21,7 @@ type FormDataType = {
   custody_period: string;
   operation_type: string;
   release_conditions: string;
+  has_commission: boolean;
   payer_email?: string;
   payee_email?: string;
 };
@@ -70,7 +71,8 @@ export default function CobroInmobiliariaPage() {
     custody_percent: '100',
     custody_period: '30',
     operation_type: '',
-    release_conditions: ''
+    release_conditions: '',
+    has_commission: true
   });
   const [buyerValid, setBuyerValid] = useState<boolean | undefined>(undefined);
   const [buyerVerified, setBuyerVerified] = useState<boolean | undefined>(undefined);
@@ -231,8 +233,8 @@ export default function CobroInmobiliariaPage() {
   const handleSubmit = async () => {
     setSubmitting(true);
     
-    // Validate commission splits if commission is set
-    if (data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0) {
+    // Validate commission splits only if commission is enabled
+    if (data.has_commission && data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0) {
       const totalBrokerPercentage = data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0);
       
       if (totalBrokerPercentage > 100) {
@@ -261,11 +263,11 @@ export default function CobroInmobiliariaPage() {
         payer_email: data.buyer_email, // The buyer who will pay
         payee_email: data.seller_email, // The seller who receives the payment
         vertical: 'inmobiliaria',
-        // Commission calculation
-        total_commission_amount: ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100),
-        net_amount: (parseFloat(data.payment_amount) - ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100)),
-        // Add broker's commission percentage (if commission is set)
-        broker_commission_percentage: data.total_commission_percentage ? (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)) : 0
+        // Commission calculation - only calculate if commissions are enabled
+        total_commission_amount: data.has_commission ? ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100) : 0,
+        net_amount: data.has_commission ? (parseFloat(data.payment_amount) - ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100)) : parseFloat(data.payment_amount),
+        // Add broker's commission percentage (only if commission is enabled)
+        broker_commission_percentage: data.has_commission && data.total_commission_percentage ? (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)) : 0
       };
 
       const response = await authFetch('payments/cobro-inteligente', {
@@ -394,113 +396,141 @@ export default function CobroInmobiliariaPage() {
 
             {/* Broker Commission Section */}
             <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-              <h4 className="font-semibold text-blue-800 mb-3">
-                🏢 Distribución de comisiones
-              </h4>
-              
-              <div className="space-y-4">
-                <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
-                  <label className="block font-medium text-gray-700 mb-2">
-                    💰 Porcentaje total de comisión
-                  </label>
-                  <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold text-blue-800">
+                  🏢 Distribución de comisiones
+                </h4>
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-gray-600">
+                    {data.has_commission ? 'Con comisiones' : 'Venta directa'}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
                     <input
-                      type="number"
-                      placeholder="5.0"
-                      min="0"
-                      max="50"
-                      step="0.1"
-                      value={data.total_commission_percentage}
-                      onChange={(e) => setData({ ...data, total_commission_percentage: e.target.value })}
-                      className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      type="checkbox"
+                      checked={data.has_commission}
+                      onChange={(e) => setData({ ...data, has_commission: e.target.checked })}
+                      className="sr-only peer"
                     />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Porcentaje total que se deducirá del monto y se distribuirá entre brokers
-                  </p>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <p className="text-sm text-blue-700 font-medium mb-2">💡 Broker principal</p>
-                  <p className="text-sm text-blue-600">Recibirás la comisión restante después de splits adicionales</p>
-                </div>
-                
-                {data.commission_recipients.map((recipient, index) => (
-                  <div key={recipient.id} className="bg-white p-4 rounded-lg border-2 border-blue-200">
-                    <div className="flex justify-between items-start mb-3">
-                      <h5 className="font-medium text-gray-800">Broker adicional #{index + 1}</h5>
-                      <button
-                        type="button"
-                        onClick={() => removeCommissionRecipient(recipient.id)}
-                        className="text-red-500 hover:text-red-700 font-medium"
-                      >
-                        ✕ Eliminar
-                      </button>
+              </div>
+               
+              {data.has_commission ? (
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                    <label className="block font-medium text-gray-700 mb-2">
+                      💰 Porcentaje total de comisión
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        placeholder="5.0"
+                        min="0"
+                        max="50"
+                        step="0.1"
+                        value={data.total_commission_percentage}
+                        onChange={(e) => setData({ ...data, total_commission_percentage: e.target.value })}
+                        className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      />
+                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block font-medium text-gray-700 mb-2">
-                          📧 Email del broker
-                        </label>
-                        <input
-                          type="email"
-                          placeholder="broker@inmobiliaria.com"
-                          value={recipient.email}
-                          onChange={(e) => updateCommissionRecipient(recipient.id, 'email', e.target.value)}
-                          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Porcentaje total que se deducirá del monto y se distribuirá entre brokers
+                    </p>
+                  </div>
+                  <div className="bg-blue-100 p-3 rounded-lg">
+                    <p className="text-sm text-blue-700 font-medium mb-2">💡 Broker principal</p>
+                    <p className="text-sm text-blue-600">Recibirás la comisión restante después de splits adicionales</p>
+                  </div>
+                  
+                  {data.commission_recipients.map((recipient, index) => (
+                    <div key={recipient.id} className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                      <div className="flex justify-between items-start mb-3">
+                        <h5 className="font-medium text-gray-800">Broker adicional #{index + 1}</h5>
+                        <button
+                          type="button"
+                          onClick={() => removeCommissionRecipient(recipient.id)}
+                          className="text-red-500 hover:text-red-700 font-medium"
+                        >
+                          ✕ Eliminar
+                        </button>
                       </div>
                       
-                      <div>
-                        <label className="block font-medium text-gray-700 mb-2">
-                          💰 Porcentaje de la comisión total
-                        </label>
-                        <div className="relative">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            📧 Email del broker
+                          </label>
                           <input
-                            type="number"
-                            placeholder="50"
-                            min="0"
-                            max="100"
-                            step="1"
-                            value={recipient.percentage}
-                            onChange={(e) => updateCommissionRecipient(recipient.id, 'percentage', e.target.value)}
-                            className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                            type="email"
+                            placeholder="broker@inmobiliaria.com"
+                            value={recipient.email}
+                            onChange={(e) => updateCommissionRecipient(recipient.id, 'email', e.target.value)}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                           />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Porcentaje de la comisión total que recibirá este broker
+                        
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            💰 Porcentaje de la comisión total
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              placeholder="50"
+                              min="0"
+                              max="100"
+                              step="1"
+                              value={recipient.percentage}
+                              onChange={(e) => updateCommissionRecipient(recipient.id, 'percentage', e.target.value)}
+                              className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                            />
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Porcentaje de la comisión total que recibirá este broker
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={addCommissionRecipient}
+                    className="w-full p-3 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                  >
+                    ➕ Agregar broker adicional
+                  </button>
+                  
+                  {data.commission_recipients.length > 0 && (
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <p className="text-sm text-blue-700 font-medium mb-1">📊 Resumen de comisiones:</p>
+                      <div className="space-y-1">
+                        {data.commission_recipients.map((recipient, index) => (
+                          <p key={recipient.id} className="text-sm text-blue-600">
+                            Broker #{index + 1}: {recipient.percentage}%
+                          </p>
+                        ))}
+                        <p className="text-sm text-blue-700 font-medium border-t border-blue-200 pt-1">
+                          Tu comisión: {(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}%
                         </p>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                <button
-                  type="button"
-                  onClick={addCommissionRecipient}
-                  className="w-full p-3 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-colors"
-                >
-                  ➕ Agregar broker adicional
-                </button>
-                
-                {data.commission_recipients.length > 0 && (
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <p className="text-sm text-blue-700 font-medium mb-1">📊 Resumen de comisiones:</p>
-                    <div className="space-y-1">
-                      {data.commission_recipients.map((recipient, index) => (
-                        <p key={recipient.id} className="text-sm text-blue-600">
-                          Broker #{index + 1}: {recipient.percentage}%
-                        </p>
-                      ))}
-                      <p className="text-sm text-blue-700 font-medium border-t border-blue-200 pt-1">
-                        Tu comisión: {(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}%
-                      </p>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">💰</span>
+                    <div>
+                      <p className="font-medium text-green-800">Venta directa sin comisiones</p>
+                      <p className="text-sm text-green-600">El vendedor recibirá el monto completo del pago</p>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -601,31 +631,44 @@ export default function CobroInmobiliariaPage() {
                   <span className="font-semibold">{data.seller_email}</span>
                 </div>
                 
-                {data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0 && (
-                  <div className="space-y-2 border-t pt-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Comisión total:</span>
-                      <span className="font-semibold">{data.total_commission_percentage}% (${((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100).toFixed(2)} MXN)</span>
+                {data.has_commission ? (
+                  data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0 && (
+                    <div className="space-y-2 border-t pt-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Comisión total:</span>
+                        <span className="font-semibold">{data.total_commission_percentage}% (${((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100).toFixed(2)} MXN)</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Monto neto al vendedor:</span>
+                        <span className="font-semibold">${(parseFloat(data.payment_amount) - ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100)).toFixed(2)} MXN</span>
+                      </div>
+                      
+                      <p className="text-gray-600 font-medium mt-3">Distribución de comisiones:</p>
+                      {data.commission_recipients.map((recipient, index) => {
+                        const brokerCommission = (parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0') * parseFloat(recipient.percentage)) / 10000;
+                        return (
+                          <div key={recipient.id} className="flex justify-between ml-4">
+                            <span className="text-gray-600">Broker #{index + 1}:</span>
+                            <span className="font-semibold">{recipient.email} ({recipient.percentage}% = ${brokerCommission.toFixed(2)} MXN)</span>
+                          </div>
+                        );
+                      })}
+                      <div className="flex justify-between ml-4 border-t pt-2">
+                        <span className="text-gray-600">Tu comisión (broker principal):</span>
+                        <span className="font-semibold">{(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}% = ${((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0') * (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0))) / 10000).toFixed(2)} MXN</span>
+                      </div>
                     </div>
-                    
+                  )
+                ) : (
+                  <div className="border-t pt-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Monto neto al vendedor:</span>
-                      <span className="font-semibold">${(parseFloat(data.payment_amount) - ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100)).toFixed(2)} MXN</span>
+                      <span className="text-gray-600">Tipo de venta:</span>
+                      <span className="font-semibold text-green-600">💰 Venta directa sin comisiones</span>
                     </div>
-                    
-                    <p className="text-gray-600 font-medium mt-3">Distribución de comisiones:</p>
-                    {data.commission_recipients.map((recipient, index) => {
-                      const brokerCommission = (parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0') * parseFloat(recipient.percentage)) / 10000;
-                      return (
-                        <div key={recipient.id} className="flex justify-between ml-4">
-                          <span className="text-gray-600">Broker #{index + 1}:</span>
-                          <span className="font-semibold">{recipient.email} ({recipient.percentage}% = ${brokerCommission.toFixed(2)} MXN)</span>
-                        </div>
-                      );
-                    })}
-                    <div className="flex justify-between ml-4 border-t pt-2">
-                      <span className="text-gray-600">Tu comisión (broker principal):</span>
-                      <span className="font-semibold">{(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}% = ${((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0') * (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0))) / 10000).toFixed(2)} MXN</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Monto al vendedor:</span>
+                      <span className="font-semibold">${parseFloat(data.payment_amount).toFixed(2)} MXN (monto completo)</span>
                     </div>
                   </div>
                 )}
@@ -649,7 +692,7 @@ export default function CobroInmobiliariaPage() {
                 <li>• El comprador podrá pagar usando el link seguro</li>
                 <li>• El dinero quedará en custodia hasta que se cumplan las condiciones</li>
                 <li>• Ambas partes deben aprobar la liberación del pago</li>
-                {data.commission_recipients.length > 0 && <li>• La comisión se distribuirá automáticamente</li>}
+                {data.has_commission && data.commission_recipients.length > 0 && <li>• La comisión se distribuirá automáticamente</li>}
               </ul>
             </div>
           </div>

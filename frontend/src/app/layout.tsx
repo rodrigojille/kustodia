@@ -4,6 +4,11 @@ import Link from "next/link";
 import { FaTwitter, FaLinkedin, FaInstagram } from "react-icons/fa";
 import "./globals.css";
 import DashboardShell from "../components/DashboardShell";
+import { CSPostHogProvider } from "../lib/posthog";
+import PostHogSurvey from "../components/PostHogSurvey";
+import AnalyticsProvider from "../components/AnalyticsProvider";
+import CookieBanner from "../components/CookieBanner";
+import { Providers } from "../components/Providers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -11,6 +16,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://kustodia.mx'),
   title: "Kustodia México | Pagos en custodia seguros",
   description: "Kustodia es un servicio digital de custodia de pagos (escrow) en México. Protege tus compras, ventas y servicios con tecnología blockchain. Tu dinero solo se libera cuando se cumple el trato. Sin fraudes, sin riesgos.",
   keywords: [
@@ -63,12 +69,6 @@ export const metadata: Metadata = {
     canonical: "https://kustodia.mx/"
   }
 };
-
-import CookieBanner from "../components/CookieBanner";
-import { Providers } from "./providers";
-import AnalyticsProvider from "../components/AnalyticsProvider";
-import { CSPostHogProvider } from "../lib/posthog";
-import PostHogSurvey from "../components/PostHogSurvey";
 
 export default function RootLayout({
   children,

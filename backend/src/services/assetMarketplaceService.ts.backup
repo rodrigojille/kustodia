@@ -1,0 +1,375 @@
+import { User } from '../entity/User';
+import { Payment } from '../entity/Payment';
+import assetNFTService from './assetNFTService';
+import ormconfig from '../ormconfig';
+
+export interface AssetCreationRequest {
+  userId: string;
+  assetType: 'vehicle' | 'property';
+  assetData: any;
+  intendedMarketplace?: string; // OpenSea, local marketplace, etc.
+}
+
+export interface AssetTransferRequest {
+  tokenId: string;
+  fromAddress: string;
+  toAddress: string;
+  salePrice: string;
+  paymentId: string;
+  marketplace?: string;
+}
+
+export interface ServiceProviderUpdate {
+  tokenId: string;
+  updateType: 'maintenance' | 'upgrade' | 'inspection' | 'appraisal';
+  providerType: 'dealership' | 'contractor' | 'appraiser' | 'owner';
+  updateData: any;
+  supportingDocs?: string[];
+}
+
+class AssetIntegrationService {
+  /**
+   * Create NFT for seller before they list on any marketplace
+   */
+  async createAssetNFT(request: AssetCreationRequest): Promise<{ tokenId: string; transactionHash: string; marketplaceReady: boolean }> {
+    try {
+      console.log('[AssetIntegration] Creating NFT for user:', request.userId);
+
+      const userRepo = ormconfig.getRepository(User);
+      const user = await userRepo.findOne({ where: { id: parseInt(request.userId) } });
+      
+      if (!user || !user.wallet_address) {
+        throw new Error('User not found or no wallet address');
+      }
+
+      let result: { tokenId: string; transactionHash: string };
+
+      if (request.assetType === 'vehicle') {
+        result = await assetNFTService.createVehicleNFT(request.assetData, user.wallet_address);
+      } else if (request.assetType === 'property') {
+        result = await assetNFTService.createPropertyNFT(request.assetData, user.wallet_address);
+      } else {
+        throw new Error('Unsupported asset type');
+      }
+
+      console.log('[AssetIntegration] NFT created for marketplace listing:', {
+        tokenId: result.tokenId,
+        marketplace: request.intendedMarketplace || 'any',
+        owner: user.wallet_address
+      });
+
+      return {
+        ...result,
+        marketplaceReady: true
+      };
+
+    } catch (error) {
+      console.error('[AssetIntegration] Error creating asset NFT:', error);
+      throw new Error(`Failed to create asset NFT: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Transfer NFT when payment is completed (works with any marketplace)
+   */
+  async transferAssetOnPayment(request: AssetTransferRequest): Promise<{ transactionHash: string; success: boolean }> {
+    try {
+      console.log('[AssetIntegration] Processing asset transfer:', request);
+
+      // Verify payment exists and is completed
+      const paymentRepo = ormconfig.getRepository(Payment);
+      const payment = await paymentRepo.findOne({ where: { id: parseInt(request.paymentId) } });
+
+      if (!payment) {
+        throw new Error('Payment not found');
+      }
+
+      if (payment.status !== 'completed') {
+        throw new Error('Payment must be completed before transfer');
+      }
+
+      // Transfer NFT on blockchain
+      const transactionHash = await assetNFTService.transferAssetOnPaymentCompletion(
+        request.tokenId,
+        request.toAddress,
+        request.salePrice,
+        request.paymentId
+      );
+
+      console.log('[AssetIntegration] Asset transferred successfully:', {
+        tokenId: request.tokenId,
+        from: request.fromAddress,
+        to: request.toAddress,
+        transactionHash,
+        marketplace: request.marketplace || 'unknown'
+      });
+
+      return {
+        transactionHash,
+        success: true
+      };
+
+    } catch (error) {
+      console.error('[AssetIntegration] Error transferring asset:', error);
+      throw new Error(`Failed to transfer asset: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get NFT metadata for marketplace integration
+   */
+  async getAssetForMarketplace(tokenId: string): Promise<any> {
+    try {
+      console.log('[AssetIntegration] Getting asset metadata for marketplace:', tokenId);
+
+      // Get asset history for marketplace display
+      const history = await assetNFTService.getAssetHistory(tokenId);
+      
+      // TODO: Get additional asset details from smart contract
+      // This would include current owner, metadata URI, etc.
+      
+      return {
+        tokenId,
+        history,
+        marketplaceReady: true,
+        verificationUrl: `${process.env.FRONTEND_URL}/verify-asset/${tokenId}`
+      };
+
+    } catch (error) {
+      console.error('[AssetIntegration] Error getting asset for marketplace:', error);
+      throw new Error(`Failed to get asset: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get user's owned NFTs (for wallet view)
+   */
+  async getUserAssets(userId: string): Promise<any[]> {
+    try {
+      const userRepo = ormconfig.getRepository(User);
+      const user = await userRepo.findOne({ where: { id: parseInt(userId) } });
+      
+      if (!user || !user.wallet_address) {
+        return [];
+      }
+
+      console.log('[AssetIntegration] Getting assets for user:', userId, 'wallet:', user.wallet_address);
+      
+      const ethers = require('ethers');
+      const rpcUrl = process.env.RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc';
+      console.log('[AssetIntegration] Using RPC URL:', rpcUrl);
+      
+      if (!rpcUrl) {
+        console.log('[AssetIntegration] No RPC URL configured');
+        return [];
+      }
+      
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      
+      const universalContractAddress = process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS;
+      const vehicleContractAddress = process.env.VEHICLE_ASSET_CONTRACT_ADDRESS;
+      const propertyContractAddress = process.env.PROPERTY_ASSET_CONTRACT_ADDRESS;
+      
+      console.log('[AssetIntegration] Contract addresses - Universal:', universalContractAddress, 'Vehicle:', vehicleContractAddress, 'Property:', propertyContractAddress);
+      
+      if (!universalContractAddress && !vehicleContractAddress && !propertyContractAddress) {
+        console.log('[AssetIntegration] No contract addresses configured');
+        return [];
+      }
+      
+      const assets: any[] = [];
+      
+      // Try to get assets from blockchain
+      try {
+        console.log('[AssetIntegration] === CONTRACT DEBUG START ===');
+        console.log('[AssetIntegration] Universal contract address:', universalContractAddress);
+        console.log('[AssetIntegration] Vehicle contract address:', vehicleContractAddress);
+        console.log('[AssetIntegration] User wallet:', user.wallet_address);
+        console.log('[AssetIntegration] RPC URL:', rpcUrl);
+        
+        // Check network connectivity first
+        try {
+          const network = await provider.getNetwork();
+          console.log('[AssetIntegration] Network info:', {
+            chainId: network.chainId.toString(),
+            name: network.name
+          });
+          
+          const blockNumber = await provider.getBlockNumber();
+          console.log('[AssetIntegration] Current block number:', blockNumber);
+        } catch (networkError) {
+          console.log('[AssetIntegration] Network connectivity issue:', networkError instanceof Error ? networkError.message : String(networkError));
+        }
+        
+        // Check Universal Asset Contract first (this has getOwnerAssets function)
+        if (universalContractAddress) {
+          console.log('[AssetIntegration] Checking Universal Asset Contract...');
+          const universalContractCode = await provider.getCode(universalContractAddress);
+          console.log('[AssetIntegration] Universal contract code exists:', universalContractCode !== '0x');
+          console.log('[AssetIntegration] Universal contract code length:', universalContractCode.length);
+            "function assets(uint256 tokenId) external view returns (string memory assetId, uint8 assetType, address currentOwner, uint256 creationDate, bool isVerified, bool isActive, uint256 lastUpdated)",
+            "function tokenURI(uint256 tokenId) external view returns (string memory)"
+          ];
+          
+          const propertyContract = new ethers.Contract(propertyContractAddress, propertyContractAbi, provider);
+          const propertyTokenIds = await propertyContract.getOwnerAssets(user.wallet_address);
+          
+          for (const tokenId of propertyTokenIds) {
+            try {
+              const assetInfo = await propertyContract.assets(tokenId);
+              const tokenURI = await propertyContract.tokenURI(tokenId);
+              
+              assets.push({
+                tokenId: tokenId.toString(),
+                tipoActivo: 'propiedad',
+                titulo: `Propiedad NFT #${tokenId}`,
+                descripcion: `ID Catastral: ${assetInfo.assetId}`,
+                listoParaMarketplace: assetInfo.isVerified,
+                urlVerificacion: `${process.env.FRONTEND_URL}/verify-asset/${tokenId}`,
+                contractAddress: propertyContractAddress,
+                tokenURI: tokenURI,
+                creationDate: new Date(Number(assetInfo.creationDate) * 1000).toISOString(),
+                isVerified: assetInfo.isVerified,
+                isActive: assetInfo.isActive
+              });
+            } catch (tokenError) {
+              console.error(`[AssetIntegration] Error getting property token ${tokenId}:`, tokenError);
+            }
+          }
+          
+          console.log(`[AssetIntegration] Found ${propertyTokenIds.length} property NFTs for user`);
+        } catch (propertyError) {
+          console.error('[AssetIntegration] Error querying property contract:', propertyError);
+        }
+      }
+      
+      console.log(`[AssetIntegration] Total assets found: ${assets.length}`);
+      return assets;
+
+    } catch (error) {
+      console.error('[AssetIntegration] Error getting user assets:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Generate marketplace integration data
+   */
+  async generateMarketplaceData(tokenId: string): Promise<any> {
+    try {
+      console.log('[AssetIntegration] Generating marketplace data for:', tokenId);
+
+      // Get asset history
+      const history = await assetNFTService.getAssetHistory(tokenId);
+      
+      // Generate OpenSea-compatible metadata
+      const marketplaceData = {
+        tokenId,
+        contractAddress: process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS,
+        blockchain: 'arbitrum',
+        verificationUrl: `${process.env.FRONTEND_URL}/verify-asset/${tokenId}`,
+        history: history.length,
+        lastUpdated: new Date().toISOString(),
+        kustodiaCertified: true
+      };
+
+      return marketplaceData;
+
+    } catch (error) {
+      console.error('[AssetIntegration] Error generating marketplace data:', error);
+      throw new Error(`Failed to generate marketplace data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Update asset information (for service providers)
+   */
+  async updateAssetRecord(request: ServiceProviderUpdate): Promise<{ transactionHash: string; updated: boolean }> {
+    try {
+      console.log('[AssetIntegration] Updating asset record:', request);
+
+      let transactionHash: string;
+
+      switch (request.updateType) {
+        case 'maintenance':
+          if (request.updateData.newMileage && request.updateData.serviceLocation) {
+            transactionHash = await assetNFTService.addVehicleMaintenance(
+              request.tokenId,
+              request.updateData.newMileage,
+              request.updateData.serviceLocation,
+              request.updateData.description || 'Maintenance service performed',
+              request.supportingDocs || []
+            );
+          } else {
+            throw new Error('Missing required maintenance data: newMileage, serviceLocation');
+          }
+          break;
+
+        case 'appraisal':
+          if (request.updateData.appraisalValue && request.updateData.appraiserName) {
+            transactionHash = await assetNFTService.addPropertyAppraisal(
+              request.tokenId,
+              request.updateData.appraisalValue,
+              request.updateData.appraiserName,
+              request.updateData.appraisalReportHash || '',
+              request.supportingDocs || []
+            );
+          } else {
+            throw new Error('Missing required appraisal data: appraisalValue, appraiserName');
+          }
+          break;
+
+        case 'upgrade':
+        case 'inspection':
+          // For upgrades and inspections, we'll add a generic asset event
+          // This would need to be implemented in the assetNFTService
+          throw new Error(`Update type ${request.updateType} not yet implemented`);
+
+        default:
+          throw new Error(`Unknown update type: ${request.updateType}`);
+      }
+
+      console.log('[AssetIntegration] Asset record updated:', {
+        tokenId: request.tokenId,
+        updateType: request.updateType,
+        transactionHash
+      });
+      
+      return {
+        transactionHash,
+        updated: true
+      };
+
+    } catch (error) {
+      console.error('[AssetIntegration] Error updating asset record:', error);
+      throw new Error(`Failed to update asset record: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Webhook handler for marketplace sales (OpenSea, etc.)
+   */
+  async handleMarketplaceSale(saleData: {
+    tokenId: string;
+    fromAddress: string;
+    toAddress: string;
+    salePrice: string;
+    marketplace: string;
+    transactionHash: string;
+  }): Promise<boolean> {
+    try {
+      console.log('[AssetIntegration] Processing marketplace sale:', saleData);
+
+      // Record the sale in our system for tracking
+      // This could update our internal records or trigger notifications
+      
+      return true;
+
+    } catch (error) {
+      console.error('[AssetIntegration] Error handling marketplace sale:', error);
+      return false;
+    }
+  }
+}
+
+export default new AssetIntegrationService();

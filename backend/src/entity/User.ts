@@ -25,7 +25,7 @@ export class User {
   @Column({ nullable: true })
   portal_client_id?: string; // Portal client ID for API calls
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'text', nullable: true })
   portal_share?: string; // Portal SDK share for wallet recovery
 
 

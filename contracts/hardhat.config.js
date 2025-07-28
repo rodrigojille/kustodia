@@ -16,7 +16,16 @@ if (!privateKey) {
 }
 
 module.exports = {
-  solidity: "0.8.20",
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1,
+      },
+      viaIR: true,
+    },
+  },
   paths: {
     sources: "./contracts",
     tests: "./test",

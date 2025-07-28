@@ -9,7 +9,13 @@ exports.sendEmail = sendEmail;
 const mail_1 = __importDefault(require("@sendgrid/mail"));
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM;
-mail_1.default.setApiKey(SENDGRID_API_KEY);
+// Only set API key if it exists and is not placeholder
+if (SENDGRID_API_KEY && !SENDGRID_API_KEY.includes('your-sendgrid-api-key-here')) {
+    mail_1.default.setApiKey(SENDGRID_API_KEY);
+}
+else {
+    console.warn('[EMAIL] SendGrid API key not configured - emails will be logged instead of sent');
+}
 async function sendWelcomeEmail(to, userName, accessCode) {
     return sendEmail({
         to,
