@@ -163,86 +163,41 @@ function PagoFormFull2() {
       return;
     }
     
-    // FRONTEND PORTAL SDK FLOW: Handle token approval and escrow creation in frontend
-    let approvalTxHash = '';
-    let escrowTxHash = '';
-    
+    // WEB3 PAYMENT FLOW: Use new unified backend endpoint
     try {
-      // Get Portal SDK instance
-      const portal = await getPortalInstance();
-      if (!portal) {
-        throw new Error('Portal SDK not available');
-      }
+      setBackendStatus("Procesando pago Web3 completo...");
       
-      // Step 1: Token Approval via Portal SDK
-      setBackendStatus("Aprobando tokens MXNB via Portal SDK...");
-      
-      const approvalAmount = ethers.parseUnits(amount.toString(), 18);
-      const approveCalldata = new ethers.Interface([
-        'function approve(address spender, uint256 amount) returns (bool)'
-      ]).encodeFunctionData('approve', [process.env.NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS, approvalAmount]);
-      
-      const approvalTx = await portal.ethSendTransaction({
-        to: process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS!,
-        data: approveCalldata,
-        chainId: 'eip155:421614',
-      });
-      
-      approvalTxHash = approvalTx.hash;
-      setApprovalTxHash(approvalTxHash);
-      setBackendStatus("✅ Tokens aprobados. Creando escrow...");
-      
-      // Step 2: Escrow Creation via Portal SDK
-      const custodyAmount = (parseFloat(amount) * parseFloat(warrantyPercent)) / 100;
-      const releaseAmount = parseFloat(amount) - custodyAmount;
-      const custodyDaysInt = parseInt(custodyDays);
-      
-      const escrowCalldata = new ethers.Interface([
-        'function createEscrow(address payer, address seller, uint256 amount, uint256 custodyAmount, uint256 custodyPeriod, uint256 releaseAmount, address token, string memory description) returns (uint256)'
-      ]).encodeFunctionData('createEscrow', [
-        currentUser.wallet_address,
-        recipient, // seller wallet address (should be fetched from recipient email)
-        ethers.parseUnits(amount.toString(), 18),
-        ethers.parseUnits(custodyAmount.toString(), 18),
-        custodyDaysInt,
-        ethers.parseUnits(releaseAmount.toString(), 18),
-        process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS!,
-        description
-      ]);
-      
-      const escrowTx = await portal.ethSendTransaction({
-        to: process.env.NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS!,
-        data: escrowCalldata,
-        chainId: 'eip155:421614',
-      });
-      
-      escrowTxHash = escrowTx.hash;
-      setEscrowTxHash(escrowTxHash);
-      setBackendStatus("✅ Escrow creado. Actualizando registros...");
-      
-      // Step 3: Update backend with real transaction hashes
-      const response = await authFetch('/api/payments/initiate-web3', {
+      // Call the new Web3 payment endpoint that handles everything
+      const paymentResponse = await authFetch('/api/web3-payment/create', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
-          recipientEmail: recipient,
-          amount,
-          custodyDays,
-          description,
-          warrantyPercent,
-          approvalTxHash,
-          escrowTxHash
-        }),
+          recipient_email: recipient,
+          amount: parseFloat(amount),
+          description: description,
+          warranty_percent: parseFloat(warrantyPercent),
+          custody_days: parseInt(custodyDays)
+        })
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'El servidor rechazó el pago Web3.');
+      
+      if (!paymentResponse.ok) {
+        const errorData = await paymentResponse.json();
+        throw new Error(`Web3 payment failed: ${errorData.error || 'Unknown error'}`);
       }
-
-      const result = await response.json();
+      
+      const paymentResult = await paymentResponse.json();
+      
+      // Extract transaction hashes from the response
+      const approvalTxHash = paymentResult.payment.approval_tx_hash;
+      const escrowTxHash = paymentResult.payment.escrow_tx_hash;
+      
+      setApprovalTxHash(approvalTxHash);
+      setEscrowTxHash(escrowTxHash);
       
       // Set tracker URL from payment ID
-      setTrackerUrl(`/dashboard/pagos/${result.payment.id}`);
+      setTrackerUrl(`/dashboard/pagos/${paymentResult.payment.id}`);
       setBackendStatus("🎉 ¡Pago Web3 creado y fondeado exitosamente!");
 
     } catch (err: any) {
@@ -283,27 +238,38 @@ function PagoFormFull2() {
       const preflight = await preflightRes.json();
       if (!preflightRes.ok) throw new Error(preflight.error || "Error preparando la transacción");
 
-      // 2. Portal signature flow (approve and createEscrow)
-      const portal = await getPortalInstance();
-      if (!portal) throw new Error("Portal SDK is only available in the browser");
-      await portal.onReady(() => {});
-      setBackendStatus("Aprobando MXNB...");
+      // 2. Backend Portal API flow (approve and createEscrow)
+      setBackendStatus("Aprobando MXNB via Backend Portal API...");
       const erc20Iface = new Interface(ERC20_ABI);
       const approveData = erc20Iface.encodeFunctionData("approve", [preflight.contract.address, preflight.backendAmount]);
       let approveTxHash = "";
       try {
-        approveTxHash = await portal.ethSendTransaction(preflight.payer_wallet, {
-          from: preflight.payer_wallet,
-          to: preflight.token.address,
-          data: approveData
+        const approvalResponse = await authFetch('/api/portal/send-transaction', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            to: preflight.token.address,
+            data: approveData,
+            description: `Token approval for wallet payment: ${description}`
+          })
         });
+        
+        if (!approvalResponse.ok) {
+          const errorData = await approvalResponse.json();
+          throw new Error(`Token approval failed: ${errorData.error || 'Unknown error'}`);
+        }
+        
+        const approvalResult = await approvalResponse.json();
+        approveTxHash = approvalResult.transactionHash;
         setTxHashes(h => ({ ...h, approve: approveTxHash }));
-      } catch (err) {
-        setError('Firma rechazada o fallida en aprobación. El pago no se creó.');
+      } catch (err: any) {
+        setError(`Firma rechazada o fallida en aprobación: ${err.message}. El pago no se creó.`);
         setLoading(false);
         return;
       }
-      setBackendStatus("Creando escrow en blockchain...");
+      setBackendStatus("Creando escrow en blockchain via Backend Portal API...");
       const escrowIface = new Interface(preflight.contract.abi);
       const createEscrowData = escrowIface.encodeFunctionData("createEscrow", [
         preflight.recipient_wallet,
@@ -314,14 +280,28 @@ function PagoFormFull2() {
       ]);
       let escrowTxHash = "";
       try {
-        escrowTxHash = await portal.ethSendTransaction(preflight.payer_wallet, {
-          from: preflight.payer_wallet,
-          to: preflight.contract.address,
-          data: createEscrowData
+        const escrowResponse = await authFetch('/api/portal/send-transaction', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            to: preflight.contract.address,
+            data: createEscrowData,
+            description: `Escrow creation for wallet payment: ${description}`
+          })
         });
+        
+        if (!escrowResponse.ok) {
+          const errorData = await escrowResponse.json();
+          throw new Error(`Escrow creation failed: ${errorData.error || 'Unknown error'}`);
+        }
+        
+        const escrowResult = await escrowResponse.json();
+        escrowTxHash = escrowResult.transactionHash;
         setTxHashes(h => ({ ...h, escrow: escrowTxHash }));
-      } catch (err) {
-        setError('Firma rechazada o fallida al crear el escrow. El pago no se creó.');
+      } catch (err: any) {
+        setError(`Firma rechazada o fallida al crear el escrow: ${err.message}. El pago no se creó.`);
         setLoading(false);
         return;
       }

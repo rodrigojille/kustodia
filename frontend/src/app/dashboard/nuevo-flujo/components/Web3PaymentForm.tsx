@@ -101,6 +101,18 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
     setLoading(true);
     setStatusMessage('Iniciando proceso de pago Web3...');
 
+    // Enhanced debugging logs
+    console.log('🚀 [Web3Payment] Starting payment flow with data:', {
+      recipient,
+      amount,
+      description,
+      warrantyPercent,
+      custodyDays,
+      recipientWallet,
+      currentUserWallet: currentUser?.wallet_address,
+      balance
+    });
+
     // 🔥 ANALYTICS: Track payment flow start
     formTracking.trackFormStart('web3_payment_form', 'web3_payment');
     paymentFlow.trackPaymentStep('start', {
@@ -109,24 +121,83 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
     });
 
     try {
-      if (!recipientWallet) throw new Error("La wallet del destinatario no es válida.");
-      if (parseFloat(balance || '0') < parseFloat(amount)) throw new Error('Saldo MXNB insuficiente.');
+      // Enhanced validation with detailed error messages
+      if (!recipientWallet) {
+        const errorMsg = "La wallet del destinatario no es válida. Verifica que el destinatario tenga una wallet configurada.";
+        console.error('❌ [Web3Payment] Recipient wallet validation failed:', { recipient, recipientWallet });
+        throw new Error(errorMsg);
+      }
+      
+      const userBalance = parseFloat(balance || '0');
+      const paymentAmount = parseFloat(amount);
+      if (userBalance < paymentAmount) {
+        const errorMsg = `Saldo MXNB insuficiente. Tienes ${userBalance} MXNB pero necesitas ${paymentAmount} MXNB.`;
+        console.error('❌ [Web3Payment] Insufficient balance:', { userBalance, paymentAmount });
+        throw new Error(errorMsg);
+      }
 
+      console.log('✅ [Web3Payment] Validation passed, initializing Portal SDK...');
       const portal = await getPortalInstance();
-      if (!portal) throw new Error("El SDK de Portal no está disponible.");
+      if (!portal) {
+        const errorMsg = "El SDK de Portal no está disponible. Asegúrate de estar en un navegador compatible.";
+        console.error('❌ [Web3Payment] Portal SDK initialization failed');
+        throw new Error(errorMsg);
+      }
+      
+      console.log('✅ [Web3Payment] Portal SDK initialized successfully');
+      
+      // Verify wallet exists
+      const walletExists = await portal.doesWalletExist();
+      if (!walletExists) {
+        const errorMsg = "No se encontró una wallet de Portal. Por favor, crea una wallet primero.";
+        console.error('❌ [Web3Payment] Portal wallet does not exist');
+        throw new Error(errorMsg);
+      }
+      
+      console.log('✅ [Web3Payment] Portal wallet verified, proceeding with transactions...');
 
       // 1. Approve Tokens
       setStatusMessage('Aprobando tokens MXNB para el contrato de escrow...');
       const approvalAmount = ethers.parseUnits(amount, 18);
+      
+      console.log('💰 [Web3Payment] Preparing token approval:', {
+        amount,
+        approvalAmount: approvalAmount.toString(),
+        escrowContract: ESCROW_CONTRACT_ADDRESS,
+        mxnbContract: MXNB_CONTRACT_ADDRESS
+      });
+      
       const erc20Iface = new Interface(ERC20_ABI);
       const approveCalldata = erc20Iface.encodeFunctionData("approve", [ESCROW_CONTRACT_ADDRESS, approvalAmount]);
       
-      const approveTx = await portal.ethSendTransaction({
-        to: MXNB_CONTRACT_ADDRESS!,
-        data: approveCalldata,
-        chainId: 'eip155:421614',
+      console.log('📝 [Web3Payment] Sending approval transaction via backend Portal API...');
+      
+      // Use backend Portal API instead of problematic Web SDK
+      const approvalResponse = await authFetch('/api/portal/send-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          to: MXNB_CONTRACT_ADDRESS!,
+          data: approveCalldata,
+          description: `Token approval for escrow payment: ${description}`
+        })
       });
-      const approvalTxHash = approveTx.hash;
+      
+      if (!approvalResponse.ok) {
+        const errorData = await approvalResponse.json();
+        throw new Error(`Token approval failed: ${errorData.error || 'Unknown error'}`);
+      }
+      
+      const approvalResult = await approvalResponse.json();
+      const approvalTxHash = approvalResult.transactionHash;
+      
+      console.log('✅ [Web3Payment] Approval transaction sent:', {
+        hash: approvalTxHash,
+        to: MXNB_CONTRACT_ADDRESS,
+        amount: approvalAmount.toString()
+      });
 
       // 🔥 ANALYTICS: Track payment method selection
       paymentFlow.trackPaymentStep('payment_method', {
@@ -140,6 +211,17 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
       const custodyAmount = (parseFloat(amount) * parseFloat(warrantyPercent)) / 100;
       const releaseAmount = parseFloat(amount) - custodyAmount;
       const custodyDaysInt = parseInt(custodyDays);
+      
+      console.log('🔒 [Web3Payment] Preparing escrow creation:', {
+        payer: currentUser.wallet_address,
+        seller: recipientWallet,
+        totalAmount: amount,
+        custodyAmount,
+        releaseAmount,
+        custodyDays: custodyDaysInt,
+        warrantyPercent,
+        description
+      });
 
       // 🔥 ANALYTICS: Track custody settings
       paymentFlow.trackPaymentStep('custody_settings', {
@@ -159,35 +241,71 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
         MXNB_CONTRACT_ADDRESS!,
         description
       ]);
-
-      const escrowTx = await portal.ethSendTransaction({
-        to: ESCROW_CONTRACT_ADDRESS!,
-        data: escrowCalldata,
-        chainId: 'eip155:421614',
+      
+      console.log('📝 [Web3Payment] Sending escrow creation transaction via backend Portal API...');
+      
+      // Use backend Portal Custodian API instead of problematic Web SDK
+      const portalResponse = await authFetch('/api/portal/send-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          to: ESCROW_CONTRACT_ADDRESS!,
+          data: escrowCalldata,
+          description: `Escrow payment: ${description}`
+        })
       });
-      const escrowTxHash = escrowTx.hash;
+      
+      if (!portalResponse.ok) {
+        const errorData = await portalResponse.json();
+        throw new Error(`Portal transaction failed: ${errorData.error || 'Unknown error'}`);
+      }
+      
+      const portalResult = await portalResponse.json();
+      const escrowTxHash = portalResult.transactionHash;
+      
+      console.log('✅ [Web3Payment] Escrow transaction sent:', {
+        hash: escrowTxHash,
+        to: ESCROW_CONTRACT_ADDRESS,
+        custodyAmount,
+        releaseAmount
+      });
 
       // 3. Notify Backend
       setStatusMessage('Actualizando registros del backend...');
+      
+      const backendPayload = {
+        recipientEmail: recipient,
+        amount,
+        custodyDays,
+        description,
+        warrantyPercent,
+        approvalTxHash,
+        escrowTxHash
+      };
+      
+      console.log('💾 [Web3Payment] Notifying backend with payload:', backendPayload);
+      
       const response = await authFetch('/api/payments/initiate-web3', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recipientEmail: recipient,
-          amount,
-          custodyDays,
-          description,
-          warrantyPercent,
-          approvalTxHash,
-          escrowTxHash
-        }),
+        body: JSON.stringify(backendPayload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'El servidor rechazó la creación del pago Web3.');
+        console.error('❌ [Web3Payment] Backend rejected payment:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+        throw new Error(errorData.message || `El servidor rechazó la creación del pago Web3 (HTTP ${response.status}).`);
       }
+      
       const result = await response.json();
+      console.log('✅ [Web3Payment] Backend payment created successfully:', result);
+      
       setSuccess(`¡Pago Web3 creado con éxito! ID del pago: ${result.payment.id}`);
       setStatusMessage(null);
 
@@ -202,8 +320,31 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
       formTracking.trackFormCompletion('web3_payment_form', true);
 
     } catch (err: any) {
-      console.error('Error during Web3 payment flow:', err);
-      setError(err.message || 'Ocurrió un error inesperado.');
+      console.error('❌ [Web3Payment] Payment flow failed:', {
+        error: err,
+        message: err.message,
+        stack: err.stack,
+        name: err.name,
+        code: err.code,
+        recipient,
+        amount,
+        currentUserWallet: currentUser?.wallet_address
+      });
+      
+      // Enhanced error messages based on error type
+      let userFriendlyMessage = err.message || 'Ocurrió un error inesperado.';
+      
+      if (err.message?.includes('insufficient funds')) {
+        userFriendlyMessage = 'Fondos insuficientes para completar la transacción. Verifica tu saldo de ETH y MXNB.';
+      } else if (err.message?.includes('user rejected')) {
+        userFriendlyMessage = 'Transacción cancelada por el usuario.';
+      } else if (err.message?.includes('network')) {
+        userFriendlyMessage = 'Error de red. Verifica tu conexión a internet y vuelve a intentar.';
+      } else if (err.message?.includes('Portal')) {
+        userFriendlyMessage = 'Error con la wallet de Portal. Asegúrate de que tu wallet esté configurada correctamente.';
+      }
+      
+      setError(userFriendlyMessage);
       setStatusMessage(null);
       
       // 🔥 ANALYTICS: Track payment failure

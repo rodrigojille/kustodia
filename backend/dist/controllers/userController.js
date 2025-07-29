@@ -157,8 +157,12 @@ const register = async (req, res) => {
             const secp256k1Share = portalResponse.secp256k1 || portalResponse.SECP256K1;
             const ed25519Share = portalResponse.ed25519 || portalResponse.ED25519;
             user.portal_share = secp256k1Share.share;
+            user.portal_client_id = clientResponse.id; // Save the Portal client ID
             user.wallet_address = ethereumAddress; // Actual Ethereum address
-            console.log('[REGISTRATION] Portal wallet created successfully:', user.wallet_address);
+            console.log('[REGISTRATION] Portal wallet created successfully:', {
+                wallet_address: user.wallet_address,
+                portal_client_id: user.portal_client_id
+            });
             await userRepo.save(user);
         }
         catch (portalErr) {
@@ -599,8 +603,9 @@ const retryWalletCreation = async (req, res) => {
             if (!secp256k1Share) {
                 throw new Error('Invalid Portal response: missing secp256k1 share');
             }
-            // Store the encrypted share and actual Ethereum address
+            // Store the encrypted share, client ID, and actual Ethereum address
             user.portal_share = secp256k1Share.share;
+            user.portal_client_id = clientResponse.id; // Save the Portal client ID
             user.wallet_address = ethereumAddress; // Actual Ethereum address
             // Notify Portal that we've stored the shares
             try {

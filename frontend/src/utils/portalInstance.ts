@@ -7,11 +7,17 @@ export async function getPortalInstance() {
     console.log("[DEBUG] Portal import result:", portalImport);
     const Portal = portalImport.default || portalImport;
     
+    // Extract numeric chain ID from eip155:421614 format
+    const chainIdWithPrefix = process.env.NEXT_PUBLIC_CHAIN_ID!; // "eip155:421614"
+    const numericChainId = chainIdWithPrefix.includes(':') 
+      ? chainIdWithPrefix.split(':')[1] 
+      : chainIdWithPrefix;
+    
     portal = new Portal({
       apiKey: process.env.NEXT_PUBLIC_PORTAL_API_KEY!,
       autoApprove: true,
       rpcConfig: { 
-        [process.env.NEXT_PUBLIC_CHAIN_ID!]: 'https://api.portalhq.io/rpc/v1/eip155/421614' // Portal's official Arbitrum Sepolia RPC
+        [`eip155:${numericChainId}`]: 'https://api.portalhq.io/rpc/v1/eip155/421614' // Portal's official Arbitrum Sepolia RPC
       },
     });
     

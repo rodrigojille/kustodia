@@ -27,7 +27,8 @@ import { createYieldRoutes } from './routes/yield';
 import analyticsRoutes from './routes/analytics';
 import assetNFTRoutes from './routes/assetNFTRoutes';
 import publicHistoryRoutes from './routes/publicHistory';
-
+import portalPaymentRoutes from './routes/portalPayment';
+import web3PaymentRoutes from './routes/web3Payment';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
@@ -139,6 +140,8 @@ async function main() {
     app.use('/api/analytics', analyticsRoutes);
     app.use('/api/assets', assetNFTRoutes);
     app.use('/api/public', publicHistoryRoutes);
+    app.use('/api/portal', portalPaymentRoutes);
+    app.use('/api/web3-payment', web3PaymentRoutes);
 
 
     const PORT = process.env.PORT || 4000;

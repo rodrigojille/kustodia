@@ -59,6 +59,8 @@ const yield_1 = require("./routes/yield");
 const analytics_1 = __importDefault(require("./routes/analytics"));
 const assetNFTRoutes_1 = __importDefault(require("./routes/assetNFTRoutes"));
 const publicHistory_1 = __importDefault(require("./routes/publicHistory"));
+const portalPayment_1 = __importDefault(require("./routes/portalPayment"));
+const web3Payment_1 = __importDefault(require("./routes/web3Payment"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json({ limit: '5mb' }));
 app.use((0, cookie_parser_1.default)()); // Enable cookie parsing for JWT authentication
@@ -160,6 +162,8 @@ async function main() {
         app.use('/api/analytics', analytics_1.default);
         app.use('/api/assets', assetNFTRoutes_1.default);
         app.use('/api/public', publicHistory_1.default);
+        app.use('/api/portal', portalPayment_1.default);
+        app.use('/api/web3-payment', web3Payment_1.default);
         const PORT = process.env.PORT || 4000;
         app.listen(PORT, () => {
             console.log(`Server started on port ${PORT}`);

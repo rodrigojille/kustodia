@@ -89,55 +89,55 @@ export default function CompraVentaVehiculos() {
 
   const benefits = [
     {
-      icon: <FaShieldAlt className="text-blue-600 text-3xl" />,
-      title: "Pagos 100% Seguros",
-      description: "Tu dinero queda protegido en custodia blockchain hasta que se complete la transacción"
+      icon: <FaChartLine className="text-green-600 text-3xl" />,
+      title: "Obtén 23% Más Valor",
+      description: "Autos certificados alcanzan precios premium. Tu inversión en mantenimiento finalmente se refleja en el valor"
     },
     {
-      icon: <FaHistory className="text-green-600 text-3xl" />,
-      title: "Historial Transparente",
-      description: "Muestra el historial completo de mantenimiento y verificaciones de tu vehículo"
+      icon: <FaHistory className="text-blue-600 text-3xl" />,
+      title: "Elimina Desconfianza",
+      description: "El historial verificado elimina dudas del comprador. No más regateos por 'posibles problemas ocultos'"
     },
     {
-      icon: <FaChartLine className="text-purple-600 text-3xl" />,
-      title: "Mayor Valor de Venta",
-      description: "Vehículos con certificación digital se venden hasta 23% más caro que los tradicionales"
+      icon: <FaShieldAlt className="text-purple-600 text-3xl" />,
+      title: "Cobras Garantizado",
+      description: "El dinero queda en custodia desde el primer día. No más cheques sin fondos o estafas"
     },
     {
       icon: <FaAward className="text-orange-600 text-3xl" />,
-      title: "Certificación Kustodia",
-      description: "Obtén el sello de confianza que buscan los compradores"
+      title: "Ventaja Competitiva",
+      description: "Mientras otros venden 'a ciegas', tú ofreces certificación que los compradores buscan"
     }
   ];
 
   const transparencyFeatures = [
     {
       icon: <HiDocumentText className="text-blue-500 text-2xl" />,
-      title: "Mantenimientos Registrados",
-      description: "Cada servicio, reparación y mejora queda registrada permanentemente"
+      title: "Cada Peso Invertido Cuenta",
+      description: "Todos tus servicios y mejoras quedan registrados, aumentando el valor percibido"
     },
     {
       icon: <FaEye className="text-green-500 text-2xl" />,
-      title: "Inspecciones Verificadas",
-      description: "Inspecciones oficiales con fotografías y reportes técnicos"
+      title: "Prueba Tu Cuidado",
+      description: "Las inspecciones verificadas demuestran que mantuviste el auto en excelente estado"
     },
     {
       icon: <HiTrendingUp className="text-purple-500 text-2xl" />,
-      title: "Puntuación de Confianza",
-      description: "Sistema inteligente que calcula la confiabilidad del vehículo"
+      title: "Score que Vende",
+      description: "Un puntaje alto de confianza justifica tu precio y elimina regateos"
     },
     {
       icon: <HiSparkles className="text-orange-500 text-2xl" />,
-      title: "Gemelo Digital NFT",
-      description: "Tu vehículo como NFT único e inmutable en blockchain"
+      title: "Certificado Único",
+      description: "Tu auto se convierte en un activo digital verificado que vale más"
     }
   ];
 
   const stats = [
-    { number: "23%", label: "Mayor valor de venta", color: "text-green-600" },
-    { number: "89%", label: "Menos tiempo en venta", color: "text-blue-600" },
-    { number: "100%", label: "Transparencia garantizada", color: "text-purple-600" },
-    { number: "0", label: "Fraudes reportados", color: "text-orange-600" }
+    { number: "+23%", label: "Más dinero en tu bolsillo", color: "text-green-600" },
+    { number: "89%", label: "Más rápido que la competencia", color: "text-blue-600" },
+    { number: "100%", label: "Pago garantizado", color: "text-purple-600" },
+    { number: "0", label: "Estafas o cheques sin fondos", color: "text-orange-600" }
   ];
 
   return (
@@ -150,8 +150,8 @@ export default function CompraVentaVehiculos() {
         category="vehicle_history"
       />
       <header>
-        <title>Vende tu Auto con Transparencia Total | Kustodia</title>
-        <meta name="description" content="Vende tu vehículo con historial verificado en blockchain. Mayor transparencia, mejor precio, pagos seguros. El futuro de la compra-venta de autos." />
+        <title>Vende tu Auto Más Rápido y a Mejor Precio | Kustodia</title>
+        <meta name="description" content="Incrementa el valor de tu auto hasta 23% con certificación digital. Vende más rápido con historial verificado y pagos 100% seguros. La ventaja competitiva que necesitas." />
         <meta name="keywords" content="vender auto, historial vehicular, blockchain, NFT vehicular, transparencia, pagos seguros" />
       </header>
       
@@ -175,16 +175,16 @@ export default function CompraVentaVehiculos() {
                 Gemelo Digital Certificado
               </div>
               
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Vende tu auto con{' '}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Vende tu auto{' '}
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  transparencia total
+                  más rápido y a mejor precio
                 </span>
               </h1>
               
               <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-                Crea el gemelo digital de tu vehículo con historial verificado. Los compradores prefieren 
-                autos verificados y tú vendes más rápido con pagos seguros.
+                <strong>Incrementa el valor de tu auto hasta 23%</strong> con certificación digital. Los compradores pagan más por 
+                autos con historial verificado y tú cobras con pagos 100% seguros desde el primer día.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
@@ -240,10 +240,10 @@ export default function CompraVentaVehiculos() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                ¿Por qué vender con Kustodia?
+                La ventaja competitiva que necesitas
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                La primera plataforma que combina pagos seguros con transparencia vehicular blockchain
+                Mientras otros vendedores luchan con desconfianza y regateos, tú vendes con ventaja competitiva
               </p>
             </div>
             
@@ -267,11 +267,11 @@ export default function CompraVentaVehiculos() {
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
                 <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                  Transparencia que vende
+                  Tu historial de mantenimiento ahora vale dinero
                 </h2>
                 <p className="text-xl text-gray-600 mb-8">
-                  Los compradores buscan confianza. Con el historial verificado de tu vehículo en blockchain, 
-                  demuestras que no tienes nada que ocultar.
+                  Cada peso que invertiste en mantenimiento ahora se refleja en el precio de venta. 
+                  Los compradores pagan más por autos con historial comprobado.
                 </p>
                 
                 <div className="space-y-6">

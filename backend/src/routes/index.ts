@@ -10,6 +10,7 @@ import automationRoutes from "./automation";
 import notificationRoutes from "./notification";
 import ticketRoutes from "./ticket";
 import speiReceiptRoutes from "./speiReceipt";
+import portalPaymentRoutes from "./portalPayment";
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use("/juno", junoRoutes);
 router.use("/automation", automationRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/payments", speiReceiptRoutes);
+router.use("/portal", portalPaymentRoutes);
 
 export default router;
