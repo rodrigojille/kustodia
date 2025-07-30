@@ -11,6 +11,7 @@ interface NFTAsset {
 }
 
 export default function CobroFormFull() {
+  const [user, setUser] = useState<any>(null);
   const [payerEmail, setPayerEmail] = useState("");
   const [amount, setAmount] = useState("");
   const [warrantyPercent, setWarrantyPercent] = useState("");
@@ -27,10 +28,23 @@ export default function CobroFormFull() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Load user NFTs on component mount
+  // Load user data and NFTs on component mount
   useEffect(() => {
+    loadUserData();
     loadUserNFTs();
   }, []);
+
+  const loadUserData = async () => {
+    try {
+      const response = await authFetch('/api/auth/me');
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      }
+    } catch (err) {
+      console.error('Error loading user data:', err);
+    }
+  };
 
   React.useEffect(() => {
     if (amount && commissionPercent) {
@@ -64,25 +78,66 @@ export default function CobroFormFull() {
     setLoading(true);
     setError(null);
     setSuccess(false);
+    
     try {
-      const res = await authFetch("/api/payments/request", {
+      // Validate required fields
+      if (!payerEmail || !amount) {
+        setError("Por favor complete todos los campos obligatorios");
+        setLoading(false);
+        return;
+      }
+
+      // Create commission recipients array if commission is specified
+      const commissionRecipients = [];
+      if (commissionPercent && commissionBeneficiaryEmail) {
+        commissionRecipients.push({
+          id: '1',
+          email: commissionBeneficiaryEmail,
+          percentage: '100', // 100% of the commission goes to this recipient
+          name: commissionBeneficiaryName || ''
+        });
+      }
+
+      const payload = {
+        payment_amount: Number(amount),
+        payment_description: description || 'Cobro solicitado',
+        buyer_email: payerEmail, // The payer
+        seller_email: user?.email || '', // Current user receives the payment
+        broker_email: user?.email || '', // Current user is also the broker
+        payer_email: payerEmail,
+        payee_email: user?.email || '',
+        payment_type: 'cobro_inteligente',
+        transaction_type: 'general',
+        vertical: 'general',
+        has_commission: !!(commissionPercent && commissionBeneficiaryEmail),
+        total_commission_percentage: commissionPercent || '0',
+        commission_recipients: commissionRecipients,
+        custody_percent: warrantyPercent || '100',
+        custody_period: custodyDays || '30',
+        operation_type: 'simple',
+        release_conditions: 'automatic',
+        nft_token_id: selectedNFT || undefined,
+        // Calculate commission amounts
+        total_commission_amount: commissionPercent ? ((Number(amount) * Number(commissionPercent)) / 100) : 0,
+        net_amount: commissionPercent ? (Number(amount) - ((Number(amount) * Number(commissionPercent)) / 100)) : Number(amount),
+        broker_commission_percentage: 0 // All commission goes to specified recipient
+      };
+
+      const res = await authFetch("payments/cobro-inteligente", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          payer_email: payerEmail,
-          amount: Number(amount),
-          warranty_percent: warrantyPercent ? Number(warrantyPercent) : undefined,
-          timeline: custodyDays ? Number(custodyDays) : undefined,
-          description,
-          commission_percent: commissionPercent ? Number(commissionPercent) : undefined,
-          commission_beneficiary_name: commissionBeneficiaryName || undefined,
-          commission_beneficiary_email: commissionBeneficiaryEmail || undefined,
-          nft_token_id: selectedNFT || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
+      
       const data = await res.json();
       if (res.ok && data.success) {
         setSuccess(true);
+        // Redirect to payment details page after a short delay
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            window.location.href = `/dashboard/pagos/${data.payment.id}`;
+          }
+        }, 2000);
       } else {
         setError(data.error || "No se pudo solicitar el cobro.");
       }
@@ -131,7 +186,7 @@ export default function CobroFormFull() {
       <div className="text-sm mt-1 text-black">Monto comisión: <b>{commissionAmount !== "N/A" ? `$${commissionAmount}` : "N/A"}</b></div>
       <button type="submit" className="btn btn-success w-full mt-4 text-white" disabled={loading}>{loading ? "Enviando..." : "Solicitar pago"}</button>
       {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
-      {success && <div className="text-green-600 text-sm mt-2">Cobro solicitado correctamente.</div>}
+      {success && <div className="text-green-600 text-sm mt-2">✅ Cobro solicitado correctamente. Redirigiendo a los detalles del pago...</div>}
     </form>
   );
 }

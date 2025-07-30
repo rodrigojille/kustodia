@@ -356,7 +356,7 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full mx-auto" style={{ maxWidth: '600px', padding: '0 1rem' }}>
       <button onClick={onBack} className="mb-6 text-blue-600 hover:text-blue-800 font-semibold flex items-center">
          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -364,8 +364,8 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
         Volver a seleccionar tipo de pago
       </button>
 
-      <form onSubmit={handleSubmit} className="space-y-4 w-full bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8">
-        <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">Crear Pago Web3 (Wallet-to-Wallet)</h2>
+      <form onSubmit={handleSubmit} className="space-y-3 w-full bg-white rounded-xl shadow border border-gray-200 p-4 sm:p-6 md:p-8 mx-auto">
+        <h2 className="text-xl font-bold text-center mb-4 text-black">Crear pago Web3</h2>
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
           <p className="font-semibold text-blue-800">Tu Saldo: {balance ? `${parseFloat(balance).toFixed(2)} MXNB` : 'Cargando...'}</p>
         </div>
@@ -376,7 +376,7 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
 
         <input
           type="email"
-          className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          className="input w-full text-black placeholder-black"
           placeholder="Correo del destinatario"
           value={recipient}
           onChange={e => setRecipient(e.target.value)}
@@ -387,17 +387,17 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
         {recipientValid && recipientWallet && <div className="text-green-600 font-semibold text-sm">✅ Destinatario válido. Wallet: {`${recipientWallet.substring(0, 6)}...${recipientWallet.substring(recipientWallet.length - 4)}`}</div>}
         {recipientError && <div className="text-red-600 font-semibold text-sm">❌ {recipientError}</div>}
 
-        <input type="number" className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Monto (MXNB)" value={amount} onChange={e => setAmount(e.target.value)} required min="0.01" step="0.01" />
-        <input type="text" className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Descripción del pago" value={description} onChange={e => setDescription(e.target.value)} required />
-        <input type="number" className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="% en garantía (0-100)" value={warrantyPercent} onChange={e => setWarrantyPercent(e.target.value)} required min="0" max="100" />
-        <input type="number" className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Días en custodia (mínimo 1)" value={custodyDays} onChange={e => setCustodyDays(e.target.value)} required min="1" />
+        <input type="number" className="input w-full text-black placeholder-black" placeholder="Monto (MXNB)" value={amount} onChange={e => setAmount(e.target.value)} required min="0.01" step="0.01" />
+        <input type="text" className="input w-full text-black placeholder-black" placeholder="Descripción del pago" value={description} onChange={e => setDescription(e.target.value)} required />
+        <input type="number" className="input w-full text-black placeholder-black" placeholder="% en garantía (0-100)" value={warrantyPercent} onChange={e => setWarrantyPercent(e.target.value)} required min="0" max="100" />
+        <input type="number" className="input w-full text-black placeholder-black" placeholder="Días en custodia (mínimo 1)" value={custodyDays} onChange={e => setCustodyDays(e.target.value)} required min="1" />
 
         <button
           type="submit"
-          className={`w-full mt-6 text-white rounded-lg py-3 px-4 text-lg font-semibold shadow-md transition-all ${!loading && recipientValid ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+          className="btn btn-success w-full mt-4 text-white"
           disabled={loading || !recipientValid || !amount || !warrantyPercent || !custodyDays}
         >
-          {loading ? 'Procesando...' : 'Crear y Enviar Pago Web3'}
+          {loading ? 'Procesando...' : 'Crear pago Web3'}
         </button>
       </form>
     </div>

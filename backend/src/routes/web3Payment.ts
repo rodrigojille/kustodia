@@ -25,41 +25,77 @@ interface PortalTransactionRequest {
   description: string;
 }
 
-// Helper function to send Portal transaction
+// Helper function to send Portal transaction using proper v3 API + MPC Enclave flow
 async function sendPortalTransaction(user: User, txRequest: PortalTransactionRequest): Promise<string> {
-  const signingShare = user.portal_share;
-  if (!signingShare) {
-    throw new Error('User signing share not found');
+  if (!user.portal_client_id) {
+    throw new Error('User Portal client ID not found');
   }
 
-  const transactionResponse = await axios.post(
-    'https://mpc-client.portalhq.io/v1/sign',
-    {
-      share: signingShare,
-      method: 'eth_sendTransaction',
-      params: JSON.stringify({
-        to: txRequest.to,
-        data: txRequest.data,
-        value: txRequest.amount || '0x0'
-      }),
-      chainId: 'eip155:421614',
-      rpcUrl: 'https://api.portalhq.io/rpc/v1/eip155/421614'
-    },
-    {
-      headers: {
-        'Authorization': `Bearer ${process.env.PORTAL_CUSTODIAN_API_KEY}`,
-        'Content-Type': 'application/json'
+  if (!user.portal_share) {
+    throw new Error('User Portal signing share not found');
+  }
+
+  console.log('🔄 [Portal] Building transaction using v3 API...', {
+    clientId: user.portal_client_id,
+    to: txRequest.to,
+    description: txRequest.description
+  });
+
+  // Debug API keys
+  console.log('🔑 [Portal] API Keys Debug:', {
+    clientApiKey: process.env.PORTAL_CLIENT_API_KEY?.substring(0, 8) + '...',
+    custodianApiKey: process.env.PORTAL_CUSTODIAN_API_KEY?.substring(0, 8) + '...'
+  });
+
+  try {
+    // Direct MPC Enclave API call - bypass v3 API issues
+    console.log('🔄 [Portal] Signing transaction directly with MPC Enclave...');
+    
+    const signResponse = await axios.post(
+      'https://mpc-client.portalhq.io/v1/sign',
+      {
+        share: user.portal_share,
+        method: 'eth_sendTransaction',
+        params: JSON.stringify({
+          to: txRequest.to,
+          data: txRequest.data || '0x',
+          value: txRequest.amount || '0x0',
+          gas: '0x7A120', // 500000 in hex
+          gasPrice: '0x9502F9000' // 40 gwei in hex
+        }),
+        chainId: 'eip155:421614',
+        rpcUrl: 'https://api.portalhq.io/rpc/v1/eip155/421614'
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.PORTAL_CUSTODIAN_API_KEY}`,
+          'Content-Type': 'application/json',
+        }
       }
+    );
+
+    console.log('✅ [Portal] Transaction signed and sent:', {
+      txHash: signResponse.data.result,
+      description: txRequest.description
+    });
+
+    return signResponse.data.result;
+
+  } catch (error: any) {
+    console.error('❌ [Portal] Transaction failed:', {
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      clientId: user.portal_client_id
+    });
+    
+    // Provide more specific error messages
+    if (error.response?.status === 500 && error.response?.data?.id === 'AUTH_FAILED') {
+      throw new Error('Portal authentication failed. Please check API key permissions and user signing share validity.');
     }
-  );
-
-  // Extract transaction hash from Portal response
-  const txHash = transactionResponse.data?.data || transactionResponse.data?.hash || transactionResponse.data?.result;
-  if (!txHash) {
-    throw new Error('No transaction hash returned from Portal API');
+    
+    throw error;
   }
-
-  return txHash;
 }
 
 // Create Web3 Payment with Escrow

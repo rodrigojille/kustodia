@@ -60,17 +60,23 @@ const validateCobroPaymentData = (data) => {
         data.total_commission_percentage > 50) {
         errors.push('Commission percentage must be between 0 and 50%');
     }
-    // Commission recipients validation
-    if (!Array.isArray(data.commission_recipients) || data.commission_recipients.length === 0) {
-        errors.push('At least one commission recipient is required');
+    // Commission recipients validation - only required if commission percentage > 0
+    if (!Array.isArray(data.commission_recipients)) {
+        errors.push('Commission recipients must be an array');
     }
-    else {
-        data.commission_recipients.forEach((recipient, index) => {
-            const recipientErrors = (0, exports.validateCommissionRecipient)(recipient);
-            recipientErrors.forEach(error => {
-                errors.push(`Commission recipient ${index + 1}: ${error}`);
+    else if (data.total_commission_percentage > 0) {
+        // If commission percentage > 0, we need at least one recipient
+        if (data.commission_recipients.length === 0) {
+            errors.push('At least one commission recipient is required when commission percentage > 0');
+        }
+        else {
+            data.commission_recipients.forEach((recipient, index) => {
+                const recipientErrors = (0, exports.validateCommissionRecipient)(recipient);
+                recipientErrors.forEach(error => {
+                    errors.push(`Commission recipient ${index + 1}: ${error}`);
+                });
             });
-        });
+        }
     }
     // Custody validation
     if (data.custody_percent !== undefined) {

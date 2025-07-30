@@ -98,7 +98,7 @@ async function createJunoClabe() {
     };
     // Debug logging for troubleshooting
     console.log('--- JUNO CLABE DEBUG ---');
-    console.log('String to sign:', JSON.stringify(dataToSign));
+    console.log('String to sign:', dataToSign);
     console.log('Signature:', signature);
     console.log('Headers:', headers);
     console.log('Request body:', body);

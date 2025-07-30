@@ -247,7 +247,7 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full mx-auto" style={{ maxWidth: '600px', padding: '0 1rem' }}>
       <button onClick={onBack} className="mb-6 text-blue-600 hover:text-blue-800 font-semibold flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -255,15 +255,15 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
         Volver a seleccionar tipo de pago
       </button>
 
-      <form onSubmit={handleSubmit} className="space-y-3 w-full bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Crear Pago Estándar</h2>
+      <form onSubmit={handleSubmit} className="space-y-3 w-full bg-white rounded-xl shadow border border-gray-200 p-4 sm:p-6 md:p-8 mx-auto">
+        <h2 className="text-xl font-bold text-center mb-4 text-black">Crear pago</h2>
         
         {success && <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-md">{success}</div>}
         {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md">{error}</div>}
 
         <input
           type="email"
-          className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          className="input w-full text-black placeholder-black"
           placeholder="Correo del destinatario"
           value={recipient}
           onChange={e => setRecipient(e.target.value)}
@@ -276,10 +276,10 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
         )}
         {recipient && recipientError && <div className="text-red-600 text-sm mt-1 font-semibold">❌ {recipientError}</div>} 
 
-        <input type="number" className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Monto (MXN)" value={amount} onChange={e => setAmount(e.target.value)} required min={1} />
-        <input type="text" className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Descripción del pago (opcional)" value={description} onChange={e => setDescription(e.target.value)} />
-        <input type="number" className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="% en garantía (0-100)" value={warrantyPercent} onChange={e => setWarrantyPercent(e.target.value)} min={0} max={100} />
-        <input type="number" className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Días en custodia (mínimo 1)" value={custodyDays} onChange={e => setCustodyDays(e.target.value)} min={1} />
+        <input type="number" className="input w-full text-black placeholder-black" placeholder="Monto (MXN)" value={amount} onChange={e => setAmount(e.target.value)} required min={1} />
+        <input type="text" className="input w-full text-black placeholder-black" placeholder="Descripción del pago (opcional)" value={description} onChange={e => setDescription(e.target.value)} />
+        <input type="number" className="input w-full text-black placeholder-black" placeholder="% en garantía (0-100)" value={warrantyPercent} onChange={e => setWarrantyPercent(e.target.value)} min={0} max={100} />
+        <input type="number" className="input w-full text-black placeholder-black" placeholder="Días en custodia (mínimo 1)" value={custodyDays} onChange={e => setCustodyDays(e.target.value)} min={1} />
 
         <div className="mt-4 mb-2 font-semibold text-black">
           <button
@@ -310,7 +310,7 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
           <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
             <input
               type="number"
-              className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              className="input w-full text-black placeholder-black"
               placeholder="% de comisión (ej. 5)"
               value={commissionPercent}
               onChange={e => setCommissionPercent(e.target.value)}
@@ -319,7 +319,7 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
             />
             <input
               type="text"
-              className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              className="input w-full text-black placeholder-black"
               placeholder="Nombre del beneficiario de la comisión"
               value={commissionBeneficiaryName}
               onChange={e => setCommissionBeneficiaryName(e.target.value)}
@@ -327,7 +327,7 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
             />
             <input
               type="email"
-              className="input w-full text-black placeholder-gray-500 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              className="input w-full text-black placeholder-black"
               placeholder="Email del beneficiario de la comisión"
               value={commissionBeneficiaryEmail}
               onChange={e => setCommissionBeneficiaryEmail(e.target.value)}
@@ -350,10 +350,10 @@ export default function StandardPaymentForm({ onBack }: StandardPaymentFormProps
 
         <button
           type="submit"
-          className={`w-full mt-6 text-white rounded-lg py-3 px-4 text-lg font-semibold shadow-md transition-all ${!loading && recipientValid && recipientVerified ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+          className="btn btn-success w-full mt-4 text-white"
           disabled={loading || !recipientValid || !recipientVerified}
         >
-          {loading ? 'Creando Pago...' : 'Crear Pago'}
+          {loading ? 'Creando...' : 'Crear pago'}
         </button>
       </form>
       

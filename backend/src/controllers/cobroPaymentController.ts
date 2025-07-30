@@ -3,17 +3,21 @@ import { Repository } from 'typeorm';
 import AppDataSource from '../ormconfig';
 import { Payment } from '../entity/Payment';
 import { User } from '../entity/User';
+import { Escrow } from '../entity/Escrow';
 import { CommissionService } from '../services/CommissionService';
 import { validateCobroPayment } from '../validation/cobroValidation';
+import { createJunoClabe } from '../services/junoService';
 
 export class CobroPaymentController {
   private paymentRepo: Repository<Payment>;
   private userRepo: Repository<User>;
+  private escrowRepo: Repository<Escrow>;
   private commissionService: CommissionService;
 
   constructor() {
     this.paymentRepo = AppDataSource.getRepository(Payment);
     this.userRepo = AppDataSource.getRepository(User);
+    this.escrowRepo = AppDataSource.getRepository(Escrow);
     this.commissionService = new CommissionService();
   }
 
@@ -90,14 +94,16 @@ export class CobroPaymentController {
         return;
       }
 
-      // Validate commission recipients exist and are verified
-      for (const recipient of commission_recipients) {
-        const recipientUser = await this.userRepo.findOne({ where: { email: recipient.broker_email } });
-        if (!recipientUser || !recipientUser.email_verified) {
-          res.status(400).json({ 
-            error: `Commission recipient ${recipient.broker_email} is not a verified Kustodia user` 
-          });
-          return;
+      // Validate commission recipients exist and are verified (only if there are recipients)
+      if (commission_recipients && commission_recipients.length > 0) {
+        for (const recipient of commission_recipients) {
+          const recipientUser = await this.userRepo.findOne({ where: { email: recipient.broker_email } });
+          if (!recipientUser || !recipientUser.email_verified) {
+            res.status(400).json({ 
+              error: `Commission recipient ${recipient.broker_email} is not a verified Kustodia user` 
+            });
+            return;
+          }
         }
       }
 
@@ -107,6 +113,17 @@ export class CobroPaymentController {
         total_commission_percentage,
         commission_recipients
       );
+
+      // Generate unique CLABE via Juno API for deposit
+      let depositClabe: string;
+      try {
+        depositClabe = await createJunoClabe();
+        console.log(`[Cobro Payment] Generated CLABE: ${depositClabe} for buyer ${buyer_email}`);
+      } catch (error) {
+        console.error('[Cobro Payment] Error generating CLABE:', error);
+        res.status(500).json({ error: 'Error al generar CLABE para depósito' });
+        return;
+      }
 
       // Create payment record
       const payment = this.paymentRepo.create({
@@ -119,7 +136,14 @@ export class CobroPaymentController {
         currency: 'MXN',
         description: payment_description,
         payment_type: 'cobro_inteligente',
-        status: 'requested',
+        status: 'pending',
+        
+        // CLABE fields for deposit and payout
+        deposit_clabe: depositClabe,
+        payout_clabe: seller.payout_clabe,
+        payout_juno_bank_account_id: seller.juno_bank_account_id,
+        payer_clabe: buyer.deposit_clabe,
+        reference: undefined, // Will be set by automation when deposit is detected
         
         // Use existing fields instead of duplicates
         operation_type,
@@ -127,6 +151,8 @@ export class CobroPaymentController {
         commission_beneficiary_email: broker_email, // Use existing commission field
         commission_percent: total_commission_percentage, // Use existing commission field
         commission_amount: commissionBreakdown.total_commission, // Use existing commission field
+        commission_beneficiary_juno_bank_account_id: broker.juno_bank_account_id,
+        commission_beneficiary_clabe: broker.payout_clabe,
         initiator_type: 'payee',
         release_conditions,
         
@@ -146,11 +172,35 @@ export class CobroPaymentController {
 
       const savedPayment = await this.paymentRepo.save(payment);
 
+      // Create escrow record if custody is specified
+      let savedEscrow: any = null;
+      if (custody_percent > 0 && custody_period > 0) {
+        const custodyAmount = payment_amount * (custody_percent / 100);
+        const releaseAmount = payment_amount - custodyAmount;
+        const custodyEnd = new Date();
+        custodyEnd.setDate(custodyEnd.getDate() + custody_period);
+
+        const newEscrow = this.escrowRepo.create({
+          payment: savedPayment,
+          custody_percent: custody_percent,
+          custody_amount: custodyAmount,
+          release_amount: releaseAmount,
+          custody_end: custodyEnd,
+          status: 'pending'
+        });
+
+        savedEscrow = await this.escrowRepo.save(newEscrow);
+        console.log(`[CobroPayment] Escrow created for payment ${savedPayment.id} with ${custody_percent}% custody for ${custody_period} days`);
+      }
+
       // Create commission recipients
-      await this.commissionService.createCommissionRecipients(
-        savedPayment.id,
-        commissionBreakdown.recipients
-      );
+      let savedCommissionRecipients: any[] = [];
+      if (commission_recipients && commission_recipients.length > 0) {
+        savedCommissionRecipients = await this.commissionService.createCommissionRecipients(
+          savedPayment.id,
+          commissionBreakdown.recipients
+        );
+      }
 
       // Create in-app notifications
       try {
@@ -179,9 +229,51 @@ export class CobroPaymentController {
         console.error('Error sending email notifications:', error);
       }
 
+      // Create structured response matching regular payment format
+      const paymentResponse = {
+        id: savedPayment.id,
+        recipient_email: savedPayment.recipient_email,
+        payer_email: savedPayment.payer_email,
+        amount: savedPayment.amount,
+        currency: savedPayment.currency,
+        description: savedPayment.description,
+        reference: savedPayment.reference,
+        deposit_clabe: savedPayment.deposit_clabe,
+        payout_clabe: savedPayment.payout_clabe,
+        status: savedPayment.status,
+        payment_type: savedPayment.payment_type,
+        vertical_type: savedPayment.vertical_type,
+        release_conditions: savedPayment.release_conditions,
+        payer_approval: savedPayment.payer_approval,
+        payee_approval: savedPayment.payee_approval,
+        created_at: savedPayment.created_at,
+        escrow_id: savedEscrow?.id // Include escrow_id if escrow was created
+      };
+
+      const escrowResponse = savedEscrow ? {
+        id: savedEscrow.id,
+        custody_percent: savedEscrow.custody_percent,
+        custody_amount: savedEscrow.custody_amount,
+        release_amount: savedEscrow.release_amount,
+        status: savedEscrow.status,
+        dispute_status: savedEscrow.dispute_status,
+        custody_end: savedEscrow.custody_end,
+        created_at: savedEscrow.created_at,
+        payment_id: savedPayment.id
+      } : null;
+
       res.json({ 
         success: true, 
-        payment: savedPayment,
+        payment: paymentResponse,
+        escrow: escrowResponse,
+        commission_recipients: savedCommissionRecipients.map(cr => ({
+          id: cr.id,
+          broker_email: cr.broker_email,
+          broker_name: cr.broker_name,
+          broker_percentage: cr.broker_percentage,
+          broker_amount: cr.broker_amount,
+          paid: cr.paid
+        })),
         commission_breakdown: commissionBreakdown
       });
 

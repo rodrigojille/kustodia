@@ -5,6 +5,7 @@ import { User } from '../entity/User';
 import { Escrow } from '../entity/Escrow';
 import { PaymentEvent } from '../entity/PaymentEvent';
 import { JunoTransaction } from '../entity/JunoTransaction';
+import { CommissionRecipient } from '../entity/CommissionRecipient';
 import { AuthenticatedRequest } from '../AuthenticatedRequest';
 import { createNotification } from '../services/notificationService';
 import { createV3Escrow, fundV3Escrow, releaseV3Escrow } from '../services/escrowV3Service';
@@ -509,9 +510,10 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
       currency = 'mxn',
       description,
       custody_percent = 100, // Default 100% in custody
-      custody_period = 432000, // Default 5 days in seconds (5 * 24 * 60 * 60)
+      custody_period = 5, // Default 5 days
       commission_amount = 0,
       commission_beneficiary_email,
+      commission_recipients, // Array of multiple commission recipients
       travel_rule_data,
       // Nuevo flujo parameters
       payment_type = 'traditional', // 'traditional' | 'nuevo_flujo' | 'web3'
@@ -600,9 +602,57 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
       return;
     }
 
-    // 3. Validate commission beneficiary if provided
+    // 3. Validate commission recipients (multiple brokers support)
     let commissionBeneficiaryUser = null;
-    if (commission_amount > 0 && commission_beneficiary_email) {
+    let validatedCommissionRecipients: any[] = [];
+    
+    if (commission_recipients && Array.isArray(commission_recipients) && commission_recipients.length > 0) {
+      // Validate multiple commission recipients
+      let totalCommissionPercentage = 0;
+      
+      for (const recipient of commission_recipients) {
+        if (!recipient.broker_email || !recipient.broker_percentage) {
+          res.status(400).json({ error: 'Cada beneficiario de comisión debe tener email y porcentaje' });
+          return;
+        }
+        
+        const brokerPercentage = Number(recipient.broker_percentage);
+        if (brokerPercentage <= 0 || brokerPercentage > 50) {
+          res.status(400).json({ error: 'El porcentaje de comisión individual debe estar entre 0.1% y 50%' });
+          return;
+        }
+        
+        totalCommissionPercentage += brokerPercentage;
+        
+        // Validate broker user exists and is verified
+        const brokerUser = await userRepo.findOne({ where: { email: recipient.broker_email } });
+        if (!brokerUser) {
+          res.status(404).json({ error: `Asesor ${recipient.broker_email} no encontrado` });
+          return;
+        }
+        if (brokerUser.kyc_status !== 'approved') {
+          res.status(400).json({ error: `El asesor ${recipient.broker_email} debe estar verificado` });
+          return;
+        }
+        
+        validatedCommissionRecipients.push({
+          broker_email: recipient.broker_email,
+          broker_name: recipient.broker_name || '',
+          broker_percentage: brokerPercentage,
+          broker_amount: (Number(amount) * brokerPercentage) / 100,
+          brokerUser
+        });
+      }
+      
+      // Validate total commission percentage doesn't exceed 50%
+      if (totalCommissionPercentage > 50) {
+        res.status(400).json({ error: `El total de comisiones (${totalCommissionPercentage}%) no puede exceder 50%` });
+        return;
+      }
+      
+      console.log(`[Payment] Validated ${validatedCommissionRecipients.length} commission recipients, total: ${totalCommissionPercentage}%`);
+    } else if (commission_amount > 0 && commission_beneficiary_email) {
+      // Legacy single commission support
       commissionBeneficiaryUser = await userRepo.findOne({ where: { email: commission_beneficiary_email } });
       if (!commissionBeneficiaryUser) {
         res.status(404).json({ error: 'Beneficiario de comisión no encontrado' });
@@ -692,9 +742,30 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
 
     const savedPayment = await paymentRepo.save(payment);
 
-    // 6. Calculate custody split (matches original implementation)
+    // 6. Calculate custody split with vertical-specific periods
     const custodyPercent = Number(custody_percent || 100); // Default to 100%
-    const custodyPeriod = Number(custody_period || 432000); // Default to 5 days in seconds
+    
+    // Apply vertical-specific custody periods if not explicitly provided
+    let finalCustodyPeriod = Number(custody_period);
+    if (!custody_period && vertical_type) {
+      switch (vertical_type) {
+        case 'inmobiliaria':
+          finalCustodyPeriod = 30; // 30 days for real estate
+          break;
+        case 'freelance':
+          finalCustodyPeriod = 7; // 7 days for freelance work
+          break;
+        case 'marketplace':
+        default:
+          finalCustodyPeriod = 5; // 5 days default
+          break;
+      }
+      console.log(`[Payment ${savedPayment.id}] Applied vertical-specific custody period: ${finalCustodyPeriod} days for ${vertical_type}`);
+    } else {
+      finalCustodyPeriod = finalCustodyPeriod || 5; // Default to 5 days
+    }
+    
+    const custodyPeriod = finalCustodyPeriod;
     const paymentAmount = Number(savedPayment.amount);
     const custodyAmount = paymentAmount * (custodyPercent / 100);
     const releaseAmount = paymentAmount - custodyAmount;
@@ -720,13 +791,13 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
     // Save escrow first to get created_at timestamp
     const savedEscrow = await escrowRepo.save(escrow);
     
-    // Now set custody_end based on the actual created_at time
-    savedEscrow.custody_end = new Date(savedEscrow.created_at.getTime() + custodyPeriod * 1000);
+    // Now set custody_end based on the actual created_at time (convert days to milliseconds)
+    savedEscrow.custody_end = new Date(savedEscrow.created_at.getTime() + custodyPeriod * 24 * 60 * 60 * 1000);
     await escrowRepo.save(savedEscrow);
     
-    // Calculate custody days for frontend display
-    const custodyDays = Math.round(custodyPeriod / (24 * 60 * 60));
-    console.log(`[Payment ${savedPayment.id}] Custody days calculated: ${custodyDays} from period: ${custodyPeriod} seconds`);
+    // Calculate custody days for frontend display (already in days)
+    const custodyDays = custodyPeriod;
+    console.log(`[Payment ${savedPayment.id}] Custody days: ${custodyDays} days`);
     
     console.log(`[Payment ${savedPayment.id}] Escrow saved:`, {
       id: savedEscrow.id,
@@ -741,6 +812,29 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
     savedPayment.escrow = savedEscrow;
     await paymentRepo.save(savedPayment);
     console.log(`[Payment ${savedPayment.id}] Payment updated with escrow_id: ${savedEscrow.id}`);
+
+    // 7.5. Create CommissionRecipient records for multiple brokers
+    const commissionRecipientRepo = AppDataSource.getRepository(CommissionRecipient);
+    const createdCommissionRecipients: CommissionRecipient[] = [];
+    
+    if (validatedCommissionRecipients.length > 0) {
+      for (const recipient of validatedCommissionRecipients) {
+        const commissionRecipient = new CommissionRecipient();
+        commissionRecipient.payment_id = savedPayment.id;
+        commissionRecipient.broker_email = recipient.broker_email;
+        commissionRecipient.broker_name = recipient.broker_name;
+        commissionRecipient.broker_percentage = recipient.broker_percentage;
+        commissionRecipient.broker_amount = recipient.broker_amount;
+        commissionRecipient.paid = false;
+        
+        const savedCommissionRecipient = await commissionRecipientRepo.save(commissionRecipient);
+        createdCommissionRecipients.push(savedCommissionRecipient);
+        
+        console.log(`[Payment ${savedPayment.id}] Created commission recipient: ${recipient.broker_email} (${recipient.broker_percentage}% = ${recipient.broker_amount} MXN)`);
+      }
+      
+      console.log(`[Payment ${savedPayment.id}] Created ${createdCommissionRecipients.length} commission recipients`);
+    }
 
     // 8. Log payment event (NO blockchain event yet - only after deposit is received)
     await createPaymentEvent(savedPayment, 'payment_created', `Pago directo iniciado por ${payerUser.email} a ${recipientUser.email}`);
@@ -758,6 +852,40 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
       savedPayment.id,
       'payment'
     );
+
+    // 10.5. Create in-app notifications
+    try {
+      const { createPaymentNotifications } = await import('../services/paymentNotificationIntegration');
+      await createPaymentNotifications(savedPayment.id, 'payment_created');
+    } catch (error) {
+      console.error('Error creating in-app notifications:', error);
+    }
+
+    // 10.6. Send email notifications
+    try {
+      const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
+      const recipients = [
+        { email: payerUser.email, role: 'buyer' },
+        { email: recipientUser.email, role: 'seller' }
+      ];
+      
+      // Add commission recipients if they exist
+      if (createdCommissionRecipients.length > 0) {
+        createdCommissionRecipients.forEach(cr => {
+          recipients.push({ email: cr.broker_email, role: 'broker' });
+        });
+      }
+      
+      await sendPaymentEventNotification({
+        eventType: 'payment_created',
+        paymentId: savedPayment.id.toString(),
+        paymentDetails: savedPayment,
+        recipients,
+        commissionBeneficiaryEmail: createdCommissionRecipients[0]?.broker_email
+      });
+    } catch (error) {
+      console.error('Error sending email notifications:', error);
+    }
 
     // 11. Return success response with payment details (avoid circular references)
     const paymentResponse = {
@@ -795,7 +923,15 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
     res.json({
       success: true,
       payment: paymentResponse,
-      escrow: escrowResponse
+      escrow: escrowResponse,
+      commission_recipients: createdCommissionRecipients.map(cr => ({
+        id: cr.id,
+        broker_email: cr.broker_email,
+        broker_name: cr.broker_name,
+        broker_percentage: cr.broker_percentage,
+        broker_amount: cr.broker_amount,
+        paid: cr.paid
+      }))
     });
 
   } catch (error) {

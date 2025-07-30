@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { authFetch } from "../../../utils/authFetch";
+import { MultipleBrokersSection } from "../../../components/MultipleBrokersSection";
 
 
 // Minimal utility for fetch with auth from localStorage
@@ -9,40 +10,100 @@ type FetchOptions = RequestInit & { headers?: Record<string, string> };
 
 const useCases = [
   {
+    id: "inmobiliaria",
     key: "inmobiliaria",
     icon: "🏠",
     title: "Inmobiliarias y agentes",
-    desc: "Cierra ventas más rápido y genera confianza con tus clientes usando pagos en custodia. Protege anticipos, apartados y rentas: el dinero solo se libera cuando se cumplen las condiciones del pago."
+    subtitle: "Propiedades y bienes raíces",
+    description: "Cierra ventas más rápido y genera confianza con tus clientes usando pagos en custodia.",
+    features: [
+      "Protege anticipos y apartados",
+      "Comisiones automáticas para brokers",
+      "Documentación inmobiliaria integrada",
+      "Liberación condicional de fondos"
+    ],
+    color: "from-blue-500 to-blue-600",
+    available: true
   },
   {
+    id: "freelancer",
     key: "freelancer",
     icon: "💻",
     title: "Freelancers y servicios",
-    desc: "Asegura tu pago antes de comenzar a trabajar. El cliente deposita en custodia y tú entregas con tranquilidad. Sin riesgos de impago."
+    subtitle: "Servicios profesionales",
+    description: "Asegura tu pago antes de comenzar a trabajar. El cliente deposita en custodia y tú entregas con tranquilidad.",
+    features: [
+      "Pago garantizado antes de trabajar",
+      "Protección contra impagos",
+      "Entregables verificables",
+      "Liberación automática por tiempo"
+    ],
+    color: "from-purple-500 to-purple-600",
+    available: true
   },
   {
+    id: "ecommerce",
     key: "ecommerce",
     icon: "🛒",
     title: "E-commerce y ventas online",
-    desc: "Ofrece máxima confianza a tus compradores. El pago queda protegido hasta que el producto llega en buen estado."
+    subtitle: "Tiendas en línea",
+    description: "Ofrece máxima confianza a tus compradores. El pago queda protegido hasta que el producto llega en buen estado.",
+    features: [
+      "Protección del comprador",
+      "Verificación de entrega",
+      "Devoluciones seguras",
+      "Integración con tiendas online"
+    ],
+    color: "from-green-500 to-green-600",
+    available: true
   },
   {
+    id: "particulares",
     key: "particulares",
     icon: "🤝",
     title: "Compra-venta entre particulares",
-    desc: "Evita fraudes en ventas de autos, gadgets, muebles y más. El dinero solo se libera cuando se cumplen las condiciones del pago."
+    subtitle: "Transacciones P2P",
+    description: "Evita fraudes en ventas de autos, gadgets, muebles y más. El dinero solo se libera cuando se cumplen las condiciones.",
+    features: [
+      "Prevención de fraudes",
+      "Verificación de productos",
+      "Transacciones seguras P2P",
+      "Múltiples categorías de productos"
+    ],
+    color: "from-orange-500 to-orange-600",
+    available: true
   },
   {
+    id: "b2b",
     key: "b2b",
     icon: "🏢",
     title: "Empresas B2B y control de entregas",
-    desc: "Gestiona compras entre empresas con pagos protegidos: el dinero queda en custodia hasta que la entrega y la calidad sean verificadas. Ideal para plataformas de entregas, pagos por resultado y flujos largos de control."
+    subtitle: "Soluciones empresariales",
+    description: "Gestiona proyectos empresariales con pagos por hitos y control de entregas.",
+    features: [
+      "Pagos por hitos y milestones",
+      "Control de entregas por fases",
+      "Verificación de calidad",
+      "Proyectos largos y complejos"
+    ],
+    color: "from-indigo-500 to-indigo-600",
+    available: true
   },
   {
+    id: "marketplace",
     key: "marketplace",
     icon: "🌐",
     title: "Marketplaces de servicios",
-    desc: "Facilita pagos en custodia en marketplaces donde se ofrecen servicios y es fundamental asegurar la entrega y satisfacción antes de liberar el pago. Ideal para plataformas que conectan profesionales y clientes, garantizando la completitud del servicio."
+    subtitle: "Plataformas de servicios",
+    description: "Facilita pagos en custodia en marketplaces donde se ofrecen servicios y es fundamental asegurar la entrega.",
+    features: [
+      "Integración con marketplaces",
+      "Verificación de servicios",
+      "Satisfacción garantizada",
+      "Conexión profesionales-clientes"
+    ],
+    color: "from-teal-500 to-teal-600",
+    available: true
   }
 ];
 
@@ -62,12 +123,6 @@ const stepsByVertical: Record<string, string[]> = {
     "Condiciones de liberación y entregables",
     "Resumen y creación"
   ],
-  ecommerce: [
-    "Datos del pago y participantes",
-    "Tipo de producto/servicio",
-    "Condiciones de liberación y entrega",
-    "Resumen y creación"
-  ],
   particulares: [
     "Datos del pago y participantes",
     "Tipo de transacción",
@@ -76,16 +131,11 @@ const stepsByVertical: Record<string, string[]> = {
   ],
   b2b: [
     "Datos del pago y participantes",
-    "Tipo de servicio empresarial",
-    "Condiciones de liberación y entregables",
+    "Configuración de hitos y pagos parciales",
+    "Condiciones de liberación y control de entregas",
     "Resumen y creación"
   ],
-  marketplace: [
-    "Datos del pago y participantes",
-    "Categoría del servicio",
-    "Condiciones de liberación y servicio",
-    "Resumen y creación"
-  ]
+
 };
 
 type FormDataType = Record<string, any>;
@@ -399,69 +449,9 @@ function PaymentDetailsForm({ data, setData, vertical }: {
         </div>
       </div>
 
-      {/* Optional broker commission fields for inmobiliaria */}
+      {/* Multiple brokers commission fields for inmobiliaria */}
       {vertical === 'inmobiliaria' && (
-        <>
-          <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px' }}>
-            <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#374151', marginBottom: '12px' }}>
-              🏢 Comisión de asesor (opcional)
-            </h4>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontWeight: 500, marginBottom: 8, color: '#374151' }}>
-                📧 Email del asesor inmobiliario
-              </label>
-              <input
-                type="email"
-                placeholder="agente@inmobiliaria.com"
-                value={data.broker_email || ''}
-                onChange={(e) => setData({ ...data, broker_email: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: width < 640 ? '14px' : '12px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: width < 640 ? '16px' : '16px',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-            
-            <div>
-              <label style={{ display: 'block', fontWeight: 500, marginBottom: 8, color: '#374151' }}>
-                💰 Porcentaje de comisión
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="number"
-                  placeholder="5.5"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={data.broker_commission || ''}
-                  onChange={(e) => setData({ ...data, broker_commission: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: width < 640 ? '14px' : '12px',
-                    paddingRight: '40px',
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: width < 640 ? '16px' : '16px',
-                    boxSizing: 'border-box'
-                  }}
-                />
-                <span style={{
-                  position: 'absolute',
-                  right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#6b7280',
-                  fontSize: '16px'
-                }}>%</span>
-              </div>
-            </div>
-          </div>
-        </>
+        <MultipleBrokersSection data={data} setData={setData} width={width} />
       )}
     </div>
   );
@@ -504,6 +494,18 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
       type: 'textarea', 
       label: 'Condiciones de liberación', 
       placeholder: 'Ejemplo: El pago se liberará cuando el producto sea entregado en las condiciones acordadas y el comprador confirme que está satisfecho con la compra.'
+    },
+    
+    // B2B
+    b2b_step_1: { 
+      type: 'select', 
+      label: 'Configuración de hitos', 
+      options: ['Pago único (100%)', 'Dos hitos (50% - 50%)', 'Tres hitos (40% - 30% - 30%)', 'Cuatro hitos (25% cada uno)', 'Configuración personalizada'] 
+    },
+    b2b_step_2: { 
+      type: 'textarea', 
+      label: 'Condiciones de liberación y control de entregas', 
+      placeholder: 'Ejemplo: Hito 1: Entrega de diseños y wireframes aprobados. Hito 2: Desarrollo completado y testing exitoso. Hito 3: Implementación en producción y capacitación del equipo.'
     }
   };
 
@@ -613,8 +615,14 @@ async function handleCreatePayment(vertical: string, data: FormDataType, router:
       payment_type: 'nuevo_flujo',
       vertical_type: vertical,
       release_conditions: data[`${vertical}_step_2`] || null,
-      // Add commission fields if broker data exists
-      ...(data.broker_email && data.broker_commission ? {
+      // Add commission fields - support both single broker (legacy) and multiple brokers
+      ...(data.commission_recipients && data.commission_recipients.length > 0 ? {
+        commission_recipients: data.commission_recipients.map((broker: any) => ({
+          broker_email: broker.broker_email,
+          broker_name: broker.broker_name || '',
+          broker_percentage: Number(broker.broker_percentage)
+        }))
+      } : data.broker_email && data.broker_commission ? {
         commission_beneficiary_email: data.broker_email,
         commission_percent: Number(data.broker_commission)
       } : {})
@@ -678,13 +686,49 @@ function SummaryView({ vertical, data }: { vertical: string; data: FormDataType 
           <span style={{ marginLeft: '8px', color: '#6b7280' }}>{data.payee_email}</span>
         </div>
 
-        {vertical === 'inmobiliaria' && data.broker_email && (
+        {/* Multiple Brokers Support */}
+        {vertical === 'inmobiliaria' && data.commission_recipients && data.commission_recipients.length > 0 && (
+          <div style={{ marginBottom: '12px' }}>
+            <strong style={{ color: '#374151' }}>🏠 Asesores inmobiliarios:</strong>
+            <div style={{ marginLeft: '8px', marginTop: '8px' }}>
+              {data.commission_recipients.map((broker: any, index: number) => (
+                <div key={index} style={{ 
+                  backgroundColor: '#f9fafb', 
+                  padding: '8px 12px', 
+                  borderRadius: '6px', 
+                  marginBottom: '6px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{ color: '#374151', fontSize: '14px', fontWeight: 500 }}>
+                    {broker.broker_name || broker.broker_email} - {broker.broker_percentage}%
+                  </div>
+                  {broker.broker_name && (
+                    <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                      {broker.broker_email}
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#059669', 
+                fontWeight: 600, 
+                marginTop: '8px' 
+              }}>
+                💰 Total comisiones: {data.commission_recipients.reduce((sum: number, broker: any) => sum + (Number(broker.broker_percentage) || 0), 0).toFixed(1)}%
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Legacy Single Broker Support */}
+        {vertical === 'inmobiliaria' && !data.commission_recipients && data.broker_email && (
           <div style={{ marginBottom: '12px' }}>
             <strong style={{ color: '#374151' }}>🏠 Asesor inmobiliario:</strong> 
             <span style={{ marginLeft: '8px', color: '#6b7280' }}>{data.broker_email}</span>
           </div>
         )}
-        {vertical === 'inmobiliaria' && data.broker_commission && (
+        {vertical === 'inmobiliaria' && !data.commission_recipients && data.broker_commission && (
           <div style={{ marginBottom: '12px' }}>
             <strong style={{ color: '#374151' }}>📊 % Comisión:</strong> 
             <span style={{ marginLeft: '8px', color: '#6b7280' }}>{data.broker_commission}%</span>
@@ -790,7 +834,11 @@ export default function NuevoFlujoPage() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "2rem auto", padding: "1rem" }}>
+    <div style={{ 
+      maxWidth: width < 1024 ? "100%" : "1200px", 
+      margin: "2rem auto", 
+      padding: width < 640 ? "1rem" : "1.5rem" 
+    }}>
       {/* Back Link */}
       <button 
         onClick={() => router.push('/dashboard/crear-pago')}
@@ -817,7 +865,7 @@ export default function NuevoFlujoPage() {
         }}
       >
         <span style={{ marginRight: '8px' }}>←</span>
-        Volver a tipos de pago
+        Volver a tipos de movimiento
       </button>
 
       <h1 style={{ 
@@ -831,97 +879,469 @@ export default function NuevoFlujoPage() {
       {step === 1 && (
         <>
           <div style={{ 
-            display: "flex", 
-            flexWrap: "wrap", 
-            gap: width < 640 ? 16 : 24, 
-            justifyContent: "center" 
+            maxWidth: '1200px', 
+            margin: '0 auto', 
+            padding: width < 640 ? '0 16px' : '0 24px'
           }}>
-            {useCases.map((c) => (
-              <div
-                key={c.key}
-                onClick={() => setSelected(c.key)}
-                style={{
-                  cursor: "pointer",
-                  border: selected === c.key ? "2px solid #2e7ef7" : "1px solid #e3e9f8",
-                  borderRadius: 16,
-                  background: selected === c.key ? "#e8f0fe" : "#fff",
-                  boxShadow: selected === c.key ? "0 2px 12px #2e7ef733" : "none",
-                  padding: width < 640 ? 16 : 24,
-                  width: width < 640 ? "calc(100% - 2rem)" : 250,
-                  minHeight: width < 640 ? 160 : 210,
-                  transition: "all 0.2s"
-                }}
-              >
-                <div style={{ fontSize: width < 640 ? 32 : 40, marginBottom: 8 }}>{c.icon}</div>
-                <div style={{ 
-                  fontWeight: 700, 
-                  fontSize: width < 640 ? 16 : 18, 
-                  marginBottom: 8 
-                }}>{c.title}</div>
-                <div style={{ 
-                  color: "#444", 
-                  fontSize: width < 640 ? 14 : 15,
-                  lineHeight: 1.4
-                }}>{c.desc}</div>
+            {/* Page Header */}
+            <div style={{ 
+              textAlign: 'center', 
+              marginBottom: width < 640 ? '32px' : '48px'
+            }}>
+              <p style={{
+                fontSize: width < 640 ? '16px' : width < 1024 ? '18px' : '20px',
+                color: '#6b7280',
+                lineHeight: '1.6',
+                maxWidth: '768px',
+                margin: '0 auto',
+                padding: '0 16px'
+              }}>
+                Selecciona el tipo de transacción que mejor se adapte a tu negocio. 
+                Cada opción está optimizada para diferentes industrias.
+              </p>
+            </div>
+
+            {/* Transaction Types Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: width < 768 ? '1fr' : 'repeat(2, 1fr)',
+              gap: width < 640 ? '20px' : '24px',
+              marginBottom: width < 640 ? '40px' : '48px',
+              alignItems: 'stretch'
+            }}>
+              {useCases.filter(c => c.key !== 'ecommerce' && c.key !== 'marketplace').map((useCase) => (
+                <div
+                  key={useCase.id}
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    border: '1px solid #e5e7eb',
+                    padding: width < 640 ? '20px' : '24px',
+                    cursor: useCase.available ? 'pointer' : 'not-allowed',
+                    opacity: useCase.available ? 1 : 0.6,
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    minHeight: width < 640 ? '320px' : '380px'
+                  }}
+                  onClick={() => {
+                    if (useCase.available) {
+                      setSelected(useCase.key);
+                      setStep(2);
+                      setWizardStep(0);
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    if (useCase.available) {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (useCase.available) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+                    }
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    {/* Icon and Title */}
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '16px', 
+                      marginBottom: '16px' 
+                    }}>
+                      <div style={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '16px',
+                        background: (() => {
+                          const colors: { [key: string]: string } = {
+                            'from-blue-500 to-blue-600': 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                            'from-purple-500 to-purple-600': 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                            'from-orange-500 to-orange-600': 'linear-gradient(135deg, #f97316, #ea580c)',
+                            'from-indigo-500 to-indigo-600': 'linear-gradient(135deg, #6366f1, #4f46e5)'
+                          };
+                          return colors[useCase.color] || '#3b82f6';
+                        })(),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '28px',
+                        flexShrink: 0
+                      }}>
+                        <span style={{ color: 'white' }}>{useCase.icon}</span>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{
+                          fontSize: width < 640 ? '18px' : '20px',
+                          fontWeight: '700',
+                          color: '#111827',
+                          marginBottom: '4px',
+                          lineHeight: '1.2'
+                        }}>
+                          {useCase.title}
+                        </h3>
+                        <p style={{
+                          fontSize: '14px',
+                          color: '#6b7280',
+                          margin: 0
+                        }}>
+                          {useCase.subtitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <p style={{
+                        fontSize: '14px',
+                        color: '#374151',
+                        lineHeight: '1.5',
+                        margin: 0
+                      }}>
+                        {useCase.description}
+                      </p>
+                    </div>
+
+                    {/* Features List */}
+                    <div style={{ 
+                      marginBottom: '24px',
+                      flex: 1
+                    }}>
+                      {useCase.features.map((feature: string, index: number) => (
+                        <div key={index} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          marginBottom: '12px'
+                        }}>
+                          <div style={{
+                            width: '8px',
+                            height: '8px',
+                            backgroundColor: '#10b981',
+                            borderRadius: '50%',
+                            flexShrink: 0
+                          }}></div>
+                          <span style={{
+                            fontSize: '14px',
+                            color: '#374151',
+                            lineHeight: '1.4'
+                          }}>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Action Button */}
+                    <div style={{ marginTop: 'auto' }}>
+                      <button
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          borderRadius: '8px',
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          border: 'none',
+                          cursor: useCase.available ? 'pointer' : 'not-allowed',
+                          background: useCase.available 
+                            ? (() => {
+                                const colors: { [key: string]: string } = {
+                                  'from-blue-500 to-blue-600': 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                                  'from-purple-500 to-purple-600': 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                                  'from-orange-500 to-orange-600': 'linear-gradient(135deg, #f97316, #ea580c)',
+                                  'from-indigo-500 to-indigo-600': 'linear-gradient(135deg, #6366f1, #4f46e5)'
+                                };
+                                return colors[useCase.color] || '#3b82f6';
+                              })()
+                            : '#e5e7eb',
+                          color: useCase.available ? 'white' : '#9ca3af',
+                          transition: 'all 0.2s ease',
+                          boxShadow: useCase.available ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none'
+                        }}
+                        disabled={!useCase.available}
+                        onClick={() => {
+                          if (useCase.available) {
+                            setSelected(useCase.key);
+                            setStep(2);
+                          }
+                        }}
+                        onMouseEnter={(e) => {
+                          if (useCase.available) {
+                            e.currentTarget.style.opacity = '0.9';
+                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (useCase.available) {
+                            e.currentTarget.style.opacity = '1';
+                            e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+                          }
+                        }}
+                      >
+                        {useCase.available ? 'Seleccionar' : 'Próximamente'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Help Section */}
+            <div style={{
+              marginTop: width < 640 ? '48px' : '64px',
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              border: '1px solid #e5e7eb',
+              padding: width < 640 ? '24px' : '32px'
+            }}>
+              <div style={{ 
+                textAlign: 'center', 
+                marginBottom: width < 640 ? '24px' : '32px' 
+              }}>
+                <h2 style={{
+                  fontSize: width < 640 ? '20px' : '24px',
+                  fontWeight: '700',
+                  color: '#111827',
+                  marginBottom: '16px',
+                  margin: 0
+                }}>
+                  ¿Cuál es la diferencia?
+                </h2>
+                <p style={{
+                  fontSize: '16px',
+                  color: '#6b7280',
+                  maxWidth: '512px',
+                  margin: '16px auto 0',
+                  lineHeight: '1.5'
+                }}>
+                  Cada tipo de transacción tiene campos específicos y configuraciones optimizadas para diferentes industrias.
+                </p>
               </div>
-            ))}
-          </div>
-          <div style={{ textAlign: "center", marginTop: 32 }}>
-            <button
-              disabled={!selected}
-              onClick={() => {
-                setStep(2);
-                setWizardStep(0);
-              }}
-              style={{
-                background: selected ? "#2e7ef7" : "#b8c6e6",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                padding: width < 640 ? "10px 24px" : "12px 32px",
-                fontWeight: 700,
-                fontSize: width < 640 ? 16 : 17,
-                cursor: selected ? "pointer" : "not-allowed",
-                width: width < 640 ? "100%" : "auto",
-                maxWidth: "300px"
-              }}
-            >
-              Continuar
-            </button>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: width < 640 ? '1fr' : 'repeat(2, 1fr)',
+                gap: width < 640 ? '24px' : '32px'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: '#dbeafe',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px',
+                    fontSize: '24px'
+                  }}>
+                    <span>🏠</span>
+                  </div>
+                  <h3 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginBottom: '8px',
+                    margin: '0 0 8px 0'
+                  }}>Inmobiliaria</h3>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    lineHeight: '1.4',
+                    margin: 0
+                  }}>
+                    Campos específicos para propiedades, comisiones de brokers y documentación inmobiliaria.
+                  </p>
+                </div>
+                
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: '#f3e8ff',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px',
+                    fontSize: '24px'
+                  }}>
+                    <span>💻</span>
+                  </div>
+                  <h3 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginBottom: '8px',
+                    margin: '0 0 8px 0'
+                  }}>Freelancers</h3>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    lineHeight: '1.4',
+                    margin: 0
+                  }}>
+                    Servicios profesionales con entregables verificables y protección de pagos.
+                  </p>
+                </div>
+                
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: '#fed7aa',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px',
+                    fontSize: '24px'
+                  }}>
+                    <span>🤝</span>
+                  </div>
+                  <h3 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginBottom: '8px',
+                    margin: '0 0 8px 0'
+                  }}>Particulares</h3>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    lineHeight: '1.4',
+                    margin: 0
+                  }}>
+                    Transacciones P2P seguras con verificación de productos y prevención de fraudes.
+                  </p>
+                </div>
+                
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: '#e0e7ff',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px',
+                    fontSize: '24px'
+                  }}>
+                    <span>🏢</span>
+                  </div>
+                  <h3 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginBottom: '8px',
+                    margin: '0 0 8px 0'
+                  }}>B2B</h3>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    lineHeight: '1.4',
+                    margin: 0
+                  }}>
+                    Proyectos empresariales con pagos por hitos y control de entregas por fases.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </>
       )}
       {isWizard && (
         <div style={{ 
-          maxWidth: width < 640 ? "100%" : 480, 
+          maxWidth: width < 640 ? "100%" : width < 1024 ? "720px" : "800px", 
           margin: "32px auto", 
           background: "#fff", 
           borderRadius: 16, 
-          boxShadow: "0 2px 12px #0001", 
-          padding: width < 640 ? 20 : 32, 
-          textAlign: "center" 
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)", 
+          padding: width < 640 ? "20px" : width < 1024 ? "32px" : "40px", 
+          textAlign: "left" 
         }}>
-          <h2 style={{ 
-            marginBottom: 24, 
-            color: "#2e7ef7",
-            fontSize: width < 640 ? "1.2rem" : "1.5rem"
-          }}>
-            {useCases.find(c => c.key === selected)?.title}
-          </h2>
+          {/* Form Header */}
           <div style={{ 
-            fontWeight: 600, 
-            fontSize: width < 640 ? 16 : 17, 
-            marginBottom: 18 
+            borderBottom: "1px solid #e5e7eb",
+            paddingBottom: "24px",
+            marginBottom: "32px"
           }}>
-            Paso {wizardStep + 1} de {currentSteps.length - 1}
-          </div>
-          {/* Paso actual */}
-          <div style={{ 
-            fontSize: width < 640 ? 18 : 20, 
-            marginBottom: 32,
-            lineHeight: 1.3
-          }}>
-            {currentSteps[wizardStep]}
+            <h2 style={{ 
+              fontSize: width < 640 ? "1.25rem" : "1.5rem",
+              fontWeight: "600",
+              color: "#111827",
+              marginBottom: "8px"
+            }}>
+              {useCases.find(c => c.key === selected)?.title}
+            </h2>
+            {/* Numbered Circle Progress Bar */}
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "space-between", 
+              marginBottom: "16px" 
+            }}>
+              {currentSteps.slice(0, -1).map((stepTitle, index) => (
+                <div key={index} style={{
+                  flex: 1,
+                  textAlign: "center",
+                  color: index <= wizardStep ? "#2e7ef7" : "#9ca3af"
+                }}>
+                  <div style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    margin: "0 auto 8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: index <= wizardStep ? "#2e7ef7" : "#e5e7eb",
+                    color: index <= wizardStep ? "#ffffff" : "#9ca3af",
+                    fontSize: "14px",
+                    fontWeight: "600"
+                  }}>
+                    {index + 1}
+                  </div>
+                  <div style={{
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    display: width < 640 ? "none" : "block"
+                  }}>
+                    {stepTitle.length > 20 ? stepTitle.substring(0, 20) + "..." : stepTitle}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Horizontal Progress Bar */}
+            <div style={{
+              width: "100%",
+              backgroundColor: "#e5e7eb",
+              borderRadius: "4px",
+              height: "8px",
+              marginBottom: "16px"
+            }}>
+              <div style={{
+                backgroundColor: "#2e7ef7",
+                height: "8px",
+                borderRadius: "4px",
+                transition: "width 0.3s ease",
+                width: `${((wizardStep + 1) / (currentSteps.length - 1)) * 100}%`
+              }} />
+            </div>
+            <h3 style={{ 
+              fontSize: width < 640 ? "16px" : "18px",
+              fontWeight: "500",
+              color: "#374151",
+              lineHeight: "1.4"
+            }}>
+              {currentSteps[wizardStep]}
+            </h3>
           </div>
 
           {/* Inputs dinámicos por vertical y paso */}
@@ -952,15 +1372,16 @@ export default function NuevoFlujoPage() {
                 background: "#e3e9f8",
                 color: "#2e7ef7",
                 border: "none",
-                borderRadius: 8,
-                padding: "10px 28px",
-                fontWeight: 700,
-                fontSize: width < 640 ? 16 : 17,
+                borderRadius: "8px",
+                padding: "12px 24px",
+                fontWeight: "600",
+                fontSize: "16px",
                 cursor: "pointer",
-                minWidth: "120px"
+                minWidth: "140px",
+                transition: "all 0.2s ease"
               }}
             >
-              {wizardStep === 0 ? "← Cambiar vertical" : "← Anterior"}
+              {wizardStep === 0 ? "← Volver a tipos de movimiento" : "← Anterior"}
             </button>
             
             {/* Show "Siguiente" button only if NOT on final step */}
@@ -978,12 +1399,13 @@ export default function NuevoFlujoPage() {
                   background: (wizardStep === 0 && !isStep0Valid(formData)) ? "#b8c6e6" : "#2e7ef7",
                   color: "#fff",
                   border: "none",
-                  borderRadius: 8,
-                  padding: "10px 28px",
-                  fontWeight: 700,
-                  fontSize: width < 640 ? 16 : 17,
+                  borderRadius: "8px",
+                  padding: "12px 24px",
+                  fontWeight: "600",
+                  fontSize: "16px",
                   cursor: (wizardStep === 0 && !isStep0Valid(formData)) ? "not-allowed" : "pointer",
-                  minWidth: "120px"
+                  minWidth: "140px",
+                  transition: "all 0.2s ease"
                 }}
               >
                 Siguiente →

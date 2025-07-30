@@ -157,7 +157,9 @@ const register = async (req, res) => {
             const secp256k1Share = portalResponse.secp256k1 || portalResponse.SECP256K1;
             const ed25519Share = portalResponse.ed25519 || portalResponse.ED25519;
             user.portal_share = secp256k1Share.share;
-            user.portal_client_id = clientResponse.id; // Save the Portal client ID
+            // IMPORTANT: Use the signing share pair ID, not the client session ID
+            // This must match the signingSharePairId in the Portal share for authentication
+            user.portal_client_id = secp256k1Share.id; // Save the signing share pair ID
             user.wallet_address = ethereumAddress; // Actual Ethereum address
             console.log('[REGISTRATION] Portal wallet created successfully:', {
                 wallet_address: user.wallet_address,
@@ -605,7 +607,9 @@ const retryWalletCreation = async (req, res) => {
             }
             // Store the encrypted share, client ID, and actual Ethereum address
             user.portal_share = secp256k1Share.share;
-            user.portal_client_id = clientResponse.id; // Save the Portal client ID
+            // IMPORTANT: Use the signing share pair ID, not the client session ID
+            // This must match the signingSharePairId in the Portal share for authentication
+            user.portal_client_id = secp256k1Share.id; // Save the signing share pair ID
             user.wallet_address = ethereumAddress; // Actual Ethereum address
             // Notify Portal that we've stored the shares
             try {

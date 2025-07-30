@@ -9,6 +9,7 @@ import { isValidReference, sanitizeReference } from '../utils/referenceValidatio
 import { getJunoTxHashFromTimeline } from '../services/junoService';
 import { releaseEscrow } from './escrowService'; // Import on-chain release function
 import { sendPaymentEventNotification } from '../utils/paymentNotificationService';
+import { createPaymentNotifications } from './paymentNotificationIntegration';
 import { SPEIReceiptData } from './speiReceiptService';
 import axios from 'axios';
 import crypto from 'crypto';
@@ -349,6 +350,42 @@ export async function redeemMXNBToMXNAndPayout(escrowId: number, amountMXNB: num
 
   console.log(`[Payout] MXNB redemption successful for payment ${payment.id}. Amount: ${amountMXNB} MXNB. Reference: ${redemptionReference}`);
   await logPaymentEvent(payment.id, 'redemption_success', `MXNB redemption successful. Amount: ${amountMXNB} MXNB. Reference: ${redemptionReference}`);
+  
+  // Create in-app payment completion notification
+  try {
+    await createPaymentNotifications(payment.id, 'payout_completed');
+    console.log(`📧 Payment ${payment.id} MXNB redemption completed - in-app notifications sent`);
+  } catch (notificationError) {
+    console.error(`⚠️ Failed to send MXNB redemption completion in-app notifications for payment ${payment.id}:`, notificationError);
+  }
+  
+  // Send email notification for MXNB redemption completion
+  try {
+    const recipients = [];
+    if (payment.payer_email) {
+      recipients.push({ email: payment.payer_email, role: 'payer' });
+    }
+    if (payment.recipient_email) {
+      recipients.push({ email: payment.recipient_email, role: 'seller' });
+    }
+    
+    if (recipients.length > 0) {
+      await sendPaymentEventNotification({
+        eventType: 'payout_completed',
+        paymentId: payment.id.toString(),
+        paymentDetails: {
+          amount: payment.amount,
+          description: payment.description,
+          payer_email: payment.payer_email,
+          recipient_email: payment.recipient_email
+        },
+        recipients
+      });
+    }
+    console.log(`📧 Payment ${payment.id} MXNB redemption completed - email notifications sent`);
+  } catch (emailError) {
+    console.error(`⚠️ Failed to send MXNB redemption completion email notifications for payment ${payment.id}:`, emailError);
+  }
 
   // Send SPEI completion notification with receipt for MXNB redemption
   try {

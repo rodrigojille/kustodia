@@ -41,6 +41,7 @@ const paymentService_1 = require("./paymentService");
 const escrowService_1 = require("./escrowService");
 const junoService_1 = require("./junoService");
 const paymentNotificationIntegration_1 = require("./paymentNotificationIntegration");
+const paymentNotificationService_1 = require("../utils/paymentNotificationService");
 const typeorm_1 = require("typeorm");
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const Payment_1 = require("../entity/Payment");
@@ -449,6 +450,41 @@ class PaymentAutomationService {
                     await escrowRepo.save(escrow);
                     // Log the release event with transaction hash
                     await this.paymentService.logPaymentEvent(escrow.payment.id, 'escrow_release_success', `Custodia ${escrow.smart_contract_escrow_id} liberada del contrato. Tx: ${releaseTxHash}`, true);
+                    // Create escrow release notification
+                    try {
+                        await (0, paymentNotificationIntegration_1.createPaymentNotifications)(escrow.payment.id, 'payment_released');
+                        console.log(`📧 Payment ${escrow.payment.id} escrow released - in-app notifications sent`);
+                    }
+                    catch (notificationError) {
+                        console.error(`⚠️ Failed to send escrow release in-app notifications for payment ${escrow.payment.id}:`, notificationError);
+                    }
+                    // Send email notification for escrow release
+                    try {
+                        const recipients = [];
+                        if (escrow.payment.payer_email) {
+                            recipients.push({ email: escrow.payment.payer_email, role: 'payer' });
+                        }
+                        if (escrow.payment.recipient_email) {
+                            recipients.push({ email: escrow.payment.recipient_email, role: 'seller' });
+                        }
+                        if (recipients.length > 0) {
+                            await (0, paymentNotificationService_1.sendPaymentEventNotification)({
+                                eventType: 'payment_released',
+                                paymentId: escrow.payment.id.toString(),
+                                paymentDetails: {
+                                    amount: escrow.payment.amount,
+                                    description: escrow.payment.description,
+                                    payer_email: escrow.payment.payer_email,
+                                    recipient_email: escrow.payment.recipient_email
+                                },
+                                recipients
+                            });
+                        }
+                        console.log(`📧 Payment ${escrow.payment.id} escrow released - email notifications sent`);
+                    }
+                    catch (emailError) {
+                        console.error(`⚠️ Failed to send escrow release email notifications for payment ${escrow.payment.id}:`, emailError);
+                    }
                     console.log(`✅ Escrow ${escrow.id} released successfully.`);
                 }
                 catch (error) {
@@ -509,11 +545,38 @@ class PaymentAutomationService {
                         await this.paymentService.logPaymentEvent(payment.id, 'payout_completed', `Pago completado exitosamente. SPEI enviado al beneficiario.`, true);
                         // Create payment completion notification
                         try {
-                            await (0, paymentNotificationIntegration_1.createPaymentNotifications)(payment.id, 'payment_released');
-                            console.log(`📧 Payment ${payment.id} completed - notifications sent`);
+                            await (0, paymentNotificationIntegration_1.createPaymentNotifications)(payment.id, 'payout_completed');
+                            console.log(`📧 Payment ${payment.id} completed - in-app notifications sent`);
                         }
                         catch (notificationError) {
-                            console.error(`⚠️ Failed to send completion notifications for payment ${payment.id}:`, notificationError);
+                            console.error(`⚠️ Failed to send payment completion in-app notifications for payment ${payment.id}:`, notificationError);
+                        }
+                        // Send email notification for payment completion
+                        try {
+                            const recipients = [];
+                            if (payment.payer_email) {
+                                recipients.push({ email: payment.payer_email, role: 'payer' });
+                            }
+                            if (payment.recipient_email) {
+                                recipients.push({ email: payment.recipient_email, role: 'seller' });
+                            }
+                            if (recipients.length > 0) {
+                                await (0, paymentNotificationService_1.sendPaymentEventNotification)({
+                                    eventType: 'payout_completed',
+                                    paymentId: payment.id.toString(),
+                                    paymentDetails: {
+                                        amount: payment.amount,
+                                        description: payment.description,
+                                        payer_email: payment.payer_email,
+                                        recipient_email: payment.recipient_email
+                                    },
+                                    recipients
+                                });
+                            }
+                            console.log(`📧 Payment ${payment.id} completed - email notifications sent`);
+                        }
+                        catch (emailError) {
+                            console.error(`⚠️ Failed to send payment completion email notifications for payment ${payment.id}:`, emailError);
                         }
                         console.log(`✅ Payout completed for payment ${payment.id}`);
                     }

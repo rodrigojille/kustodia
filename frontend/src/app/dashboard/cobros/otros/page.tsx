@@ -255,7 +255,7 @@ export default function CobroOtrosPage() {
 
       if (response.ok) {
         const result = await response.json();
-        router.push(`/dashboard/pagos/${result.payment_id}`);
+        router.push(`/dashboard/pagos/${result.payment.id}`);
       } else {
         const error = await response.json();
         alert(`Error: ${error.message || 'Failed to create payment request'}`);
@@ -763,95 +763,71 @@ export default function CobroOtrosPage() {
             </p>
           </div>
 
-          {/* Progress Steps */}
-          <div className="flex justify-center mb-8">
-            <div className="flex items-center space-x-4">
+          {/* Step Progress */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
               {steps.map((step, index) => (
-                <div key={index} className="flex items-center">
+                <div
+                  key={index}
+                  className={`flex-1 text-center ${
+                    index <= currentStep ? 'text-purple-600' : 'text-gray-400'
+                  }`}
+                >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
+                    className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
                       index <= currentStep
                         ? 'bg-purple-600 text-white'
-                        : 'bg-gray-200 text-gray-500'
+                        : 'bg-gray-200 text-gray-400'
                     }`}
                   >
                     {index + 1}
                   </div>
-                  <span
-                    className={`ml-2 text-sm font-medium ${
-                      index <= currentStep ? 'text-purple-600' : 'text-gray-500'
-                    }`}
-                  >
-                    {step}
-                  </span>
-                  {index < steps.length - 1 && (
-                    <div
-                      className={`w-8 h-0.5 ml-4 ${
-                        index < currentStep ? 'bg-purple-600' : 'bg-gray-200'
-                      }`}
-                    />
-                  )}
+                  <div className="text-xs font-medium hidden sm:block">{step}</div>
                 </div>
               ))}
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              />
             </div>
           </div>
 
           {/* Main Form Card */}
           <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                {steps[currentStep]}
-              </h2>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-                />
-              </div>
-            </div>
+            <h2 className="text-xl font-semibold mb-6">{steps[currentStep]}</h2>
 
             {/* Step Content */}
             {renderStep()}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
+            {/* Navigation */}
+            <div className="flex justify-between items-center mt-8">
               <button
-                type="button"
-                onClick={handlePrev}
-                disabled={currentStep === 0}
-                className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                onClick={() => currentStep === 0 ? router.push('/dashboard/cobros/tipo') : handlePrev()}
+                className="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                ← Anterior
+                {currentStep === 0 ? 'Volver a tipos de movimiento' : 'Anterior'}
               </button>
 
-              {currentStep < steps.length - 1 ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Siguiente →
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-                >
-                  {submitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Creando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>🚀</span>
-                      <span>Crear Cobro</span>
-                    </>
-                  )}
-                </button>
-              )}
+              <div className="flex space-x-4">
+                {currentStep < steps.length - 1 ? (
+                  <button
+                    onClick={handleNext}
+                    className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Siguiente
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submitting ? 'Creando...' : 'Crear solicitud de pago'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -32,38 +32,11 @@ router.post('/send-transaction', authenticateJWT, async (req, res): Promise<void
       return;
     }
 
-    // If user has a portal_share but no client_id, create one (legacy users)
-    if (!user.portal_client_id && user.portal_share) {
-      console.log('[PORTAL] User has portal_share but no client_id, creating client...');
-      try {
-        const { createPortalClientSession } = require('../services/portalService');
-        const clientResponse = await createPortalClientSession(process.env.PORTAL_CUSTODIAN_API_KEY);
-        user.portal_client_id = clientResponse.id;
-        await AppDataSource.getRepository('User').save(user);
-        console.log('[PORTAL] Created client ID for legacy user:', clientResponse.id);
-      } catch (err) {
-        console.error('[PORTAL] Failed to create client ID for legacy user:', err);
-        res.status(500).json({ error: 'Failed to create Portal client ID' });
-        return;
-      }
-    } else if (!user.portal_client_id) {
-      res.status(400).json({ error: 'User has no Portal client ID, we do have the users portal share' });
+    // Check if user has portal_share (required for Portal Enclave API)
+    if (!user.portal_share) {
+      res.status(400).json({ error: 'User has no Portal signing share. Please create a wallet first.' });
       return;
     }
-
-    // Create Portal client session token
-    const sessionResponse = await axios.post(
-      `https://api.portalhq.io/api/v3/custodians/me/clients/${user.portal_client_id}/sessions`,
-      {},
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.PORTAL_CUSTODIAN_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    const { clientSessionToken } = sessionResponse.data;
 
     // Get user's signing share from database
     const signingShare = user.portal_share;
@@ -73,7 +46,9 @@ router.post('/send-transaction', authenticateJWT, async (req, res): Promise<void
       return;
     }
 
-    // Send transaction using Portal Enclave API
+    console.log('🚀 [Portal Payment] Sending transaction via Portal Enclave API...');
+
+    // Send transaction using Portal Enclave API (same method as successful web3Payment)
     const transactionResponse = await axios.post(
       'https://mpc-client.portalhq.io/v1/sign',
       {
@@ -89,7 +64,7 @@ router.post('/send-transaction', authenticateJWT, async (req, res): Promise<void
       },
       {
         headers: {
-          'Authorization': `Bearer ${clientSessionToken}`,
+          'Authorization': `Bearer ${process.env.PORTAL_CUSTODIAN_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }

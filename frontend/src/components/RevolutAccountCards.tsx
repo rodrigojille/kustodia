@@ -342,60 +342,38 @@ export default function RevolutAccountCards({ user, mxnbsBalance, loading, error
           </div>
         </div>
 
-        {/* 3. Wallet & Balance Card - Optional, show only if requested */}
+        {/* 3. Wallet Web3 Card - Digital Twins */}
         {showWalletCard ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 hover:border-green-200">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 hover:border-blue-200">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                  <span className="text-xl">💰</span>
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <span className="text-xl">🔗</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Wallet & Saldo</h3>
-                  <p className="text-sm text-gray-600">Deposita y gestiona fondos</p>
+                  <h3 className="text-lg font-bold text-gray-900">Wallet Web3</h3>
+                  <p className="text-sm text-gray-600">Tu dirección de wallet blockchain</p>
                 </div>
               </div>
               
-              {/* MXNB Balance */}
-              <div className="mb-4">
-                <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Saldo MXNB</p>
-                <p className="text-2xl font-bold text-green-600 mb-1">
-                  {mxnbsBalance || '0.00'} MXNB
-                </p>
-              </div>
-              
-              {/* Deposit CLABE */}
-              {user?.deposit_clabe && (
-                <div className="mb-4">
-                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">CLABE para fondear mi wallet</p>
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                    <p className="text-sm font-mono font-semibold text-gray-900 mb-2">
-                      {user?.deposit_clabe}
+              {/* Web3 Wallet Address */}
+              {user?.wallet_address ? (
+                <div>
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Dirección de Wallet</p>
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                    <p className="text-xs font-mono text-gray-700 break-all mb-3">
+                      {user?.wallet_address}
                     </p>
-                    <button className="w-full bg-green-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm mb-2">
-                      📋 Copiar CLABE de Depósito
-                    </button>
-                    <button
-                      className="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
-                      onClick={() => alert('Funcionalidad de retiro MXNB próximamente disponible')}
-                    >
-                      💸 Retirar MXNBs
-                    </button>
+                    <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs text-blue-700">
+                        💾 <strong>Nota:</strong> Esta será tu dirección para guardar y actualizar tus gemelos digitales.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              )}
-              
-              {/* Web3 Wallet */}
-              {user?.wallet_address ? (
-                <div className="pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Wallet Web3</p>
-                  <p className="text-xs font-mono text-gray-600 bg-gray-50 p-2 rounded-lg break-all">
-                    {user?.wallet_address}
-                  </p>
-                </div>
               ) : (
-                <div className="pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Wallet Web3</p>
+                <div>
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Dirección de Wallet</p>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
                     <p className="text-sm text-yellow-800 mb-3">No tienes wallet asignada</p>
                     <button
@@ -429,7 +407,7 @@ export default function RevolutAccountCards({ user, mxnbsBalance, loading, error
                   <div className="text-blue-600 mt-0.5">ℹ️</div>
                   <div>
                     <p className="text-sm font-medium text-blue-800 mb-1">¿Qué es una Wallet Web3?</p>
-                    <p className="text-xs text-blue-700">Permite funciones avanzadas como creación de operaciones wallet to wallet y la gestión de MXNBs.</p>
+                    <p className="text-xs text-blue-700">Esta será tu dirección para guardar y actualizar tus gemelos digitales.</p>
                   </div>
                 </div>
               </div>
@@ -444,6 +422,12 @@ export default function RevolutAccountCards({ user, mxnbsBalance, loading, error
               <p className="text-xs text-gray-500 mt-2 text-center">
                 Opcional - Solo activa si necesitas funciones avanzadas
               </p>
+              
+              <div className="mt-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl">
+                <p className="text-sm font-semibold text-emerald-600 text-center">
+                  Y MUY PRONTO PAGOS WEB3 CON MXNB
+                </p>
+              </div>
             </div>
           </div>
         )}

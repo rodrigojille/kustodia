@@ -321,7 +321,7 @@ export default function CobroAutosPage() {
       if (response.ok) {
         const result = await response.json();
         // Redirect to success page or payment details
-        router.push(`/dashboard/pagos/${result.payment_id}`);
+        router.push(`/dashboard/pagos/${result.payment.id}`);
       } else {
         const error = await response.json();
         alert(`Error: ${error.message || 'Failed to create payment request'}`);
@@ -1028,7 +1028,7 @@ export default function CobroAutosPage() {
             onClick={() => currentStep === 0 ? router.push('/dashboard/cobros/tipo') : handlePrev()}
             className="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            {currentStep === 0 ? 'Cambiar tipo' : 'Anterior'}
+{currentStep === 0 ? 'Volver a tipos de movimiento' : 'Anterior'}
           </button>
 
           <div className="flex space-x-4">

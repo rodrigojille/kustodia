@@ -254,20 +254,30 @@ export default function CobroInmobiliariaPage() {
     }
     
     try {
+      // Transform commission recipients to match backend validation format
+      const transformedCommissionRecipients = data.commission_recipients.map(recipient => ({
+        broker_email: recipient.email,
+        broker_name: recipient.name || '',
+        broker_percentage: parseFloat(recipient.percentage || '0')
+      }));
+
       const payload = {
-        ...data,
-        payment_type: 'cobro_inteligente',
-        transaction_type: 'inmobiliaria',
+        payment_amount: parseFloat(data.payment_amount),
+        payment_description: data.payment_description,
+        buyer_email: data.buyer_email,
+        seller_email: data.seller_email,
         broker_email: user?.email, // Current user is the broker creating the form
-        seller_email: data.seller_email, // The property owner who receives net payment
         payer_email: data.buyer_email, // The buyer who will pay
         payee_email: data.seller_email, // The seller who receives the payment
-        vertical: 'inmobiliaria',
-        // Commission calculation - only calculate if commissions are enabled
-        total_commission_amount: data.has_commission ? ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100) : 0,
-        net_amount: data.has_commission ? (parseFloat(data.payment_amount) - ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100)) : parseFloat(data.payment_amount),
-        // Add broker's commission percentage (only if commission is enabled)
-        broker_commission_percentage: data.has_commission && data.total_commission_percentage ? (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)) : 0
+        total_commission_percentage: data.has_commission ? parseFloat(data.total_commission_percentage || '0') : 0,
+        commission_recipients: data.has_commission ? transformedCommissionRecipients : [],
+        custody_percent: parseFloat(data.custody_percent || '0'),
+        custody_period: parseInt(data.custody_period || '0'),
+        operation_type: data.operation_type,
+        release_conditions: data.release_conditions,
+        payment_type: 'cobro_inteligente',
+        transaction_type: 'inmobiliaria',
+        vertical: 'inmobiliaria'
       };
 
       const response = await authFetch('payments/cobro-inteligente', {
@@ -281,7 +291,7 @@ export default function CobroInmobiliariaPage() {
       if (response.ok) {
         const result = await response.json();
         // Redirect to success page or payment details
-        router.push(`/dashboard/pagos/${result.payment_id}`);
+        router.push(`/dashboard/pagos/${result.payment.id}`);
       } else {
         const error = await response.json();
         alert(`Error: ${error.message || 'Failed to create payment request'}`);
@@ -758,9 +768,10 @@ export default function CobroInmobiliariaPage() {
           </div>
         </div>
 
+        <h2 className="text-lg font-medium text-gray-800 mb-6">{steps[currentStep]}</h2>
+
         {/* Step Content */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-6">{steps[currentStep]}</h2>
           {renderStep()}
         </div>
 
@@ -770,7 +781,7 @@ export default function CobroInmobiliariaPage() {
             onClick={() => currentStep === 0 ? router.push('/dashboard/cobros/tipo') : handlePrev()}
             className="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            {currentStep === 0 ? 'Cambiar tipo' : 'Anterior'}
+            {currentStep === 0 ? 'Volver a tipos de movimiento' : 'Anterior'}
           </button>
 
           <div className="flex space-x-4">

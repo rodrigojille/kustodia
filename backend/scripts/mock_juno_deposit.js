@@ -2,14 +2,14 @@ require('dotenv').config({ path: './.env' });
 const crypto = require('crypto');
 const axios = require('axios');
 
-// Mock deposit data - testing Payment 111 with valid CLABE
+// Mock deposit data - testing Payment 132 with valid CLABE
 const defaults = {
-  amount: 1000.00, // Match Payment 111 amount
-  receiver_clabe: '710969000000410937', // Valid CLABE from Payment 111
+  amount: 1000.00, // Match Payment 132 amount
+  receiver_clabe: '710969000000418010', // Valid CLABE from Payment 132
   receiver_name: 'Kustodia', // Business name registered in Juno
   sender_clabe: '032180000118359719',
   sender_name: 'Kustodia', // Must match registered business name
-  reference: 'Test deposit Payment 111 - New Payment Test'
+  reference: 'Test deposit Payment 132 - Mock Deposit Test'
 };
 
 console.log('--- MOCK DEPOSIT PAYLOAD ---');

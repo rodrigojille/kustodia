@@ -3,10 +3,36 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { authFetch } from '../../../../utils/authFetch';
 
+// Custom hook for responsive design
+function useWindowSize() {
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800,
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
+  return windowSize;
+}
+
 export default function CobroTipoPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<string>('');
+  const { width } = useWindowSize();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -31,62 +57,68 @@ export default function CobroTipoPage() {
   const transactionTypes = [
     {
       id: 'inmobiliaria',
-      title: 'Inmobiliaria',
-      subtitle: 'Ventas de propiedades',
+      key: 'inmobiliaria',
       icon: '🏠',
-      description: 'Apartados, enganches, rentas y compra-ventas inmobiliarias. Comisiones automáticas para brokers y agentes.',
+      title: 'Inmobiliarias y agentes',
+      subtitle: 'Propiedades y bienes raíces',
+      description: 'Cierra ventas más rápido y genera confianza con tus clientes usando pagos en custodia.',
       features: [
+        'Protege anticipos y apartados',
         'Comisiones automáticas para brokers',
-        'Oculta detalles de comisión al comprador',
-        'Múltiples beneficiarios de comisión',
-        'Especializado para inmobiliaria',
-        'Integración con CRM inmobiliario'
+        'Documentación inmobiliaria integrada',
+        'Liberación condicional de fondos'
       ],
-      route: '/dashboard/cobros/inmobiliaria',
       color: 'from-blue-500 to-blue-600',
-      available: true
+      available: true,
+      route: '/dashboard/cobros/inmobiliaria'
     },
     {
       id: 'autos',
-      title: 'Autos',
-      subtitle: 'Venta de vehículos',
+      key: 'autos',
       icon: '🚗',
-      description: 'Apartados, enganches y compra-ventas de vehículos. Comisiones automáticas para vendedores y distribuidores.',
+      title: 'Autos y vehículos',
+      subtitle: 'Compra-venta automotriz',
+      description: 'Apartados, enganches y compra-ventas de vehículos con máxima seguridad.',
       features: [
+        'Apartados y enganches seguros',
         'Comisiones para vendedores',
-        'Información específica del vehículo',
-        'Apartados y enganches',
-        'Especializado para automotriz',
-        'Integración con sistemas de concesionarios'
+        'Verificación de documentos',
+        'Transferencia segura de títulos'
       ],
-      route: '/dashboard/cobros/autos',
       color: 'from-green-500 to-green-600',
-      available: true
+      available: true,
+      route: '/dashboard/cobros/autos'
     },
     {
       id: 'otros',
-      title: 'Otros',
-      subtitle: 'Servicios y productos',
+      key: 'otros',
       icon: '📦',
-      description: 'Servicios profesionales, productos y otros conceptos. Comisiones flexibles para cualquier tipo de negocio.',
+      title: 'Otros servicios y productos',
+      subtitle: 'Servicios profesionales',
+      description: 'Servicios profesionales, productos y otros conceptos con comisiones flexibles.',
       features: [
-        'Comisiones flexibles',
-        'Adaptable a cualquier negocio',
-        'Servicios profesionales',
-        'Productos diversos',
-        'Integración general'
+        'Configuración flexible',
+        'Comisiones personalizables',
+        'Múltiples tipos de productos',
+        'Pagos seguros garantizados'
       ],
-      route: '/dashboard/cobros/otros',
       color: 'from-purple-500 to-purple-600',
-      available: true
+      available: true,
+      route: '/dashboard/cobros/otros'
     }
   ];
 
   const handleTransactionTypeSelect = (transactionType: typeof transactionTypes[0]) => {
-    if (!transactionType.available) return;
-    
-    console.log(`User selected transaction type: ${transactionType.id}`);
+    console.log(`User selected transaction type: ${transactionType.key}`);
     router.push(transactionType.route);
+  };
+
+  const handleContinue = () => {
+    if (!selected) return;
+    const selectedType = transactionTypes.find(t => t.key === selected);
+    if (selectedType) {
+      handleTransactionTypeSelect(selectedType);
+    }
   };
 
   if (loading) {
@@ -101,13 +133,53 @@ export default function CobroTipoPage() {
   }
 
   return (
-    <div className="page-container">
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "#f8fafc",
+      padding: width < 640 ? "16px" : "24px"
+    }}>
+      {/* Back Button */}
+      <button
+        onClick={() => router.back()}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          background: "transparent",
+          border: "1px solid #e5e7eb",
+          borderRadius: 8,
+          padding: "8px 16px",
+          color: "#6b7280",
+          fontSize: 14,
+          fontWeight: 500,
+          cursor: "pointer",
+          marginBottom: 24,
+          transition: "all 0.2s"
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#f9fafb';
+          e.currentTarget.style.borderColor = '#d1d5db';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.borderColor = '#e5e7eb';
+        }}
+      >
+        <span style={{ marginRight: '8px' }}>←</span>
+        Volver a tipos de pago
+      </button>
+
+      <h1 style={{ 
+        fontSize: width < 640 ? "1.5rem" : "2rem", 
+        fontWeight: "bold", 
+        textAlign: "center", 
+        marginBottom: 32 
+      }}>
+        🎯 Cobro Condicional Premium
+      </h1>
+
       <div className="content-wrapper">
         {/* Page Header */}
         <div className="text-center mb-8 sm:mb-12">
-          <h1 className="page-title mb-4">
-            Cobro Condicional Premium
-          </h1>
           <p className="page-description text-base sm:text-lg lg:text-xl max-w-3xl mx-auto px-4">
             Selecciona el tipo de transacción que mejor se adapte a tu negocio. 
             Cada opción está optimizada para diferentes industrias.
@@ -157,7 +229,7 @@ export default function CobroTipoPage() {
 
                 {/* Features List */}
                 <div className="space-y-3 mb-6">
-                  {transactionType.features.map((feature, index) => (
+                  {transactionType.features.map((feature: string, index: number) => (
                     <div key={index} className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
                       <span className="text-gray-700 text-sm">{feature}</span>
@@ -201,34 +273,34 @@ export default function CobroTipoPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🏠</span>
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Inmobiliaria</h3>
               <p className="text-sm text-gray-600">
-                Campos específicos para propiedades, direcciones y tipos de operación inmobiliaria.
+                Campos específicos para propiedades, comisiones de brokers y documentación inmobiliaria.
               </p>
             </div>
-
-            <div className="text-center p-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🚗</span>
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Autos</h3>
               <p className="text-sm text-gray-600">
-                Información específica del vehículo como marca, modelo, año y número de serie.
+                Información del vehículo, documentación automotriz y comisiones de vendedores.
               </p>
             </div>
-
-            <div className="text-center p-4">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📦</span>
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Otros</h3>
               <p className="text-sm text-gray-600">
-                Campos generales para servicios profesionales, productos y otros conceptos.
+                Configuración flexible para servicios, productos y cualquier tipo de negocio.
               </p>
             </div>
           </div>
