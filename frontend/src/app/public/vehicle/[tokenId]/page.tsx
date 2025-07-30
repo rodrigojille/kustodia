@@ -137,29 +137,29 @@ export default function PublicVehicleHistoryPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
+          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+            <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
               <Link 
                 href="https://kustodia.mx/compra-venta/vehiculos"
-                className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+                className="flex items-center text-blue-600 hover:text-blue-700 transition-colors text-sm sm:text-base"
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 Volver a Vehículos
               </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
                   {vehicle.year} {vehicle.make} {vehicle.model}
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p className="text-sm sm:text-base text-gray-600 mt-1 break-words">
                   Token ID: {vehicle.tokenId} • {vehicle.blockchain}
                 </p>
               </div>
             </div>
-            <div className="text-right">
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+            <div className="flex-shrink-0">
+              <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap ${
                 trustIndicators.kustodiaVerified 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-yellow-100 text-yellow-800'
@@ -173,23 +173,23 @@ export default function PublicVehicleHistoryPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Vehicle Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Vehículo</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Información del Vehículo</h3>
             <div className="space-y-2">
-              <div><span className="font-medium">Marca:</span> {vehicle.make}</div>
-              <div><span className="font-medium">Modelo:</span> {vehicle.model}</div>
-              <div><span className="font-medium">Año:</span> {vehicle.year}</div>
-              <div><span className="font-medium">Color:</span> {vehicle.color}</div>
+              <div className="text-sm sm:text-base break-words"><span className="font-medium">Marca:</span> {vehicle.make}</div>
+              <div className="text-sm sm:text-base break-words"><span className="font-medium">Modelo:</span> {vehicle.model}</div>
+              <div className="text-sm sm:text-base break-words"><span className="font-medium">Año:</span> {vehicle.year}</div>
+              <div className="text-sm sm:text-base break-words"><span className="font-medium">Color:</span> {vehicle.color}</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Verificación</h3>
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Verificación</h3>
             <div className="space-y-2">
-              <div className="flex items-center">
-                <span className="font-medium">Estado:</span>
-                <span className={`ml-2 px-2 py-1 rounded text-sm ${
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0">
+                <span className="font-medium text-sm sm:text-base">Estado:</span>
+                <span className={`sm:ml-2 px-2 py-1 rounded text-xs sm:text-sm inline-block whitespace-nowrap ${
                   history.verificationStatus.percentage >= 80 
                     ? 'bg-green-100 text-green-800'
                     : history.verificationStatus.percentage >= 60
@@ -199,22 +199,22 @@ export default function PublicVehicleHistoryPage() {
                   {history.verificationStatus.status}
                 </span>
               </div>
-              <div><span className="font-medium">Eventos Verificados:</span> {history.verificationStatus.verifiedEvents}/{history.verificationStatus.totalEvents}</div>
-              <div><span className="font-medium">Puntuación de Confianza:</span> {history.summary.averageTrustScore}/100</div>
+              <div className="text-sm sm:text-base break-words"><span className="font-medium">Eventos Verificados:</span> {history.verificationStatus.verifiedEvents}/{history.verificationStatus.totalEvents}</div>
+              <div className="text-sm sm:text-base break-words"><span className="font-medium">Puntuación de Confianza:</span> {history.summary.averageTrustScore}/100</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Blockchain</h3>
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Blockchain</h3>
             <div className="space-y-2">
-              <div><span className="font-medium">Red:</span> {vehicle.blockchain}</div>
-              <div><span className="font-medium">Verificado:</span> {trustIndicators.blockchainVerified ? '✅ Sí' : '❌ No'}</div>
+              <div className="text-sm sm:text-base break-words"><span className="font-medium">Red:</span> {vehicle.blockchain}</div>
+              <div className="text-sm sm:text-base break-words"><span className="font-medium">Verificado:</span> {trustIndicators.blockchainVerified ? '✅ Sí' : '❌ No'}</div>
               <div>
                 <a 
                   href={vehicle.verificationUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm break-all"
                 >
                   Ver en Blockchain Explorer →
                 </a>
@@ -242,47 +242,56 @@ export default function PublicVehicleHistoryPage() {
             ) : (
               <div className="space-y-6">
                 {history.events.map((event, index) => (
-                  <div key={index} className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50">
+                  <div key={index} className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-4 p-4 border rounded-lg hover:bg-gray-50">
                     <div 
-                      className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white text-xl"
+                      className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white text-xl mx-auto sm:mx-0"
                       style={{ backgroundColor: event.eventColor }}
                     >
                       {event.eventIcon}
                     </div>
                     
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-gray-900">
+                    <div className="flex-1 min-w-0 space-y-3">
+                      {/* Header with title and badges */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 break-words">
                           {event.eventTypeSpanish}
                         </h3>
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        <div className="flex flex-wrap items-center gap-2 sm:flex-shrink-0">
+                          <span className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
                             event.impactLevel === 'Alto' ? 'bg-red-100 text-red-800' :
                             event.impactLevel === 'Medio' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-green-100 text-green-800'
                           }`}>
                             Impacto {event.impactLevel}
                           </span>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
                             Confianza: {event.trustScore}/100
                           </span>
                         </div>
                       </div>
                       
-                      <p className="text-gray-700 mt-1">{event.enhancedDescription}</p>
+                      {/* Description */}
+                      <p className="text-sm sm:text-base text-gray-700 break-words leading-relaxed">{event.enhancedDescription}</p>
                       
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <span>{event.formattedDate} • {event.formattedTime}</span>
-                          <span>{event.relativeTime}</span>
+                      {/* Date and verification info */}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500">
+                          <span className="whitespace-nowrap">{event.formattedDate}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="whitespace-nowrap">{event.formattedTime}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="whitespace-nowrap">{event.relativeTime}</span>
                           {event.documentCount > 0 && (
-                            <span>📎 {event.documentCount} documentos</span>
+                            <>
+                              <span className="hidden sm:inline">•</span>
+                              <span className="whitespace-nowrap">📎 {event.documentCount} documentos</span>
+                            </>
                           )}
                         </div>
                         
                         <div className="flex items-center space-x-2">
                           {event.isVerified && (
-                            <span className="text-green-600 text-sm">✅ {event.verificationLevel}</span>
+                            <span className="text-green-600 text-xs sm:text-sm whitespace-nowrap">✅ {event.verificationLevel}</span>
                           )}
                         </div>
                       </div>
