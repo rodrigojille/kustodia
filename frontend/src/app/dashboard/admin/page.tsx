@@ -7,6 +7,7 @@ import DisputeCard from '../../../components/admin/DisputeCard';
 import DisputeDetailsModal from '../../../components/admin/DisputeDetailsModal';
 import TicketDetailsModal from '../../../components/admin/TicketDetailsModal';
 import HerokuLogsViewer from '../../../components/admin/HerokuLogsViewer';
+import MultiSigDashboard from '../../../components/admin/MultiSigDashboard';
 
 interface Ticket {
   id: number;
@@ -68,7 +69,7 @@ const AdminDashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'disputes' | 'operations'>('operations');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'disputes' | 'operations' | 'multisig'>('operations');
   
   // Environment detection
   const isProduction = typeof window !== 'undefined' && window.location.hostname === 'kustodia.mx';
@@ -520,6 +521,16 @@ const AdminDashboardPage = () => {
           >
             Centro de Operaciones
           </button>
+          <button
+            onClick={() => setActiveTab('multisig')}
+            className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'multisig'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            🔐 Multi-Sig
+          </button>
 
         </nav>
       </div>
@@ -969,6 +980,10 @@ const AdminDashboardPage = () => {
             </div>
           )}
 
+          {/* Multi-Sig Tab */}
+          {activeTab === 'multisig' && (
+            <MultiSigDashboard />
+          )}
 
         </>
       )}

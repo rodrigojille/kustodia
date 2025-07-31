@@ -2,10 +2,10 @@ require('dotenv').config({ path: '../.env' });
 const axios = require('axios');
 const crypto = require('crypto');
 
-// Mock deposit configuration - UPDATE THESE VALUES after creating payment from frontend
-const PAYMENT_ID = 135; // Update with actual payment ID
-const DEPOSIT_CLABE = '710969000000418065'; // Update with actual CLABE from frontend
-const AMOUNT = 5000; // Update with actual amount
+// Mock deposit configuration - UPDATED FOR MULTI-SIG TEST
+const PAYMENT_ID = 140; // Payment ID for $30,000
+const DEPOSIT_CLABE = '710969000000418418'; // CLABE from payment 140
+const AMOUNT = 30000; // 30,000 MXN
 
 async function mockNuevoFlujoDeposit() {
   try {

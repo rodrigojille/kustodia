@@ -61,6 +61,8 @@ const assetNFTRoutes_1 = __importDefault(require("./routes/assetNFTRoutes"));
 const publicHistory_1 = __importDefault(require("./routes/publicHistory"));
 const portalPayment_1 = __importDefault(require("./routes/portalPayment"));
 const web3Payment_1 = __importDefault(require("./routes/web3Payment"));
+const multisig_1 = __importDefault(require("./routes/multisig"));
+const preApprovalRoutes_1 = __importDefault(require("./routes/preApprovalRoutes"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json({ limit: '5mb' }));
 app.use((0, cookie_parser_1.default)()); // Enable cookie parsing for JWT authentication
@@ -164,6 +166,11 @@ async function main() {
         app.use('/api/public', publicHistory_1.default);
         app.use('/api/portal', portalPayment_1.default);
         app.use('/api/web3-payment', web3Payment_1.default);
+        app.use('/api/multisig', multisig_1.default);
+        // Create pool for preApproval routes
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+        app.use('/api/pre-approval', (0, preApprovalRoutes_1.default)(pool));
         const PORT = process.env.PORT || 4000;
         app.listen(PORT, () => {
             console.log(`Server started on port ${PORT}`);

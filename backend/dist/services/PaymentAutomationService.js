@@ -42,6 +42,8 @@ const escrowService_1 = require("./escrowService");
 const junoService_1 = require("./junoService");
 const paymentNotificationIntegration_1 = require("./paymentNotificationIntegration");
 const paymentNotificationService_1 = require("../utils/paymentNotificationService");
+const TransactionRouterService_1 = require("./TransactionRouterService");
+const MultiSigService_1 = require("./MultiSigService");
 const typeorm_1 = require("typeorm");
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const Payment_1 = require("../entity/Payment");
@@ -52,10 +54,17 @@ const dotenv = __importStar(require("dotenv"));
 const node_crypto_1 = require("node:crypto");
 const axios_1 = __importDefault(require("axios"));
 const ethers_1 = require("ethers");
+const pg_1 = require("pg");
 dotenv.config();
 class PaymentAutomationService {
     constructor() {
         this.paymentService = new paymentService_1.PaymentService();
+        this.transactionRouter = new TransactionRouterService_1.TransactionRouterService();
+        // Create database pool for MultiSigService
+        const pool = new pg_1.Pool({
+            connectionString: process.env.DATABASE_URL
+        });
+        this.multiSigService = new MultiSigService_1.MultiSigService(pool);
         // Initialize Juno service to set up API credentials
         (0, junoService_1.initializeJunoService)();
     }
@@ -434,58 +443,44 @@ class PaymentAutomationService {
                         // For traditional payments: Release based on deadline only
                         console.log(`⏰ Traditional payment ${escrow.payment.id} deadline expired, releasing`);
                     }
-                    console.log(`🔓 Releasing escrow ${escrow.id} for payment ${escrow.payment.id}`);
+                    console.log(`🔓 Processing escrow ${escrow.id} for payment ${escrow.payment.id}`);
                     // Validate escrow is actually funded on-chain before attempting release
                     if (!escrow.smart_contract_escrow_id) {
                         console.error(`❌ Escrow ${escrow.id} has no smart contract ID, skipping`);
                         continue;
                     }
                     console.log(`🔍 Validating on-chain funding for escrow ID ${escrow.smart_contract_escrow_id}`);
-                    // Call smart contract release function
-                    console.log(`🔗 Calling smart contract release for escrow ID ${escrow.smart_contract_escrow_id}`);
-                    const releaseTxHash = await (0, escrowService_1.releaseEscrow)(Number(escrow.smart_contract_escrow_id));
-                    // Update escrow status to released and store transaction hash
-                    escrow.status = 'released';
-                    escrow.release_tx_hash = releaseTxHash;
-                    await escrowRepo.save(escrow);
-                    // Log the release event with transaction hash
-                    await this.paymentService.logPaymentEvent(escrow.payment.id, 'escrow_release_success', `Custodia ${escrow.smart_contract_escrow_id} liberada del contrato. Tx: ${releaseTxHash}`, true);
-                    // Create escrow release notification
-                    try {
-                        await (0, paymentNotificationIntegration_1.createPaymentNotifications)(escrow.payment.id, 'payment_released');
-                        console.log(`📧 Payment ${escrow.payment.id} escrow released - in-app notifications sent`);
-                    }
-                    catch (notificationError) {
-                        console.error(`⚠️ Failed to send escrow release in-app notifications for payment ${escrow.payment.id}:`, notificationError);
-                    }
-                    // Send email notification for escrow release
-                    try {
-                        const recipients = [];
-                        if (escrow.payment.payer_email) {
-                            recipients.push({ email: escrow.payment.payer_email, role: 'payer' });
+                    // 🚀 NEW: Check if multi-sig approval is required
+                    const route = await this.transactionRouter.routeTransaction({
+                        amount: escrow.payment.amount,
+                        type: 'escrow_release',
+                        paymentId: escrow.payment.id
+                    });
+                    if (route.requiresApproval) {
+                        console.log(`🔐 Multi-sig approval required for Payment ${escrow.payment.id} ($${escrow.payment.amount})`);
+                        // 🆕 CHECK FOR PRE-APPROVED TRANSACTION
+                        const preApprovedTx = await this.checkForPreApprovedTransaction(escrow.payment.id);
+                        if (preApprovedTx && preApprovedTx.isFullySigned) {
+                            console.log(`✅ Pre-approved transaction found for Payment ${escrow.payment.id}, executing...`);
+                            await this.executePreApprovedTransaction(escrow, preApprovedTx);
                         }
-                        if (escrow.payment.recipient_email) {
-                            recipients.push({ email: escrow.payment.recipient_email, role: 'seller' });
+                        else if (preApprovedTx) {
+                            console.log(`⏳ Pre-approval exists but not fully signed for Payment ${escrow.payment.id} (${preApprovedTx.current_signatures}/${preApprovedTx.required_signatures})`);
+                            // Update payment status to show it's waiting for signatures
+                            escrow.payment.status = 'pending_multisig_approval';
+                            await ormconfig_1.default.getRepository(Payment_1.Payment).save(escrow.payment);
                         }
-                        if (recipients.length > 0) {
-                            await (0, paymentNotificationService_1.sendPaymentEventNotification)({
-                                eventType: 'payment_released',
-                                paymentId: escrow.payment.id.toString(),
-                                paymentDetails: {
-                                    amount: escrow.payment.amount,
-                                    description: escrow.payment.description,
-                                    payer_email: escrow.payment.payer_email,
-                                    recipient_email: escrow.payment.recipient_email
-                                },
-                                recipients
-                            });
+                        else {
+                            console.log(`🔐 Creating new multi-sig approval request for Payment ${escrow.payment.id}`);
+                            await this.handleMultiSigRequired(escrow, route);
                         }
-                        console.log(`📧 Payment ${escrow.payment.id} escrow released - email notifications sent`);
                     }
-                    catch (emailError) {
-                        console.error(`⚠️ Failed to send escrow release email notifications for payment ${escrow.payment.id}:`, emailError);
+                    else {
+                        console.log(`⚡ Direct release for Payment ${escrow.payment.id} ($${escrow.payment.amount})`);
+                        const releaseTxHash = await this.releaseEscrowDirectly(escrow);
+                        // Handle notifications for direct releases
+                        await this.handleDirectReleaseNotifications(escrow, releaseTxHash);
                     }
-                    console.log(`✅ Escrow ${escrow.id} released successfully.`);
                 }
                 catch (error) {
                     console.error(`❌ Failed to release escrow ${escrow.id}:`, error.message);
@@ -716,6 +711,224 @@ class PaymentAutomationService {
         await tx.wait();
         console.log(`✅ Transferred ${amount} MXNB to Juno wallet. Tx: ${tx.hash}`);
         return tx.hash;
+    }
+    /**
+     * Check if a payment has a pre-approved multi-sig transaction
+     */
+    async checkForPreApprovedTransaction(paymentId) {
+        try {
+            const approval = await this.multiSigService.getApprovalsByPaymentId(paymentId);
+            if (!approval || approval.length === 0) {
+                return null;
+            }
+            const latestApproval = approval[0]; // Get the most recent approval
+            const signatures = await this.multiSigService.getSignaturesByApprovalId(latestApproval.id);
+            return {
+                ...latestApproval,
+                current_signatures: signatures.length,
+                required_signatures: latestApproval.required_signatures,
+                isFullySigned: signatures.length >= latestApproval.required_signatures,
+                signatures
+            };
+        }
+        catch (error) {
+            console.error(`Error checking pre-approved transaction for payment ${paymentId}:`, error.message);
+            return null;
+        }
+    }
+    /**
+     * Execute a pre-approved multi-sig transaction
+     */
+    async executePreApprovedTransaction(escrow, preApprovedTx) {
+        try {
+            console.log(`🚀 Executing pre-approved transaction for Payment ${escrow.payment.id}`);
+            // Execute the multi-sig transaction through Gnosis Safe
+            const executionResult = await this.multiSigService.executeApprovedTransaction(preApprovedTx.id);
+            if (executionResult.success) {
+                // Update escrow status
+                const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
+                escrow.status = 'released';
+                escrow.release_tx_hash = executionResult.txHash;
+                await escrowRepo.save(escrow);
+                // Update payment status
+                const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
+                escrow.payment.status = 'released';
+                await paymentRepo.save(escrow.payment);
+                // Log the successful execution
+                await this.paymentService.logPaymentEvent(escrow.payment.id, 'escrow_released_multisig', `Pre-approved multi-sig transaction executed. Tx: ${executionResult.txHash || 'N/A'}`, true);
+                console.log(`✅ Pre-approved transaction executed for Payment ${escrow.payment.id}. Tx: ${executionResult.txHash || 'N/A'}`);
+                // Send notifications
+                await this.handleDirectReleaseNotifications(escrow, executionResult.txHash || '');
+            }
+            else {
+                throw new Error(executionResult.error || 'Transaction execution failed');
+            }
+        }
+        catch (error) {
+            console.error(`❌ Failed to execute pre-approved transaction for payment ${escrow.payment.id}:`, error.message);
+            // Log the execution error
+            await this.paymentService.logPaymentEvent(escrow.payment.id, 'escrow_release_error', `Pre-approved transaction execution failed: ${error.message}`, true);
+            throw error;
+        }
+    }
+    /**
+     * Handle escrow release that requires multi-sig approval
+     */
+    async handleMultiSigRequired(escrow, route) {
+        try {
+            const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
+            // Update payment status to indicate multi-sig approval needed
+            escrow.payment.status = 'pending_multisig_approval';
+            await paymentRepo.save(escrow.payment);
+            // Create multi-sig approval request
+            const multiSigTx = await this.multiSigService.createApprovalRequest(escrow.payment.id, 'high_value');
+            // Log multi-sig transaction creation
+            await this.paymentService.logPaymentEvent(escrow.payment.id, 'escrow_release_pending', `Multi-sig transaction created: ${multiSigTx.id}`, true);
+            // Notify admins about the multi-sig requirement
+            await this.notifyAdminsMultiSigRequired(escrow.payment);
+            console.log(`🔐 Multi-sig transaction created for Payment ${escrow.payment.id}: ${multiSigTx.id}`);
+        }
+        catch (error) {
+            console.error(`❌ Failed to handle multi-sig requirement for payment ${escrow.payment.id}:`, error.message);
+            // Log the multi-sig setup error
+            await this.paymentService.logPaymentEvent(escrow.payment.id, 'escrow_release_error', `Failed to create multi-sig transaction: ${error.message}`, true);
+        }
+    }
+    /**
+     * Release escrow directly (for transactions below multi-sig threshold)
+     */
+    async releaseEscrowDirectly(escrow) {
+        const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
+        // Call smart contract release function
+        console.log(`🔗 Calling smart contract release for escrow ID ${escrow.smart_contract_escrow_id}`);
+        const releaseTxHash = await (0, escrowService_1.releaseEscrow)(Number(escrow.smart_contract_escrow_id));
+        // Update escrow status to released and store transaction hash
+        escrow.status = 'released';
+        escrow.release_tx_hash = releaseTxHash;
+        await escrowRepo.save(escrow);
+        console.log(`✅ Escrow ${escrow.id} released directly. Tx: ${releaseTxHash}`);
+        return releaseTxHash;
+    }
+    /**
+     * Notify admins about pending multi-sig approval
+     */
+    async notifyAdminsMultiSigRequired(payment) {
+        try {
+            // Create in-app notifications for multi-sig requirement
+            await (0, paymentNotificationIntegration_1.createPaymentNotifications)(payment.id, 'escrow_executing');
+            console.log(`📧 Multi-sig approval notification sent for Payment ${payment.id}`);
+            // Send email notification to admins
+            const adminEmails = [
+                { email: 'rodrigojille6@gmail.com', role: 'admin' }
+            ];
+            await (0, paymentNotificationService_1.sendPaymentEventNotification)({
+                eventType: 'escrow_executing',
+                paymentId: payment.id.toString(),
+                paymentDetails: {
+                    amount: payment.amount,
+                    description: payment.description,
+                    payer_email: payment.payer_email,
+                    recipient_email: payment.recipient_email
+                },
+                recipients: adminEmails
+            });
+        }
+        catch (error) {
+            console.error(`⚠️ Failed to send multi-sig approval notifications for payment ${payment.id}:`, error);
+        }
+    }
+    /**
+     * Execute approved multi-sig escrow release
+     * This method will be called when multi-sig approval is complete
+     */
+    async executeApprovedMultiSigRelease(paymentId) {
+        try {
+            const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
+            const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
+            // Find the payment and its escrow
+            const payment = await paymentRepo.findOne({
+                where: { id: paymentId },
+                relations: ['escrow']
+            });
+            if (!payment || !payment.escrow) {
+                throw new Error(`Payment ${paymentId} or its escrow not found`);
+            }
+            const escrow = payment.escrow;
+            // Get the approval request for this payment
+            const approvals = await this.multiSigService.getApprovalsByPaymentId(paymentId);
+            if (!approvals || approvals.length === 0) {
+                throw new Error(`No multi-sig approval found for payment ${paymentId}`);
+            }
+            const approval = approvals[0]; // Get the most recent approval
+            // Execute the escrow release via Gnosis Safe
+            console.log(`🔐 Executing multi-sig approved escrow release for Payment ${paymentId}`);
+            const releaseResult = await this.multiSigService.executeApprovedTransaction(approval.id);
+            if (!releaseResult.success) {
+                throw new Error(releaseResult.error || 'Failed to execute multi-sig transaction');
+            }
+            // Update escrow and payment status
+            escrow.status = 'released';
+            escrow.release_tx_hash = releaseResult.txHash || '';
+            payment.status = 'multisig_approved';
+            await escrowRepo.save(escrow);
+            await paymentRepo.save(payment);
+            // Log the successful execution
+            await this.paymentService.logPaymentEvent(paymentId, 'escrow_release_success', `Multi-sig approved escrow release executed. Tx: ${releaseResult.txHash || 'N/A'}`, true);
+            console.log(`✅ Multi-sig escrow release executed for Payment ${paymentId}. Tx: ${releaseResult.txHash || 'N/A'}`);
+        }
+        catch (error) {
+            console.error(`❌ Failed to execute multi-sig escrow release for payment ${paymentId}:`, error.message);
+            // Log the execution error
+            await this.paymentService.logPaymentEvent(paymentId, 'escrow_release_error', `Failed to execute multi-sig escrow release: ${error.message}`, true);
+        }
+    }
+    /**
+     * Handle notifications for direct escrow releases
+     */
+    async handleDirectReleaseNotifications(escrow, releaseTxHash) {
+        try {
+            // Log the release event with transaction hash
+            await this.paymentService.logPaymentEvent(escrow.payment.id, 'escrow_release_success', `Custodia ${escrow.smart_contract_escrow_id} liberada del contrato. Tx: ${releaseTxHash}`, true);
+            // Create escrow release notification
+            try {
+                await (0, paymentNotificationIntegration_1.createPaymentNotifications)(escrow.payment.id, 'payment_released');
+                console.log(`📧 Payment ${escrow.payment.id} escrow released - in-app notifications sent`);
+            }
+            catch (notificationError) {
+                console.error(`⚠️ Failed to send escrow release in-app notifications for payment ${escrow.payment.id}:`, notificationError);
+            }
+            // Send email notification for escrow release
+            try {
+                const recipients = [];
+                if (escrow.payment.payer_email) {
+                    recipients.push({ email: escrow.payment.payer_email, role: 'payer' });
+                }
+                if (escrow.payment.recipient_email) {
+                    recipients.push({ email: escrow.payment.recipient_email, role: 'seller' });
+                }
+                if (recipients.length > 0) {
+                    await (0, paymentNotificationService_1.sendPaymentEventNotification)({
+                        eventType: 'payment_released',
+                        paymentId: escrow.payment.id.toString(),
+                        paymentDetails: {
+                            amount: escrow.payment.amount,
+                            description: escrow.payment.description,
+                            payer_email: escrow.payment.payer_email,
+                            recipient_email: escrow.payment.recipient_email
+                        },
+                        recipients
+                    });
+                }
+                console.log(`📧 Payment ${escrow.payment.id} escrow released - email notifications sent`);
+            }
+            catch (emailError) {
+                console.error(`⚠️ Failed to send escrow release email notifications for payment ${escrow.payment.id}:`, emailError);
+            }
+            console.log(`✅ Escrow ${escrow.id} released successfully.`);
+        }
+        catch (error) {
+            console.error(`❌ Failed to handle direct release notifications for escrow ${escrow.id}:`, error.message);
+        }
     }
 }
 exports.PaymentAutomationService = PaymentAutomationService;

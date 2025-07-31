@@ -71,9 +71,9 @@ export default function RevolutStatusCards() {
       ['pending', 'requested', 'funded'].includes(p.status)
     );
     
-    // EN CUSTODIA: escrowed, active, disputes (all funds in custody/escrow)
+    // EN CUSTODIA: escrowed, active, disputes, pending_multisig_approval (all funds in custody/escrow)
     const custodyPayments = paymentsData.filter(p => 
-      ['escrowed', 'active', 'in_dispute', 'disputed'].includes(p.status)
+      ['escrowed', 'active', 'in_dispute', 'disputed', 'pending_multisig_approval'].includes(p.status)
     );
     
     // FINALIZADOS: completed, cancelled, paid (finished states)

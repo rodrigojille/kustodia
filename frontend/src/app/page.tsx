@@ -1214,117 +1214,119 @@ export default function LandingPage() {
           </section>
         </RevealAnimation>
 
-        {/* NFT Digital Twin Section */}
-        <RevealAnimation>
-          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="nft-heading">
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl shadow-xl border border-purple-200 p-8 md:p-12 relative overflow-hidden">
-              {/* Background decoration */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-purple-100 rounded-full -mr-20 -mt-20 opacity-30" aria-hidden="true"></div>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-100 rounded-full -ml-16 -mb-16 opacity-30" aria-hidden="true"></div>
-              
-              <div className="relative z-10">
-                <div className="text-center mb-12">
-                  <h2 id="nft-heading" className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    🎨 Gemelos Digitales de Activos
-                  </h2>
-                  <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                    Crea gemelos digitales verificados de tus vehículos y propiedades. Publica en cualquier marketplace con confianza total.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                  {/* Step 1 */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-purple-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                      1
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">🎨 Crear Gemelo Digital</h3>
-                    <p className="text-sm text-gray-600">
-                      Propietarios crean el gemelo digital verificado de su vehículo o propiedad a través de Kustodia
+        {/* NFT Digital Twin Section - HIDDEN */}
+        {false && (
+          <RevealAnimation>
+            <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="nft-heading">
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl shadow-xl border border-purple-200 p-8 md:p-12 relative overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-100 rounded-full -mr-20 -mt-20 opacity-30" aria-hidden="true"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-100 rounded-full -ml-16 -mb-16 opacity-30" aria-hidden="true"></div>
+                
+                <div className="relative z-10">
+                  <div className="text-center mb-12">
+                    <h2 id="nft-heading" className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                      🎨 Gemelos Digitales de Activos
+                    </h2>
+                    <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                      Crea gemelos digitales verificados de tus vehículos y propiedades. Publica en cualquier marketplace con confianza total.
                     </p>
                   </div>
 
-                  {/* Step 2 */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                      2
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    {/* Step 1 */}
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-purple-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                        1
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-2">🎨 Crear Gemelo Digital</h3>
+                      <p className="text-sm text-gray-600">
+                        Propietarios crean el gemelo digital verificado de su vehículo o propiedad a través de Kustodia
+                      </p>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">📱 Publicar Seguro</h3>
-                    <p className="text-sm text-gray-600">
-                      Agentes pueden mostrar el gemelo digital en cualquier plataforma con verificación automática
-                    </p>
-                  </div>
 
-                  {/* Step 3 */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                      3
+                    {/* Step 2 */}
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                        2
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-2">📱 Publicar Seguro</h3>
+                      <p className="text-sm text-gray-600">
+                        Agentes pueden mostrar el gemelo digital en cualquier plataforma con verificación automática
+                      </p>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">✅ Verificar Información</h3>
-                    <p className="text-sm text-gray-600">
-                      Compradores pueden verificar toda la información antes de comprar con códigos QR y blockchain
-                    </p>
-                  </div>
 
-                  {/* Step 4 */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-orange-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                      4
+                    {/* Step 3 */}
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                        3
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-2">✅ Verificar Información</h3>
+                      <p className="text-sm text-gray-600">
+                        Compradores pueden verificar toda la información antes de comprar con códigos QR y blockchain
+                      </p>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">🔄 Crear Seguros</h3>
-                    <p className="text-sm text-gray-600">
-                      Pago seguro con Kustodia con el gemelo digital como respaldo y verificación automática
-                    </p>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-blue-50 p-6 rounded-lg">
-                    <h4 className="font-semibold text-blue-900 mb-3">💰 Para Compradores</h4>
-                    <ul className="text-sm text-blue-800 space-y-2">
-                      <li>• Historial verificado y trazabilidad completa</li>
-                      <li>• Protección de pago con garantía de depósito</li>
-                      <li>• Registros inmutables de propiedad</li>
-                      <li>• Verificación fácil con códigos QR</li>
-                    </ul>
+                    {/* Step 4 */}
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-orange-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                        4
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-2">🔄 Crear Seguros</h3>
+                      <p className="text-sm text-gray-600">
+                        Pago seguro con Kustodia con el gemelo digital como respaldo y verificación automática
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="bg-green-50 p-6 rounded-lg">
-                    <h4 className="font-semibold text-green-900 mb-3">💰 Para Vendedores</h4>
-                    <ul className="text-sm text-green-800 space-y-2">
-                      <li>• Mayor valor del activo con verificación</li>
-                      <li>• Publicar en cualquier plataforma de venta</li>
-                      <li>• Historial transparente de transacciones</li>
-                      <li>• Reducción de fraudes y disputas</li>
-                    </ul>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-blue-50 p-6 rounded-lg">
+                      <h4 className="font-semibold text-blue-900 mb-3">💰 Para Compradores</h4>
+                      <ul className="text-sm text-blue-800 space-y-2">
+                        <li>• Historial verificado y trazabilidad completa</li>
+                        <li>• Protección de pago con garantía de depósito</li>
+                        <li>• Registros inmutables de propiedad</li>
+                        <li>• Verificación fácil con códigos QR</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-green-50 p-6 rounded-lg">
+                      <h4 className="font-semibold text-green-900 mb-3">💰 Para Vendedores</h4>
+                      <ul className="text-sm text-green-800 space-y-2">
+                        <li>• Mayor valor del activo con verificación</li>
+                        <li>• Publicar en cualquier plataforma de venta</li>
+                        <li>• Historial transparente de transacciones</li>
+                        <li>• Reducción de fraudes y disputas</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-purple-50 p-6 rounded-lg">
+                      <h4 className="font-semibold text-purple-900 mb-3">🏢 Para Agencias y Talleres</h4>
+                      <ul className="text-sm text-purple-800 space-y-2">
+                        <li>• Actualizar registros de mantenimiento</li>
+                        <li>• Historial certificado de servicios</li>
+                        <li>• Mayor confianza del cliente</li>
+                        <li>• Nuevas oportunidades de ingresos</li>
+                      </ul>
+                    </div>
                   </div>
 
-                  <div className="bg-purple-50 p-6 rounded-lg">
-                    <h4 className="font-semibold text-purple-900 mb-3">🏢 Para Agencias y Talleres</h4>
-                    <ul className="text-sm text-purple-800 space-y-2">
-                      <li>• Actualizar registros de mantenimiento</li>
-                      <li>• Historial certificado de servicios</li>
-                      <li>• Mayor confianza del cliente</li>
-                      <li>• Nuevas oportunidades de ingresos</li>
-                    </ul>
+                  <div className="text-center mt-8">
+                    <a 
+                      href="/nft-demo" 
+                      className="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-purple-700 transition-colors shadow-lg"
+                    >
+                      🎨 Probar Gemelos Digitales
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                      </svg>
+                    </a>
                   </div>
-                </div>
-
-                <div className="text-center mt-8">
-                  <a 
-                    href="/nft-demo" 
-                    className="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-purple-700 transition-colors shadow-lg"
-                  >
-                    🎨 Probar Gemelos Digitales
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                    </svg>
-                  </a>
                 </div>
               </div>
-            </div>
-          </section>
-        </RevealAnimation>
+            </section>
+          </RevealAnimation>
+        )}
 
         {/* MXNB Section */}
         <RevealAnimation>

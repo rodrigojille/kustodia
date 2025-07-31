@@ -142,7 +142,7 @@ export default function PagoFormFull() {
         currency: 'MXN',
         description,
         custody_percent: warrantyPercent ? Number(warrantyPercent) : null,
-        custody_period: custodyDays ? Number(custodyDays) * 24 * 60 * 60 : null, // Convert days to seconds
+        custody_period: custodyDays ? Number(custodyDays) : null, // Send days directly (backend expects days)
         ...commissionFields,
       };
 

@@ -29,6 +29,8 @@ import assetNFTRoutes from './routes/assetNFTRoutes';
 import publicHistoryRoutes from './routes/publicHistory';
 import portalPaymentRoutes from './routes/portalPayment';
 import web3PaymentRoutes from './routes/web3Payment';
+import multisigRoutes from './routes/multisig';
+import createPreApprovalRoutes from './routes/preApprovalRoutes';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
@@ -142,6 +144,12 @@ async function main() {
     app.use('/api/public', publicHistoryRoutes);
     app.use('/api/portal', portalPaymentRoutes);
     app.use('/api/web3-payment', web3PaymentRoutes);
+    app.use('/api/multisig', multisigRoutes);
+    
+    // Create pool for preApproval routes
+    const { Pool } = require('pg');
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    app.use('/api/pre-approval', createPreApprovalRoutes(pool));
 
 
     const PORT = process.env.PORT || 4000;

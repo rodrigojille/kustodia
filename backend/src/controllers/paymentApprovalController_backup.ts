@@ -109,7 +109,10 @@ async function handlePaymentRelease(
     } else {
       // Standard payment - process directly
       console.log(`[APPROVAL] Payment ${payment.id} is standard value, processing directly`);
-      const releaseResult = await releaseEscrowAndPayout(payment.escrow!.id);
+      if (!payment.escrow?.id) {
+        throw new Error(`Payment ${payment.id} has no escrow associated`);
+      }
+      const releaseResult = await releaseEscrowAndPayout(payment.escrow.id);
       console.log(`[APPROVAL] Payment ${payment.id} released successfully`);
       
       // Send success notifications to both parties
@@ -229,8 +232,55 @@ export const approvePaymentPayer = async (req: AuthenticatedRequest, res: Respon
 
     // Check if both parties have approved
     if (payment.payer_approval && payment.payee_approval) {
-      await handlePaymentRelease(payment, req, res);
-      return;
+      console.log(`[APPROVAL] Both parties approved Payment ${id}, triggering release`);
+      
+      try {
+        // Trigger escrow release and payout
+        const releaseResult = await releaseEscrowAndPayout(payment.escrow.id);
+        console.log(`[APPROVAL] Payment ${id} released successfully`);
+        
+        // Send success notifications to both parties
+        const payerUser = await userRepo.findOne({ where: { email: payment.payer_email } });
+        const payeeUser = await userRepo.findOne({ where: { email: payment.recipient_email } });
+        
+        if (payerUser) {
+          await createNotification(
+            payerUser.id,
+            `¡Pago #${payment.id} liberado exitosamente! Los fondos están en camino al vendedor.`,
+            `/dashboard/payments/${payment.id}`,
+            'success',
+            payment.id,
+            'payment'
+          );
+        }
+        if (payeeUser) {
+          await createNotification(
+            payeeUser.id,
+            `¡Pago #${payment.id} liberado! Los fondos serán transferidos a tu cuenta bancaria.`,
+            `/dashboard/payments/${payment.id}`,
+            'success',
+            payment.id,
+            'payment'
+          );
+        }
+        
+        res.json({ 
+          success: true, 
+          message: 'Payment approved and released successfully',
+          both_approved: true,
+          release_triggered: true,
+          payment_status: releaseResult.payment.status
+        });
+      } catch (releaseError) {
+        console.error('[APPROVAL] Error releasing payment:', releaseError);
+        res.json({ 
+          success: true, 
+          message: 'Payment approved, but release failed',
+          both_approved: true,
+          release_triggered: false,
+          error: 'Release failed'
+        });
+      }
     } else {
       res.json({ 
         success: true, 
@@ -317,8 +367,55 @@ export const approvePaymentPayee = async (req: AuthenticatedRequest, res: Respon
 
     // Check if both parties have approved
     if (payment.payer_approval && payment.payee_approval) {
-      await handlePaymentRelease(payment, req, res);
-      return;
+      console.log(`[APPROVAL] Both parties approved Payment ${id}, triggering release`);
+      
+      try {
+        // Trigger escrow release and payout
+        const releaseResult = await releaseEscrowAndPayout(payment.escrow.id);
+        console.log(`[APPROVAL] Payment ${id} released successfully`);
+        
+        // Send success notifications to both parties
+        const payerUser = await userRepo.findOne({ where: { email: payment.payer_email } });
+        const payeeUser = await userRepo.findOne({ where: { email: payment.recipient_email } });
+        
+        if (payerUser) {
+          await createNotification(
+            payerUser.id,
+            `¡Pago #${payment.id} liberado exitosamente! Los fondos están en camino al vendedor.`,
+            `/dashboard/payments/${payment.id}`,
+            'success',
+            payment.id,
+            'payment'
+          );
+        }
+        if (payeeUser) {
+          await createNotification(
+            payeeUser.id,
+            `¡Pago #${payment.id} liberado! Los fondos serán transferidos a tu cuenta bancaria.`,
+            `/dashboard/payments/${payment.id}`,
+            'success',
+            payment.id,
+            'payment'
+          );
+        }
+        
+        res.json({ 
+          success: true, 
+          message: 'Payment approved and released successfully',
+          both_approved: true,
+          release_triggered: true,
+          payment_status: releaseResult.payment.status
+        });
+      } catch (releaseError) {
+        console.error('[APPROVAL] Error releasing payment:', releaseError);
+        res.json({ 
+          success: true, 
+          message: 'Payment approved, but release failed',
+          both_approved: true,
+          release_triggered: false,
+          error: 'Release failed'
+        });
+      }
     } else {
       res.json({ 
         success: true, 
