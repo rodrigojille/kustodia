@@ -17,17 +17,33 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://kustodia.mx'),
   title: "Kustodia México | Pagos en custodia seguros",
-  description: "Kustodia es un servicio digital de custodia de pagos (escrow) en México. Protege tus compras, ventas y servicios con tecnología blockchain. Tu dinero solo se libera cuando se cumple el trato. Sin fraudes, sin riesgos.",
+  description: "🛡️ Kustodia: Pagos 100% seguros en México. Escrow digital que protege tus transacciones - tu dinero se libera solo cuando todo sale bien. ✅ Sin fraudes ✅ Sin estafas ✅ Garantía total. Únete gratis.",
   keywords: [
+    // Primary keywords
     "custodia de pagos",
     "escrow México",
-    "seguridad digital",
-    "Kustodia seguridad",
-    "blockchain pagos",
     "pagos seguros México",
-    "protección de dinero",
-    "pagos protegidos",
-    "Kustodia México"
+    "Kustodia México",
+    // Fraud prevention keywords
+    "evitar fraudes México",
+    "protección contra estafas",
+    "pagos sin riesgo",
+    "seguridad en transacciones",
+    // Industry-specific keywords
+    "escrow inmobiliario",
+    "pagos seguros freelancer",
+    "protección compra venta",
+    "escrow marketplace",
+    "pagos seguros ecommerce",
+    // Technology keywords
+    "blockchain pagos",
+    "tecnología escrow",
+    "pagos inteligentes",
+    "custodia digital",
+    // Local market keywords
+    "pagos seguros CDMX",
+    "escrow Guadalajara",
+    "pagos protegidos Monterrey"
   ],
   icons: [
     {
@@ -87,22 +103,115 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FinancialService",
-              "name": "Kustodia",
-              "description": "Plataforma líder en pagos inteligentes y seguros de dinero en México. Protege tus operaciones y paga solo cuando todo sale bien.",
+              "name": "Kustodia México",
+              "alternateName": ["Kustodia.mx", "Kustodia Fintech", "Kustodia Escrow"],
+              "description": "Kustodia México es la plataforma líder en servicios de escrow y custodia de pagos digitales en México. Protege transacciones con tecnología blockchain y garantiza pagos seguros sin fraudes.",
               "url": "https://kustodia.mx",
               "logo": "https://kustodia.mx/logo.png",
+              "image": "https://kustodia.mx/og-image.png",
               "sameAs": [
-                "https://twitter.com/kustodiaapp"
+                "https://twitter.com/kustodiaapp",
+                "https://www.linkedin.com/company/kustodia-mx"
               ],
               "address": {
                 "@type": "PostalAddress",
-                "addressCountry": "MX"
+                "addressCountry": "MX",
+                "addressRegion": "México"
               },
-              "serviceType": "Escrow Service",
-              "areaServed": "Mexico"
+              "serviceType": "Digital Escrow Service",
+              "areaServed": {
+                "@type": "Country",
+                "name": "Mexico"
+              },
+              "foundingDate": "2024",
+              "industry": "Financial Technology",
+              "keywords": "escrow, custodia de pagos, pagos seguros, fintech México, blockchain",
+              "knowsAbout": [
+                "Escrow Services",
+                "Payment Security",
+                "Fraud Prevention",
+                "Digital Payments",
+                "Blockchain Technology"
+              ],
+              "hasOfferCatalog": {
+                "@type": "OfferCatalog",
+                "name": "Servicios de Custodia de Pagos",
+                "itemListElement": [
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Escrow Inmobiliario",
+                      "description": "Custodia de pagos para transacciones inmobiliarias"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Escrow E-commerce",
+                      "description": "Protección de pagos para tiendas online"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Escrow Freelancer",
+                      "description": "Pagos seguros para servicios profesionales"
+                    }
+                  }
+                ]
+              }
             })
           }}
         />
+        
+        {/* FAQ Structured Data for Rich Snippets */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@type": "Question",
+                  "name": "¿Qué es Kustodia y cómo funciona?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Kustodia es un servicio de escrow digital en México que protege tus transacciones. Tu dinero se mantiene seguro y solo se libera cuando ambas partes cumplen con el acuerdo. Elimina fraudes y estafas en compras, ventas y servicios."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "¿Es seguro usar Kustodia para mis pagos?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sí, Kustodia es 100% seguro. Utilizamos tecnología blockchain y cumplimos con las regulaciones mexicanas. Tu dinero está protegido y solo se libera cuando se cumplen todas las condiciones del acuerdo."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "¿Cuánto cuesta usar Kustodia?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Kustodia cobra una pequeña comisión solo cuando la transacción se completa exitosamente. No hay costos ocultos ni tarifas por adelantado. Solo pagas cuando todo sale bien."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "¿En qué tipo de transacciones puedo usar Kustodia?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Puedes usar Kustodia para compra-venta de vehículos, transacciones inmobiliarias, servicios freelancer, e-commerce, marketplaces y cualquier transacción donde necesites protección contra fraudes."
+                  }
+                }
+              ]
+            })
+          }}
+        />
+        
         {/* PostHog will be initialized by the CSPostHogProvider component */}
         
         {/* Google Tag Manager */}
