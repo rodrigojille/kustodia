@@ -42,7 +42,7 @@ const benefits = [
 ];
 
 export default function LandingPage() {
-  // 🔥 ANALYTICS: Initialize landing page tracking
+  // 📊 ANALYTICS: Initialize landing page tracking
   const { trackEvent, trackUserAction } = useAnalyticsContext();
   
   // TODO: Replace with real auth state
@@ -50,7 +50,7 @@ export default function LandingPage() {
   const userName = '';
   const [currentExample, setCurrentExample] = useState(1);
   
-  // 🔥 Track landing page load and customer journey start
+  // 📊 Track landing page load and customer journey start
   useEffect(() => {
     trackEvent('landing_page_loaded', {
       journey_stage: 'awareness',
@@ -65,7 +65,7 @@ export default function LandingPage() {
   const showExample = (num: number) => {
     setCurrentExample(num);
     
-    // 🔥 ANALYTICS: Track carousel manual navigation
+    // 📊 ANALYTICS: Track carousel manual navigation
     trackUserAction('carousel_navigation', {
       example_number: num,
       interaction_type: 'manual_select'
@@ -101,7 +101,7 @@ export default function LandingPage() {
     const next = currentExample === 3 ? 1 : currentExample + 1;
     setCurrentExample(next);
     
-    // 🔥 ANALYTICS: Track carousel next navigation
+    // 📊 ANALYTICS: Track carousel next navigation
     trackUserAction('carousel_navigation', {
       example_number: next,
       interaction_type: 'next_button'
@@ -112,7 +112,7 @@ export default function LandingPage() {
     const prev = currentExample === 1 ? 3 : currentExample - 1;
     setCurrentExample(prev);
     
-    // 🔥 ANALYTICS: Track carousel prev navigation
+    // 📊 ANALYTICS: Track carousel prev navigation
     trackUserAction('carousel_navigation', {
       example_number: prev,
       interaction_type: 'prev_button'
@@ -189,7 +189,7 @@ export default function LandingPage() {
           address: {
             '@type': 'PostalAddress',
             addressCountry: 'MX',
-            addressRegion: 'México'
+            addressRegion: 'M├®xico'
           }
         }) }} />
         
@@ -263,8 +263,8 @@ export default function LandingPage() {
           address: {
             '@type': 'PostalAddress',
             streetAddress: 'Calle 123, Colonia Centro',
-            addressLocality: 'Ciudad de México',
-            addressRegion: 'México',
+            addressLocality: 'Ciudad de M├®xico',
+            addressRegion: 'M├®xico',
             postalCode: '12345',
             addressCountry: 'MX'
           },
@@ -284,7 +284,7 @@ export default function LandingPage() {
             },
             author: {
               '@type': 'Person',
-              name: 'Juan Pérez'
+              name: 'Juan P├®rez'
             }
           },
           geo: {
@@ -313,7 +313,7 @@ export default function LandingPage() {
               <div className="flex flex-col items-center justify-center text-center w-full max-w-5xl">
                 {/* Trust indicator badge */}
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 text-sm font-medium px-6 py-3 rounded-full border border-blue-200 mb-8 shadow-sm">
-                  🔐 Servicio de custodia digital mediante blockchain
+                  🔒 Servicio de custodia digital mediante blockchain
                 </div>
                 
                 <h1 id="hero-heading" className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 text-gray-900 leading-[0.95] max-w-6xl mx-auto text-center tracking-tight">
@@ -483,7 +483,7 @@ export default function LandingPage() {
                         <h3 className="text-lg md:text-xl font-bold">Pago Completado</h3>
                       </div>
                       <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                        ✓ Liberado
+                        ✅ Liberado
                       </div>
                     </div>
                   </div>
@@ -508,7 +508,7 @@ export default function LandingPage() {
                       <div className="space-y-3 text-sm">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">✓</span>
+                            <span className="text-white text-xs">Ô£ô</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Pago en custodia</div>
@@ -535,7 +535,7 @@ export default function LandingPage() {
                         </div>
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">📱</span>
+                            <span className="text-white text-xs">🏠</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Entrega confirmada</div>
@@ -558,13 +558,13 @@ export default function LandingPage() {
                       <div>
                         <span className="text-gray-600">Comprador:</span>
                         <div className="font-semibold">María G. López</div>
-                        <div className="text-xs text-gray-500">★★★★★ Verificado</div>
+                        <div className="text-xs text-gray-500">⭐⭐⭐⭐⭐ Verificado</div>
                         <div className="text-xs text-gray-500">CLABE: ****9847</div>
                       </div>
                       <div>
                         <span className="text-gray-600">Vendedor:</span>
                         <div className="font-semibold">TechStore México</div>
-                        <div className="text-xs text-gray-500">★★★★★ Tienda oficial</div>
+                        <div className="text-xs text-gray-500">⭐⭐⭐⭐⭐ Tienda oficial</div>
                         <div className="text-xs text-gray-500">CLABE: ****2156</div>
                       </div>
                     </div>
@@ -575,7 +575,7 @@ export default function LandingPage() {
                         <div>
                           <span className="text-gray-600">Comisión Kustodia:</span>
                           <div className="font-semibold text-green-600 ml-2">
-                            <div className="text-lg">🎉 Acceso prioritario exclusivo</div>
+                            <div className="text-lg">👑 Acceso prioritario exclusivo</div>
                             <div className="text-xs text-gray-500 line-through">Tarifa regular: 2.5% - $625 MXN</div>
                             <div className="text-xs text-green-600 font-bold">Ahorras: $625 MXN</div>
                           </div>
@@ -622,7 +622,7 @@ export default function LandingPage() {
                         <h3 className="text-lg md:text-xl font-bold">Pago Completado</h3>
                       </div>
                       <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                        ✓ Liberado
+                        ✅ Liberado
                       </div>
                     </div>
                   </div>
@@ -647,7 +647,7 @@ export default function LandingPage() {
                       <div className="space-y-3 text-sm">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">✓</span>
+                            <span className="text-white text-xs">Ô£ô</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Apartado vehicular</div>
@@ -656,7 +656,7 @@ export default function LandingPage() {
                         </div>
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">🔍</span>
+                            <span className="text-white text-xs">🔧</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Inspección mecánica</div>
@@ -665,7 +665,7 @@ export default function LandingPage() {
                         </div>
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">📋</span>
+                            <span className="text-white text-xs">📄</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Documentos verificados</div>
@@ -697,13 +697,13 @@ export default function LandingPage() {
                       <div>
                         <span className="text-gray-600">Comprador:</span>
                         <div className="font-semibold">Carlos Mendoza</div>
-                        <div className="text-xs text-gray-500">★★★★★ Verificado</div>
+                        <div className="text-xs text-gray-500">⭐⭐⭐⭐⭐ Verificado</div>
                         <div className="text-xs text-gray-500">CLABE: ****3421</div>
                       </div>
                       <div>
                         <span className="text-gray-600">Vendedor:</span>
                         <div className="font-semibold">AutoMax Seminuevos</div>
-                        <div className="text-xs text-gray-500">★★★★★ Distribuidor autorizado</div>
+                        <div className="text-xs text-gray-500">⭐⭐⭐⭐⭐ Distribuidor autorizado</div>
                         <div className="text-xs text-gray-500">CLABE: ****7890</div>
                       </div>
                     </div>
@@ -714,7 +714,7 @@ export default function LandingPage() {
                         <div>
                           <span className="text-gray-600">Comisión Kustodia:</span>
                           <div className="font-semibold text-green-600 ml-2">
-                            <div className="text-lg">🎉 Acceso prioritario exclusivo</div>
+                            <div className="text-lg">👑 Acceso prioritario exclusivo</div>
                             <div className="text-xs text-gray-500 line-through">Tarifa regular: 1.5% - $5,775 MXN</div>
                             <div className="text-xs text-green-600 font-bold">Ahorras: $5,775 MXN</div>
                           </div>
@@ -761,7 +761,7 @@ export default function LandingPage() {
                         <h3 className="text-lg md:text-xl font-bold">Pago Completado</h3>
                       </div>
                       <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                        ✓ Liberado
+                        ✅ Liberado
                       </div>
                     </div>
                   </div>
@@ -786,7 +786,7 @@ export default function LandingPage() {
                       <div className="space-y-3 text-sm">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">✓</span>
+                            <span className="text-white text-xs">Ô£ô</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Apartado inmobiliario</div>
@@ -798,7 +798,7 @@ export default function LandingPage() {
                             <span className="text-white text-xs">🏠</span>
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">Avalúo inmobiliario</div>
+                            <div className="font-semibold text-gray-900">Avaluación inmobiliaria</div>
                             <div className="text-xs text-gray-600">8 de febrero, 4:00 PM</div>
                           </div>
                         </div>
@@ -813,7 +813,7 @@ export default function LandingPage() {
                         </div>
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">✍️</span>
+                            <span className="text-white text-xs">✓</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Promesa de compraventa</div>
@@ -836,13 +836,13 @@ export default function LandingPage() {
                       <div>
                         <span className="text-gray-600">Comprador:</span>
                         <div className="font-semibold">Ana Patricia Silva</div>
-                        <div className="text-xs text-gray-500">★★★★★ Verificado</div>
+                        <div className="text-xs text-gray-500">⭐⭐⭐⭐⭐ Verificado</div>
                         <div className="text-xs text-gray-500">CLABE: ****5678</div>
                       </div>
                       <div>
                         <span className="text-gray-600">Vendedor:</span>
                         <div className="font-semibold">Inmobiliaria Polanco</div>
-                        <div className="text-xs text-gray-500">★★★★★ Inmobiliaria certificada</div>
+                        <div className="text-xs text-gray-500">⭐⭐⭐⭐⭐ Inmobiliaria certificada</div>
                         <div className="text-xs text-gray-500">CLABE: ****9012</div>
                       </div>
                     </div>
@@ -853,7 +853,7 @@ export default function LandingPage() {
                         <div>
                           <span className="text-gray-600">Comisión Kustodia:</span>
                           <div className="font-semibold text-green-600 ml-2">
-                            <div className="text-lg">🎉 Acceso prioritario exclusivo</div>
+                            <div className="text-lg">👑 Acceso prioritario exclusivo</div>
                             <div className="text-xs text-gray-500 line-through">Tarifa regular: 2% - $50,000 MXN</div>
                             <div className="text-xs text-green-600 font-bold">Ahorras: $50,000 MXN</div>
                           </div>
@@ -952,26 +952,26 @@ export default function LandingPage() {
               
               <div className="relative z-10">
                 <div className="mb-8">
-                  <span className="text-5xl mb-6 block" role="img" aria-label="Cohete">🚀</span>
+                  <span className="text-5xl mb-6 block" role="img" aria-label="Cohete">­ƒÜÇ</span>
                   <h2 id="yield-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-                    Tus pagos en custodia ahora <span className="text-amber-600">podrán generar rendimientos</span>
+                    Tus pagos en custodia ahora <span className="text-amber-600">podr├ín generar rendimientos</span>
                   </h2>
                   
                   <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed mb-8">
-                    Mientras tu dinero está en custodia, puede generar rendimientos seguros respaldados por 
-                    <span className="font-semibold text-amber-700"> CETES del Gobierno de México</span>
+                    Mientras tu dinero est├í en custodia, puede generar rendimientos seguros respaldados por 
+                    <span className="font-semibold text-amber-700"> CETES del Gobierno de M├®xico</span>
                   </p>
                   
                   <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6 max-w-2xl mx-auto">
                     <div className="flex items-center justify-center gap-4 mb-4">
                       <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                        <span className="text-amber-600 font-bold text-lg">🏛️</span>
+                        <span className="text-amber-600 font-bold text-lg">­ƒÅø´©Å</span>
                       </div>
                       <div className="text-2xl font-bold text-amber-600">7.2%</div>
                       <div className="text-sm text-gray-600">Tasa anual actual</div>
                     </div>
                     <div className="text-xs text-gray-500 text-center">
-                      Respaldado por Certificados de la Tesorería (CETES) • <a href="https://stablebonds.s3.us-west-2.amazonaws.com/CNBV_Statement_of_Fact.pdf" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:text-amber-700 underline">Regulados ante CNBV</a>
+                      Respaldado por Certificados de la Tesorer├¡a (CETES) ÔÇó <a href="https://stablebonds.s3.us-west-2.amazonaws.com/CNBV_Statement_of_Fact.pdf" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:text-amber-700 underline">Regulados ante CNBV</a>
                     </div>
                   </div>
                 </div>
@@ -982,7 +982,7 @@ export default function LandingPage() {
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-bold">📱</span>
+                        <span className="text-blue-600 font-bold">­ƒô▒</span>
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900">iPhone 15 Pro</h3>
@@ -1005,7 +1005,7 @@ export default function LandingPage() {
                     </div>
                     
                     <div className="text-xs text-center text-gray-500">
-                      💡 Dinero protegido <span className="font-semibold">+ Rendimientos</span>
+                      ­ƒÆí Dinero protegido <span className="font-semibold">+ Rendimientos</span>
                     </div>
                   </div>
                   
@@ -1013,7 +1013,7 @@ export default function LandingPage() {
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-green-600 font-bold">🚗</span>
+                        <span className="text-green-600 font-bold">­ƒÜù</span>
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900">Honda Civic 2022</h3>
@@ -1024,7 +1024,7 @@ export default function LandingPage() {
                     <div className="bg-green-50 rounded-xl p-4 mb-4">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-gray-600">Custodia:</span>
-                        <span className="font-semibold">7 días</span>
+                        <span className="font-semibold">7 d├¡as</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Rendimiento generado:</span>
@@ -1036,7 +1036,7 @@ export default function LandingPage() {
                     </div>
                     
                     <div className="text-xs text-center text-gray-500">
-                      💡 Más tiempo = <span className="font-semibold">Más rendimientos</span>
+                      ­ƒÆí M├ís tiempo = <span className="font-semibold">M├ís rendimientos</span>
                     </div>
                   </div>
                   
@@ -1044,7 +1044,7 @@ export default function LandingPage() {
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-purple-600 font-bold">🏠</span>
+                        <span className="text-purple-600 font-bold">­ƒÅá</span>
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900">Apartamento Polanco</h3>
@@ -1055,7 +1055,7 @@ export default function LandingPage() {
                     <div className="bg-purple-50 rounded-xl p-4 mb-4">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-gray-600">Custodia:</span>
-                        <span className="font-semibold">30 días</span>
+                        <span className="font-semibold">30 d├¡as</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Rendimiento generado:</span>
@@ -1067,7 +1067,7 @@ export default function LandingPage() {
                     </div>
                     
                     <div className="text-xs text-center text-gray-500">
-                      💡 Monto mayor = <span className="font-semibold">Rendimientos mayores</span>
+                      ­ƒÆí Monto mayor = <span className="font-semibold">Rendimientos mayores</span>
                     </div>
                   </div>
                 </div>
@@ -1076,24 +1076,24 @@ export default function LandingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
                     <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                      <span className="text-amber-600">🛡️</span>
-                      Máxima Seguridad
+                      <span className="text-amber-600">­ƒøí´©Å</span>
+                      M├íxima Seguridad
                     </h3>
                     <ul className="space-y-4 text-gray-600">
                       <li className="flex items-start gap-3">
-                        <span className="text-green-500 mt-1">✓</span>
-                        <span>Respaldado por <strong>CETES del Gobierno de México</strong></span>
+                        <span className="text-green-500 mt-1">Ô£ô</span>
+                        <span>Respaldado por <strong>CETES del Gobierno de M├®xico</strong></span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="text-green-500 mt-1">✓</span>
-                        <span>Regulado por la <strong>Comisión Nacional Bancaria (CNBV)</strong></span>
+                        <span className="text-green-500 mt-1">Ô£ô</span>
+                        <span>Regulado por la <strong>Comisi├│n Nacional Bancaria (CNBV)</strong></span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="text-green-500 mt-1">✓</span>
+                        <span className="text-green-500 mt-1">Ô£ô</span>
                         <span>Capital protegido al 100% en cualquier momento</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="text-green-500 mt-1">✓</span>
+                        <span className="text-green-500 mt-1">Ô£ô</span>
                         <span>Rendimientos calculados diariamente</span>
                       </li>
                     </ul>
@@ -1101,25 +1101,25 @@ export default function LandingPage() {
                   
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
                     <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                      <span className="text-amber-600">⚡</span>
-                      Fácil de Usar
+                      <span className="text-amber-600">ÔÜí</span>
+                      F├ícil de Usar
                     </h3>
                     <ul className="space-y-4 text-gray-600">
                       <li className="flex items-start gap-3">
-                        <span className="text-green-500 mt-1">✓</span>
-                        <span><strong>Activación opcional</strong> después de crear tu custodia digital</span>
+                        <span className="text-green-500 mt-1">Ô£ô</span>
+                        <span><strong>Activaci├│n opcional</strong> despu├®s de crear tu custodia digital</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="text-green-500 mt-1">✓</span>
-                        <span>Sin montos mínimos requeridos</span>
+                        <span className="text-green-500 mt-1">Ô£ô</span>
+                        <span>Sin montos m├¡nimos requeridos</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="text-green-500 mt-1">✓</span>
+                        <span className="text-green-500 mt-1">Ô£ô</span>
                         <span>Rendimientos visibles en tiempo real</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="text-green-500 mt-1">✓</span>
-                        <span>Genera rendimientos mientras tus pagos están en custodia</span>
+                        <span className="text-green-500 mt-1">Ô£ô</span>
+                        <span>Genera rendimientos mientras tus pagos est├ín en custodia</span>
                       </li>
                     </ul>
                   </div>
@@ -1129,16 +1129,16 @@ export default function LandingPage() {
                 <div className="text-center">
                   <div className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white rounded-2xl p-8 max-w-2xl mx-auto">
                     <h3 className="text-2xl font-bold mb-4">
-                      🚀 Próximamente disponible
+                      ­ƒÜÇ Pr├│ximamente disponible
                     </h3>
                     <p className="text-lg opacity-90 mb-6">
-                      Sé de los primeros en generar rendimientos con tus pagos en custodia
+                      S├® de los primeros en generar rendimientos con tus pagos en custodia
                     </p>
                     <a 
                       href="#early-access" 
                       className="inline-block bg-white text-amber-600 font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                     >
-                      Regístrate para acceso anticipado
+                      Reg├¡strate para acceso anticipado
                     </a>
                   </div>
                 </div>
@@ -1226,10 +1226,10 @@ export default function LandingPage() {
                 <div className="relative z-10">
                   <div className="text-center mb-12">
                     <h2 id="nft-heading" className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                      🎨 Gemelos Digitales de Activos
+                      ­ƒÄ¿ Gemelos Digitales de Activos
                     </h2>
                     <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                      Crea gemelos digitales verificados de tus vehículos y propiedades. Publica en cualquier marketplace con confianza total.
+                      Crea gemelos digitales verificados de tus veh├¡culos y propiedades. Publica en cualquier marketplace con confianza total.
                     </p>
                   </div>
 
@@ -1239,9 +1239,9 @@ export default function LandingPage() {
                       <div className="w-16 h-16 bg-purple-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                         1
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">🎨 Crear Gemelo Digital</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">­ƒÄ¿ Crear Gemelo Digital</h3>
                       <p className="text-sm text-gray-600">
-                        Propietarios crean el gemelo digital verificado de su vehículo o propiedad a través de Kustodia
+                        Propietarios crean el gemelo digital verificado de su veh├¡culo o propiedad a trav├®s de Kustodia
                       </p>
                     </div>
 
@@ -1250,9 +1250,9 @@ export default function LandingPage() {
                       <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                         2
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">📱 Publicar Seguro</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">­ƒô▒ Publicar Seguro</h3>
                       <p className="text-sm text-gray-600">
-                        Agentes pueden mostrar el gemelo digital en cualquier plataforma con verificación automática
+                        Agentes pueden mostrar el gemelo digital en cualquier plataforma con verificaci├│n autom├ítica
                       </p>
                     </div>
 
@@ -1261,9 +1261,9 @@ export default function LandingPage() {
                       <div className="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                         3
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">✅ Verificar Información</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">Ô£à Verificar Informaci├│n</h3>
                       <p className="text-sm text-gray-600">
-                        Compradores pueden verificar toda la información antes de comprar con códigos QR y blockchain
+                        Compradores pueden verificar toda la informaci├│n antes de comprar con c├│digos QR y blockchain
                       </p>
                     </div>
 
@@ -1272,41 +1272,41 @@ export default function LandingPage() {
                       <div className="w-16 h-16 bg-orange-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                         4
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">🔄 Crear Seguros</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">­ƒöä Crear Seguros</h3>
                       <p className="text-sm text-gray-600">
-                        Pago seguro con Kustodia con el gemelo digital como respaldo y verificación automática
+                        Pago seguro con Kustodia con el gemelo digital como respaldo y verificaci├│n autom├ítica
                       </p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-blue-50 p-6 rounded-lg">
-                      <h4 className="font-semibold text-blue-900 mb-3">💰 Para Compradores</h4>
+                      <h4 className="font-semibold text-blue-900 mb-3">­ƒÆ░ Para Compradores</h4>
                       <ul className="text-sm text-blue-800 space-y-2">
-                        <li>• Historial verificado y trazabilidad completa</li>
-                        <li>• Protección de pago con garantía de depósito</li>
-                        <li>• Registros inmutables de propiedad</li>
-                        <li>• Verificación fácil con códigos QR</li>
+                        <li>ÔÇó Historial verificado y trazabilidad completa</li>
+                        <li>ÔÇó Protecci├│n de pago con garant├¡a de dep├│sito</li>
+                        <li>ÔÇó Registros inmutables de propiedad</li>
+                        <li>ÔÇó Verificaci├│n f├ícil con c├│digos QR</li>
                       </ul>
                     </div>
 
                     <div className="bg-green-50 p-6 rounded-lg">
-                      <h4 className="font-semibold text-green-900 mb-3">💰 Para Vendedores</h4>
+                      <h4 className="font-semibold text-green-900 mb-3">­ƒÆ░ Para Vendedores</h4>
                       <ul className="text-sm text-green-800 space-y-2">
-                        <li>• Mayor valor del activo con verificación</li>
-                        <li>• Publicar en cualquier plataforma de venta</li>
-                        <li>• Historial transparente de transacciones</li>
-                        <li>• Reducción de fraudes y disputas</li>
+                        <li>ÔÇó Mayor valor del activo con verificaci├│n</li>
+                        <li>ÔÇó Publicar en cualquier plataforma de venta</li>
+                        <li>ÔÇó Historial transparente de transacciones</li>
+                        <li>ÔÇó Reducci├│n de fraudes y disputas</li>
                       </ul>
                     </div>
 
                     <div className="bg-purple-50 p-6 rounded-lg">
-                      <h4 className="font-semibold text-purple-900 mb-3">🏢 Para Agencias y Talleres</h4>
+                      <h4 className="font-semibold text-purple-900 mb-3">­ƒÅó Para Agencias y Talleres</h4>
                       <ul className="text-sm text-purple-800 space-y-2">
-                        <li>• Actualizar registros de mantenimiento</li>
-                        <li>• Historial certificado de servicios</li>
-                        <li>• Mayor confianza del cliente</li>
-                        <li>• Nuevas oportunidades de ingresos</li>
+                        <li>ÔÇó Actualizar registros de mantenimiento</li>
+                        <li>ÔÇó Historial certificado de servicios</li>
+                        <li>ÔÇó Mayor confianza del cliente</li>
+                        <li>ÔÇó Nuevas oportunidades de ingresos</li>
                       </ul>
                     </div>
                   </div>
@@ -1316,7 +1316,7 @@ export default function LandingPage() {
                       href="/nft-demo" 
                       className="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-purple-700 transition-colors shadow-lg"
                     >
-                      🎨 Probar Gemelos Digitales
+                      ­ƒÄ¿ Probar Gemelos Digitales
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                       </svg>
