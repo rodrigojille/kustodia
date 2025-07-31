@@ -208,6 +208,16 @@ export class Payment {
   @Column({ nullable: true, length: 50 })
   furniture_condition?: string;
 
+  // Multisig fields
+  @Column({ default: false })
+  multisig_required!: boolean;
+
+  @Column({ nullable: true, length: 50 })
+  multisig_status?: string;
+
+  @Column({ nullable: true })
+  multisig_approval_id?: number;
+
   @OneToOne(() => Escrow, escrow => escrow.payment)
   @JoinColumn({ name: "escrow_id" })
   escrow?: Escrow;

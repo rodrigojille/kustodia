@@ -97,11 +97,8 @@ export class PreApprovalService {
 
       const preApproval = insertResult.rows[0];
 
-      // Update payment status
-      await client.query(
-        'UPDATE payment SET status = $1 WHERE id = $2',
-        ['pending_multisig_approval', paymentId]
-      );
+      // Payment status remains unchanged - multisig approval is tracked separately
+      // Funds remain in their current state (likely 'escrowed')
 
       await client.query('COMMIT');
       return preApproval;
@@ -200,13 +197,59 @@ export class PreApprovalService {
           p.payer_email,
           p.recipient_email,
           p.description as payment_description,
-          e.custody_end as released_at
+          p.amount as payment_amount,
+          p.currency as payment_currency,
+          p.status as payment_status,
+          p.multisig_required,
+          p.multisig_status,
+          p.routing_decision,
+          p.routing_reason,
+          p.created_at as payment_created_at,
+          p.updated_at as payment_updated_at,
+          e.id as escrow_id,
+          e.custody_end as released_at,
+          e.custody_amount,
+          e.release_amount,
+          e.status as escrow_status,
+          e.dispute_status,
+          e.created_at as escrow_created_at
         FROM multisig_approval_requests mar
         JOIN payment p ON mar.payment_id = p.id
         LEFT JOIN escrow e ON p.escrow_id = e.id
+        WHERE mar.status IN ('pending', 'approved')
         ORDER BY mar.created_at DESC
         LIMIT $1
       `, [limit]);
+
+      return result.rows;
+
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Get signature details for approval requests
+   */
+  async getSignatureDetails(approvalRequestIds: number[]): Promise<any[]> {
+    if (approvalRequestIds.length === 0) return [];
+    
+    const client = await this.pool.connect();
+    
+    try {
+      const placeholders = approvalRequestIds.map((_, i) => `$${i + 1}`).join(',');
+      const result = await client.query(`
+        SELECT 
+          ms.approval_request_id,
+          ms.signer_address,
+          ms.signature,
+          ms.signed_at,
+          ms.is_valid,
+          ms.signature_type
+        FROM multisig_signatures ms
+        WHERE ms.approval_request_id IN (${placeholders})
+        ORDER BY ms.approval_request_id, ms.signed_at ASC
+      `, approvalRequestIds);
 
       return result.rows;
 

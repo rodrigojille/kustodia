@@ -424,7 +424,7 @@ const MultiSigDashboard: React.FC = () => {
                       <div>
                         <p className="text-green-800 font-medium">Wallet Connected</p>
                         <p className="text-green-600 text-sm font-mono">
-                          {walletInfo?.address.slice(0, 10)}...{walletInfo?.address.slice(-8)}
+                          {walletInfo?.address ? `${walletInfo.address.slice(0, 10)}...${walletInfo.address.slice(-8)}` : 'N/A'}
                         </p>
                         <p className="text-green-600 text-xs">Chain ID: {walletInfo?.chainId}</p>
                       </div>
@@ -464,7 +464,7 @@ const MultiSigDashboard: React.FC = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Address:</span>
-                    <span className="font-mono text-xs">{walletConfig.highValue.address.slice(0, 10)}...{walletConfig.highValue.address.slice(-8)}</span>
+                    <span className="font-mono text-xs">{walletConfig.highValue?.address ? `${walletConfig.highValue.address.slice(0, 10)}...${walletConfig.highValue.address.slice(-8)}` : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Required Signatures:</span>
@@ -481,7 +481,7 @@ const MultiSigDashboard: React.FC = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Address:</span>
-                    <span className="font-mono text-xs">{walletConfig.enterprise.address.slice(0, 10)}...{walletConfig.enterprise.address.slice(-8)}</span>
+                    <span className="font-mono text-xs">{walletConfig.enterprise?.address ? `${walletConfig.enterprise.address.slice(0, 10)}...${walletConfig.enterprise.address.slice(-8)}` : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Required Signatures:</span>
@@ -552,7 +552,7 @@ const MultiSigDashboard: React.FC = () => {
                       <div>
                         <div className="text-gray-600">Recipient</div>
                         <div className="font-mono text-xs text-gray-900">
-                          {transaction.recipient.slice(0, 10)}...{transaction.recipient.slice(-8)}
+                          {transaction.recipient ? `${transaction.recipient.slice(0, 10)}...${transaction.recipient.slice(-8)}` : 'N/A'}
                         </div>
                       </div>
                       <div>
@@ -697,7 +697,7 @@ const MultiSigDashboard: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-500">
-                        Target Wallet: <span className="font-mono">{payment.targetWallet.slice(0, 10)}...{payment.targetWallet.slice(-8)}</span>
+                        Target Wallet: <span className="font-mono">{payment.targetWallet ? `${payment.targetWallet.slice(0, 10)}...${payment.targetWallet.slice(-8)}` : 'N/A'}</span>
                       </div>
                       
                       {payment.hoursUntilRelease <= 24 && (
@@ -782,10 +782,10 @@ const MultiSigDashboard: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-semibold text-gray-900">
-                          ${transaction.amountUsd.toLocaleString()}
+                          ${transaction.amountUsd?.toLocaleString() || 'N/A'}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {transaction.amount.toLocaleString()} {transaction.metadata.currency}
+                          {transaction.amount?.toLocaleString() || '0'} {transaction.metadata?.currency || 'MXN'}
                         </div>
                       </div>
                     </div>
@@ -794,7 +794,7 @@ const MultiSigDashboard: React.FC = () => {
                       <div>
                         <div className="text-sm text-gray-600">Recipient</div>
                         <div className="text-sm font-medium text-gray-900 font-mono">
-                          {transaction.recipientAddress.slice(0, 10)}...{transaction.recipientAddress.slice(-8)}
+                          {transaction.recipientAddress ? `${transaction.recipientAddress.slice(0, 10)}...${transaction.recipientAddress.slice(-8)}` : 'N/A'}
                         </div>
                       </div>
                       <div>
@@ -820,7 +820,7 @@ const MultiSigDashboard: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-500">
-                        Wallet: <span className="font-mono">{transaction.walletAddress.slice(0, 10)}...{transaction.walletAddress.slice(-8)}</span>
+                        Wallet: <span className="font-mono">{transaction.walletAddress ? `${transaction.walletAddress.slice(0, 10)}...${transaction.walletAddress.slice(-8)}` : 'N/A'}</span>
                       </div>
                       
                       <div className="flex items-center space-x-2">

@@ -79,9 +79,28 @@ export default function createPreApprovalRoutes(pool: Pool): Router {
       const limit = parseInt(req.query.limit as string) || 50;
       const preApprovals = await preApprovalService.getAllPreApprovals(limit);
       
+      // Get signature details for all approval requests
+      const approvalRequestIds = preApprovals.map(pa => pa.id);
+      const signatures = await preApprovalService.getSignatureDetails(approvalRequestIds);
+      
+      // Group signatures by approval request ID
+      const signaturesByRequest = signatures.reduce((acc, sig) => {
+        if (!acc[sig.approval_request_id]) {
+          acc[sig.approval_request_id] = [];
+        }
+        acc[sig.approval_request_id].push(sig);
+        return acc;
+      }, {} as Record<number, any[]>);
+      
+      // Add signatures to each pre-approval
+      const enrichedPreApprovals = preApprovals.map(pa => ({
+        ...pa,
+        signatures: signaturesByRequest[pa.id] || []
+      }));
+      
       res.json({
         success: true,
-        data: preApprovals
+        data: enrichedPreApprovals
       });
     } catch (error) {
       console.error('Error listing pre-approvals:', error);

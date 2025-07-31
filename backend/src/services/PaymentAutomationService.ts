@@ -540,9 +540,8 @@ export class PaymentAutomationService {
               await this.executePreApprovedTransaction(escrow, preApprovedTx);
             } else if (preApprovedTx) {
               console.log(`⏳ Pre-approval exists but not fully signed for Payment ${escrow.payment.id} (${preApprovedTx.current_signatures}/${preApprovedTx.required_signatures})`);
-              // Update payment status to show it's waiting for signatures
-              escrow.payment.status = 'pending_multisig_approval';
-              await AppDataSource.getRepository(Payment).save(escrow.payment);
+              // Payment remains 'escrowed' - multisig approval is tracked separately
+              // No status change needed as funds are still in escrow
             } else {
               console.log(`🔐 Creating new multi-sig approval request for Payment ${escrow.payment.id}`);
               await this.handleMultiSigRequired(escrow, route);
@@ -951,9 +950,8 @@ export class PaymentAutomationService {
     try {
       const paymentRepo = AppDataSource.getRepository(Payment);
       
-      // Update payment status to indicate multi-sig approval needed
-      escrow.payment.status = 'pending_multisig_approval';
-      await paymentRepo.save(escrow.payment);
+      // Payment remains 'escrowed' - multisig approval is tracked separately
+      // Funds are still in escrow, only the approval process is pending
       
       // Create multi-sig approval request
       const multiSigTx = await this.multiSigService.createApprovalRequest(
@@ -1077,7 +1075,8 @@ export class PaymentAutomationService {
       // Update escrow and payment status
       escrow.status = 'released';
       escrow.release_tx_hash = releaseResult.txHash || '';
-      payment.status = 'multisig_approved';
+      payment.status = 'completed';
+      payment.multisig_status = 'approved'; // Admin tracking only
       
       await escrowRepo.save(escrow);
       await paymentRepo.save(payment);

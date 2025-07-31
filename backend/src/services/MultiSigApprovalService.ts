@@ -327,6 +327,7 @@ export class MultiSigApprovalService {
   async getUpcomingMultiSigPayments(): Promise<any[]> {
     try {
       // Query payments that are escrowed and would require multi-sig approval
+      // but don't already have a pre-approval request
       const result = await this.db.query(`
         SELECT 
           p.id,
@@ -335,15 +336,27 @@ export class MultiSigApprovalService {
           p.description,
           p.payer_email,
           p.recipient_email,
+          p.status as payment_status,
+          p.multisig_required,
+          p.multisig_status,
+          p.multisig_approval_id,
+          p.routing_decision,
+          p.routing_reason,
           p.created_at,
+          p.updated_at,
           e.id as escrow_id,
           e.custody_end,
-          e.release_amount
+          e.release_amount,
+          e.custody_amount,
+          e.status as escrow_status,
+          e.dispute_status
         FROM payment p
         INNER JOIN escrow e ON p.id = e.payment_id
+        LEFT JOIN multisig_approval_requests mar ON p.id = mar.payment_id
         WHERE p.status = 'escrowed'
           AND e.status IN ('active', 'funded')
           AND e.custody_end > NOW()
+          AND mar.id IS NULL  -- Exclude payments that already have multisig approval requests
         ORDER BY e.custody_end ASC
       `);
 

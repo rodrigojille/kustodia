@@ -50,9 +50,8 @@ async function handlePaymentRelease(payment, req, res) {
                     payeeEmail: payment.recipient_email
                 }
             });
-            // Update payment status to indicate it's pending multi-sig
-            payment.status = 'pending_multisig_approval';
-            await paymentRepo.save(payment);
+            // Payment status remains unchanged - multisig approval is tracked separately
+            // Funds remain in their current state (likely 'escrowed')
             // Log the multi-sig routing event
             const paymentEvent = eventRepo.create({
                 payment,

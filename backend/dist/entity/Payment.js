@@ -261,6 +261,18 @@ __decorate([
     __metadata("design:type", String)
 ], Payment.prototype, "furniture_condition", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Payment.prototype, "multisig_required", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "multisig_status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Payment.prototype, "multisig_approval_id", void 0);
+__decorate([
     (0, typeorm_1.OneToOne)(() => Escrow_1.Escrow, escrow => escrow.payment),
     (0, typeorm_1.JoinColumn)({ name: "escrow_id" }),
     __metadata("design:type", Escrow_1.Escrow)
