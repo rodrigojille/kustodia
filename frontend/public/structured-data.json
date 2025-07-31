@@ -1,0 +1,56 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Kustodia México",
+  "description": "Pagos en custodia seguros para México. Escrow digital que protege tus transacciones.",
+  "url": "https://kustodia.mx",
+  "logo": "https://kustodia.mx/logo.png",
+  "sameAs": [
+    "https://twitter.com/kustodiamx",
+    "https://linkedin.com/company/kustodia"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+52-55-1234-5678",
+    "contactType": "customer service",
+    "availableLanguage": [
+      "Spanish",
+      "English"
+    ]
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "MX",
+    "addressLocality": "Ciudad de México"
+  },
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Servicios de Escrow",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Escrow para Ecommerce",
+          "description": "Pagos seguros para tiendas en línea"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Escrow para Freelancers",
+          "description": "Protección de pagos para trabajadores independientes"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Escrow Inmobiliario",
+          "description": "Custodia segura para transacciones inmobiliarias"
+        }
+      }
+    ]
+  }
+}

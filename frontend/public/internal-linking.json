@@ -1,0 +1,22 @@
+{
+  "homepage": [
+    "/compra-venta",
+    "/inmobiliarias",
+    "/freelancer",
+    "/ecommerce",
+    "/blog"
+  ],
+  "blog": [
+    "/blog/guia-definitiva-escrow-digital-mexico-2025",
+    "/blog/evitar-fraudes-ecommerce",
+    "/blog/evitar-fraudes-freelancer",
+    "/compra-venta",
+    "/inmobiliarias"
+  ],
+  "service_pages": [
+    "/pricing",
+    "/about",
+    "/contact",
+    "/api-docs"
+  ]
+}
