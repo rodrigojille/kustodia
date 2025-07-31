@@ -39,6 +39,7 @@ const calculateFormCompletion = (formData: any): number => {
 
 export default function EarlyAccessForm() {
   const analytics = useAnalyticsContext();
+  const { trackUserAction } = useAnalyticsContext();
   const [form, setForm] = useState({ 
     name: '', 
     email: '', 
@@ -95,9 +96,27 @@ export default function EarlyAccessForm() {
     setError('');
     setLoading(true);
     
+    // Track form submission attempt
+    trackUserAction('early_access_form_submit', {
+      button_text: 'Conseguir 0% comisión de por vida',
+      form_data: {
+        has_name: !!form.name,
+        has_email: !!form.email,
+        has_message: !!form.message,
+        message_length: form.message.length
+      },
+      conversion_stage: 'trial',
+      engagement_level: 'high'
+    });
+    
     if (!form.name || !form.email) {
       setError('Nombre y correo son obligatorios.');
       setLoading(false);
+      
+      trackUserAction('early_access_form_error', {
+        error_type: 'validation',
+        missing_fields: [!form.name && 'name', !form.email && 'email'].filter(Boolean)
+      });
       return;
     }
     
@@ -135,29 +154,42 @@ export default function EarlyAccessForm() {
         }),
       });
       
+      const result = await response.json();
+      
       if (!response.ok) {
         throw new Error('Error al registrar interés');
       }
       
-      // Track successful submission
+      // Track successful submission with both analytics systems
       analytics.trackEvent('early_access_form_submission_success', {
         source: 'main_landing_early_access',
         vertical: 'general',
         conversion_type: 'early_access_lead'
       });
       
+      trackUserAction('early_access_form_success', {
+        zero_fee_eligible: typeof result.slots === 'number' && result.slots <= 100,
+        user_slot: result.slots,
+        conversion_stage: 'purchase',
+        engagement_level: 'high'
+      });
+      
       setSuccess(true);
       setLoading(false);
     } catch (err: any) {
-      setError('Error al registrar tu interés. Por favor intenta de nuevo.');
-      
-      // Track submission error
+      // Track submission error with both analytics systems
       analytics.trackEvent('early_access_form_submission_error', {
         source: 'main_landing_early_access',
         vertical: 'general',
         error: err.message
       });
       
+      trackUserAction('early_access_form_error', {
+        error_type: 'api',
+        error_message: err.message
+      });
+      
+      setError('Error al registrar tu interés. Por favor intenta de nuevo.');
       setLoading(false);
     }
   };
@@ -224,8 +256,25 @@ export default function EarlyAccessForm() {
         rows={3}
       />
       {error && <div className="text-red-600 font-semibold text-sm">{error}</div>}
-      <button type="submit" className="bg-blue-700 text-white font-bold rounded-lg px-6 py-3 mt-2 hover:bg-blue-800 transition" disabled={loading}>
-        {loading ? 'Enviando...' : 'Obtener acceso prioritario'}
+      <button 
+        type="submit" 
+        className="bg-blue-700 text-white font-bold rounded-lg px-6 py-3 mt-2 hover:bg-blue-800 transition" 
+        disabled={loading}
+        onClick={() => {
+          if (!loading) {
+            trackUserAction('early_access_button_click', {
+              button_text: loading ? 'Enviando...' : 'Conseguir 0% comisión de por vida',
+              form_completion: {
+                name_filled: !!form.name,
+                email_filled: !!form.email,
+                message_filled: !!form.message
+              },
+              engagement_level: 'high'
+            });
+          }
+        }}
+      >
+        {loading ? 'Enviando...' : 'Conseguir 0% comisión de por vida'}
       </button>
     </form>
   );

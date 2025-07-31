@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useAnalyticsContext } from './AnalyticsProvider';
 
 interface HeaderProps {
   className?: string;
@@ -13,6 +14,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userName }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { trackUserAction } = useAnalyticsContext();
 
   const useCases = [
     { title: "Inmobiliarias y agentes", icon: "🏠", href: "/inmobiliarias" },
@@ -24,6 +26,14 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
   ];
 
   const scrollToUseCases = () => {
+    // Track navigation event
+    trackUserAction('header_navigation_click', {
+      button_text: 'Ver todos los casos de uso',
+      target_url: '/#use-cases',
+      current_page: window.location.pathname,
+      engagement_level: 'high'
+    });
+
     // Check if we're already on the home page
     if (window.location.pathname === '/') {
       // We're on home page, just scroll to the section
@@ -42,7 +52,15 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
     <header className={`sticky top-0 z-30 bg-white border-b border-gray-100 px-4 sm:px-8 py-4 flex items-center justify-between ${className}`}>
       {/* Logo Section */}
       <div className="flex items-center gap-3">
-        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <Link 
+          href="/" 
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          onClick={() => trackUserAction('header_logo_click', {
+            button_text: 'Kustodia Logo',
+            target_url: '/',
+            current_page: window.location.pathname
+          })}
+        >
           <Image 
             src="/kustodia-logo.png" 
             alt="Kustodia Logo" 
@@ -62,7 +80,14 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
         {/* Casos de uso dropdown */}
         <div className="relative">
           <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onClick={() => {
+              trackUserAction('header_dropdown_toggle', {
+                button_text: 'Casos de uso',
+                dropdown_state: !isDropdownOpen ? 'opening' : 'closing',
+                current_page: window.location.pathname
+              });
+              setIsDropdownOpen(!isDropdownOpen);
+            }}
             className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 rounded-lg hover:bg-blue-50"
             aria-expanded={isDropdownOpen}
             aria-haspopup="true"
@@ -100,7 +125,20 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
                     key={useCase.title}
                     href={useCase.href}
                     className="block px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
-                    onClick={() => setIsDropdownOpen(false)}
+                    onClick={() => {
+                      trackUserAction('header_use_case_click', {
+                        button_text: useCase.title,
+                        target_url: useCase.href,
+                        current_page: window.location.pathname,
+                        engagement_level: 'high',
+                        fraud_category: useCase.title.includes('Inmobiliarias') ? 'real_estate' : 
+                                       useCase.title.includes('Freelancer') ? 'services' :
+                                       useCase.title.includes('E-commerce') ? 'ecommerce' :
+                                       useCase.title.includes('Compra-venta') ? 'marketplace' :
+                                       useCase.title.includes('B2B') ? 'b2b' : 'other'
+                      });
+                      setIsDropdownOpen(false);
+                    }}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{useCase.icon}</span>
