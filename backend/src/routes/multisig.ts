@@ -109,15 +109,16 @@ router.post('/approve/:transactionId', authenticateJWT, validateAdminAccess, asy
 
     const result = await multiSigService.approveTransaction(
       transactionId,
-      approverAddress
+      approverAddress,
+      signature
     );
 
     logger.info(`Transaction ${transactionId} approved by ${approverAddress}`);
     res.json({
       success: true,
       message: 'Transaction approved successfully',
-      transactionId: result?.transactionId || transactionId,
-      status: result?.status || 'APPROVED'
+      transactionId: transactionId,
+      status: result ? 'APPROVED' : 'PENDING'
     });
   } catch (error) {
     logger.error(`Error approving transaction ${req.params.transactionId}:`, error);
@@ -194,20 +195,25 @@ router.post('/execute/:transactionId', authenticateJWT, validateAdminAccess, asy
  */
 router.get('/pending', authenticateJWT, validateAdminRole, async (req: Request, res: Response): Promise<void> => {
   try {
-    const pendingTransactions = await multiSigService.getPendingTransactions();
+    const pendingApprovals = await multiSigService.getPendingApprovals();
     const upcomingPayments = await multiSigService.getUpcomingMultiSigPayments();
+    const preApprovedTransactions = await multiSigService.getPreApprovedTransactions();
     
     res.json({
       success: true,
-      transactions: pendingTransactions,
+      pendingApprovals: pendingApprovals,
       upcomingPayments: upcomingPayments,
-      count: pendingTransactions.length,
-      upcomingCount: upcomingPayments.length
+      preApprovedTransactions: preApprovedTransactions,
+      counts: {
+        pending: pendingApprovals.length,
+        upcoming: upcomingPayments.length,
+        preApproved: preApprovedTransactions.length
+      }
     });
   } catch (error) {
-    logger.error('Error fetching pending transactions:', error);
+    logger.error('Error fetching multisig dashboard data:', error);
     res.status(500).json({
-      error: 'Failed to fetch pending transactions',
+      error: 'Failed to fetch multisig dashboard data',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

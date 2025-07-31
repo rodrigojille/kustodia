@@ -30,11 +30,17 @@ interface UpcomingPayment {
   escrowId: number;
   escrowEndTime: string;
   hoursUntilRelease: number;
-  status: 'upcoming';
+  status: 'upcoming' | 'pre-approval-created';
   requiresMultiSig: boolean;
   walletType: string;
   targetWallet: string;
   createdAt: string;
+  // Multisig request info (if exists)
+  multisigRequestId?: string;
+  multisigStatus?: string;
+  currentSignatures?: number;
+  multisigRequiredSignatures?: number;
+  multisigCreatedAt?: string;
 }
 
 interface PreApprovedTransaction {
@@ -120,8 +126,9 @@ const MultiSigDashboard: React.FC = () => {
 
       if (pendingResponse.ok) {
         const pendingData = await pendingResponse.json();
-        setPendingTransactions(pendingData.transactions || []);
+        setPendingTransactions(pendingData.pendingApprovals || []);
         setUpcomingPayments(pendingData.upcomingPayments || []);
+        setPreApprovedTransactions(pendingData.preApprovedTransactions || []);
       }
 
       if (configResponse.ok) {
@@ -531,7 +538,7 @@ const MultiSigDashboard: React.FC = () => {
                           {transaction.status.toUpperCase()}
                         </span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTransactionTypeColor(transaction.transactionType)}`}>
-                          {transaction.transactionType.replace('_', ' ').toUpperCase()}
+                          {transaction.transactionType?.replace('_', ' ').toUpperCase() || 'UNKNOWN'}
                         </span>
                       </div>
                       <div className="text-right">
@@ -710,151 +717,120 @@ const MultiSigDashboard: React.FC = () => {
                       )}
                     </div>
                     
-                    {/* Pre-Approval Action Button */}
+                    {/* Pre-Approval Action Button or Status */}
                     <div className="mt-4 pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-600">
-                          💡 <strong>Pre-approve now</strong> to enable automatic release when the time comes
-                        </div>
-                        <button
-                          onClick={() => handleCreatePreApproval(payment.paymentId)}
-                          disabled={actionLoading === `pre-approve-${payment.paymentId}`}
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {actionLoading === `pre-approve-${payment.paymentId}` ? (
-                            <>
-                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              Creating...
-                            </>
-                          ) : (
-                            <>
-                              🔐 Create Pre-Approval
-                            </>
+                      {payment.multisigRequestId ? (
+                        /* Show multisig request status and signature buttons if it exists */
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                              ✅ <strong>Pre-approval created</strong> - signatures can be collected now
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {payment.currentSignatures || 0}/{payment.multisigRequiredSignatures || 0} signatures
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                Created {payment.multisigCreatedAt ? formatDate(payment.multisigCreatedAt) : 'recently'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Signature Collection Buttons */}
+                          {(payment.currentSignatures || 0) < (payment.multisigRequiredSignatures || 2) && (
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                              <div className="text-xs text-gray-500">
+                                💡 Connect your wallet to sign this pre-approval
+                              </div>
+                              <div className="flex space-x-2">
+                                {isConnected ? (
+                                  <>
+                                    <button
+                                      onClick={() => payment.multisigRequestId && handleWalletSign(payment.multisigRequestId, true)}
+                                      disabled={actionLoading === `approve-${payment.multisigRequestId}`}
+                                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                      {actionLoading === `approve-${payment.multisigRequestId}` ? (
+                                        <>
+                                          <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-white" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                          </svg>
+                                          Signing...
+                                        </>
+                                      ) : (
+                                        '📱 Sign Approval'
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={() => payment.multisigRequestId && handleWalletSign(payment.multisigRequestId, false)}
+                                      disabled={actionLoading === `reject-${payment.multisigRequestId}`}
+                                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                      {actionLoading === `reject-${payment.multisigRequestId}` ? 'Rejecting...' : 'Reject'}
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={connectWallet}
+                                    disabled={isConnecting}
+                                    className="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  >
+                                    {isConnecting ? 'Connecting...' : '🔗 Connect Wallet'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           )}
-                        </button>
-                      </div>
+                          
+                          {/* Show completion status */}
+                          {(payment.currentSignatures || 0) >= (payment.multisigRequiredSignatures || 2) && (
+                            <div className="flex items-center justify-center pt-2 border-t border-gray-100">
+                              <div className="flex items-center space-x-2 text-green-600">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-sm font-medium">Fully signed - ready for execution when escrow releases</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Show create pre-approval button if no multisig request exists */
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-gray-600">
+                            💡 <strong>Pre-approve now</strong> to enable automatic release when the time comes
+                          </div>
+                          <button
+                            onClick={() => handleCreatePreApproval(payment.paymentId)}
+                            disabled={actionLoading === `pre-approve-${payment.paymentId}`}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {actionLoading === `pre-approve-${payment.paymentId}` ? (
+                              <>
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Creating...
+                              </>
+                            ) : (
+                              <>
+                                🔐 Create Pre-Approval
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
                     </div>
+                    
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Pre-Approved Transactions */}
-          <div className="bg-white rounded-lg shadow border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Pre-Approved Transactions ({preApprovedTransactions.length})
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Transactions that have been pre-approved and are ready for automatic execution
-              </p>
-            </div>
 
-            {preApprovedTransactions.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p>No pre-approved transactions yet</p>
-                <p className="text-xs mt-1">Use the "Create Pre-Approval" button above to pre-approve upcoming payments</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                {preApprovedTransactions.map((transaction) => (
-                  <div key={transaction.id} className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          transaction.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          transaction.status === 'executed' ? 'bg-blue-100 text-blue-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {transaction.status.toUpperCase()}
-                        </span>
-                        <span className="text-sm font-medium text-gray-900">
-                          Payment ID: {transaction.paymentId}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-semibold text-gray-900">
-                          ${transaction.amountUsd?.toLocaleString() || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {transaction.amount?.toLocaleString() || '0'} {transaction.metadata?.currency || 'MXN'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <div className="text-sm text-gray-600">Recipient</div>
-                        <div className="text-sm font-medium text-gray-900 font-mono">
-                          {transaction.recipientAddress ? `${transaction.recipientAddress.slice(0, 10)}...${transaction.recipientAddress.slice(-8)}` : 'N/A'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Signatures</div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {transaction.currentSignatures} of {transaction.requiredSignatures}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Expires</div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {new Date(transaction.expiresAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-
-                    {transaction.metadata.description && (
-                      <div className="mb-4">
-                        <div className="text-sm text-gray-600">Description</div>
-                        <div className="text-sm text-gray-900">{transaction.metadata.description}</div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-500">
-                        Wallet: <span className="font-mono">{transaction.walletAddress ? `${transaction.walletAddress.slice(0, 10)}...${transaction.walletAddress.slice(-8)}` : 'N/A'}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        {transaction.status === 'pending' && (
-                          <div className="flex items-center space-x-2 text-yellow-600">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-sm font-medium">Awaiting signatures</span>
-                          </div>
-                        )}
-                        {transaction.status === 'approved' && (
-                          <div className="flex items-center space-x-2 text-green-600">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-sm font-medium">Ready for execution</span>
-                          </div>
-                        )}
-                        {transaction.status === 'executed' && (
-                          <div className="flex items-center space-x-2 text-blue-600">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span className="text-sm font-medium">Executed</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       )}
 
