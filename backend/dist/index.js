@@ -63,6 +63,7 @@ const portalPayment_1 = __importDefault(require("./routes/portalPayment"));
 const web3Payment_1 = __importDefault(require("./routes/web3Payment"));
 const multisig_1 = __importDefault(require("./routes/multisig"));
 const preApprovalRoutes_1 = __importDefault(require("./routes/preApprovalRoutes"));
+const blacklistRoutes_1 = __importDefault(require("./routes/blacklistRoutes"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json({ limit: '5mb' }));
 app.use((0, cookie_parser_1.default)()); // Enable cookie parsing for JWT authentication
@@ -167,6 +168,7 @@ async function main() {
         app.use('/api/portal', portalPayment_1.default);
         app.use('/api/web3-payment', web3Payment_1.default);
         app.use('/api/multisig', multisig_1.default);
+        app.use('/api/blacklist', blacklistRoutes_1.default);
         // Create pool for preApproval routes
         const { Pool } = require('pg');
         const pool = new Pool({ connectionString: process.env.DATABASE_URL });

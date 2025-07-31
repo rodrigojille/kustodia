@@ -4,29 +4,29 @@
 
 ### 📋 **EXPOSED SENSITIVE DATA** (Committed to GitHub)
 
-#### **CRITICAL PRIVATE KEYS** (SAME KEY USED EVERYWHERE):
-- **KUSTODIA_PRIVATE_KEY**: `9412cdee7af7810add2d3a516f5b0ff9aeaea05e56a0fa6fc91ddbef3fc0828e`
-- **ESCROW_PRIVATE_KEY**: `9412cdee7af7810add2d3a516f5b0ff9aeaea05e56a0fa6fc91ddbef3fc0828e`
-- **PRIVATE_KEY**: `9412cdee7af7810add2d3a516f5b0ff9aeaea05e56a0fa6fc91ddbef3fc0828e`
+#### **CRITICAL PRIVATE KEYS**:
+- **KUSTODIA_PRIVATE_KEY**: [REDACTED - Previously exposed in git history]
+- **ESCROW_PRIVATE_KEY**: [REDACTED - Same key used across environments]
+- **PRIVATE_KEY**: [REDACTED - Compromised and needs rotation]
 
 #### **JWT SECRETS**:
-- **JWT_SECRET**: `17fdb10bb77ce1ea249450466e6783ef8ddc1cf813e474c1d4d2fdce4a087e3320fb3dd7d1efd3de2ac95f71a712af3139db6f139a74e032ccbbb5588ea661c2`
+- **JWT_SECRET**: [REDACTED - 128-character secret exposed]
 
 #### **DATABASE CREDENTIALS**:
-- **POSTGRES_PASSWORD**: `140290`
-- **DATABASE_URL**: Full connection string with credentials
+- **POSTGRES_PASSWORD**: [REDACTED - Database password exposed]
+- **DATABASE_URL**: [REDACTED - Full connection string with credentials]
 
 #### **API KEYS & SECRETS**:
-- **SendGrid API Key**: `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`
-- **Truora API Keys**: JWT tokens and signature keys
-- **Google OAuth Secret**: Client secret exposed
-- **Pinata API Keys**: `7d98a659dc64a54e9f99` / `155d4f6ccc5b92542c8d02c69a78fdba145d9592c14e121de3be4160e7dc9923`
-- **PostHog Key**: `phc_jtqrce5L7vbEXOTbKH2tif2ZlFVeVC0FRLjXhQzvUdy`
-- **Portal API Keys**: Multiple custodian and client keys
-- **WalletConnect Project ID**: `f904b97632599c06b50cca6169ba2462`
-- **Juno API Keys**: `jZTixUvZJM` / `0e216119c0fc87ac66d645fc89181776`
-- **EtherFuse API Keys**: Production and sandbox keys
-- **Arbiscan API Key**: `BQUQZGYTB9AUZQUVR5FGIRU1U33DF5RH4A`
+- **SendGrid API Key**: [REDACTED - Email service API key]
+- **Truora API Keys**: [REDACTED - KYC service JWT tokens and signature keys]
+- **Google OAuth Secret**: [REDACTED - OAuth client secret]
+- **Pinata API Keys**: [REDACTED - IPFS service keys]
+- **PostHog Key**: [REDACTED - Analytics service key]
+- **Portal API Keys**: [REDACTED - Multiple custodian and client keys]
+- **WalletConnect Project ID**: [REDACTED - Wallet connection service]
+- **Juno API Keys**: [REDACTED - Banking service keys]
+- **EtherFuse API Keys**: [REDACTED - Blockchain service keys]
+- **Arbiscan API Key**: [REDACTED - Blockchain explorer API key]
 
 ### ✅ **IMMEDIATE ACTIONS TAKEN**
 1. **Removed sensitive .env files from Git tracking**:
@@ -50,7 +50,7 @@
 #### 1. **Generate New Wallet & Private Key**
 ```bash
 # Generate new wallet for mainnet deployment
-# NEVER use the exposed private key: 9412cdee7af7810add2d3a516f5b0ff9aeaea05e56a0fa6fc91ddbef3fc0828e
+# NEVER use the previously exposed private key - generate completely new wallet
 ```
 
 #### 2. **Rotate All API Keys**

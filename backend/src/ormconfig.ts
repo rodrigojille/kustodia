@@ -14,6 +14,7 @@ import { TicketReply } from './entity/TicketReply';
 import { Token } from './entity/Token';
 import { WalletTransaction } from './entity/WalletTransaction';
 import { CommissionRecipient } from './entity/CommissionRecipient';
+import { Blacklist } from './entity/Blacklist';
 
 const AppDataSource = new DataSource({
   name: "default",
@@ -36,7 +37,8 @@ const AppDataSource = new DataSource({
     TicketReply,
     Token,
     WalletTransaction,
-    CommissionRecipient
+    CommissionRecipient,
+    Blacklist
   ],
   migrations: process.env.NODE_ENV === "production" ? ["dist/migration/**/*.js"] : ["src/migration/**/*.ts"],
   subscribers: ["dist/subscriber/**/*.js"],

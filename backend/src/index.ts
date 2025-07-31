@@ -31,6 +31,7 @@ import portalPaymentRoutes from './routes/portalPayment';
 import web3PaymentRoutes from './routes/web3Payment';
 import multisigRoutes from './routes/multisig';
 import createPreApprovalRoutes from './routes/preApprovalRoutes';
+import blacklistRoutes from './routes/blacklistRoutes';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
@@ -145,6 +146,7 @@ async function main() {
     app.use('/api/portal', portalPaymentRoutes);
     app.use('/api/web3-payment', web3PaymentRoutes);
     app.use('/api/multisig', multisigRoutes);
+    app.use('/api/blacklist', blacklistRoutes);
     
     // Create pool for preApproval routes
     const { Pool } = require('pg');
