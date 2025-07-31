@@ -249,6 +249,37 @@ router.get('/requests', authenticateJWT, validateAdminAccess, async (req: Reques
 });
 
 /**
+ * GET /api/multisig/approved
+ * Get approved/completed multi-sig transactions for traceability
+ */
+router.get('/approved', authenticateJWT, validateAdminRole, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { limit = '50', offset = '0' } = req.query;
+    
+    const approvedTransactions = await multiSigService.getApprovedTransactions(
+      parseInt(limit as string),
+      parseInt(offset as string)
+    );
+
+    res.json({
+      success: true,
+      approvedTransactions,
+      pagination: {
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        total: approvedTransactions.length
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching approved transactions:', error);
+    res.status(500).json({
+      error: 'Failed to fetch approved transactions',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * GET /api/multisig/requests/:transactionId
  * Get specific multi-sig transaction details
  */
@@ -358,6 +389,172 @@ router.get('/wallet-config', authenticateJWT, async (req: Request, res: Response
     logger.error('Error fetching wallet configuration:', error);
     res.status(500).json({
       error: 'Failed to fetch wallet configuration',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/multisig/signature-history/:approvalId
+ * Get signature history for a specific approval request
+ */
+router.get('/signature-history/:approvalId', authenticateJWT, validateAdminRole, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { approvalId } = req.params;
+    
+    if (!approvalId || isNaN(parseInt(approvalId))) {
+      res.status(400).json({ error: 'Valid approval ID required' });
+      return;
+    }
+
+    const signatureHistory = await multiSigService.getSignatureHistory(approvalId);
+    
+    res.json({
+      success: true,
+      data: signatureHistory
+    });
+  } catch (error) {
+    logger.error('Error getting signature history:', error);
+    res.status(500).json({ 
+      error: 'Failed to get signature history',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/multisig/approval-timeline/:paymentId
+ * Get approval timeline for a specific payment
+ */
+router.get('/approval-timeline/:paymentId', authenticateJWT, validateAdminRole, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { paymentId } = req.params;
+    
+    if (!paymentId || isNaN(parseInt(paymentId))) {
+      res.status(400).json({ error: 'Valid payment ID required' });
+      return;
+    }
+
+    const timeline = await multiSigService.getApprovalTimeline(paymentId);
+    
+    res.json({
+      success: true,
+      data: timeline
+    });
+  } catch (error) {
+    logger.error('Error getting approval timeline:', error);
+    res.status(500).json({ 
+      error: 'Failed to get approval timeline',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/multisig/dashboard
+ * Get multi-sig dashboard data for admins
+ */
+router.get('/dashboard', authenticateJWT, validateAdminRole, async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Get comprehensive dashboard statistics
+    const pendingApprovals = await multiSigService.getPendingApprovals();
+    const approvedTransactions = await multiSigService.getApprovedTransactions(20, 0); // Get latest 20 for dashboard
+    const healthStatus = await multiSigService.getHealthStatus();
+    
+    // Get statistics from database
+    const statsQuery = `
+      SELECT 
+        COUNT(*) FILTER (WHERE status = 'pending') as pending_count,
+        COUNT(*) FILTER (WHERE status = 'approved') as approved_count,
+        COUNT(*) FILTER (WHERE status = 'executed') as executed_count,
+        COUNT(*) FILTER (WHERE status = 'rejected') as rejected_count,
+        COUNT(*) as total_count,
+        AVG(CASE WHEN status = 'executed' THEN 
+          EXTRACT(EPOCH FROM (updated_at - created_at))/3600 
+        END) as avg_execution_time_hours
+      FROM multisig_approval_requests 
+      WHERE created_at >= NOW() - INTERVAL '30 days'
+    `;
+    
+    const statsResult = await multiSigService.query(statsQuery);
+    const stats = statsResult.rows[0];
+    
+    // Get recent activity
+    const recentActivityQuery = `
+      SELECT 
+        mar.id,
+        mar.payment_id,
+        mar.amount_usd,
+        mar.status,
+        mar.created_at,
+        mar.updated_at,
+        p.recipient_email,
+        COUNT(ms.id) as signature_count
+      FROM multisig_approval_requests mar
+      LEFT JOIN payment p ON p.multisig_approval_id = mar.id
+      LEFT JOIN multisig_signatures ms ON ms.approval_request_id = mar.id
+      WHERE mar.created_at >= NOW() - INTERVAL '7 days'
+      GROUP BY mar.id, p.recipient_email
+      ORDER BY mar.created_at DESC
+      LIMIT 10
+    `;
+    
+    const recentActivity = await multiSigService.query(recentActivityQuery);
+    
+    res.json({
+      success: true,
+      data: {
+        statistics: {
+          pendingApprovals: parseInt(stats.pending_count) || 0,
+          approvedTransactions: parseInt(stats.approved_count) || 0,
+          executedTransactions: parseInt(stats.executed_count) || 0,
+          rejectedTransactions: parseInt(stats.rejected_count) || 0,
+          totalTransactions: parseInt(stats.total_count) || 0,
+          averageExecutionTimeHours: parseFloat(stats.avg_execution_time_hours) || 0
+        },
+        healthStatus: {
+          status: healthStatus.status,
+          database: healthStatus.database,
+          provider: healthStatus.provider,
+          walletConfigs: healthStatus.walletConfigs
+        },
+        recentActivity: recentActivity.rows,
+        pendingApprovals: pendingApprovals,
+        approvedTransactions: approvedTransactions
+      }
+    });
+  } catch (error) {
+    logger.error('Error getting dashboard data:', error);
+    res.status(500).json({ 
+      error: 'Failed to get dashboard data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/multisig/create-safe-transaction/:transactionId
+ * Create Safe transaction for wallet signing
+ */
+router.get('/create-safe-transaction/:transactionId', authenticateJWT, validateAdminRole, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { transactionId } = req.params;
+    
+    if (!transactionId || isNaN(parseInt(transactionId))) {
+      res.status(400).json({ error: 'Valid transaction ID required' });
+      return;
+    }
+
+    const safeTransaction = await multiSigService.createSafeTransactionForSigning(transactionId);
+    
+    res.json({
+      success: true,
+      data: safeTransaction
+    });
+  } catch (error) {
+    logger.error('Error creating Safe transaction:', error);
+    res.status(500).json({ 
+      error: 'Failed to create Safe transaction',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

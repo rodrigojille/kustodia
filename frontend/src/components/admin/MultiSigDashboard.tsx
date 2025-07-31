@@ -74,11 +74,13 @@ interface WalletConfig {
 }
 
 interface TransactionStats {
-  total: number;
-  pending: number;
-  approved: number;
-  rejected: number;
-  executed: number;
+  totalPending: number;
+  totalApproved: number;
+  totalRejected: number;
+  totalExpired: number;
+  averageApprovalTime: number;
+  totalVolume: number;
+  totalVolumeUsd: number;
 }
 
 const MultiSigDashboard: React.FC = () => {
@@ -86,6 +88,7 @@ const MultiSigDashboard: React.FC = () => {
   const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>([]);
   const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>([]);
   const [preApprovedTransactions, setPreApprovedTransactions] = useState<PreApprovedTransaction[]>([]);
+  const [approvedTransactions, setApprovedTransactions] = useState<any[]>([]);
   const [walletConfig, setWalletConfig] = useState<{
     highValue: WalletConfig;
     enterprise: WalletConfig;
@@ -117,11 +120,12 @@ const MultiSigDashboard: React.FC = () => {
     setError(null);
     
     try {
-      const [pendingResponse, configResponse, statsResponse, preApprovedResponse] = await Promise.all([
+      const [pendingResponse, configResponse, statsResponse, preApprovedResponse, approvedResponse] = await Promise.all([
         authFetch('/api/multisig/pending'),
         authFetch('/api/multisig/wallet-config'),
         authFetch('/api/multisig/statistics'),
-        authFetch('/api/pre-approval/list')
+        authFetch('/api/pre-approval/list'),
+        authFetch('/api/multisig/approved')
       ]);
 
       if (pendingResponse.ok) {
@@ -144,6 +148,11 @@ const MultiSigDashboard: React.FC = () => {
       if (preApprovedResponse.ok) {
         const preApprovedData = await preApprovedResponse.json();
         setPreApprovedTransactions(preApprovedData.data || []);
+      }
+
+      if (approvedResponse.ok) {
+        const approvedData = await approvedResponse.json();
+        setApprovedTransactions(approvedData.approvedTransactions || []);
       }
 
     } catch (err: any) {
@@ -840,27 +849,163 @@ const MultiSigDashboard: React.FC = () => {
           {stats && (
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+                <div className="text-2xl font-bold text-gray-900">{stats.totalPending + stats.totalApproved + stats.totalRejected + stats.totalExpired}</div>
                 <div className="text-sm text-gray-600">Total Transactions</div>
               </div>
               <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+                <div className="text-2xl font-bold text-yellow-600">{stats.totalPending}</div>
                 <div className="text-sm text-gray-600">Pending Approval</div>
               </div>
               <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+                <div className="text-2xl font-bold text-green-600">{stats.totalApproved}</div>
                 <div className="text-sm text-gray-600">Approved</div>
               </div>
               <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+                <div className="text-2xl font-bold text-red-600">{stats.totalRejected}</div>
                 <div className="text-sm text-gray-600">Rejected</div>
               </div>
               <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div className="text-2xl font-bold text-blue-600">{stats.executed}</div>
+                <div className="text-2xl font-bold text-blue-600">{stats.totalExpired}</div>
                 <div className="text-sm text-gray-600">Executed</div>
               </div>
             </div>
           )}
+
+          {/* Approved Transactions History */}
+          <div className="bg-white rounded-lg shadow border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-800">📋 Approved Transactions History</h2>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  {approvedTransactions.length} completed
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">Complete traceability of all approved multi-sig transactions</p>
+            </div>
+            
+            <div className="p-6">
+              {approvedTransactions.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500">No approved transactions yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Completed multi-sig transactions will appear here</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {approvedTransactions.map((transaction) => (
+                    <div key={transaction.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                              <span className="text-sm font-medium text-gray-900">
+                                Transaction #{transaction.paymentId}
+                              </span>
+                            </div>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              transaction.status === 'executed' 
+                                ? 'bg-blue-100 text-blue-800' 
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {transaction.status === 'executed' ? '✅ Executed' : '✅ Approved'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {transaction.signatures?.length || 0}/{transaction.requiredSignatures} signatures
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <div className="text-gray-600">Amount</div>
+                              <div className="font-medium text-gray-900">
+                                ${parseFloat(transaction.amount).toLocaleString()}
+                                {transaction.amountUsd && (
+                                  <span className="text-gray-500 ml-1">(${transaction.amountUsd.toLocaleString()} USD)</span>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-600">Recipient</div>
+                              <div className="font-mono text-xs text-gray-900">
+                                {transaction.recipientAddress 
+                                  ? `${transaction.recipientAddress.slice(0, 10)}...${transaction.recipientAddress.slice(-8)}`
+                                  : transaction.metadata?.paymentDetails?.recipientEmail || 'N/A'
+                                }
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-600">Type</div>
+                              <div className="font-medium text-gray-900 capitalize">
+                                {transaction.type || transaction.transactionType || 'Payment'}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {transaction.metadata?.paymentDetails?.description && (
+                            <div className="mt-2">
+                              <div className="text-gray-600 text-sm">Description</div>
+                              <div className="text-sm text-gray-900">{transaction.metadata.paymentDetails.description}</div>
+                            </div>
+                          )}
+                          
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex items-center justify-between text-xs text-gray-500">
+                              <div className="flex items-center space-x-4">
+                                <span>Created: {new Date(transaction.createdAt).toLocaleDateString()}</span>
+                                {transaction.metadata?.executedAt && (
+                                  <span>Executed: {new Date(transaction.metadata.executedAt).toLocaleDateString()}</span>
+                                )}
+                              </div>
+                              {transaction.transactionHash && (
+                                <div className="flex items-center space-x-2">
+                                  <span>TX:</span>
+                                  <span className="font-mono">
+                                    {transaction.transactionHash.slice(0, 8)}...{transaction.transactionHash.slice(-6)}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Signatures Details */}
+                          {transaction.signatures && transaction.signatures.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <div className="text-xs text-gray-600 mb-2">Signatures:</div>
+                              <div className="space-y-1">
+                                {transaction.signatures.map((signature: any, idx: number) => (
+                                  <div key={signature.id || idx} className="flex items-center justify-between text-xs">
+                                    <div className="flex items-center space-x-2">
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        signature.type === 'approval' ? 'bg-green-500' : 'bg-red-500'
+                                      }`}></div>
+                                      <span className="font-mono text-gray-700">
+                                        {signature.signerAddress.slice(0, 8)}...{signature.signerAddress.slice(-6)}
+                                      </span>
+                                      {signature.metadata?.signerName && (
+                                        <span className="text-gray-500">({signature.metadata.signerName})</span>
+                                      )}
+                                    </div>
+                                    <span className="text-gray-500">
+                                      {new Date(signature.signedAt).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

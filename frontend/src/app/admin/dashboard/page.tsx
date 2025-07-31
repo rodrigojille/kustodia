@@ -5,6 +5,7 @@ import { authFetch } from '../../../utils/authFetch';
 import SupportTicketsTable from '../../../components/admin/SupportTicketsTable';
 import DisputeCard from '../../../components/admin/DisputeCard';
 import PaymentControlRoom from '../control-room/page';
+import MultiSigDashboard from '../../../components/admin/MultiSigDashboard';
 
 interface Ticket {
   id: number;
@@ -48,7 +49,7 @@ const AdminDashboardPage = () => {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'disputes' | 'control-room'>('tickets');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'disputes' | 'control-room' | 'multisig'>('tickets');
   const [resolvingDispute, setResolvingDispute] = useState<number | null>(null);
 
   useEffect(() => {
@@ -181,6 +182,16 @@ const AdminDashboardPage = () => {
           >
             🎯 Centro de Control
           </button>
+          <button
+            onClick={() => setActiveTab('multisig')}
+            className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'multisig'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            🔐 Multi-Sig
+          </button>
         </nav>
       </div>
 
@@ -255,6 +266,11 @@ const AdminDashboardPage = () => {
           {/* Control Room Tab */}
           {activeTab === 'control-room' && (
             <PaymentControlRoom />
+          )}
+
+          {/* MultiSig Tab */}
+          {activeTab === 'multisig' && (
+            <MultiSigDashboard />
           )}
         </>
       )}

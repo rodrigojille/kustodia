@@ -1,12 +1,9 @@
 import { Request, Response } from 'express';
-import { Pool } from 'pg';
-import { MultiSigService } from '../services/MultiSigService';
+import { multiSigApprovalService } from '../services/MultiSigApprovalService';
 
 export class MultiSigController {
-  private multiSigService: MultiSigService;
-
-  constructor(pool: Pool) {
-    this.multiSigService = new MultiSigService(pool);
+  constructor() {
+    // Using singleton instance, no need to store as instance variable
   }
 
   /**
@@ -22,7 +19,7 @@ export class MultiSigController {
         });
       }
 
-      const pendingApprovals = await this.multiSigService.getPendingApprovals(wallet_address);
+      const pendingApprovals = await multiSigApprovalService.getPendingApprovals(wallet_address);
       
       res.json({
         success: true,
@@ -51,7 +48,7 @@ export class MultiSigController {
         });
       }
 
-      const approvalDetails = await this.multiSigService.getApprovalDetails(parseInt(approvalId));
+      const approvalDetails = await multiSigApprovalService.getTransactionDetails(approvalId);
       
       if (!approvalDetails) {
         return res.status(404).json({ 
@@ -99,20 +96,23 @@ export class MultiSigController {
         });
       }
 
-      const success = await this.multiSigService.submitSignature(
-        parseInt(approvalId),
-        wallet_address,
-        signature
+      const transactionDetails = await multiSigApprovalService.getTransactionDetails(approvalId);
+      const signatures = transactionDetails?.signatures || [];
+
+      // For now, use approveTransaction as submitSignature equivalent
+      const success = await multiSigApprovalService.approveTransaction(
+        approvalId,
+        wallet_address
       );
 
       if (success) {
         // Get updated approval details
-        const updatedApproval = await this.multiSigService.getApprovalDetails(parseInt(approvalId));
+        const preApproved = await multiSigApprovalService.getPreApprovedTransactions();
         
         res.json({
           success: true,
           message: 'Signature submitted successfully',
-          data: updatedApproval
+          data: preApproved
         });
       } else {
         res.status(400).json({ 
@@ -149,7 +149,7 @@ export class MultiSigController {
         });
       }
 
-      const result = await this.multiSigService.executeTransaction(parseInt(approvalId));
+      const result = await multiSigApprovalService.executeTransaction(approvalId, 'admin');
       
       res.json({
         success: true,
@@ -185,10 +185,15 @@ export class MultiSigController {
         });
       }
 
-      const approvalRequest = await this.multiSigService.createApprovalRequest(
-        parseInt(paymentId),
-        walletConfigName || 'high_value'
-      );
+      // Create approval request using proposeTransaction
+      const approvalRequest = await multiSigApprovalService.proposeTransaction({
+        paymentId: paymentId.toString(),
+        amount: 0, // Amount will be set from payment data
+        amountUsd: 0, // USD amount will be calculated
+        type: 'payment',
+        createdBy: 'admin',
+        description: `Multi-sig approval request for payment ${paymentId}`
+      });
       
       res.json({
         success: true,
@@ -217,10 +222,9 @@ export class MultiSigController {
         });
       }
 
-      const requiresMultiSig = await this.multiSigService.requiresMultiSigApproval(
-        parseFloat(amount as string),
-        currency as string || 'MXN'
-      );
+      // Check if amount requires multi-sig (using threshold logic)
+      const amountUsd = parseFloat(amount as string) * 0.06; // Approximate MXN to USD
+      const requiresMultiSig = amountUsd >= 1000; // $1000 USD threshold
       
       res.json({
         success: true,
@@ -237,33 +241,84 @@ export class MultiSigController {
   };
 
   /**
-   * Get multi-sig dashboard data for admins
+   * Get signature history for an approval request
    */
-  getDashboardData = async (req: Request, res: Response) => {
+  getSignatureHistory = async (req: Request, res: Response) => {
     try {
-      const { role } = req.user as any;
+      const { approvalId } = req.params;
       
-      if (role !== 'admin') {
-        return res.status(403).json({ 
-          error: 'Admin privileges required' 
+      if (!approvalId || isNaN(parseInt(approvalId))) {
+        return res.status(400).json({ 
+          error: 'Valid approval ID required' 
         });
       }
 
-      // This would be implemented to return dashboard statistics
-      // For now, return a placeholder response
+      const signatureHistory = await multiSigApprovalService.getSignatureHistory(approvalId);
+      
       res.json({
         success: true,
-        data: {
-          pendingApprovals: 0,
-          totalApprovals: 0,
-          executedTransactions: 0,
-          walletConfigs: []
-        }
+        data: signatureHistory
       });
     } catch (error) {
-      console.error('Error getting dashboard data:', error);
+      console.error('Error getting signature history:', error);
       res.status(500).json({ 
-        error: 'Failed to get dashboard data',
+        error: 'Failed to get signature history',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
+
+  /**
+   * Get approval timeline for a payment
+   */
+  getApprovalTimeline = async (req: Request, res: Response) => {
+    try {
+      const { paymentId } = req.params;
+      
+      if (!paymentId || isNaN(parseInt(paymentId))) {
+        return res.status(400).json({ 
+          error: 'Valid payment ID required' 
+        });
+      }
+
+      const timeline = await multiSigApprovalService.getApprovalTimeline(paymentId);
+      
+      res.json({
+        success: true,
+        data: timeline
+      });
+    } catch (error) {
+      console.error('Error getting approval timeline:', error);
+      res.status(500).json({ 
+        error: 'Failed to get approval timeline',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
+
+  /**
+   * Create Safe transaction for wallet signing
+   */
+  createSafeTransaction = async (req: Request, res: Response) => {
+    try {
+      const { transactionId } = req.params;
+      
+      if (!transactionId || isNaN(parseInt(transactionId))) {
+        return res.status(400).json({ 
+          error: 'Valid transaction ID required' 
+        });
+      }
+
+      const safeTransaction = await multiSigApprovalService.createSafeTransactionForSigning(transactionId);
+      
+      res.json({
+        success: true,
+        data: safeTransaction
+      });
+    } catch (error) {
+      console.error('Error creating Safe transaction:', error);
+      res.status(500).json({ 
+        error: 'Failed to create Safe transaction',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
