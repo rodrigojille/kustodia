@@ -1,17 +1,15 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/static/chunks/
+Disallow: /admin/
 
-# Important pages for SEO
-Allow: /blog/*
-Allow: /api/early-access-counter/*
+# Performance optimizations
+Crawl-delay: 1
 
-# Sitemap location
+# Sitemap
 Sitemap: https://kustodia.mx/sitemap.xml
 
-# Block development/admin paths (if any exist)
-Disallow: /admin
-Disallow: /_next/
-Disallow: /api/admin
-
-# Crawl delay (optional - helps prevent server overload)
-Crawl-delay: 1
+# Cache directives for better SEO
+Cache-Control: public, max-age=86400

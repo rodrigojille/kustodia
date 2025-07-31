@@ -12,6 +12,8 @@ import FooterWithAnalytics from "../components/FooterWithAnalytics";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: 'swap', // Improve font loading performance
+  preload: true,
 });
 
 export const metadata: Metadata = {

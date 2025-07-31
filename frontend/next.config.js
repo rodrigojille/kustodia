@@ -25,6 +25,34 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
+  // Bundle optimization
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@heroicons/react', 'lucide-react'],
+  },
+  
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Enable tree shaking
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = false;
+      
+      // Split chunks for better caching
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\/]node_modules[\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      };
+    }
+    return config;
+  },
+  
   // Security Headers for better SEO ranking
   async headers() {
     return [
