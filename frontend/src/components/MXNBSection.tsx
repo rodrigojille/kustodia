@@ -1,7 +1,11 @@
 import React from 'react';
 import FooterUrgencyCounter from './FooterUrgencyCounter';
+import { useAnalyticsContext } from './AnalyticsProvider';
 
-const MXNBSection: React.FC = () => (
+const MXNBSection: React.FC = () => {
+  const { trackUserAction } = useAnalyticsContext();
+  
+  return (
   <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="mxnb-heading">
     {/* Hero Section */}
     <div className="text-center mb-20">
@@ -18,6 +22,12 @@ const MXNBSection: React.FC = () => (
         target="_blank"
         rel="noopener noreferrer"
         className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
+        onClick={() => trackUserAction('mxnb_transparency_click', {
+          link_type: 'external',
+          destination: 'mxnb.mx',
+          section: 'mxnb_info',
+          engagement_level: 'high'
+        })}
       >
         Ver transparencia de MXNB
       </a>
@@ -74,6 +84,7 @@ const MXNBSection: React.FC = () => (
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default MXNBSection;

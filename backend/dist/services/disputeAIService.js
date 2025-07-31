@@ -29,15 +29,65 @@ class DisputeAIService {
             const disputeRepo = ormconfig_1.default.getRepository(Dispute_1.Dispute);
             const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
             const userRepo = ormconfig_1.default.getRepository(User_1.User);
-            // Fetch dispute with full context
+            // Fetch dispute with essential context only
             const dispute = await disputeRepo.findOne({
                 where: { id: disputeId },
-                relations: ['escrow', 'escrow.payment', 'raisedBy']
+                relations: ['escrow', 'escrow.payment', 'raisedBy'],
+                select: {
+                    id: true,
+                    reason: true,
+                    details: true,
+                    evidence_url: true,
+                    status: true,
+                    created_at: true,
+                    escrow: {
+                        id: true,
+                        custody_amount: true,
+                        release_amount: true,
+                        status: true,
+                        dispute_status: true,
+                        custody_end: true,
+                        payment: {
+                            id: true
+                        }
+                    },
+                    raisedBy: {
+                        id: true,
+                        email: true,
+                        full_name: true,
+                        kyc_status: true,
+                        created_at: true
+                    }
+                }
             });
             if (!dispute) {
                 throw new Error('Dispute not found');
             }
-            const payment = dispute.escrow.payment;
+            // Get payment ID from escrow relation
+            const paymentId = dispute.escrow.payment?.id;
+            if (!paymentId) {
+                throw new Error('Payment not found for dispute');
+            }
+            // Fetch payment data separately with only needed fields
+            const payment = await paymentRepo.findOne({
+                where: { id: paymentId },
+                select: {
+                    id: true,
+                    amount: true,
+                    currency: true,
+                    description: true,
+                    status: true,
+                    payment_type: true,
+                    vertical_type: true,
+                    operation_type: true,
+                    created_at: true,
+                    payer_email: true,
+                    recipient_email: true
+                }
+            });
+            if (!payment) {
+                throw new Error('Payment not found');
+            }
             const user = dispute.raisedBy;
             // Get user's dispute history
             const userDisputeHistory = await disputeRepo.count({
@@ -137,8 +187,16 @@ Respond ONLY with valid JSON, no additional text.`;
             if (!aiContent) {
                 throw new Error('No response from AI model');
             }
-            // Parse AI response
-            const aiAssessment = JSON.parse(aiContent);
+            // Parse AI response - handle markdown code blocks
+            let jsonContent = aiContent.trim();
+            // Remove markdown code block markers if present
+            if (jsonContent.startsWith('```json')) {
+                jsonContent = jsonContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            }
+            else if (jsonContent.startsWith('```')) {
+                jsonContent = jsonContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            }
+            const aiAssessment = JSON.parse(jsonContent);
             // Validate the response structure
             if (!this.validateAIResponse(aiAssessment)) {
                 throw new Error('Invalid AI response format');

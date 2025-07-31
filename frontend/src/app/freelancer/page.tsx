@@ -4,8 +4,23 @@ import Header from '../../components/Header';
 import { FaUserTie, FaShieldAlt, FaRocket, FaLock } from 'react-icons/fa';
 import Link from 'next/link';
 import InterestRegistrationForm from '../../components/InterestRegistrationForm';
+import { useEffect } from 'react';
+import { useAnalyticsContext } from '../../components/AnalyticsProvider';
 
 export default function FreelancerUseCase() {
+  const { trackEvent, trackUserAction } = useAnalyticsContext();
+  
+  // Track page load
+  useEffect(() => {
+    trackEvent('freelancer_page_loaded', {
+      page_type: 'use_case',
+      use_case: 'freelancer',
+      referrer: document.referrer || 'direct',
+      utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+      utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+      utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
+    });
+  }, []);
   return (
     <>
       <header>
@@ -63,7 +78,16 @@ export default function FreelancerUseCase() {
               </div>
               
               <button
-                onClick={() => document.getElementById('interest-form')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => {
+                  trackUserAction('freelancer_cta_click', {
+                    button_text: 'Registro Prioritario',
+                    use_case: 'freelancer',
+                    target_section: 'interest-form',
+                    engagement_level: 'very_high',
+                    conversion_stage: 'interest'
+                  });
+                  document.getElementById('interest-form')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
               >
                 Registro Prioritario

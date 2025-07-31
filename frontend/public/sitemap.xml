@@ -4,9 +4,38 @@
 <!-- Main Landing Page - Highest Priority -->
 <url>
   <loc>https://kustodia.mx/</loc>
-  <lastmod>2025-06-23</lastmod>
+  <lastmod>2025-07-30</lastmod>
   <changefreq>daily</changefreq>
   <priority>1.0</priority>
+</url>
+
+<!-- Use Case Pages - High Priority -->
+<url>
+  <loc>https://kustodia.mx/b2b</loc>
+  <lastmod>2025-07-30</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/ecommerce</loc>
+  <lastmod>2025-07-30</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/freelancer</loc>
+  <lastmod>2025-07-30</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+
+<url>
+  <loc>https://kustodia.mx/compra-venta</loc>
+  <lastmod>2025-07-30</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
 </url>
 
 <!-- Blog Pages - High Priority for SEO -->

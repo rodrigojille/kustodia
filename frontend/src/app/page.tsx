@@ -326,7 +326,13 @@ export default function LandingPage() {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
-                  <a href="#early-access" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] min-w-[320px]" aria-describedby="cta-description">
+                  <a href="#early-access" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] min-w-[320px]" aria-describedby="cta-description"
+                     onClick={() => trackUserAction('hero_cta_click', {
+                       button_text: 'Registro prioritario exclusivo',
+                       target_section: 'early-access',
+                       engagement_level: 'very_high',
+                       conversion_stage: 'interest'
+                     })}>
                     Registro prioritario exclusivo
                   </a>
                   <div id="cta-description" className="text-base text-gray-500 flex items-center gap-3 font-medium">
@@ -741,7 +747,13 @@ export default function LandingPage() {
                       <a href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
                          target="_blank" 
                          rel="noopener noreferrer"
-                         className="text-green-600 hover:text-green-800 text-sm font-medium underline">
+                         className="text-green-600 hover:text-green-800 text-sm font-medium underline"
+                         onClick={() => trackUserAction('blockchain_link_click', {
+                           link_type: 'smart_contract',
+                           blockchain: 'arbitrum',
+                           example_number: currentExample,
+                           engagement_level: 'high'
+                         })}>
                         Ver contrato inteligente en Arbitrum
                       </a>
                     </div>
@@ -1137,6 +1149,12 @@ export default function LandingPage() {
                     <a 
                       href="#early-access" 
                       className="inline-block bg-white text-amber-600 font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+                      onClick={() => trackUserAction('yield_cta_click', {
+                        button_text: 'Regístrate para acceso anticipado',
+                        section: 'yield_generation',
+                        target_section: 'early-access',
+                        engagement_level: 'high'
+                      })}
                     >
                       Reg├¡strate para acceso anticipado
                     </a>
