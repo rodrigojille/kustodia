@@ -22,6 +22,7 @@ export type PaymentEventType =
 interface NotificationRecipient {
   email: string;
   role: 'payer' | 'seller' | 'commission_beneficiary' | 'admin' | 'support' | string;
+  name?: string; // User's full name or first name for personalization
 }
 
 interface PaymentEventNotification {
@@ -86,20 +87,32 @@ export async function sendPaymentEventNotification({
   }
 
   // Simple HTML template (replace with your own)
-  const buildHtml = (recipient: NotificationRecipient) => `
+  const buildHtml = (recipient: NotificationRecipient) => {
+    // Get personalized greeting
+    let greeting = 'Hola';
+    if (recipient.name) {
+      greeting = `Hola ${recipient.name}`;
+    } else if (recipient.role) {
+      greeting = `Hola (${recipient.role})`;
+    }
+    
+    return `
     <div style="font-family:Montserrat,Arial,sans-serif;background:#fff;padding:2rem;max-width:520px;margin:2rem auto;border-radius:16px;box-shadow:0 2px 12px #0001;">
       <h2 style="color:#2e7ef7;">${subject}</h2>
-      <p>Hola${recipient.role ? ` (${recipient.role})` : ''},</p>
+      <p>${greeting},</p>
       <p>${customMessage || getDefaultMessage(eventType, paymentDetails)}</p>
       <div style="margin:1.5rem 0;">
         <b>ID del pago:</b> ${paymentId}<br/>
         <b>Monto:</b> ${paymentDetails.amount ? Number(paymentDetails.amount).toLocaleString('es-MX', { style: 'currency', currency: paymentDetails.currency }) : '-'}<br/>
         <b>Estado actual:</b> ${paymentDetails.status || '-'}
+        ${paymentDetails.arbiscanUrl ? `<br/><b>Ver en blockchain:</b> <a href="${paymentDetails.arbiscanUrl}" target="_blank" style="color:#2e7ef7;">Ver transacción</a>` : ''}
+        ${paymentDetails.escrowId ? `<br/><b>ID de custodia:</b> ${paymentDetails.escrowId}` : ''}
       </div>
       ${timeline && timeline.length ? renderTimeline(timeline) : ''}
       <p style="font-size:13px;color:#999;">Equipo Kustodia</p>
     </div>
   `;
+  };
 
   for (const recipient of recipients) {
     const emailOptions: any = {
@@ -147,9 +160,9 @@ function getDefaultMessage(eventType: PaymentEventType, paymentDetails: any) {
     case 'payment_created':
       return 'Tu pago ha sido creado exitosamente.';
     case 'escrow_created':
-      return 'La custodia ha sido creada y está activa.';
+      return `La custodia ha sido creada exitosamente en blockchain${paymentDetails.custodyAmount ? ` por ${Number(paymentDetails.custodyAmount).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}` : ''}. Los fondos están seguros en el contrato inteligente hasta la fecha de liberación.`;
     case 'funds_received':
-      return 'Los fondos han sido recibidos en la custodia.';
+      return `Los fondos han sido recibidos exitosamente${paymentDetails.amount ? ` por ${Number(paymentDetails.amount).toLocaleString('es-MX', { style: 'currency', currency: paymentDetails.currency || 'MXN' })}` : ''}. El proceso de automatización ha iniciado y procederemos con la división de fondos según las condiciones del pago.`;
     case 'escrow_executing':
       return 'La custodia está en ejecución.';
     case 'escrow_finished':

@@ -19,7 +19,9 @@ This document details the complete automation solution for Payment 81 and all fu
 5. **🏦 SPEI Payout** - Automatic bank transfer to seller's CLABE
 6. **🔄 Status Synchronization** - Continuous blockchain ↔ database sync
 7. **📝 Event Logging** - All events logged in Spanish with full traceability
-8. **🚨 Error Handling** - Robust error recovery and retry logic
+8. **📧 Email Notifications** - Comprehensive email alerts for all key payment events
+9. **🔗 Blockchain Transparency** - Clickable Arbiscan transaction URLs in notifications
+10. **🚨 Error Handling** - Robust error recovery and retry logic
 
 ### ✅ **MANUAL SCRIPTS ELIMINATED**
 
@@ -56,9 +58,21 @@ class PaymentAutomationService {
 │   (Customer)    │    │   (5 min poll)  │    │   (Immediate)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                                         │
+                                                        ▼
+                                              ┌─────────────────┐
+                                              │ Email Notification │
+                                              │  "Fondos Recibidos" │
+                                              └─────────────────┘
+                                                        │
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │ Status Complete │◀───│   Auto Payout   │◀───│ Custody Release │
 │  (Database)     │    │  (15 min poll)  │    │  (10 min poll)  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                           │                           │
+        ▼                           ▼                           ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Email Notification │    │ Email Notification │    │ Email Notification │
+│ "Pago Completado" │    │ "Pago Liberado"   │    │ "Custodia Creada" │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -155,6 +169,68 @@ if (blockchainEscrow.status === 2 && escrow.status === 'active') {
   await escrowRepo.save(escrow);
 }
 ```
+
+### **5. EMAIL NOTIFICATION SYSTEM**
+
+**File:** `PaymentAutomationService.ts` + `disputeController.ts`
+
+**Comprehensive Email Coverage:**
+
+#### **📧 Automated Email Notifications**
+
+| **Event** | **Trigger** | **Recipients** | **Content** |
+|-----------|-------------|----------------|-------------|
+| **Funds Received** | Deposit detected | Payer + Seller | Amount, automation start notice |
+| **Escrow Created** | Blockchain funding complete | Payer + Seller | Custody amount, Arbiscan URL, escrow ID |
+| **Dispute Started** | User raises dispute | Payer + Seller | Dispute reason, details, escrow ID |
+| **Payout Completed** | Final SPEI transfer | Payer + Seller | Transfer confirmation |
+| **Payment Released** | Escrow release complete | Payer + Seller | Release confirmation |
+
+#### **🔗 Blockchain Transparency Features**
+
+- **Clickable Arbiscan URLs** in all escrow-related emails
+- **Format:** `https://sepolia.arbiscan.io/tx/{txHash}`
+- **Real-time blockchain verification** for users
+- **Escrow ID display** for contract reference
+
+#### **🎨 Email Template Features**
+
+```typescript
+// Enhanced Email Content
+{
+  greeting: "Hola Rodrigo", // Personalized with user.full_name
+  subject: "Custodia creada",
+  content: "La custodia ha sido creada exitosamente por $15,000 MXN",
+  arbiscanUrl: "https://sepolia.arbiscan.io/tx/0x123...",
+  escrowId: "ESC_001",
+  branding: "Kustodia professional styling"
+}
+```
+
+#### **⚡ Email Notification Flow**
+
+```
+1. SPEI Deposit → "Fondos Recibidos" 📧
+   │
+   ↓ (Automation triggers)
+   │
+2. Escrow Creation → "Custodia Creada" 📧 + 🔗 Arbiscan
+   │
+   ↓ (Custody period)
+   │
+3. Escrow Release → "Pago Liberado" 📧
+   │
+   ↓ (SPEI transfer)
+   │
+4. Payout Complete → "Pago Completado" 📧
+```
+
+#### **🚨 Error Handling**
+
+- All notifications wrapped in `try-catch` blocks
+- Graceful degradation if email service fails
+- Console logging for debugging
+- Payment processing continues even if emails fail
 
 ---
 
@@ -336,6 +412,9 @@ catch (error) {
 - **📈 Better Scalability** - Handles growth automatically  
 - **💰 Cost Reduction** - No manual script execution needed
 - **🎯 Better UX** - Real-time status updates and accurate displays
+- **📧 Enhanced Communication** - Comprehensive email notifications keep users informed
+- **🔗 Blockchain Transparency** - Direct Arbiscan links for transaction verification
+- **📱 Professional Image** - Automated, branded communications build trust
 
 ### **System Status:**
 

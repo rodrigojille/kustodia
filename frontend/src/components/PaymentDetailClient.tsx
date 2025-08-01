@@ -33,7 +33,8 @@ function calculateMontoPorPagar(payment: Payment | null, events: any[]) {
   
   // Check if immediate SPEI was already sent
   const immediateSPEISent = events.some(event => 
-    event.type === 'spei_sent' && event.description?.includes('immediate')
+    event.type === 'spei_sent' && event.description?.includes('immediate') ||
+    event.type === 'payout_completed'
   );
   
   // Check if final SPEI was sent (custody release)
@@ -76,6 +77,7 @@ function calculatePaymentBreakdown(payment: Payment | null, events: any[]) {
       // Event types that indicate seller payment
       type === 'seller_redemption' || 
       type === 'payout_processed' ||
+      type === 'payout_completed' ||
       type === 'spei_sent' ||
       type === 'redemption_successful' ||
       // Description patterns that indicate seller payment

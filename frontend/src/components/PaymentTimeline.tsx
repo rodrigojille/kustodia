@@ -169,6 +169,22 @@ export default function PaymentTimeline({ paymentId }: { paymentId: string }) {
           desc.toLowerCase().includes('withdrawal of') ||
           desc.toLowerCase().includes('starting escrow');
 
+          // Extract transaction hash for Arbiscan link
+          let txHash = null;
+          let arbiscanUrl = null;
+          let escrowId = null;
+          const txHashMatch = desc.match(/Tx: (0x[a-fA-F0-9]{64})/);
+          if (txHashMatch) {
+            txHash = txHashMatch[1];
+            arbiscanUrl = `https://sepolia.arbiscan.io/tx/${txHash}`;
+          }
+          
+          // Extract escrow ID
+          const escrowIdMatch = desc.match(/Custodia ([A-Z0-9_]+) creada|ID de custodia: ([A-Z0-9_]+)/);
+          if (escrowIdMatch) {
+            escrowId = escrowIdMatch[1] || escrowIdMatch[2];
+          }
+
           // Try to extract a user-friendly error message (JSON or text)
           if (isError && desc.length > 120) {
             try {
@@ -194,7 +210,33 @@ export default function PaymentTimeline({ paymentId }: { paymentId: string }) {
                   )}
                 </div>
                 {desc !== style.label && (
-                  <div className="text-xs sm:text-sm text-gray-600 mb-1 break-words">{desc}</div>
+                  <div className="text-xs sm:text-sm text-gray-600 mb-1 break-words">
+                    {/* Clean up description by removing technical details we're showing separately */}
+                    {desc
+                      .replace(/Tx: 0x[a-fA-F0-9]{64}/, '')
+                      .replace(/ID de custodia: [A-Z0-9_]+/, '')
+                      .replace(/\. \.$/, '.')
+                      .trim()}
+                  </div>
+                )}
+                {escrowId && (
+                  <div className="mb-1">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-md font-mono">
+                      🔐 ID: {escrowId}
+                    </span>
+                  </div>
+                )}
+                {arbiscanUrl && (
+                  <div className="mb-1">
+                    <a 
+                      href={arbiscanUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs rounded-md transition-colors duration-200 font-medium"
+                    >
+                      🔗 Ver en blockchain
+                    </a>
+                  </div>
                 )}
                 <div className="text-gray-400 text-xs">
                   {new Date(ev.created_at).toLocaleString('es-MX', {

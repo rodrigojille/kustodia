@@ -112,7 +112,7 @@ class AssetNFTService {
   constructor() {
     try {
       // Initialize blockchain connection
-      this.provider = new ethers.JsonRpcProvider(process.env.RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc');
+      this.provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc');
       
       // Initialize Kustodia wallet for contract interactions
       const privateKey = process.env.KUSTODIA_PRIVATE_KEY;

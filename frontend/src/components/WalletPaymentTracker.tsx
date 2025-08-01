@@ -294,6 +294,41 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
               </div>
             </div>
           </div>
+          
+          {/* Blockchain Information */}
+          {payment.escrow.smart_contract_escrow_id && (
+            <div className="mt-4 p-4 bg-white rounded-lg border border-amber-200">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-amber-900">🔐 Detalles blockchain</h4>
+                {payment.escrow.blockchain_tx_hash && (
+                  <a 
+                    href={`https://sepolia.arbiscan.io/tx/${payment.escrow.blockchain_tx_hash}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs rounded-md transition-colors duration-200 font-medium"
+                  >
+                    🔗 Ver en blockchain
+                  </a>
+                )}
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-amber-600">Escrow ID:</span>
+                  <span className="font-mono text-amber-900 bg-amber-50 px-2 py-1 rounded text-xs">
+                    #{payment.escrow.smart_contract_escrow_id}
+                  </span>
+                </div>
+                {payment.escrow.blockchain_tx_hash && (
+                  <div className="flex items-start justify-between">
+                    <span className="text-amber-600">Transaction:</span>
+                    <span className="font-mono text-amber-900 text-xs break-all max-w-xs text-right">
+                      {payment.escrow.blockchain_tx_hash.slice(0, 10)}...{payment.escrow.blockchain_tx_hash.slice(-8)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Deadline Information */}
           {payment.escrow.custody_end && (
@@ -321,17 +356,32 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
           {payment.escrow.smart_contract_escrow_id && (
             <div className="mt-4 p-4 bg-white rounded-lg border border-amber-200">
               <h4 className="font-medium text-amber-900 mb-2">📋 Detalles blockchain:</h4>
-              <div className="space-y-1 text-sm">
+              <div className="space-y-3 text-sm">
                 <div>
                   <span className="text-amber-600">Escrow ID:</span>
                   <span className="ml-2 font-mono text-amber-900">#{payment.escrow.smart_contract_escrow_id}</span>
                 </div>
                 {payment.escrow.blockchain_tx_hash && (
-                  <div>
-                    <span className="text-amber-600">Transaction Hash:</span>
-                    <span className="ml-2 font-mono text-amber-900 text-xs break-all">
-                      {payment.escrow.blockchain_tx_hash}
-                    </span>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-amber-600">Transaction Hash:</span>
+                      <span className="ml-2 font-mono text-amber-900 text-xs break-all">
+                        {payment.escrow.blockchain_tx_hash}
+                      </span>
+                    </div>
+                    <div>
+                      <a 
+                        href={`https://sepolia.arbiscan.io/tx/${payment.escrow.blockchain_tx_hash}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm rounded-lg transition-colors duration-200 font-medium border border-blue-200"
+                      >
+                        🔗 Ver en blockchain
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
                 )}
               </div>

@@ -27,6 +27,14 @@ const triggerAutomation = async (req, res) => {
                 await automationService.processPendingPayouts();
                 result = 'Procesamiento de pagos pendientes ejecutado';
                 break;
+            case 'escrow-retry':
+                await automationService.retryFailedEscrowCreations();
+                result = 'Reintento de creación de escrows fallidos ejecutado';
+                break;
+            case 'payment-141':
+                await automationService.processPaymentAutomation(141);
+                result = 'Procesamiento específico de Payment 141 ejecutado';
+                break;
             case 'sync':
                 await automationService.syncBlockchainStatuses();
                 result = 'Sincronización con blockchain ejecutada';
@@ -42,7 +50,7 @@ const triggerAutomation = async (req, res) => {
             default:
                 return res.status(400).json({
                     success: false,
-                    error: 'Proceso no válido. Opciones: deposits, custodies, sync, all'
+                    error: 'Proceso no válido. Opciones: deposits, custodies, withdrawals, payouts, escrow-retry, payment-141, sync, all'
                 });
         }
         res.json({

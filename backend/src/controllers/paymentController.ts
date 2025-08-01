@@ -865,14 +865,14 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
     try {
       const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
       const recipients = [
-        { email: payerUser.email, role: 'buyer' },
-        { email: recipientUser.email, role: 'seller' }
+        { email: payerUser.email, role: 'buyer', name: payerUser.full_name || 'Comprador' },
+        { email: recipientUser.email, role: 'seller', name: recipientUser.full_name || 'Rodrigo' }
       ];
       
       // Add commission recipients if they exist
       if (createdCommissionRecipients.length > 0) {
         createdCommissionRecipients.forEach(cr => {
-          recipients.push({ email: cr.broker_email, role: 'broker' });
+          recipients.push({ email: cr.broker_email, role: 'broker', name: cr.broker_name || 'Asesor' });
         });
       }
       

@@ -70,8 +70,8 @@ const signer = new ethers_1.ethers.Wallet(PRIVATE_KEY, provider);
 // Use ESCROW_CONTRACT_ADDRESS_2 for the new KustodiaEscrow2_0 contract
 const ESCROW_ADDRESS = process.env.KUSTODIA_ESCROW_V2_ADDRESS;
 console.log('[escrowService] Using ESCROW_CONTRACT_ADDRESS_2:', ESCROW_ADDRESS);
-// Mainnet contract addresses
-const TOKEN_ADDRESS = process.env.MOCK_ERC20_ADDRESS;
+// MXNB token contract address
+const TOKEN_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS;
 // Load ABIs with error handling
 let ESCROW_ABI;
 try {

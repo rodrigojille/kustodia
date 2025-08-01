@@ -123,6 +123,41 @@ export const raiseDispute = async (req: Request, res: Response): Promise<void> =
   ];
   await escrowRepo.save(escrow);
 
+  // Send dispute notification email
+  try {
+    const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
+    const recipients = [];
+    
+    if (escrow.payment?.payer_email) {
+      recipients.push({ email: escrow.payment.payer_email, role: 'payer' });
+    }
+    if (escrow.payment?.recipient_email) {
+      recipients.push({ email: escrow.payment.recipient_email, role: 'seller' });
+    }
+    
+    if (recipients.length > 0) {
+      await sendPaymentEventNotification({
+        eventType: 'dispute_started',
+        paymentId: escrow.payment?.id?.toString() || escrowId,
+        paymentDetails: {
+          amount: escrow.payment?.amount || escrow.custody_amount,
+          currency: escrow.payment?.currency || 'MXN',
+          description: escrow.payment?.description || 'Disputa iniciada',
+          status: 'disputed',
+          payer_email: escrow.payment?.payer_email,
+          recipient_email: escrow.payment?.recipient_email,
+          disputeReason: reason,
+          disputeDetails: details,
+          escrowId: escrow.id
+        },
+        recipients
+      });
+      console.log(`📧 Dispute ${dispute.id} created - email notifications sent`);
+    }
+  } catch (emailError) {
+    console.error(`⚠️ Failed to send dispute email notifications for escrow ${escrowId}:`, emailError);
+  }
+
   res.json({ success: true, message: "Dispute submitted.", dispute: { status: escrow.dispute_status } });
 }
 

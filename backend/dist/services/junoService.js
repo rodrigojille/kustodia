@@ -123,13 +123,16 @@ async function createJunoClabe() {
  * @param travelRuleData - Optional Travel Rule compliance data to include
  * @returns The redemption response from the API
  */
-async function redeemMXNbForMXN(amount, destination_bank_account_id) {
+async function redeemMXNbForMXN(amount, destination_bank_account_id, idempotencyKey) {
     const endpoint = '/mint_platform/v1/redemptions';
     const url = `${JUNO_BASE_URL}${endpoint}`;
+    // Generate unique idempotency key for each redemption attempt
+    const finalIdempotencyKey = idempotencyKey || `redemption-${destination_bank_account_id}-${amount}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // According to Juno docs, idempotency_key should NOT be in request body - only in header
     const bodyObj = {
-        amount: amount, // Keep amount as string
+        amount: Number(amount), // Ensure amount is a number
         destination_bank_account_id,
-        asset: 'mxn', // The asset being redeemed is MXNB
+        asset: 'mxn' // The asset being redeemed is MXNB
     };
     const body = JSON.stringify(bodyObj);
     const nonce = Date.now().toString();
@@ -140,6 +143,7 @@ async function redeemMXNbForMXN(amount, destination_bank_account_id) {
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'X-Idempotency-Key': finalIdempotencyKey
     };
     console.log(`[JUNO] Redeeming ${amount} MXNB to bank account ${destination_bank_account_id}...`);
     console.log(`[JUNO] Request Body: ${body}`);
@@ -264,7 +268,11 @@ async function redeemMXNBToMXN(amount, destinationBankAccountId, idempotencyKey)
     const requestPath = '/mint_platform/v1/redemptions';
     const method = 'POST';
     const nonce = Date.now().toString();
+    // 🚨 FIX: Use provided idempotency key for retries, or generate new one
+    // Generate unique idempotency key for each redemption attempt
+    const finalIdempotencyKey = idempotencyKey || `redemption-${destinationBankAccountId}-${amount}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     // 🚨 FIX: Ensure amount is sent as NUMBER, not string
+    // NOTE: According to Juno docs, idempotency_key should NOT be in request body - only in header
     const bodyData = {
         amount: Number(amount), // Explicitly convert to number
         destination_bank_account_id: destinationBankAccountId,
@@ -274,8 +282,6 @@ async function redeemMXNBToMXN(amount, destinationBankAccountId, idempotencyKey)
     // Build signature
     const dataToSign = nonce + method + requestPath + body;
     const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
-    // 🚨 FIX: Use provided idempotency key for retries, or generate new one
-    const finalIdempotencyKey = idempotencyKey || crypto.randomUUID();
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
@@ -289,8 +295,24 @@ async function redeemMXNBToMXN(amount, destinationBankAccountId, idempotencyKey)
         return response.data.payload;
     }
     catch (error) {
-        console.error('[JUNO] Redemption failed:', error?.response?.data || error.message);
-        throw new Error(`Juno redemption failed: ${error?.response?.data?.error || error.message}`);
+        const errorData = error?.response?.data;
+        console.error('[JUNO] Redemption failed:', JSON.stringify(errorData, null, 2) || error.message);
+        // Extract detailed error message
+        let errorMessage = 'Unknown error';
+        if (errorData?.error?.message) {
+            errorMessage = errorData.error.message;
+            if (errorData.error.details && Array.isArray(errorData.error.details)) {
+                const details = errorData.error.details.map((d) => JSON.stringify(d)).join(', ');
+                errorMessage += ` - Details: ${details}`;
+            }
+        }
+        else if (errorData?.error) {
+            errorMessage = JSON.stringify(errorData.error);
+        }
+        else if (error.message) {
+            errorMessage = error.message;
+        }
+        throw new Error(`Juno redemption failed: ${errorMessage}`);
     }
 }
 /**
@@ -428,7 +450,7 @@ async function withdrawMXNBToBridge(amount, walletAddress) {
     catch (error) {
         const errorData = error?.response?.data;
         const errorCode = errorData?.error_code || errorData?.code;
-        const errorMessage = errorData?.error || errorData?.message || error.message;
+        const errorMessage = String(errorData?.error || errorData?.message || error.message || 'Unknown error');
         console.error('[JUNO] Withdrawal failed:', errorData || error.message);
         // Handle specific error codes that might be false negatives
         if (errorCode === 34003 || errorCode === '34003' || errorMessage.includes('34003')) {
@@ -470,9 +492,10 @@ async function registerBankAccount(clabe, accountHolderName) {
     const nonce = Date.now().toString();
     const bodyData = {
         clabe: clabe,
-        account_holder_name: accountHolderName,
+        recipient_legal_name: accountHolderName, // Fixed: Correct field name
         currency: 'MXN',
-        ownership: 'INDIVIDUAL_OWNED' // Required by Juno API
+        ownership: 'THIRD_PARTY', // Fixed: Use THIRD_PARTY for individual sellers
+        tag: `kustodia-${clabe}-${Date.now()}` // Unique tag for each registration
     };
     const body = JSON.stringify(bodyData);
     // Build signature
@@ -491,8 +514,24 @@ async function registerBankAccount(clabe, accountHolderName) {
         return response.data.payload;
     }
     catch (error) {
-        console.error('[JUNO] Bank account registration failed:', error?.response?.data || error.message);
-        throw new Error(`Juno bank account registration failed: ${error?.response?.data?.error || error.message}`);
+        const errorData = error?.response?.data;
+        console.error('[JUNO] Bank account registration failed:', JSON.stringify(errorData, null, 2) || error.message);
+        // Extract detailed validation errors
+        let errorMessage = 'Unknown error';
+        if (errorData?.error?.message) {
+            errorMessage = errorData.error.message;
+            if (errorData.error.details && Array.isArray(errorData.error.details)) {
+                const detailMessages = errorData.error.details.map((detail) => typeof detail === 'object' ? JSON.stringify(detail) : detail).join(', ');
+                errorMessage += ` - Details: ${detailMessages}`;
+            }
+        }
+        else if (errorData?.error) {
+            errorMessage = JSON.stringify(errorData.error);
+        }
+        else if (error.message) {
+            errorMessage = error.message;
+        }
+        throw new Error(`Juno bank account registration failed: ${errorMessage}`);
     }
 }
 /**
