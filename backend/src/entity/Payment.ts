@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from "./User";
 import { Escrow } from "./Escrow";
 import { JunoTransaction } from "./JunoTransaction";
+import { MultisigApprovalRequest } from "./MultisigApprovalRequest";
 
 @Entity()
 export class Payment {
@@ -208,6 +209,22 @@ export class Payment {
   @Column({ nullable: true, length: 50 })
   furniture_condition?: string;
 
+  // Commission fields for cobro payments
+  @Column({ nullable: true, length: 255 })
+  broker_email?: string;
+
+  @Column({ nullable: true, length: 255 })
+  seller_email?: string;
+
+  @Column({ nullable: true, type: "decimal", precision: 5, scale: 2, default: 0 })
+  total_commission_percentage?: number;
+
+  @Column({ nullable: true, type: "decimal", precision: 15, scale: 2, default: 0 })
+  total_commission_amount?: number;
+
+  @Column({ nullable: true, type: "decimal", precision: 15, scale: 2 })
+  net_amount?: number;
+
   // Multisig fields
   @Column({ default: false })
   multisig_required!: boolean;
@@ -217,6 +234,10 @@ export class Payment {
 
   @Column({ nullable: true })
   multisig_approval_id?: number;
+
+  @ManyToOne(() => MultisigApprovalRequest, { nullable: true })
+  @JoinColumn({ name: 'multisig_approval_id' })
+  multisigApproval?: MultisigApprovalRequest;
 
   @OneToOne(() => Escrow, escrow => escrow.payment)
   @JoinColumn({ name: "escrow_id" })

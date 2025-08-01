@@ -19,6 +19,17 @@ export const getPublicVehicleHistory = async (req: Request, res: Response): Prom
       return;
     }
 
+    // Validate token ID format and value
+    const tokenIdNum = parseInt(tokenId);
+    if (isNaN(tokenIdNum) || tokenIdNum < 1) {
+      res.status(400).json({ 
+        error: 'Invalid token ID',
+        details: 'Token ID must be a positive integer greater than 0',
+        publicAccess: true
+      });
+      return;
+    }
+
     console.log('[Public History] Getting public vehicle history for token:', tokenId);
 
     // Get enhanced asset history

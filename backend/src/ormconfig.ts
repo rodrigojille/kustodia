@@ -15,6 +15,11 @@ import { Token } from './entity/Token';
 import { WalletTransaction } from './entity/WalletTransaction';
 import { CommissionRecipient } from './entity/CommissionRecipient';
 import { Blacklist } from './entity/Blacklist';
+import { MultisigWalletConfig } from './entity/MultisigWalletConfig';
+import { MultisigWalletOwner } from './entity/MultisigWalletOwner';
+import { MultisigApprovalRequest } from './entity/MultisigApprovalRequest';
+import { MultisigSignature } from './entity/MultisigSignature';
+import { MultisigTransactionLog } from './entity/MultisigTransactionLog';
 
 const AppDataSource = new DataSource({
   name: "default",
@@ -38,7 +43,12 @@ const AppDataSource = new DataSource({
     Token,
     WalletTransaction,
     CommissionRecipient,
-    Blacklist
+    Blacklist,
+    MultisigWalletConfig,
+    MultisigWalletOwner,
+    MultisigApprovalRequest,
+    MultisigSignature,
+    MultisigTransactionLog
   ],
   migrations: process.env.NODE_ENV === "production" ? ["dist/migration/**/*.js"] : ["src/migration/**/*.ts"],
   subscribers: ["dist/subscriber/**/*.js"],

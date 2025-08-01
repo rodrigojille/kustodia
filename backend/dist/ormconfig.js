@@ -17,6 +17,11 @@ const Token_1 = require("./entity/Token");
 const WalletTransaction_1 = require("./entity/WalletTransaction");
 const CommissionRecipient_1 = require("./entity/CommissionRecipient");
 const Blacklist_1 = require("./entity/Blacklist");
+const MultisigWalletConfig_1 = require("./entity/MultisigWalletConfig");
+const MultisigWalletOwner_1 = require("./entity/MultisigWalletOwner");
+const MultisigApprovalRequest_1 = require("./entity/MultisigApprovalRequest");
+const MultisigSignature_1 = require("./entity/MultisigSignature");
+const MultisigTransactionLog_1 = require("./entity/MultisigTransactionLog");
 const AppDataSource = new typeorm_1.DataSource({
     name: "default",
     type: "postgres",
@@ -39,7 +44,12 @@ const AppDataSource = new typeorm_1.DataSource({
         Token_1.Token,
         WalletTransaction_1.WalletTransaction,
         CommissionRecipient_1.CommissionRecipient,
-        Blacklist_1.Blacklist
+        Blacklist_1.Blacklist,
+        MultisigWalletConfig_1.MultisigWalletConfig,
+        MultisigWalletOwner_1.MultisigWalletOwner,
+        MultisigApprovalRequest_1.MultisigApprovalRequest,
+        MultisigSignature_1.MultisigSignature,
+        MultisigTransactionLog_1.MultisigTransactionLog
     ],
     migrations: process.env.NODE_ENV === "production" ? ["dist/migration/**/*.js"] : ["src/migration/**/*.ts"],
     subscribers: ["dist/subscriber/**/*.js"],

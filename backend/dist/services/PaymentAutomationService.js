@@ -473,7 +473,7 @@ class PaymentAutomationService {
             }
             await escrowRepo.save(payment.escrow);
             await paymentRepo.save(payment);
-            await this.paymentService.logPaymentEvent(payment.id, 'escrow_created', `Custodia ${createResult.escrowId} creada en blockchain. Tx: ${createResult.txHash}`, true);
+            await this.paymentService.logPaymentEvent(payment.id, 'escrow_created', `Custodia ${createResult.escrowId} creada en blockchain. Tx: ${createResult.txHash}. ID de custodia: ${createResult.escrowId}`, true);
             // Send escrowed notification email
             try {
                 const recipients = [];

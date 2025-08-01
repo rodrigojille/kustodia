@@ -14,6 +14,7 @@ const typeorm_1 = require("typeorm");
 const User_1 = require("./User");
 const Escrow_1 = require("./Escrow");
 const JunoTransaction_1 = require("./JunoTransaction");
+const MultisigApprovalRequest_1 = require("./MultisigApprovalRequest");
 let Payment = class Payment {
 };
 exports.Payment = Payment;
@@ -261,6 +262,26 @@ __decorate([
     __metadata("design:type", String)
 ], Payment.prototype, "furniture_condition", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 255 }),
+    __metadata("design:type", String)
+], Payment.prototype, "broker_email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 255 }),
+    __metadata("design:type", String)
+], Payment.prototype, "seller_email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 5, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Payment.prototype, "total_commission_percentage", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 15, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Payment.prototype, "total_commission_amount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 15, scale: 2 }),
+    __metadata("design:type", Number)
+], Payment.prototype, "net_amount", void 0);
+__decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], Payment.prototype, "multisig_required", void 0);
@@ -272,6 +293,11 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Number)
 ], Payment.prototype, "multisig_approval_id", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => MultisigApprovalRequest_1.MultisigApprovalRequest, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'multisig_approval_id' }),
+    __metadata("design:type", MultisigApprovalRequest_1.MultisigApprovalRequest)
+], Payment.prototype, "multisigApproval", void 0);
 __decorate([
     (0, typeorm_1.OneToOne)(() => Escrow_1.Escrow, escrow => escrow.payment),
     (0, typeorm_1.JoinColumn)({ name: "escrow_id" }),
