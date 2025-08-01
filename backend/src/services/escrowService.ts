@@ -46,9 +46,9 @@ try {
 } catch (error: any) {
   console.error('[escrowService] Failed to load KustodiaEscrow2_0 artifact:', error.message);
   console.log('[escrowService] Using fallback minimal ABI');
-  // Minimal ABI with essential functions for basic operation
+  // Minimal ABI with essential functions for basic operation - Updated to match KustodiaEscrow2_0
   ESCROW_ABI = [
-    "function createEscrow(address token, uint256 amount, address recipient, string memory reference) external returns (uint256)",
+    "function createEscrow(address payer, address payee, address token, uint256 amount, uint256 deadline, string memory vertical, string memory clabe, string memory conditions) external returns (uint256)",
     "function releaseEscrow(uint256 escrowId) external",
     "function getEscrow(uint256 escrowId) external view returns (tuple(address token, uint256 amount, address sender, address recipient, string reference, bool released, uint256 createdAt))",
     "event EscrowCreated(uint256 indexed escrowId, address indexed sender, address indexed recipient, address token, uint256 amount, string reference)",
