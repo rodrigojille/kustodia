@@ -81,12 +81,23 @@ export default function PublicVehicleHistoryPage() {
   useEffect(() => {
     if (!tokenId) return;
 
+    // Validate tokenId format
+    const tokenIdNum = parseInt(tokenId);
+    if (isNaN(tokenIdNum) || tokenIdNum < 0) {
+      setError('Token ID inválido. Debe ser un número entero mayor o igual a 0.');
+      setLoading(false);
+      return;
+    }
+
     const fetchVehicleHistory = async () => {
       try {
         setLoading(true);
         const response = await fetch(`/api/public/vehicle/${tokenId}/history`);
         
         if (!response.ok) {
+          if (response.status === 400) {
+            throw new Error('Token ID inválido. Debe ser un número entero mayor que 0.');
+          }
           throw new Error('Failed to fetch vehicle history');
         }
 
@@ -114,18 +125,41 @@ export default function PublicVehicleHistoryPage() {
   }
 
   if (error || !vehicleData) {
+    const isInvalidTokenId = error?.includes('Token ID inválido') || error?.includes('Invalid token ID');
+    
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto px-4">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Error al cargar el historial</h1>
-          <p className="text-gray-600 mb-4">{error || 'No se pudo encontrar el vehículo'}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Intentar de nuevo
-          </button>
+          <p className="text-gray-600 mb-6">{error || 'No se pudo encontrar el vehículo'}</p>
+          
+          <div className="space-y-3">
+            {isInvalidTokenId ? (
+              <a 
+                href="/public/vehicle"
+                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Buscar Vehículo
+              </a>
+            ) : (
+              <button 
+                onClick={() => window.location.reload()}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Intentar de nuevo
+              </button>
+            )}
+            
+            <div>
+              <a 
+                href="/public/vehicle"
+                className="text-blue-600 hover:text-blue-800 underline text-sm"
+              >
+                ← Volver a búsqueda de vehículos
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     );
