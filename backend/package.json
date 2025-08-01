@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "npx copyfiles -u 3 ../contracts/artifacts/contracts/**/* src/artifacts && ts-node-dev --transpile-only src/index.ts",
     "start": "node dist/index.js",
-    "build": "npx copyfiles src/artifacts/**/* dist/ && tsc",
-    "heroku-prebuild": "mkdir -p src/artifacts/contracts || true",
+    "build": "npx copyfiles -u 3 ../contracts/artifacts/contracts/**/* src/artifacts && tsc && npx copyfiles -u 1 src/artifacts/**/* dist/",
+    "heroku-prebuild": "mkdir -p src/artifacts/contracts && echo 'Artifacts directory created' || echo 'Artifacts directory already exists'",
     "heroku-postbuild": "npm run build && npm run force-schema-sync",
     "typeorm": "ts-node-dev -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:generate": "npm run typeorm -- migration:generate",
