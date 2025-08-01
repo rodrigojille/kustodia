@@ -342,7 +342,8 @@ export default function RegisterPage() {
                 journey_stage: 'acquisition'
               });
               
-              const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+              // Use production API URL or fallback to localhost for development
+              const apiUrl = process.env.NEXT_PUBLIC_API_BASE || 'https://kustodia-backend-f991a7cb1824.herokuapp.com';
               window.location.href = `${apiUrl}/api/auth/google`;
             }}
             className="w-full bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 hover:shadow-lg group transform hover:scale-[1.02]"
