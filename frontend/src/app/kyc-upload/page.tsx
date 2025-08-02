@@ -4,8 +4,8 @@ import { useSearchParams } from 'next/navigation';
 
 export default function KYCUploadPage() {
   const searchParams = useSearchParams();
-  const validationId = searchParams.get('validation_id');
-  const accountId = searchParams.get('account_id');
+  const validationId = searchParams?.get('validation_id');
+  const accountId = searchParams?.get('account_id');
   
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [reverseFile, setReverseFile] = useState<File | null>(null);

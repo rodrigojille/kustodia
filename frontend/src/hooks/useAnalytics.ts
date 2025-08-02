@@ -18,7 +18,7 @@ export function usePageTracking() {
   const pageLoadTime = useRef<number>(Date.now());
 
   useEffect(() => {
-    const currentUrl = `${pathname}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const currentUrl = `${pathname || ''}${searchParams?.toString() ? '?' + searchParams.toString() : ''}`;
     
     // Track page view with enhanced context
     analytics.trackPageView({
@@ -36,7 +36,7 @@ export function usePageTracking() {
     return () => {
       const timeSpent = (Date.now() - pageLoadTime.current) / 1000;
       if (timeSpent > 5) { // Only track if user spent more than 5 seconds
-        trackUserBehavior.dashboardEngagement(pathname, timeSpent);
+        trackUserBehavior.dashboardEngagement(pathname || '', timeSpent);
       }
     };
   }, [pathname, searchParams]);

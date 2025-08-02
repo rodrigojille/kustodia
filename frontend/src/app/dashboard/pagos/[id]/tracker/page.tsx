@@ -50,8 +50,29 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
 
   // Get current user
   useEffect(() => {
-    const userEmail = localStorage.getItem("userEmail");
-    setCurrentUser(userEmail);
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await authFetch('users/me');
+        if (response.ok) {
+          const userData = await response.json();
+          // Try different possible email properties
+          const userEmail = userData.email || userData.user_email || userData.username || userData.user?.email;
+          setCurrentUser(userEmail);
+        } else {
+          console.error('Failed to fetch current user:', response.status);
+          // Fallback to localStorage if API fails
+          const userEmail = localStorage.getItem("userEmail");
+          setCurrentUser(userEmail);
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+        // Fallback to localStorage if API fails
+        const userEmail = localStorage.getItem("userEmail");
+        setCurrentUser(userEmail);
+      }
+    };
+
+    fetchCurrentUser();
   }, []);
 
   // Fetch payment details
@@ -68,6 +89,7 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
 
         const paymentData = data.payment || data;
         
+
         // For this page, we only handle 'nuevo_flujo' and 'web3' types.
         // The traditional tracker is at a different route.
         if (paymentData.payment_type !== 'nuevo_flujo' && paymentData.payment_type !== 'web3') {

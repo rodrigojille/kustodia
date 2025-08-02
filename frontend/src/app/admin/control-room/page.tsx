@@ -103,6 +103,32 @@ interface JunoStatus {
   error_rate_24h: number;
 }
 
+interface FailedOperation {
+  id: string;
+  type: 'bridge_transfer' | 'escrow_creation' | 'escrow_release' | 'mxnb_redemption';
+  paymentId: number;
+  status: string;
+  error?: string;
+  lastAttempt?: string;
+  retryCount: number;
+  canRetry: boolean;
+  canRollback: boolean;
+  details: any;
+}
+
+interface OperationsStats {
+  totalFailedOperations: number;
+  pendingRetries: number;
+  manualInterventionRequired: number;
+  successfulRecoveries: number;
+  rollbacksInitiated: number;
+}
+
+interface OperationsDashboard {
+  stats: OperationsStats;
+  failedOperations: FailedOperation[];
+}
+
 // =============================================================================
 // 🎯 MAIN CONTROL ROOM COMPONENT
 // =============================================================================
@@ -129,6 +155,11 @@ const PaymentControlRoom = () => {
     date_from: '',
     date_to: ''
   });
+  
+  // Operations Control Room
+  const [operationsDashboard, setOperationsDashboard] = useState<OperationsDashboard | null>(null);
+  const [selectedOperation, setSelectedOperation] = useState<FailedOperation | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   
   // UI State
   const [error, setError] = useState<string | null>(null);
@@ -213,14 +244,222 @@ const PaymentControlRoom = () => {
     }
   };
 
+  // =============================================================================
+  // 🚨 OPERATIONS CONTROL ROOM FUNCTIONS
+  // =============================================================================
+
+  const fetchOperationsDashboard = async () => {
+    try {
+      const response = await authFetch('/api/operations/dashboard');
+      if (response.ok) {
+        const data = await response.json();
+        setOperationsDashboard(data);
+      }
+    } catch (err: any) {
+      setError(`Error fetching operations dashboard: ${err.message}`);
+    }
+  };
+
+  const handleManualRecovery = async (paymentId: number) => {
+    try {
+      setActionLoading(`recovery_${paymentId}`);
+      const response = await authFetch(`/api/operations/recover/${paymentId}`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert('✅ Manual recovery completed successfully!');
+        fetchOperationsDashboard(); // Refresh data
+      } else {
+        const data = await response.json();
+        alert(`❌ Recovery failed: ${data.message}`);
+      }
+    } catch (error: any) {
+      alert(`❌ Recovery error: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleManualRollback = async (paymentId: number) => {
+    const reason = prompt('Enter rollback reason:');
+    if (!reason) return;
+
+    try {
+      setActionLoading(`rollback_${paymentId}`);
+      const response = await authFetch(`/api/operations/rollback/${paymentId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      
+      if (response.ok) {
+        alert('✅ Rollback initiated successfully! Manual intervention required.');
+        fetchOperationsDashboard(); // Refresh data
+      } else {
+        const data = await response.json();
+        alert(`❌ Rollback failed: ${data.message}`);
+      }
+    } catch (error: any) {
+      alert(`❌ Rollback error: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const runSafetyMonitor = async () => {
+    try {
+      setActionLoading('safety_monitor');
+      const response = await authFetch('/api/operations/safety-monitor', {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(`✅ Safety monitor completed: ${data.message}`);
+        fetchOperationsDashboard(); // Refresh data
+      } else {
+        const data = await response.json();
+        alert(`❌ Safety monitor failed: ${data.error}`);
+      }
+    } catch (error: any) {
+      alert(`❌ Safety monitor error: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Additional handler functions for Operations tab
+  const handleRetryOperation = async (operationId: string) => {
+    try {
+      setActionLoading(operationId);
+      const response = await authFetch(`/api/operations/retry/${operationId}`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBulkOperationStatus(`✅ Operation ${operationId} retry initiated: ${data.message}`);
+        fetchOperationsDashboard();
+      } else {
+        const data = await response.json();
+        setBulkOperationStatus(`❌ Retry failed: ${data.message}`);
+      }
+    } catch (error: any) {
+      setBulkOperationStatus(`❌ Retry error: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRollbackOperation = async (operationId: string) => {
+    try {
+      setActionLoading(operationId);
+      const response = await authFetch(`/api/operations/rollback/${operationId}`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBulkOperationStatus(`✅ Operation ${operationId} rollback completed: ${data.message}`);
+        fetchOperationsDashboard();
+      } else {
+        const data = await response.json();
+        setBulkOperationStatus(`❌ Rollback failed: ${data.message}`);
+      }
+    } catch (error: any) {
+      setBulkOperationStatus(`❌ Rollback error: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBulkRetry = async () => {
+    try {
+      setActionLoading('bulk_retry');
+      const response = await authFetch('/api/operations/bulk-retry', {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBulkOperationStatus(`✅ Bulk retry initiated: ${data.message}`);
+        fetchOperationsDashboard();
+      } else {
+        const data = await response.json();
+        setBulkOperationStatus(`❌ Bulk retry failed: ${data.message}`);
+      }
+    } catch (error: any) {
+      setBulkOperationStatus(`❌ Bulk retry error: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBulkRecovery = async () => {
+    try {
+      setActionLoading('bulk_recovery');
+      const response = await authFetch('/api/operations/bulk-recovery', {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBulkOperationStatus(`✅ Bulk recovery initiated: ${data.message}`);
+        fetchOperationsDashboard();
+      } else {
+        const data = await response.json();
+        setBulkOperationStatus(`❌ Bulk recovery failed: ${data.message}`);
+      }
+    } catch (error: any) {
+      setBulkOperationStatus(`❌ Bulk recovery error: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSystemHealthCheck = async () => {
+    try {
+      setActionLoading('health_check');
+      const response = await authFetch('/api/operations/health-check', {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBulkOperationStatus(`✅ System health check completed: ${data.message}`);
+        fetchOperationsDashboard();
+      } else {
+        const data = await response.json();
+        setBulkOperationStatus(`❌ Health check failed: ${data.message}`);
+      }
+    } catch (error: any) {
+      setBulkOperationStatus(`❌ Health check error: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       await fetchAnalytics();
+      if (activeTab === 'operations') {
+        await fetchOperationsDashboard();
+      }
       setLoading(false);
     };
     fetchData();
-  }, [timeframe]);
+  }, [timeframe, activeTab]);
+
+  // Auto-refresh operations data every 30 seconds when on operations tab
+  useEffect(() => {
+    if (activeTab === 'operations') {
+      const interval = setInterval(fetchOperationsDashboard, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
 
   // =============================================================================
   // 🎨 UTILITY FUNCTIONS
@@ -542,6 +781,172 @@ const PaymentControlRoom = () => {
 
   const renderOperationsTab = () => (
     <div className="space-y-6">
+      {/* Operations Dashboard Stats */}
+      {operationsDashboard && (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-red-600 text-sm font-medium">⚠️</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Failed Operations</p>
+                <p className="text-2xl font-semibold text-gray-900">{operationsDashboard.stats.totalFailedOperations}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <span className="text-yellow-600 text-sm font-medium">🔄</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Pending Retries</p>
+                <p className="text-2xl font-semibold text-gray-900">{operationsDashboard.stats.pendingRetries}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                  <span className="text-orange-600 text-sm font-medium">👥</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Manual Intervention</p>
+                <p className="text-2xl font-semibold text-gray-900">{operationsDashboard.stats.manualInterventionRequired}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 text-sm font-medium">✅</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Successful Recoveries</p>
+                <p className="text-2xl font-semibold text-gray-900">{operationsDashboard.stats.successfulRecoveries}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600 text-sm font-medium">⬅️</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Rollbacks Initiated</p>
+                <p className="text-2xl font-semibold text-gray-900">{operationsDashboard.stats.rollbacksInitiated}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Actions */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">🔧 Manual Actions</h3>
+        <div className="flex space-x-4">
+          <button
+            onClick={runSafetyMonitor}
+            disabled={actionLoading === 'safety_monitor'}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            {actionLoading === 'safety_monitor' ? 'Running...' : '🔍 Run Safety Monitor'}
+          </button>
+        </div>
+      </div>
+
+      {/* Failed Operations List */}
+      {operationsDashboard && operationsDashboard.failedOperations.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">⚠️ Failed Operations</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operation Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Attempt</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {operationsDashboard.failedOperations.map((operation) => (
+                  <tr key={operation.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {operation.paymentId}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        operation.type === 'escrow_creation' ? 'bg-red-100 text-red-800' :
+                        operation.type === 'bridge_transfer' ? 'bg-yellow-100 text-yellow-800' :
+                        operation.type === 'escrow_release' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {operation.type.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {operation.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {operation.retryCount}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {operation.lastAttempt ? formatDate(operation.lastAttempt) : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      {operation.canRetry && (
+                        <button
+                          onClick={() => handleManualRecovery(operation.paymentId)}
+                          disabled={actionLoading === `recovery_${operation.paymentId}`}
+                          className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                        >
+                          {actionLoading === `recovery_${operation.paymentId}` ? 'Recovering...' : '🔄 Retry'}
+                        </button>
+                      )}
+                      {operation.canRollback && (
+                        <button
+                          onClick={() => handleManualRollback(operation.paymentId)}
+                          disabled={actionLoading === `rollback_${operation.paymentId}`}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                        >
+                          {actionLoading === `rollback_${operation.paymentId}` ? 'Rolling back...' : '⬅️ Rollback'}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setSelectedOperation(operation)}
+                        className="text-gray-600 hover:text-gray-900"
+                      >
+                        🔍 Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Bulk Operations */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
         <h3 className="text-lg font-medium text-gray-900 mb-4">🔧 Bulk Operations</h3>
@@ -566,8 +971,69 @@ const PaymentControlRoom = () => {
           )}
         </div>
       </div>
+
+      {/* Operation Details Modal */}
+      {selectedOperation && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Operation Details - Payment #{selectedOperation.paymentId}
+                </h3>
+                <button
+                  onClick={() => setSelectedOperation(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Operation Type</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedOperation.type}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedOperation.status}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Error Message</label>
+                  <p className="mt-1 text-sm text-red-600">{selectedOperation.error || 'No error message'}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Retry Count</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedOperation.retryCount}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Operation Details</label>
+                  <pre className="mt-1 text-xs bg-gray-100 p-3 rounded-md overflow-x-auto">
+                    {JSON.stringify(selectedOperation.details, null, 2)}
+                  </pre>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setSelectedOperation(null)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
+
 
   // =============================================================================
   // 🎯 MAIN RENDER

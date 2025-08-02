@@ -31,7 +31,7 @@ interface Ticket {
 
 const TicketDetailPage = () => {
   const params = useParams();
-  const { id } = params;
+  const id = params?.id as string;
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);

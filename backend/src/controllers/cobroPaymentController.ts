@@ -174,23 +174,34 @@ export class CobroPaymentController {
 
       // Create escrow record if custody is specified
       let savedEscrow: any = null;
+      console.log(`[CobroPayment] Debug - custody_percent: ${custody_percent}, custody_period: ${custody_period}`);
       if (custody_percent > 0 && custody_period > 0) {
         const custodyAmount = payment_amount * (custody_percent / 100);
         const releaseAmount = payment_amount - custodyAmount;
         const custodyEnd = new Date();
         custodyEnd.setDate(custodyEnd.getDate() + custody_period);
 
-        const newEscrow = this.escrowRepo.create({
-          payment: savedPayment,
-          custody_percent: custody_percent,
-          custody_amount: custodyAmount,
-          release_amount: releaseAmount,
-          custody_end: custodyEnd,
-          status: 'pending'
-        });
+        try {
+          const newEscrow = this.escrowRepo.create({
+            payment: savedPayment,
+            custody_percent: custody_percent,
+            custody_amount: custodyAmount,
+            release_amount: releaseAmount,
+            custody_end: custodyEnd,
+            status: 'pending'
+          });
 
-        savedEscrow = await this.escrowRepo.save(newEscrow);
-        console.log(`[CobroPayment] Escrow created for payment ${savedPayment.id} with ${custody_percent}% custody for ${custody_period} days`);
+          savedEscrow = await this.escrowRepo.save(newEscrow);
+          console.log(`[CobroPayment] Escrow created with ID ${savedEscrow.id} for payment ${savedPayment.id} with ${custody_percent}% custody for ${custody_period} days`);
+          
+          // Link the escrow back to the payment
+          savedPayment.escrow = savedEscrow;
+          await this.paymentRepo.save(savedPayment);
+          console.log(`[CobroPayment] Payment ${savedPayment.id} linked to escrow ${savedEscrow.id}`);
+        } catch (escrowError) {
+          console.error(`[CobroPayment] Error creating escrow for payment ${savedPayment.id}:`, escrowError);
+          throw escrowError;
+        }
       }
 
       // Create commission recipients

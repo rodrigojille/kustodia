@@ -69,7 +69,7 @@ const AdminDashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'disputes' | 'operations' | 'multisig'>('operations');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'disputes' | 'operations' | 'multisig' | 'recovery'>('operations');
   
   // Environment detection
   const isProduction = typeof window !== 'undefined' && window.location.hostname === 'kustodia.mx';
@@ -98,6 +98,11 @@ const AdminDashboardPage = () => {
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsError, setLogsError] = useState<string | null>(null);
 
+  // Recovery tab state
+  const [operationsDashboard, setOperationsDashboard] = useState<any>(null);
+  const [selectedOperation, setSelectedOperation] = useState<any>(null);
+  const [bulkOperationStatus, setBulkOperationStatus] = useState<string | null>(null);
+
   useEffect(() => {
     fetchTickets();
     fetchDisputes();
@@ -106,6 +111,11 @@ const AdminDashboardPage = () => {
     if (activeTab === 'operations') {
       fetchSystemData();
       // Initial logs fetch will be handled by HerokuLogsViewer
+    }
+    
+    // Load recovery data if on recovery tab
+    if (activeTab === 'recovery') {
+      fetchOperationsDashboard();
     }
   }, [activeTab]);
 
@@ -466,6 +476,153 @@ const AdminDashboardPage = () => {
     }
   };
 
+  // Recovery functions
+  const fetchOperationsDashboard = async () => {
+    try {
+      const response = await authFetch('/api/operations/dashboard');
+      if (response.ok) {
+        const data = await response.json();
+        setOperationsDashboard(data);
+      }
+    } catch (error) {
+      console.error('Error fetching operations dashboard:', error);
+    }
+  };
+
+  const handleRetryOperation = async (operationId: string) => {
+    setActionLoading(operationId);
+    try {
+      // Extract payment ID from operation ID (format: "escrow_123" -> "123")
+      const paymentId = operationId.split('_')[1];
+      const response = await authFetch(`/api/operations/recover/${paymentId}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        setBulkOperationStatus('Recuperación de operación iniciada exitosamente');
+        await fetchOperationsDashboard();
+      } else {
+        const error = await response.json();
+        setBulkOperationStatus(`Error en recuperación: ${error.message || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error retrying operation:', error);
+      setBulkOperationStatus('Error en recuperación: Error de red');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRollbackOperation = async (operationId: string) => {
+    setActionLoading(operationId);
+    try {
+      // Extract payment ID from operation ID (format: "escrow_123" -> "123")
+      const paymentId = operationId.split('_')[1];
+      const response = await authFetch(`/api/operations/rollback/${paymentId}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        setBulkOperationStatus('Rollback de operación iniciado exitosamente');
+        await fetchOperationsDashboard();
+      } else {
+        const error = await response.json();
+        setBulkOperationStatus(`Error en rollback: ${error.message || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error rolling back operation:', error);
+      setBulkOperationStatus('Error en rollback: Error de red');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBulkRetry = async () => {
+    setActionLoading('bulk_retry');
+    try {
+      // Since there's no bulk endpoint, iterate through failed operations
+      if (operationsDashboard?.failedOperations?.length > 0) {
+        let successCount = 0;
+        for (const operation of operationsDashboard.failedOperations) {
+          if (operation.canRetry) {
+            const paymentId = operation.paymentId;
+            const response = await authFetch(`/api/operations/recover/${paymentId}`, {
+              method: 'POST'
+            });
+            if (response.ok) {
+              successCount++;
+            }
+          }
+        }
+        setBulkOperationStatus(`Operación masiva completada: ${successCount} recuperaciones iniciadas`);
+        await fetchOperationsDashboard();
+      } else {
+        setBulkOperationStatus('No hay operaciones fallidas para reintentar');
+      }
+    } catch (error) {
+      console.error('Error executing bulk retry:', error);
+      setBulkOperationStatus('Error en operación masiva: Error de red');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBulkRecovery = async () => {
+    setActionLoading('bulk_recovery');
+    try {
+      // Use the safety monitor endpoint as a bulk recovery mechanism
+      const response = await authFetch('/api/operations/safety-monitor', {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setBulkOperationStatus(`Monitor de seguridad ejecutado: ${result.message || 'Completado'}`);
+        await fetchOperationsDashboard();
+      } else {
+        const error = await response.json();
+        setBulkOperationStatus(`Error en recuperación automática: ${error.message || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error executing bulk recovery:', error);
+      setBulkOperationStatus('Error en recuperación automática: Error de red');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSystemHealthCheck = async () => {
+    setActionLoading('health_check');
+    try {
+      const response = await authFetch('/api/operations/safety-monitor', {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setBulkOperationStatus(`Verificación de salud completada: ${result.message || 'Sistema saludable'}`);
+      } else {
+        const error = await response.json();
+        setBulkOperationStatus(`Error en verificación: ${error.message || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error executing health check:', error);
+      setBulkOperationStatus('Error en verificación de salud: Error de red');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusColors = {
+      'failed': 'bg-red-100 text-red-800',
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'retrying': 'bg-blue-100 text-blue-800',
+      'completed': 'bg-green-100 text-green-800'
+    };
+    return (
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}`}>
+        {status.toUpperCase()}
+      </span>
+    );
+  };
+
   const pendingDisputes = disputes.filter(dispute => dispute.status === 'pending');
   const resolvedDisputes = disputes.filter(dispute => dispute.status !== 'pending');
 
@@ -530,6 +687,16 @@ const AdminDashboardPage = () => {
             }`}
           >
             🔐 Multi-Sig
+          </button>
+          <button
+            onClick={() => setActiveTab('recovery')}
+            className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'recovery'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            🔧 Recovery
           </button>
 
         </nav>
@@ -983,6 +1150,219 @@ const AdminDashboardPage = () => {
           {/* Multi-Sig Tab */}
           {activeTab === 'multisig' && (
             <MultiSigDashboard />
+          )}
+
+          {/* Recovery Tab */}
+          {activeTab === 'recovery' && (
+            <div className="space-y-6">
+              {/* Operations Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">❌</span>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Operaciones Fallidas</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {operationsDashboard?.stats.totalFailedOperations || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">🔄</span>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Reintentos Pendientes</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {operationsDashboard?.stats.pendingRetries || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">🚨</span>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Requiere Manual</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {operationsDashboard?.stats.manualInterventionRequired || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">✅</span>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Recuperaciones</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {operationsDashboard?.stats.successfulRecoveries || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">↩️</span>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Reversiones</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {operationsDashboard?.stats.rollbacksInitiated || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Failed Operations Table */}
+              <div className="bg-white rounded-lg shadow-sm border">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-900">🔧 Recuperación de Operaciones Fallidas</h3>
+                  <p className="text-sm text-gray-500 mt-1">Monitorear y recuperar operaciones de pago fallidas</p>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operación</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID de Pago</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reintentos</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Intento</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {!operationsDashboard?.failedOperations || operationsDashboard.failedOperations.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                            <div className="flex flex-col items-center">
+                              <span className="text-4xl mb-2">🎉</span>
+                              <p className="text-lg font-medium">No hay Operaciones Fallidas</p>
+                              <p className="text-sm">¡Todas las operaciones de pago funcionan correctamente!</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        operationsDashboard.failedOperations.map((operation: any) => (
+                          <tr key={operation.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {operation.type.replace('_', ' ').toUpperCase()}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              #{operation.paymentId}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {getStatusBadge(operation.status)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {operation.retryCount}/3
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {operation.lastAttempt ? formatDate(operation.lastAttempt) : 'Nunca'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                              {operation.canRetry && (
+                                <button
+                                  onClick={() => handleRetryOperation(operation.id)}
+                                  disabled={actionLoading === operation.id}
+                                  className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                                >
+                                  {actionLoading === operation.id ? 'Reintentando...' : 'Reintentar'}
+                                </button>
+                              )}
+                              {operation.canRollback && (
+                                <button
+                                  onClick={() => handleRollbackOperation(operation.id)}
+                                  disabled={actionLoading === operation.id}
+                                  className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                                >
+                                  Revertir
+                                </button>
+                              )}
+                              <button
+                                onClick={() => setSelectedOperation(operation)}
+                                className="text-gray-600 hover:text-gray-900"
+                              >
+                                Detalles
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Bulk Recovery Actions */}
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">🚀 Acciones de Recuperación Masiva</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    onClick={() => handleBulkRetry()}
+                    disabled={actionLoading === 'bulk_retry'}
+                    className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <span className="mr-2">🔄</span>
+                    {actionLoading === 'bulk_retry' ? 'Procesando...' : 'Reintentar Todos'}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleBulkRecovery()}
+                    disabled={actionLoading === 'bulk_recovery'}
+                    className="flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  >
+                    <span className="mr-2">✅</span>
+                    {actionLoading === 'bulk_recovery' ? 'Procesando...' : 'Auto-Recuperar'}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleSystemHealthCheck()}
+                    disabled={actionLoading === 'health_check'}
+                    className="flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    <span className="mr-2">🏥</span>
+                    {actionLoading === 'health_check' ? 'Verificando...' : 'Verificación de Sistema'}
+                  </button>
+                </div>
+                
+                {bulkOperationStatus && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-700">{bulkOperationStatus}</p>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
         </>

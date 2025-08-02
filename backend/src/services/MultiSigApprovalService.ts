@@ -41,7 +41,7 @@ export interface Signature {
 export interface WalletConfig {
   id: string;
   address: string;
-  type: 'high_value' | 'enterprise' | 'emergency';
+  type: 'low_value' | 'high_value' | 'enterprise' | 'emergency';
   requiredSignatures: number;
   totalOwners: number;
   thresholdMinUsd: number;
@@ -174,20 +174,53 @@ export class MultiSigApprovalService {
    */
   private async createDefaultWalletConfigs(client: any): Promise<void> {
     try {
+      // Insert default standard wallet config (for amounts $0-$999)
+      const standardResult = await client.query(`
+        INSERT INTO multisig_wallet_config (
+          wallet_address, wallet_type, required_signatures, total_owners,
+          threshold_min_usd, threshold_max_usd, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (wallet_address) DO UPDATE SET
+          wallet_type = EXCLUDED.wallet_type,
+          required_signatures = EXCLUDED.required_signatures,
+          total_owners = EXCLUDED.total_owners,
+          threshold_min_usd = EXCLUDED.threshold_min_usd,
+          threshold_max_usd = EXCLUDED.threshold_max_usd,
+          is_active = EXCLUDED.is_active,
+          updated_at = CURRENT_TIMESTAMP
+        RETURNING *
+      `, [
+        process.env.ESCROW_BRIDGE_WALLET || '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b',
+        'low_value',
+        1, // Bridge wallet - single signature
+        1, // Single owner (bridge wallet)
+        0.00,
+        999.99,
+        true
+      ]);
+
       // Insert default high-value wallet config
       const highValueResult = await client.query(`
         INSERT INTO multisig_wallet_config (
           wallet_address, wallet_type, required_signatures, total_owners,
           threshold_min_usd, threshold_max_usd, is_active
         ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (wallet_address) DO UPDATE SET
+          wallet_type = EXCLUDED.wallet_type,
+          required_signatures = EXCLUDED.required_signatures,
+          total_owners = EXCLUDED.total_owners,
+          threshold_min_usd = EXCLUDED.threshold_min_usd,
+          threshold_max_usd = EXCLUDED.threshold_max_usd,
+          is_active = EXCLUDED.is_active,
+          updated_at = CURRENT_TIMESTAMP
         RETURNING *
       `, [
-        '0x1234567890123456789012345678901234567890',
+        process.env.HIGH_VALUE_MULTISIG_ADDRESS || '0xA8F1B1Bac8D3B1c5D28A7eD91fa01e96eDB6711c',
         'high_value',
-        2,
-        3,
-        1000.00,
-        10000.00,
+        parseInt(process.env.HIGH_VALUE_MULTISIG_THRESHOLD || '2'),
+        4, // Based on your env config showing 4 owners
+        parseFloat(process.env.MULTISIG_HIGH_VALUE_THRESHOLD || '1000'),
+        parseFloat(process.env.MULTISIG_ENTERPRISE_THRESHOLD || '10000') - 0.01,
         true
       ]);
 
@@ -197,31 +230,63 @@ export class MultiSigApprovalService {
           wallet_address, wallet_type, required_signatures, total_owners,
           threshold_min_usd, threshold_max_usd, is_active
         ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (wallet_address) DO UPDATE SET
+          wallet_type = EXCLUDED.wallet_type,
+          required_signatures = EXCLUDED.required_signatures,
+          total_owners = EXCLUDED.total_owners,
+          threshold_min_usd = EXCLUDED.threshold_min_usd,
+          threshold_max_usd = EXCLUDED.threshold_max_usd,
+          is_active = EXCLUDED.is_active,
+          updated_at = CURRENT_TIMESTAMP
         RETURNING *
       `, [
-        '0x2345678901234567890123456789012345678901',
+        process.env.ENTERPRISE_MULTISIG_ADDRESS || '0xA8F1B1Bac8D3B1c5D28A7eD91fa01e96eDB6711c',
         'enterprise',
-        3,
-        5,
-        10000.00,
+        parseInt(process.env.ENTERPRISE_MULTISIG_THRESHOLD || '2'),
+        4, // Based on your env config showing 4 owners
+        parseFloat(process.env.MULTISIG_ENTERPRISE_THRESHOLD || '10000'),
         null,
         true
       ]);
 
-      // Insert default wallet owners for high-value wallet
-      const defaultOwners = [
-        { address: '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b', name: 'Admin 1' },
-        { address: '0x486B88Ca87533294FB45247387169f081f3102ff', name: 'Admin 2' },
-        { address: '0x742d35Cc6634C0532925a3b8D0c6964b0c6964b0', name: 'Admin 3' }
-      ];
+      // Add owner for bridge wallet (standard transactions)
+      const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET || '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b';
+      await client.query(`
+        INSERT INTO multisig_wallet_owners (
+          wallet_address, owner_address, owner_name, is_active
+        ) VALUES ($1, $2, $3, $4)
+        ON CONFLICT (wallet_address, owner_address) DO UPDATE SET
+          owner_name = EXCLUDED.owner_name,
+          is_active = EXCLUDED.is_active,
+          updated_at = CURRENT_TIMESTAMP
+      `, [
+        bridgeWallet,
+        bridgeWallet,
+        'Bridge Wallet',
+        true
+      ]);
 
+      // Get multisig wallet owners from environment variables
+      const ownerAddresses = (process.env.HIGH_VALUE_MULTISIG_OWNERS || '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b,0xE120E428b2bB7E28B21D2634ad1d601c6Cd6b33F,0x342Fe8428e7eEF4A1047B3ba4A9a1a8DCD42b3c7,0xC8d5563BF6df6C5E5F6DFc42BeEC1CC8598aC38F').split(',');
+      const defaultOwners = ownerAddresses.map((address, index) => ({
+        address: address.trim(),
+        name: `Admin ${index + 1}`
+      }));
+
+      // Add owners for multisig wallets (high-value and enterprise)
+      const multisigWallet = process.env.HIGH_VALUE_MULTISIG_ADDRESS || '0xA8F1B1Bac8D3B1c5D28A7eD91fa01e96eDB6711c';
+      
       for (const owner of defaultOwners) {
         await client.query(`
           INSERT INTO multisig_wallet_owners (
             wallet_address, owner_address, owner_name, is_active
           ) VALUES ($1, $2, $3, $4)
+          ON CONFLICT (wallet_address, owner_address) DO UPDATE SET
+            owner_name = EXCLUDED.owner_name,
+            is_active = EXCLUDED.is_active,
+            updated_at = CURRENT_TIMESTAMP
         `, [
-          '0x1234567890123456789012345678901234567890',
+          multisigWallet,
           owner.address,
           owner.name,
           true
@@ -244,20 +309,36 @@ export class MultiSigApprovalService {
    * Create fallback configurations if database is unavailable
    */
   private createFallbackConfigs(): void {
+    const walletAddress = process.env.HIGH_VALUE_MULTISIG_ADDRESS || '0xA8F1B1Bac8D3B1c5D28A7eD91fa01e96eDB6711c';
+    const ownerAddresses = (process.env.HIGH_VALUE_MULTISIG_OWNERS || '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b,0xE120E428b2bB7E28B21D2634ad1d601c6Cd6b33F,0x342Fe8428e7eEF4A1047B3ba4A9a1a8DCD42b3c7,0xC8d5563BF6df6C5E5F6DFc42BeEC1CC8598aC38F').split(',');
+    const owners = ownerAddresses.map((address, index) => ({
+      address: address.trim(),
+      name: `Admin ${index + 1}`,
+      isActive: true
+    }));
+
     const fallbackConfigs: WalletConfig[] = [
       {
         id: 'fallback-high-value',
-        address: '0x1234567890123456789012345678901234567890',
+        address: walletAddress,
         type: 'high_value',
-        requiredSignatures: 2,
-        totalOwners: 3,
-        thresholdMinUsd: 1000,
-        thresholdMaxUsd: 10000,
+        requiredSignatures: parseInt(process.env.HIGH_VALUE_MULTISIG_THRESHOLD || '2'),
+        totalOwners: owners.length,
+        thresholdMinUsd: parseFloat(process.env.MULTISIG_HIGH_VALUE_THRESHOLD || '1000'),
+        thresholdMaxUsd: parseFloat(process.env.MULTISIG_ENTERPRISE_THRESHOLD || '10000') - 0.01,
         isActive: true,
-        owners: [
-          { address: '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b', name: 'Admin 1', isActive: true },
-          { address: '0x486B88Ca87533294FB45247387169f081f3102ff', name: 'Admin 2', isActive: true }
-        ]
+        owners: owners
+      },
+      {
+        id: 'fallback-enterprise',
+        address: process.env.ENTERPRISE_MULTISIG_ADDRESS || walletAddress,
+        type: 'enterprise',
+        requiredSignatures: parseInt(process.env.ENTERPRISE_MULTISIG_THRESHOLD || '2'),
+        totalOwners: owners.length,
+        thresholdMinUsd: parseFloat(process.env.MULTISIG_ENTERPRISE_THRESHOLD || '10000'),
+        thresholdMaxUsd: undefined,
+        isActive: true,
+        owners: owners
       }
     ];
 
@@ -853,18 +934,20 @@ export class MultiSigApprovalService {
       `);
 
       const upcomingPayments = [];
-
+      
       for (const row of result.rows) {
         const amount = parseFloat(row.amount);
-        const amountUsd = amount / 20; // Rough MXN to USD conversion
+        const currency = row.currency || 'MXN';
+        
+        // Convert to USD for threshold check
+        const amountUsd = currency === 'MXN' ? amount / 20 : amount;
         
         // Check if this amount would require multi-sig
         const walletConfig = this.determineWalletForAmount(amountUsd);
         
         if (walletConfig) {
           const escrowEndTime = new Date(row.custody_end);
-          const now = new Date();
-          const hoursUntilRelease = Math.max(0, Math.floor((escrowEndTime.getTime() - now.getTime()) / (1000 * 60 * 60)));
+          const hoursUntilRelease = Math.max(0, Math.floor((escrowEndTime.getTime() - Date.now()) / (1000 * 60 * 60)));
           
           upcomingPayments.push({
             paymentId: row.id,

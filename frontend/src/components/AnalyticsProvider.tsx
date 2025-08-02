@@ -37,10 +37,10 @@ function AnalyticsProviderCore({ children }: AnalyticsProviderProps) {
 
   // Comprehensive page tracking with customer journey mapping
   useEffect(() => {
-    const currentUrl = `${pathname}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const currentUrl = `${pathname || ''}${searchParams?.toString() ? '?' + searchParams.toString() : ''}`;
     
     // Determine page category and user intent
-    const pageAnalysis = analyzePageForCustomerJourney(pathname, searchParams);
+    const pageAnalysis = analyzePageForCustomerJourney(pathname || '', searchParams || new URLSearchParams());
     
     // Track page view with enhanced context
     analytics.track({

@@ -36,6 +36,7 @@ console.log('[escrowService] Using ESCROW_CONTRACT_ADDRESS_2:', ESCROW_ADDRESS);
 
 // MXNB token contract address
 const TOKEN_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS!;
+console.log('[escrowService] MXNB_CONTRACT_ADDRESS from env:', TOKEN_ADDRESS);
 
 // Load ABIs with error handling
 let ESCROW_ABI;

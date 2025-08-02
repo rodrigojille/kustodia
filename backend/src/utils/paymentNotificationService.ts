@@ -86,7 +86,7 @@ export async function sendPaymentEventNotification({
     }
   }
 
-  // Simple HTML template (replace with your own)
+  // Modern, professional HTML template following industry best practices
   const buildHtml = (recipient: NotificationRecipient) => {
     // Get personalized greeting
     let greeting = 'Hola';
@@ -96,21 +96,123 @@ export async function sendPaymentEventNotification({
       greeting = `Hola (${recipient.role})`;
     }
     
+    // Get status color and icon
+    const getStatusDisplay = (status: string) => {
+      const statusMap: { [key: string]: { color: string; icon: string; label: string } } = {
+        'pending': { color: '#f59e0b', icon: '⏳', label: 'Pendiente' },
+        'funded': { color: '#10b981', icon: '💰', label: 'Fondos Recibidos' },
+        'in_custody': { color: '#3b82f6', icon: '🔒', label: 'En Custodia' },
+        'escrowed': { color: '#3b82f6', icon: '🔒', label: 'En Custodia' },
+        'completed': { color: '#10b981', icon: '✅', label: 'Completado' },
+        'released': { color: '#10b981', icon: '🎉', label: 'Liberado' },
+        'disputed': { color: '#ef4444', icon: '⚠️', label: 'En Disputa' },
+        'cancelled': { color: '#6b7280', icon: '❌', label: 'Cancelado' }
+      };
+      return statusMap[status] || { color: '#6b7280', icon: '📄', label: status || 'Desconocido' };
+    };
+    
+    const statusDisplay = getStatusDisplay(paymentDetails.status);
+    const eventIcon = getEventIcon(eventType);
+    
     return `
-    <div style="font-family:Montserrat,Arial,sans-serif;background:#fff;padding:2rem;max-width:520px;margin:2rem auto;border-radius:16px;box-shadow:0 2px 12px #0001;">
-      <h2 style="color:#2e7ef7;">${subject}</h2>
-      <p>${greeting},</p>
-      <p>${customMessage || getDefaultMessage(eventType, paymentDetails)}</p>
-      <div style="margin:1.5rem 0;">
-        <b>ID del pago:</b> ${paymentId}<br/>
-        <b>Monto:</b> ${paymentDetails.amount ? Number(paymentDetails.amount).toLocaleString('es-MX', { style: 'currency', currency: paymentDetails.currency }) : '-'}<br/>
-        <b>Estado actual:</b> ${paymentDetails.status || '-'}
-        ${paymentDetails.arbiscanUrl ? `<br/><b>Ver en blockchain:</b> <a href="${paymentDetails.arbiscanUrl}" target="_blank" style="color:#2e7ef7;">Ver transacción</a>` : ''}
-        ${paymentDetails.escrowId ? `<br/><b>ID de custodia:</b> ${paymentDetails.escrowId}` : ''}
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject}</title>
+    </head>
+    <body style="margin:0;padding:0;background-color:#f8fafc;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+      <div style="max-width:600px;margin:0 auto;background-color:#ffffff;">
+        
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg, #2e7ef7 0%, #1d4ed8 100%);padding:32px 24px;text-align:center;">
+          <img src="https://kustodia.mx/kustodia-logo-white.png" alt="Kustodia" style="height:40px;margin-bottom:16px;" />
+          <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:600;">${eventIcon} ${subject}</h1>
+        </div>
+        
+        <!-- Main Content -->
+        <div style="padding:32px 24px;">
+          <!-- Greeting -->
+          <p style="font-size:16px;color:#374151;margin:0 0 24px 0;line-height:1.6;">${greeting},</p>
+          
+          <!-- Main Message -->
+          <div style="background-color:#f8fafc;border-left:4px solid #2e7ef7;padding:20px;margin:24px 0;border-radius:0 8px 8px 0;">
+            <p style="font-size:16px;color:#374151;margin:0;line-height:1.6;">${customMessage || getDefaultMessage(eventType, paymentDetails)}</p>
+          </div>
+          
+          <!-- Payment Details Card -->
+          <div style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin:24px 0;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="color:#111827;margin:0 0 16px 0;font-size:18px;font-weight:600;">📋 Detalles del Pago</h3>
+            
+            <div style="display:flex;flex-wrap:wrap;gap:16px;">
+              <div style="flex:1;min-width:200px;">
+                <div style="margin-bottom:12px;">
+                  <span style="font-size:12px;color:#6b7280;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">ID del Pago</span>
+                  <div style="font-size:16px;color:#111827;font-weight:600;margin-top:4px;">#${paymentId}</div>
+                </div>
+                
+                <div style="margin-bottom:12px;">
+                  <span style="font-size:12px;color:#6b7280;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">Monto</span>
+                  <div style="font-size:20px;color:#059669;font-weight:700;margin-top:4px;">${paymentDetails.amount ? Number(paymentDetails.amount).toLocaleString('es-MX', { style: 'currency', currency: paymentDetails.currency || 'MXN' }) : '-'}</div>
+                </div>
+              </div>
+              
+              <div style="flex:1;min-width:200px;">
+                <div style="margin-bottom:12px;">
+                  <span style="font-size:12px;color:#6b7280;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">Estado</span>
+                  <div style="display:inline-flex;align-items:center;background-color:${statusDisplay.color}15;color:${statusDisplay.color};padding:6px 12px;border-radius:20px;font-size:14px;font-weight:600;margin-top:4px;">
+                    <span style="margin-right:6px;">${statusDisplay.icon}</span>
+                    ${statusDisplay.label}
+                  </div>
+                </div>
+                
+                ${paymentDetails.custodyAmount ? `
+                <div style="margin-bottom:12px;">
+                  <span style="font-size:12px;color:#6b7280;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">En Custodia</span>
+                  <div style="font-size:16px;color:#3b82f6;font-weight:600;margin-top:4px;">${Number(paymentDetails.custodyAmount).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</div>
+                </div>` : ''}
+              </div>
+            </div>
+            
+            ${paymentDetails.escrowId ? `
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
+              <span style="font-size:12px;color:#6b7280;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">ID de Custodia</span>
+              <div style="font-family:monospace;font-size:14px;color:#374151;background-color:#f3f4f6;padding:8px 12px;border-radius:6px;margin-top:4px;">${paymentDetails.escrowId}</div>
+            </div>` : ''}
+            
+            ${paymentDetails.arbiscanUrl ? `
+            <div style="margin-top:16px;text-align:center;">
+              <a href="${paymentDetails.arbiscanUrl}" target="_blank" style="display:inline-block;background-color:#2e7ef7;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;transition:background-color 0.2s;">🔗 Ver en Blockchain</a>
+            </div>` : ''}
+          </div>
+          
+          ${timeline && timeline.length ? renderModernTimeline(timeline) : ''}
+          
+          <!-- CTA Section -->
+          <div style="text-align:center;margin:32px 0;">
+            <a href="https://kustodia.mx/payments/${paymentId}" target="_blank" style="display:inline-block;background-color:#2e7ef7;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;font-size:16px;margin:8px;transition:background-color 0.2s;">📱 Ver Detalles Completos</a>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color:#f8fafc;padding:24px;text-align:center;border-top:1px solid #e5e7eb;">
+          <div style="margin-bottom:16px;">
+            <img src="https://kustodia.mx/kustodia-logo.png" alt="Kustodia" style="height:24px;opacity:0.7;" />
+          </div>
+          <p style="font-size:14px;color:#6b7280;margin:0 0 8px 0;">Equipo Kustodia</p>
+          <p style="font-size:12px;color:#9ca3af;margin:0;">Pagos seguros y automatizados con tecnología blockchain</p>
+          
+          <!-- Social Links -->
+          <div style="margin-top:16px;">
+            <a href="https://x.com/Kustodia_mx" style="color:#6b7280;text-decoration:none;margin:0 8px;font-size:12px;">Twitter</a>
+            <a href="https://www.instagram.com/kustodia.mx/" style="color:#6b7280;text-decoration:none;margin:0 8px;font-size:12px;">Instagram</a>
+            <a href="https://www.linkedin.com/company/kustodia-mx" style="color:#6b7280;text-decoration:none;margin:0 8px;font-size:12px;">LinkedIn</a>
+          </div>
+        </div>
       </div>
-      ${timeline && timeline.length ? renderTimeline(timeline) : ''}
-      <p style="font-size:13px;color:#999;">Equipo Kustodia</p>
-    </div>
+    </body>
+    </html>
   `;
   };
 
@@ -190,6 +292,26 @@ function getDefaultMessage(eventType: PaymentEventType, paymentDetails: any) {
   }
 }
 
+function getEventIcon(eventType: PaymentEventType): string {
+  const iconMap: { [key: string]: string } = {
+    'payment_created': '📝',
+    'escrow_created': '🔒',
+    'funds_received': '💰',
+    'escrow_executing': '⚙️',
+    'escrow_finished': '✅',
+    'payment_released': '🎉',
+    'dispute_started': '⚠️',
+    'bridge_withdrawal_success': '🏦',
+    'payout_completed': '✅',
+    'escrow_release_success': '🔓',
+    'payout_processing_error': '❌',
+    'escrow_error': '⚠️',
+    'spei_transfer_completed': '🏦',
+    'spei_transfer_processing': '⏳'
+  };
+  return iconMap[eventType] || '📄';
+}
+
 function renderTimeline(timeline: Array<any>) {
   return `<div style="margin-top:1rem;">
     <b>Línea de tiempo:</b>
@@ -197,4 +319,43 @@ function renderTimeline(timeline: Array<any>) {
       ${timeline.map(ev => `<li>${ev.label || ev.status || ''} - ${ev.timestamp ? new Date(ev.timestamp).toLocaleString('es-MX') : ''}</li>`).join('')}
     </ul>
   </div>`;
+}
+
+function renderModernTimeline(timeline: Array<any>) {
+  if (!timeline || timeline.length === 0) return '';
+  
+  return `
+  <div style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin:24px 0;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="color:#111827;margin:0 0 20px 0;font-size:18px;font-weight:600;">📅 Línea de Tiempo</h3>
+    <div style="position:relative;">
+      ${timeline.map((ev, index) => {
+        const isLast = index === timeline.length - 1;
+        const timestamp = ev.timestamp ? new Date(ev.timestamp).toLocaleString('es-MX', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : '';
+        
+        return `
+        <div style="display:flex;align-items:flex-start;margin-bottom:${isLast ? '0' : '20px'};position:relative;">
+          <!-- Timeline dot -->
+          <div style="width:12px;height:12px;background-color:#2e7ef7;border-radius:50%;margin-right:16px;margin-top:6px;flex-shrink:0;z-index:1;"></div>
+          
+          <!-- Timeline line -->
+          ${!isLast ? '<div style="position:absolute;left:5px;top:18px;width:2px;height:calc(100% + 8px);background-color:#e5e7eb;"></div>' : ''}
+          
+          <!-- Content -->
+          <div style="flex:1;">
+            <div style="font-weight:600;color:#111827;font-size:14px;margin-bottom:4px;">${ev.label || ev.status || 'Evento'}</div>
+            <div style="font-size:12px;color:#6b7280;">${timestamp}</div>
+            ${ev.description ? `<div style="font-size:13px;color:#374151;margin-top:4px;">${ev.description}</div>` : ''}
+          </div>
+        </div>
+        `;
+      }).join('')}
+    </div>
+  </div>
+  `;
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 
 function ResetPasswordInner() {
   const params = useSearchParams();
-  const token = params.get("token");
+  const token = params?.get("token");
   const [step, setStep] = useState(token ? 2 : 1);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);

@@ -13,41 +13,103 @@ if (SENDGRID_API_KEY && !SENDGRID_API_KEY.includes('your-sendgrid-api-key-here')
 export async function sendWelcomeEmail(to: string, userName?: string, accessCode?: string) {
   return sendEmail({
     to,
-    subject: "¡Bienvenido a Kustodia!",
+    subject: "🎉 ¡Bienvenido a Kustodia!",
     html: `
-      <div style="font-family:Montserrat,Arial,sans-serif;background:#fff;padding:2rem;max-width:420px;margin:2rem auto;border-radius:16px;box-shadow:0 2px 12px #0001;">
-        <div style="text-align:center;">
-          <img src="https://kustodia.mx/kustodia-logo.png" alt="Kustodia Logo" width="72" height="72" style="display:block;margin:0 auto 1rem auto;">
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>¡Bienvenido a Kustodia!</title>
+    </head>
+    <body style="margin:0;padding:0;background-color:#f8fafc;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+      <div style="max-width:600px;margin:0 auto;background-color:#ffffff;">
+        
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg, #2e7ef7 0%, #1d4ed8 100%);padding:40px 24px;text-align:center;">
+          <img src="https://kustodia.mx/kustodia-logo-white.png" alt="Kustodia" style="height:50px;margin-bottom:20px;" />
+          <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:700;">🎉 ¡Bienvenido a Kustodia!</h1>
+          <p style="color:#e0f2fe;margin:12px 0 0 0;font-size:16px;">El futuro de los pagos seguros</p>
         </div>
-        <h2 style="color:#2e7ef7;text-align:center;margin-top:0;">¡Hola${userName ? ` ${userName}` : ''}!</h2>
-        <p style="text-align:center;">¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para Early Access.<br>Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
-        ${accessCode ? `<div style="background:#f6f8fc;padding:1rem;border-radius:8px;margin:1.5rem 0;text-align:center;">
-          <div style="font-weight:bold;color:#222;">Código de Acceso Anticipado:</div>
-          <div style="font-family:monospace;color:#2e7ef7;font-size:1.1rem;margin-top:4px;">${accessCode}</div>
-        </div>` : ''}
-        <p style="text-align:center;"><b>¡Felicidades!</b> Tienes 0% fee de por vida por ser de los primeros 100 registros.<br><span style="font-size:13px;color:#666;">Guarda este código, lo necesitarás para acceder a la plataforma cuando se cierre la página de Early Access.</span></p>
-        <div style="margin:1.5rem 0;text-align:center;">
-          <span style="color:#222;">¿Por qué Kustodia?</span>
-          <div style="display:flex;justify-content:center;gap:16px;margin-top:10px;">
-            <div style="min-width:90px;padding:10px 0;">
-              <div style="font-weight:bold;color:#2e7ef7;">Transparencia</div>
-              <div style="font-size:12px;color:#333;">Verifica la existencia y respaldo de MXNB.</div>
-            </div>
-            <div style="min-width:90px;padding:10px 0;">
-              <div style="font-weight:bold;color:#2e7ef7;">Automatización</div>
-              <div style="font-size:12px;color:#333;">Pagos solo se liberan al cumplir condiciones pactadas.</div>
-            </div>
-            <div style="min-width:90px;padding:10px 0;">
-              <div style="font-weight:bold;color:#2e7ef7;">Seguridad</div>
-              <div style="font-size:12px;color:#333;">Fondos protegidos y custodiados.</div>
+        
+        <!-- Main Content -->
+        <div style="padding:40px 24px;">
+          <!-- Greeting -->
+          <div style="text-align:center;margin-bottom:32px;">
+            <h2 style="color:#111827;margin:0 0 16px 0;font-size:24px;font-weight:600;">¡Hola${userName ? ` ${userName}` : ''}! 👋</h2>
+            <p style="font-size:16px;color:#374151;margin:0;line-height:1.6;">¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para <strong>Early Access</strong>.</p>
+            <p style="font-size:16px;color:#374151;margin:16px 0 0 0;line-height:1.6;">Pronto recibirás novedades sobre el acceso y nuevas funcionalidades.</p>
+          </div>
+          
+          ${accessCode ? `
+          <!-- Access Code Card -->
+          <div style="background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);border:2px solid #2e7ef7;border-radius:16px;padding:24px;margin:32px 0;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#1e40af;margin-bottom:12px;">🔑 Código de Acceso Anticipado</div>
+            <div style="font-family:monospace;color:#2e7ef7;font-size:24px;font-weight:700;background-color:#ffffff;padding:16px;border-radius:8px;letter-spacing:2px;border:1px solid #e5e7eb;">${accessCode}</div>
+            <p style="font-size:14px;color:#6b7280;margin:12px 0 0 0;">⚠️ Guarda este código, lo necesitarás para acceder a la plataforma</p>
+          </div>
+          ` : ''}
+          
+          <!-- Special Offer -->
+          <div style="background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);border:2px solid #f59e0b;border-radius:16px;padding:24px;margin:32px 0;text-align:center;">
+            <div style="font-size:20px;margin-bottom:8px;">🎊</div>
+            <h3 style="color:#92400e;margin:0 0 8px 0;font-size:18px;font-weight:700;">¡Felicidades!</h3>
+            <p style="color:#92400e;margin:0;font-size:16px;font-weight:600;">Tienes <strong>0% fee de por vida</strong> por ser de los primeros 100 registros</p>
+          </div>
+          
+          <!-- Features Section -->
+          <div style="margin:40px 0;">
+            <h3 style="color:#111827;text-align:center;margin:0 0 24px 0;font-size:20px;font-weight:600;">¿Por qué Kustodia? 🚀</h3>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;">
+              <div style="background-color:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:8px;">🔍</div>
+                <div style="font-weight:600;color:#2e7ef7;font-size:16px;margin-bottom:8px;">Transparencia</div>
+                <div style="font-size:14px;color:#6b7280;line-height:1.4;">Verifica la existencia y respaldo de MXNB en tiempo real</div>
+              </div>
+              
+              <div style="background-color:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:8px;">⚙️</div>
+                <div style="font-weight:600;color:#2e7ef7;font-size:16px;margin-bottom:8px;">Automatización</div>
+                <div style="font-size:14px;color:#6b7280;line-height:1.4;">Pagos solo se liberan al cumplir condiciones pactadas</div>
+              </div>
+              
+              <div style="background-color:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:8px;">🛡️</div>
+                <div style="font-weight:600;color:#2e7ef7;font-size:16px;margin-bottom:8px;">Seguridad</div>
+                <div style="font-size:14px;color:#6b7280;line-height:1.4;">Fondos protegidos y custodiados con tecnología blockchain</div>
+              </div>
             </div>
           </div>
+          
+          <!-- CTA Section -->
+          <div style="text-align:center;margin:40px 0;">
+            <a href="https://kustodia.mx" target="_blank" style="display:inline-block;background-color:#2e7ef7;color:#ffffff;text-decoration:none;padding:16px 32px;border-radius:12px;font-weight:600;font-size:16px;margin:8px;transition:background-color 0.2s;">🌐 Visitar Kustodia.mx</a>
+          </div>
         </div>
-        <div style="margin:1.5rem 0;text-align:center;">
-          <span style="color:#222;">Síguenos en redes sociales para estar al tanto de las novedades:</span><br>
-          <a href="https://x.com/Kustodia_mx" style="color:#1da1f2;text-decoration:none;font-weight:bold;margin:0 6px;">X (antes Twitter)</a>
-          <a href="https://www.instagram.com/kustodia.mx/" style="color:#e1306c;text-decoration:none;font-weight:bold;margin:0 6px;">Instagram</a>
-          <a href="https://www.linkedin.com/company/kustodia-mx" style="color:#0077b5;text-decoration:none;font-weight:bold;margin:0 6px;">LinkedIn</a>
+        
+        <!-- Footer -->
+        <div style="background-color:#f8fafc;padding:32px 24px;text-align:center;border-top:1px solid #e5e7eb;">
+          <div style="margin-bottom:20px;">
+            <img src="https://kustodia.mx/kustodia-logo.png" alt="Kustodia" style="height:28px;opacity:0.7;" />
+          </div>
+          
+          <p style="font-size:16px;color:#374151;margin:0 0 16px 0;font-weight:600;">Síguenos en redes sociales 📱</p>
+          <p style="font-size:14px;color:#6b7280;margin:0 0 20px 0;">Mantente al tanto de las últimas novedades</p>
+          
+          <!-- Social Links -->
+          <div style="margin-bottom:20px;">
+            <a href="https://x.com/Kustodia_mx" style="display:inline-block;background-color:#1da1f2;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;font-size:14px;margin:4px 8px;">🐦 Twitter</a>
+            <a href="https://www.instagram.com/kustodia.mx/" style="display:inline-block;background-color:#e1306c;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;font-size:14px;margin:4px 8px;">📸 Instagram</a>
+            <a href="https://www.linkedin.com/company/kustodia-mx" style="display:inline-block;background-color:#0077b5;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;font-size:14px;margin:4px 8px;">💼 LinkedIn</a>
+          </div>
+          
+          <p style="font-size:12px;color:#9ca3af;margin:0;">Pagos seguros y automatizados con tecnología blockchain</p>
+          <p style="font-size:12px;color:#9ca3af;margin:8px 0 0 0;">© 2024 Kustodia. Todos los derechos reservados.</p>
+        </div>
+      </div>
+    </body>
+    </html>
         </div>
         <p style="font-size:13px;color:#999;text-align:center;">Equipo Kustodia</p>
       </div>

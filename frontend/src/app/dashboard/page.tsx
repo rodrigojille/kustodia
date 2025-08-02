@@ -37,7 +37,7 @@ export default function DashboardHomePage() {
 
   // Handle URL token extraction for development mode (Google SSO)
   useEffect(() => {
-    const token = searchParams.get('token');
+    const token = searchParams?.get('token');
     if (token) {
       console.log('[DASHBOARD] Token found in URL, storing in localStorage for development');
       localStorage.setItem('auth_token', token);

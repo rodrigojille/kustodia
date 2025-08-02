@@ -394,8 +394,8 @@ export default function PaymentDetailClient({ id, onLoaded, showQrInPrintout = f
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-black">Detalle del pago</h1>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-          {/* Interactive Tracker Button for nuevo-flujo payments */}
-          {payment?.payment_type === 'nuevo_flujo' && (
+          {/* Interactive Tracker Button for payments with escrow or dual approval */}
+          {(payment?.payment_type === 'nuevo_flujo' || payment?.payment_type === 'cobro_inteligente' || payment?.escrow) && (
             <a
               href={`/dashboard/pagos/${payment.id}/tracker`}
               className="inline-flex items-center gap-2 bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition font-medium text-xs sm:text-sm w-full sm:w-auto justify-center"

@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 const PaymentsPage = () => {
   const searchParams = useSearchParams();
-  const statusFilter = searchParams.get('status');
+  const statusFilter = searchParams?.get('status');
 
   const getPageTitle = () => {
     if (!statusFilter) return 'Todos los Pagos';

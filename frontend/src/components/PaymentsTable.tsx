@@ -39,7 +39,7 @@ type Payment = {
 
 function PaymentsTableContent() {
   const searchParams = useSearchParams();
-  const statusFilters = searchParams.getAll('status');
+  const statusFilters = searchParams?.getAll('status') || [];
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);

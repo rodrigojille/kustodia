@@ -152,7 +152,7 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
           {/* Main Navigation */}
           <div className="space-y-1">
             {links.map(link => {
-              const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href));
+              const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname?.startsWith(link.href));
               return (
                 <Link key={link.href} href={link.href} className={
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all duration-200 group ${
@@ -179,13 +179,13 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
               <div className="space-y-1">
                 <Link key={adminLink.href} href={adminLink.href} className={
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all duration-200 group ${
-                    pathname.startsWith(adminLink.href)
+                    pathname?.startsWith(adminLink.href)
                       ? 'bg-red-600 text-white shadow-sm' 
                       : 'text-gray-700 hover:bg-red-50 hover:text-red-600'
                   }`
                 }>
                   <span className={`inline-block w-5 h-5 transition-colors ${
-                    pathname.startsWith(adminLink.href) ? 'text-white' : 'text-gray-500 group-hover:text-red-600'
+                    pathname?.startsWith(adminLink.href) ? 'text-white' : 'text-gray-500 group-hover:text-red-600'
                   }`}>{adminLink.icon}</span>
                   <span className="text-sm">{adminLink.label}</span>
                 </Link>

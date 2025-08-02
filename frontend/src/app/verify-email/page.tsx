@@ -5,7 +5,7 @@ import Link from "next/link";
 
 function VerifyEmailInner() {
   const params = useSearchParams();
-  const token = params.get("token");
+  const token = params?.get("token");
   const [status, setStatus] = useState<"pending" | "success" | "error">("pending");
   const [message, setMessage] = useState("");
 

@@ -10,8 +10,8 @@ export default function KYCCompletedPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
-  const processId = searchParams.get('process_id');
-  const accountId = searchParams.get('account_id');
+  const processId = searchParams?.get('process_id');
+  const accountId = searchParams?.get('account_id');
 
   useEffect(() => {
     const updateKYCStatus = async () => {
