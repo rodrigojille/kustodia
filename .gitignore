@@ -45,4 +45,4 @@ contracts/.env
 *.local
 
 # Local development artifacts
-/backend/src/artifacts
+# /backend/src/artifacts - COMMENTED OUT: We need artifacts in production for contract ABIs

@@ -50,7 +50,11 @@ try {
   // Minimal ABI with essential functions for basic operation - Updated to match KustodiaEscrow2_0
   ESCROW_ABI = [
     "function createEscrow(address payer, address payee, address token, uint256 amount, uint256 deadline, string memory vertical, string memory clabe, string memory conditions) external returns (uint256)",
+    "function fundEscrow(uint256 escrowId) external",
     "function releaseEscrow(uint256 escrowId) external",
+    "function release(uint256 escrowId) external",
+    "function dispute(uint256 escrowId, string memory reason) external",
+    "function resolveDispute(uint256 escrowId, bool inFavorOfSeller) external",
     "function getEscrow(uint256 escrowId) external view returns (tuple(address token, uint256 amount, address sender, address recipient, string reference, bool released, uint256 createdAt))",
     "event EscrowCreated(uint256 indexed escrowId, address indexed sender, address indexed recipient, address token, uint256 amount, string reference)",
     "event EscrowReleased(uint256 indexed escrowId)"
