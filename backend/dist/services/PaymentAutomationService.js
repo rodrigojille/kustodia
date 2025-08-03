@@ -165,7 +165,7 @@ class PaymentAutomationService {
                                         recipients.push({
                                             email: paymentToUpdate.payer_email,
                                             role: 'payer',
-                                            name: paymentToUpdate.user?.full_name || 'Cliente'
+                                            name: paymentToUpdate.user?.full_name || paymentToUpdate.payer_email?.split('@')[0] || 'Usuario'
                                         });
                                     }
                                     if (paymentToUpdate.recipient_email) {
@@ -404,6 +404,38 @@ class PaymentAutomationService {
         }
     }
     /**
+     * Check MXNB balance in bridge wallet
+     */
+    async checkBridgeWalletBalance(requiredAmount) {
+        try {
+            const provider = new ethers_1.ethers.JsonRpcProvider(process.env.ETH_RPC_URL);
+            const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS;
+            const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET;
+            const ERC20_ABI = [
+                "function balanceOf(address owner) view returns (uint256)",
+                "function decimals() view returns (uint8)"
+            ];
+            const token = new ethers_1.ethers.Contract(tokenAddress, ERC20_ABI, provider);
+            const [balance, decimals] = await Promise.all([
+                token.balanceOf(bridgeWallet),
+                token.decimals()
+            ]);
+            const currentBalance = ethers_1.ethers.formatUnits(balance, decimals);
+            const requiredBalance = requiredAmount.toString();
+            const hasBalance = parseFloat(currentBalance) >= requiredAmount;
+            console.log(`[balance] Bridge wallet MXNB balance check:`);
+            console.log(`   Wallet: ${bridgeWallet}`);
+            console.log(`   Current: ${currentBalance} MXNB`);
+            console.log(`   Required: ${requiredBalance} MXNB`);
+            console.log(`   Sufficient: ${hasBalance}`);
+            return { hasBalance, currentBalance, requiredBalance };
+        }
+        catch (error) {
+            console.error(`[balance] Error checking bridge wallet balance:`, error.message);
+            return { hasBalance: false, currentBalance: '0', requiredBalance: requiredAmount.toString() };
+        }
+    }
+    /**
      * Create and fund the escrow contract after bridge withdrawal
      * Flow 1: Both payer and payee are bridge wallet (platform-managed custody)
      */
@@ -416,6 +448,17 @@ class PaymentAutomationService {
             throw new Error(`Payment ${payment.id} missing escrow relation`);
         if (!payment.escrow.custody_end)
             throw new Error(`Payment ${payment.id} escrow missing custody_end date`);
+        // ✅ BALANCE VERIFICATION - Check if bridge wallet has sufficient MXNB tokens
+        const balanceCheck = await this.checkBridgeWalletBalance(custodyAmount);
+        if (!balanceCheck.hasBalance) {
+            const errorMsg = `Insufficient MXNB balance in bridge wallet. Required: ${balanceCheck.requiredBalance} MXNB, Available: ${balanceCheck.currentBalance} MXNB`;
+            console.log(`[escrow] ⏳ ${errorMsg} - Payment ${payment.id} will retry on next automation cycle`);
+            // Log the balance issue for tracking
+            await this.paymentService.logPaymentEvent(payment.id, 'escrow_balance_insufficient', `${errorMsg}. Waiting for bridge transfer to complete.`, true);
+            // Don't throw error - just return and let automation retry later
+            return;
+        }
+        console.log(`[escrow] ✅ Bridge wallet has sufficient balance - proceeding with escrow creation`);
         // Calculate deadline with proper timezone handling
         // The issue: custody_end from DB is in local timezone but getTime() treats it as UTC
         let deadline;
@@ -500,10 +543,18 @@ class PaymentAutomationService {
             try {
                 const recipients = [];
                 if (payment.payer_email) {
-                    recipients.push({ email: payment.payer_email, role: 'payer' });
+                    recipients.push({
+                        email: payment.payer_email,
+                        role: 'payer',
+                        name: payment.user?.full_name || 'Pagador'
+                    });
                 }
                 if (payment.recipient_email) {
-                    recipients.push({ email: payment.recipient_email, role: 'seller' });
+                    recipients.push({
+                        email: payment.recipient_email,
+                        role: 'seller',
+                        name: payment.seller?.full_name || 'Vendedor'
+                    });
                 }
                 if (recipients.length > 0) {
                     await (0, paymentNotificationService_1.sendPaymentEventNotification)({
@@ -513,7 +564,7 @@ class PaymentAutomationService {
                             amount: payment.amount,
                             currency: payment.currency,
                             description: payment.description,
-                            status: payment.status,
+                            status: 'escrowed',
                             payer_email: payment.payer_email,
                             recipient_email: payment.recipient_email,
                             escrowId: createResult.escrowId,
@@ -774,7 +825,7 @@ class PaymentAutomationService {
                                 recipients.push({
                                     email: payment.payer_email,
                                     role: 'payer',
-                                    name: payment.user?.full_name || 'Cliente'
+                                    name: payment.user?.full_name || payment.payer_email?.split('@')[0] || 'Usuario'
                                 });
                             }
                             if (payment.recipient_email) {

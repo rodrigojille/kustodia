@@ -80,7 +80,7 @@ async function sendPaymentEventNotification({ eventType, paymentId, paymentDetai
         
         <!-- Header -->
         <div style="background:linear-gradient(135deg, #2e7ef7 0%, #1d4ed8 100%);padding:32px 24px;text-align:center;">
-          <img src="https://kustodia.mx/kustodia-logo-white.png" alt="Kustodia" style="height:40px;margin-bottom:16px;" />
+          <img src="https://kustodia.mx/kustodia-logo.png" alt="Kustodia" style="height:40px;margin-bottom:16px;filter:brightness(0) invert(1);" />
           <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:600;">${eventIcon} ${subject}</h1>
         </div>
         

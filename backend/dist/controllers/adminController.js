@@ -3,13 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllPayments = exports.getUserAnalytics = exports.getJunoApiStatus = exports.bulkFixMissingUUIDs = exports.getPaymentHealth = exports.searchPayments = exports.getPaymentAnalytics = exports.getUserDeposits = exports.getUserClabes = exports.getAllUsersWithDetails = exports.getAllDisputes = void 0;
+exports.getBridgeWalletBalance = exports.getAllPayments = exports.getUserAnalytics = exports.getJunoApiStatus = exports.bulkFixMissingUUIDs = exports.getPaymentHealth = exports.searchPayments = exports.getPaymentAnalytics = exports.getUserDeposits = exports.getUserClabes = exports.getAllUsersWithDetails = exports.getAllDisputes = void 0;
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const Dispute_1 = require("../entity/Dispute");
 const User_1 = require("../entity/User");
 const Escrow_1 = require("../entity/Escrow");
 const Payment_1 = require("../entity/Payment");
 const axios_1 = __importDefault(require("axios"));
+const ethers_1 = require("ethers");
 // Utility to get Juno API credentials from env
 const JUNO_API_KEY = process.env.JUNO_API_KEY;
 const JUNO_API_SECRET = process.env.JUNO_API_SECRET;
@@ -514,3 +515,59 @@ const getAllPayments = async (req, res) => {
     }
 };
 exports.getAllPayments = getAllPayments;
+// =============================================================================
+// 💰 BRIDGE WALLET BALANCE MONITORING
+// =============================================================================
+const getBridgeWalletBalance = async (req, res) => {
+    try {
+        const provider = new ethers_1.ethers.JsonRpcProvider(process.env.ETH_RPC_URL);
+        const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS;
+        const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET;
+        const ERC20_ABI = [
+            "function balanceOf(address owner) view returns (uint256)",
+            "function decimals() view returns (uint8)",
+            "function symbol() view returns (string)",
+            "function name() view returns (string)"
+        ];
+        const token = new ethers_1.ethers.Contract(tokenAddress, ERC20_ABI, provider);
+        const [balance, decimals, symbol, name] = await Promise.all([
+            token.balanceOf(bridgeWallet),
+            token.decimals(),
+            token.symbol(),
+            token.name()
+        ]);
+        const formattedBalance = ethers_1.ethers.formatUnits(balance, decimals);
+        const balanceNumber = parseFloat(formattedBalance);
+        // Get ETH balance too for gas monitoring
+        const ethBalance = await provider.getBalance(bridgeWallet);
+        const formattedEthBalance = ethers_1.ethers.formatEther(ethBalance);
+        res.json({
+            success: true,
+            bridgeWallet,
+            mxnb: {
+                balance: balanceNumber,
+                formattedBalance,
+                rawBalance: balance.toString(),
+                decimals: Number(decimals),
+                symbol,
+                name,
+                contractAddress: tokenAddress
+            },
+            eth: {
+                balance: parseFloat(formattedEthBalance),
+                formattedBalance: formattedEthBalance,
+                rawBalance: ethBalance.toString()
+            },
+            timestamp: new Date().toISOString()
+        });
+    }
+    catch (error) {
+        console.error('Error fetching bridge wallet balance:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch bridge wallet balance',
+            details: error.message
+        });
+    }
+};
+exports.getBridgeWalletBalance = getBridgeWalletBalance;

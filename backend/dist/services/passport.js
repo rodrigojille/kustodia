@@ -15,7 +15,7 @@ function configurePassport() {
     passport_1.default.use(new passport_google_oauth20_1.Strategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: '/api/auth/google/callback',
+        callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/api/auth/google/callback',
         scope: ['profile', 'email'],
     }, async (accessToken, refreshToken, profile, done) => {
         // We can safely access the DB here because this runs after initialization.

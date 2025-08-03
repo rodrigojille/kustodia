@@ -7,6 +7,7 @@ exports.inviteLead = exports.createLead = void 0;
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const Lead_1 = __importDefault(require("../entity/Lead"));
 const emailService_1 = require("../utils/emailService");
+const earlyAccessTemplate_1 = require("../utils/earlyAccessTemplate");
 const createLead = async (req, res) => {
     try {
         const { name, email, message, empresa, telefono, vertical } = req.body;
@@ -40,25 +41,7 @@ const createLead = async (req, res) => {
         await (0, emailService_1.sendEmail)({
             to: lead.email,
             subject: '¡Confirmación de Acceso Prioritario - Kustodia!',
-            html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
-        <div style='text-align:left;margin-bottom:1rem;'>
-          <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='80' height='80' style='display:block;'>
-        </div>
-        <h2 style='color:#2e7ef7;text-align:center;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
-        <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para <strong>Acceso Prioritario</strong>.<br>Pronto recibirás novedades sobre el acceso exclusivo y nuevas funcionalidades.</p>
-        <p style='margin-top:1.5rem;'><b>Código de Acceso Prioritario:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
-        <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma con privilegios prioritarios.</p>
-        <p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
-<p style='text-align:left;margin:12px 0 0 0;'>
-  <a href='https://x.com/Kustodia_mx' style='margin:0 10px;text-decoration:underline;color:#1DA1F2;font-weight:bold;' target='_blank' rel='noopener noreferrer'>X (antes Twitter)</a>
-  <a href='https://instagram.com/kustodia.mx' style='margin:0 10px;text-decoration:underline;color:#E1306C;font-weight:bold;' target='_blank' rel='noopener noreferrer'>Instagram</a>
-  <a href="https://www.linkedin.com/company/kustodia-mx" style="color:#0077b5;text-decoration:none;font-weight:bold;margin:0 6px;">LinkedIn</a>
-</p>
-        <p style='color:#888;'>¿Tienes dudas? Envía un correo a <a href='mailto:info@kustodia.mx' style='color:#2e7ef7;text-decoration:none;'>info@kustodia.mx</a> y te ayudamos.</p>
-        <br><p style='font-size:13px;color:#999;'>Equipo Kustodia</p>
-        <hr style='border:none;border-top:1px solid #e3e9f8;margin:32px 0 12px 0;'>
-        <p style='font-size:12px;color:#aaa;text-align:center;'>Tecnologias Avanzadas Centrales SAPI de CV</p>
-      </div>`
+            html: (0, earlyAccessTemplate_1.createEarlyAccessConfirmationTemplate)(lead.name)
         });
         lead.invited = true;
         await repo.save(lead);
@@ -85,25 +68,7 @@ const inviteLead = async (req, res) => {
         await (0, emailService_1.sendEmail)({
             to: lead.email,
             subject: '¡Confirmación de Acceso Prioritario - Kustodia!',
-            html: `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
-        <div style='text-align:left;margin-bottom:1rem;'>
-          <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='80' height='80' style='display:block;'>
-        </div>
-        <h2 style='color:#2e7ef7;text-align:center;'>¡Hola${lead.name ? ` ${lead.name}` : ''}!</h2>
-        <p>¡Gracias por tu interés en Kustodia! Hemos recibido correctamente tu registro para <strong>Acceso Prioritario</strong>.<br>Pronto recibirás novedades sobre el acceso exclusivo y nuevas funcionalidades.</p>
-        <p style='margin-top:1.5rem;'><b>Código de Acceso Prioritario:</b> <span style='background:#e3e9f8;color:#2e7ef7;padding:3px 10px;border-radius:5px;font-family:monospace;'>kustodiapremier</span></p>
-        <p style='font-size:13px;color:#555;margin-top:0.5rem;'>Guarda este código, lo necesitarás para acceder a la plataforma con privilegios prioritarios.</p>
-        <p style='margin-top:2rem;'>Síguenos en redes sociales para estar al tanto de las novedades:</p>
-<p style='text-align:left;margin:12px 0 0 0;'>
-  <a href='https://x.com/Kustodia_mx' style='margin:0 10px;text-decoration:underline;color:#1DA1F2;font-weight:bold;' target='_blank' rel='noopener noreferrer'>X (antes Twitter)</a>
-  <a href='https://instagram.com/kustodia.mx' style='margin:0 10px;text-decoration:underline;color:#E1306C;font-weight:bold;' target='_blank' rel='noopener noreferrer'>Instagram</a>
-  <a href="https://www.linkedin.com/company/kustodia-mx" style="color:#0077b5;text-decoration:none;font-weight:bold;margin:0 6px;">LinkedIn</a>
-</p>
-        <p style='color:#888;'>¿Tienes dudas? Envía un correo a <a href='mailto:info@kustodia.mx' style='color:#2e7ef7;text-decoration:none;'>info@kustodia.mx</a> y te ayudamos.</p>
-        <br><p style='font-size:13px;color:#999;'>Equipo Kustodia</p>
-        <hr style='border:none;border-top:1px solid #e3e9f8;margin:32px 0 12px 0;'>
-        <p style='font-size:12px;color:#aaa;text-align:center;'>Tecnologias Avanzadas Centrales SAPI de CV</p>
-      </div>`
+            html: (0, earlyAccessTemplate_1.createEarlyAccessConfirmationTemplate)(lead.name)
         });
         lead.invited = true;
         await repo.save(lead);

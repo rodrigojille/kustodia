@@ -184,4 +184,15 @@ router.patch("/tickets/:id/close", authenticateJWT_1.authenticateJWT, requireAdm
         next(error);
     }
 });
+// @route   GET /api/admin/bridge-wallet-balance
+// @desc    Get MXNB balance of bridge wallet
+// @access  Private (admin)
+router.get("/bridge-wallet-balance", authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, async (req, res, next) => {
+    try {
+        await (0, adminController_1.getBridgeWalletBalance)(req, res);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 exports.default = router;
