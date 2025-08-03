@@ -539,8 +539,11 @@ export class PaymentAutomationService {
       payment.status = 'escrowed'; // Always escrowed for user visibility
 
       // Check if this is a high-value payment requiring multi-sig approval for RELEASE
-      if (payment.escrow.custody_amount && Number(payment.escrow.custody_amount) * 0.06 >= 1000) {
-        console.log(`💰 High-value payment detected: ${payment.escrow.custody_amount} MXN (~$${Number(payment.escrow.custody_amount) * 0.06} USD)`);
+      const thresholdUSD = parseFloat(process.env.MULTISIG_THRESHOLD_USD || '1000');
+      const amountUSD = Number(payment.escrow.custody_amount) / 20; // Consistent with PreApprovalService: 1 USD = 20 MXN
+      
+      if (payment.escrow.custody_amount && amountUSD >= thresholdUSD) {
+        console.log(`💰 High-value payment detected: ${payment.escrow.custody_amount} MXN (~$${amountUSD} USD) >= $${thresholdUSD} USD threshold`);
         
         // Flag for multi-sig approval during escrow release (admin-only visibility)
         payment.multisig_required = true;
@@ -551,7 +554,7 @@ export class PaymentAutomationService {
           const preApproval = await multiSigApprovalService.proposeTransaction({
             paymentId: payment.id.toString(),
             amount: payment.escrow.custody_amount,
-            amountUsd: Number(payment.escrow.custody_amount) * 0.06,
+            amountUsd: amountUSD,
             type: 'release',
             createdBy: 'system',
             description: `Pre-approval for escrow release - Payment ${payment.id}`,
@@ -1189,9 +1192,11 @@ export class PaymentAutomationService {
       console.log(`🚀 Executing pre-approved multi-sig transaction ${approvalId} for Payment ${escrow.payment.id}`);
       
       // Execute the multi-sig transaction
+      // Use the first multi-sig owner address as executor (has private key configured)
+      const executorAddress = '0xe120e428b2bb7e28b21d2634ad1d601c6cd6b33f'; // MULTISIG_OWNER_1
       const executionTxHash = await multiSigApprovalService.executeTransaction(
         approvalId,
-        'system'
+        executorAddress
       );
       
       // Update escrow status to released and store transaction hash
@@ -1281,7 +1286,7 @@ export class PaymentAutomationService {
       const multiSigTx = await multiSigApprovalService.proposeTransaction({
         paymentId: escrow.payment.id.toString(),
         amount: escrow.custody_amount || 0,
-        amountUsd: Number(escrow.custody_amount || 0) * 0.06, // Approximate USD conversion
+        amountUsd: Number(escrow.custody_amount || 0) / 20, // Consistent MXN/USD conversion: 1 USD = 20 MXN
         type: 'release',
         createdBy: 'system',
         description: `Escrow release for payment ${escrow.payment.id}`,
@@ -1399,7 +1404,9 @@ export class PaymentAutomationService {
       
       // Execute the escrow release via multi-sig
       console.log(`🔐 Executing multi-sig approved escrow release for Payment ${paymentId}`);
-      const releaseTxHash = await multiSigApprovalService.executeTransaction(approval.id, 'system');
+      // Use the first multi-sig owner address as executor (has private key configured)
+      const executorAddress = '0xe120e428b2bb7e28b21d2634ad1d601c6cd6b33f'; // MULTISIG_OWNER_1
+      const releaseTxHash = await multiSigApprovalService.executeTransaction(approval.id, executorAddress);
       
       // Update escrow and payment status
       escrow.status = 'released';

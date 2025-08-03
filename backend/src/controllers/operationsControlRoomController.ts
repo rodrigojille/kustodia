@@ -142,6 +142,146 @@ export const getControlRoomDashboard = async (req: Request, res: Response): Prom
       }
     }
 
+    // 3. MXNB DEPOSIT FAILURES - Juno deposits not transferred to bridge wallet
+    const pendingDeposits = await paymentRepo.find({
+      where: { status: 'pending_deposit' },
+      relations: ['escrow']
+    });
+
+    for (const payment of pendingDeposits) {
+      // Check if payment is older than 30 minutes (deposit should be quick)
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      if (payment.created_at < thirtyMinutesAgo) {
+        failedOperations.push({
+          id: `juno_deposit_${payment.id}`,
+          type: 'bridge_transfer',
+          paymentId: payment.id,
+          status: 'pending_retry',
+          error: 'MXNB deposit from Juno not transferred to bridge wallet',
+          lastAttempt: payment.created_at,
+          retryCount: 0,
+          canRetry: true,
+          canRollback: true,
+          details: {
+            amount: payment.amount,
+            currency: payment.currency,
+            payerEmail: payment.payer_email,
+            ageMinutes: Math.floor((Date.now() - payment.created_at.getTime()) / (1000 * 60))
+          }
+        });
+      }
+    }
+
+    // 4. BRIDGE TRANSFER FAILURES - Escrow released but not transferred to bridge wallet
+    const releasedEscrows = await escrowRepo.find({
+      where: { status: 'released' },
+      relations: ['payment']
+    });
+
+    for (const escrow of releasedEscrows) {
+      // Check if payment is still not completed after escrow release
+      if (escrow.payment.status !== 'completed' && escrow.payment.status !== 'processing_payout') {
+        const releaseAge = escrow.updated_at ? Date.now() - escrow.updated_at.getTime() : 0;
+        const ageMinutes = Math.floor(releaseAge / (1000 * 60));
+        
+        // If escrow was released more than 10 minutes ago but payment not progressed
+        if (ageMinutes > 10) {
+          failedOperations.push({
+            id: `bridge_transfer_${escrow.payment.id}`,
+            type: 'bridge_transfer',
+            paymentId: escrow.payment.id,
+            status: 'pending_retry',
+            error: 'Escrow released but transfer to bridge wallet failed',
+            lastAttempt: escrow.updated_at,
+            retryCount: 0,
+            canRetry: true,
+            canRollback: false,
+            details: {
+              escrowId: escrow.smart_contract_escrow_id,
+              releaseAmount: escrow.release_amount,
+              releaseTxHash: escrow.release_tx_hash,
+              ageMinutes
+            }
+          });
+        }
+      }
+    }
+
+    // 5. JUNO WITHDRAWAL FAILURES - Bridge wallet to Juno transfers not executed
+    const processingPayouts = await paymentRepo.find({
+      where: { status: 'processing_payout' },
+      relations: ['escrow']
+    });
+
+    for (const payment of processingPayouts) {
+      const processingAge = Date.now() - payment.updated_at.getTime();
+      const ageMinutes = Math.floor(processingAge / (1000 * 60));
+      
+      // If payment has been processing payout for more than 15 minutes
+      if (ageMinutes > 15) {
+        failedOperations.push({
+          id: `juno_withdrawal_${payment.id}`,
+          type: 'mxnb_redemption',
+          paymentId: payment.id,
+          status: 'pending_retry',
+          error: 'Bridge wallet to Juno withdrawal not executed',
+          lastAttempt: payment.updated_at,
+          retryCount: 0,
+          canRetry: true,
+          canRollback: false,
+          details: {
+            amount: payment.amount,
+            currency: payment.currency,
+            recipientEmail: payment.recipient_email,
+            ageMinutes
+          }
+        });
+      }
+    }
+
+    // 6. MXNB REDEMPTION FAILURES - Check for payments stuck in final redemption
+    const redemptionFailures = await eventRepo.find({
+      where: { 
+        type: 'redemption_failed',
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+      },
+      order: { created_at: 'DESC' }
+    });
+
+    for (const event of redemptionFailures) {
+      const payment = await paymentRepo.findOne({
+        where: { id: event.paymentId },
+        relations: ['escrow']
+      });
+
+      if (payment && payment.status !== 'completed') {
+        const retryCount = await eventRepo.count({
+          where: { 
+            paymentId: payment.id,
+            type: 'redemption_failed'
+          }
+        });
+
+        failedOperations.push({
+          id: `redemption_${payment.id}`,
+          type: 'mxnb_redemption',
+          paymentId: payment.id,
+          status: retryCount >= 3 ? 'max_retries_reached' : 'pending_retry',
+          error: event.description || 'MXNB redemption to bank account failed',
+          lastAttempt: event.created_at,
+          retryCount,
+          canRetry: retryCount < 3,
+          canRollback: true,
+          details: {
+            amount: payment.amount,
+            currency: payment.currency,
+            recipientEmail: payment.recipient_email,
+            errorDetails: event.description
+          }
+        });
+      }
+    }
+
     // Calculate stats
     const stats: ControlRoomStats = {
       totalFailedOperations: failedOperations.length,
@@ -463,6 +603,203 @@ export const runSafetyMonitor = async (req: Request, res: Response): Promise<voi
 
   } catch (error: any) {
     console.error('❌ Manual Safety Monitor Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Retry bridge transfer for stuck deposits
+ */
+export const retryBridgeTransfer = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { paymentId } = req.params;
+    const paymentIdNum = parseInt(paymentId);
+
+    if (!paymentIdNum) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid payment ID'
+      });
+      return;
+    }
+
+    const paymentRepo = AppDataSource.getRepository(Payment);
+    const eventRepo = AppDataSource.getRepository(PaymentEvent);
+
+    const payment = await paymentRepo.findOne({
+      where: { id: paymentIdNum },
+      relations: ['escrow']
+    });
+
+    if (!payment) {
+      res.status(404).json({
+        success: false,
+        error: 'Payment not found'
+      });
+      return;
+    }
+
+    // Log the retry attempt
+    const retryEvent = new PaymentEvent();
+    retryEvent.paymentId = paymentIdNum;
+    retryEvent.type = 'bridge_transfer_retry';
+    retryEvent.description = 'Manual retry of bridge transfer initiated';
+    retryEvent.is_automatic = false;
+    await eventRepo.save(retryEvent);
+
+    // Update payment status to trigger automation
+    payment.status = 'pending_deposit';
+    payment.updated_at = new Date();
+    await paymentRepo.save(payment);
+
+    res.json({
+      success: true,
+      message: 'Bridge transfer retry initiated successfully',
+      paymentId: paymentIdNum
+    });
+
+  } catch (error: any) {
+    console.error('❌ Bridge Transfer Retry Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Retry Juno withdrawal for stuck payouts
+ */
+export const retryJunoWithdrawal = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { paymentId } = req.params;
+    const paymentIdNum = parseInt(paymentId);
+
+    if (!paymentIdNum) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid payment ID'
+      });
+      return;
+    }
+
+    const paymentRepo = AppDataSource.getRepository(Payment);
+    const eventRepo = AppDataSource.getRepository(PaymentEvent);
+
+    const payment = await paymentRepo.findOne({
+      where: { id: paymentIdNum },
+      relations: ['escrow']
+    });
+
+    if (!payment) {
+      res.status(404).json({
+        success: false,
+        error: 'Payment not found'
+      });
+      return;
+    }
+
+    // Log the retry attempt
+    const retryEvent = new PaymentEvent();
+    retryEvent.paymentId = paymentIdNum;
+    retryEvent.type = 'juno_withdrawal_retry';
+    retryEvent.description = 'Manual retry of Juno withdrawal initiated';
+    retryEvent.is_automatic = false;
+    await eventRepo.save(retryEvent);
+
+    // Reset status to trigger payout automation
+    payment.status = 'processing_payout';
+    payment.updated_at = new Date();
+    await paymentRepo.save(payment);
+
+    res.json({
+      success: true,
+      message: 'Juno withdrawal retry initiated successfully',
+      paymentId: paymentIdNum
+    });
+
+  } catch (error: any) {
+    console.error('❌ Juno Withdrawal Retry Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Retry MXNB redemption for failed final payouts
+ */
+export const retryMxnbRedemption = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { paymentId } = req.params;
+    const paymentIdNum = parseInt(paymentId);
+
+    if (!paymentIdNum) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid payment ID'
+      });
+      return;
+    }
+
+    const paymentRepo = AppDataSource.getRepository(Payment);
+    const eventRepo = AppDataSource.getRepository(PaymentEvent);
+
+    const payment = await paymentRepo.findOne({
+      where: { id: paymentIdNum },
+      relations: ['escrow', 'seller']
+    });
+
+    if (!payment) {
+      res.status(404).json({
+        success: false,
+        error: 'Payment not found'
+      });
+      return;
+    }
+
+    if (!payment.escrow) {
+      res.status(400).json({
+        success: false,
+        error: 'Payment has no associated escrow'
+      });
+      return;
+    }
+
+    // Log the retry attempt
+    const retryEvent = new PaymentEvent();
+    retryEvent.paymentId = paymentIdNum;
+    retryEvent.type = 'mxnb_redemption_retry';
+    retryEvent.description = 'Manual retry of MXNB redemption initiated';
+    retryEvent.is_automatic = false;
+    await eventRepo.save(retryEvent);
+
+    // Trigger redemption retry by calling payout service
+    try {
+      const { redeemMXNBToMXNAndPayout } = await import('../services/payoutService');
+      const result = await redeemMXNBToMXNAndPayout(payment.escrow.id, payment.amount);
+      
+      res.json({
+        success: true,
+        message: 'MXNB redemption retry initiated successfully',
+        paymentId: paymentIdNum,
+        escrowId: result.escrow.id,
+        redemptionResult: result.redemptionResult
+      });
+    } catch (serviceError: any) {
+      res.status(500).json({
+        success: false,
+        error: `Redemption service error: ${serviceError.message}`,
+        paymentId: paymentIdNum
+      });
+    }
+
+  } catch (error: any) {
+    console.error('❌ MXNB Redemption Retry Error:', error);
     res.status(500).json({
       success: false,
       error: error.message

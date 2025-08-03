@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS multisig_approval_requests (
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    executed_at TIMESTAMP, -- When transaction was executed
+    executed_by VARCHAR(42), -- Address that executed the transaction
     created_by VARCHAR(100), -- Admin user who initiated
     metadata JSONB -- Additional context data
 );

@@ -191,7 +191,7 @@ export async function sendPaymentEventNotification({
           
           <!-- CTA Section -->
           <div style="text-align:center;margin:32px 0;">
-            <a href="https://kustodia.mx/payments/${paymentId}" target="_blank" style="display:inline-block;background-color:#2e7ef7;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;font-size:16px;margin:8px;transition:background-color 0.2s;">📱 Ver Detalles Completos</a>
+            <a href="https://kustodia.mx/login?returnTo=/payments/${paymentId}" target="_blank" style="display:inline-block;background-color:#2e7ef7;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;font-size:16px;margin:8px;transition:background-color 0.2s;">📱 Ver Detalles Completos</a>
           </div>
         </div>
         

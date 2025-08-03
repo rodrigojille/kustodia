@@ -4,7 +4,10 @@ import {
   manualEscrowRecovery,
   manualRollback,
   getOperationDetails,
-  runSafetyMonitor
+  runSafetyMonitor,
+  retryBridgeTransfer,
+  retryJunoWithdrawal,
+  retryMxnbRedemption
 } from '../controllers/operationsControlRoomController';
 import { authenticateJWT } from '../authenticateJWT';
 
@@ -26,6 +29,11 @@ router.get('/operation/:paymentId', authenticateJWT, getOperationDetails);
 // Manual interventions
 router.post('/recover/:paymentId', authenticateJWT, manualEscrowRecovery);
 router.post('/rollback/:paymentId', authenticateJWT, manualRollback);
+
+// New recovery actions for additional failure types
+router.post('/retry-bridge/:paymentId', authenticateJWT, retryBridgeTransfer);
+router.post('/retry-withdrawal/:paymentId', authenticateJWT, retryJunoWithdrawal);
+router.post('/retry-redemption/:paymentId', authenticateJWT, retryMxnbRedemption);
 
 // Safety monitor
 router.post('/safety-monitor', authenticateJWT, runSafetyMonitor);

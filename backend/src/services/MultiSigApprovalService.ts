@@ -112,7 +112,7 @@ export class MultiSigApprovalService {
               )
             ) FILTER (WHERE mwo.owner_address IS NOT NULL) as owners
           FROM multisig_wallet_config mwc
-          LEFT JOIN multisig_wallet_owners mwo ON mwc.wallet_address = mwo.wallet_address
+          LEFT JOIN multisig_wallet_owners mwo ON mwc.id = mwo.wallet_config_id
           WHERE mwc.is_active = true
           GROUP BY mwc.id, mwc.wallet_address, mwc.wallet_type, mwc.required_signatures, 
                    mwc.total_owners, mwc.threshold_min_usd, mwc.threshold_max_usd, mwc.is_active
@@ -132,7 +132,8 @@ export class MultiSigApprovalService {
             thresholdMinUsd: parseFloat(row.threshold_min_usd),
             thresholdMaxUsd: row.threshold_max_usd ? parseFloat(row.threshold_max_usd) : undefined,
             isActive: row.is_active,
-            owners: row.owners || []
+            owners: row.owners || [],
+            privateKey: this.getPrivateKeyForWallet(row.wallet_address, row.wallet_type)
           };
 
           this.walletConfigs.set(config.address, config);
@@ -167,6 +168,49 @@ export class MultiSigApprovalService {
       // Fallback to basic configuration if database fails
       this.createFallbackConfigs();
     }
+  }
+
+  /**
+   * Get private key for wallet from environment variables
+   */
+  private getPrivateKeyForWallet(walletAddress: string, walletType: string): string | undefined {
+    // Map wallet addresses to their corresponding environment variable private keys
+    const addressLower = walletAddress.toLowerCase();
+    
+    // Bridge wallet
+    const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET || '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b';
+    if (addressLower === bridgeWallet.toLowerCase()) {
+      return process.env.ESCROW_PRIVATE_KEY;
+    }
+    
+    // Multi-sig owner wallets - map each address to its specific private key
+    const multisigOwners: { [key: string]: string | undefined } = {
+      '0xe120e428b2bb7e28b21d2634ad1d601c6cd6b33f': process.env.MULTISIG_OWNER_1_PRIVATE_KEY,
+      '0x342fe8428e7eef4a1047b3ba4a9a1a8dcd42b3c7': process.env.MULTISIG_OWNER_2_PRIVATE_KEY,
+      '0xc8d5563bf6df6c5e5f6dfc42beec1cc8598ac38f': process.env.MULTISIG_OWNER_3_PRIVATE_KEY
+    };
+    
+    // Check if this address matches any of the multisig owners
+    if (multisigOwners[addressLower]) {
+      return multisigOwners[addressLower];
+    }
+    
+    // For multisig wallet addresses themselves (not individual owners), use first owner's key for execution
+    const highValueMultisig = process.env.HIGH_VALUE_MULTISIG_ADDRESS?.toLowerCase();
+    const enterpriseMultisig = process.env.ENTERPRISE_MULTISIG_ADDRESS?.toLowerCase();
+    
+    // Database multi-sig wallet addresses (current active configuration)
+    const dbHighValueMultisig = '0xe120e428b2bb7e28b21d2634ad1d601c6cd6b33f';
+    const dbEnterpriseMultisig = '0x342fe8428e7eef4a1047b3ba4a9a1a8dcd42b3c7';
+    
+    if (addressLower === highValueMultisig || addressLower === enterpriseMultisig ||
+        addressLower === dbHighValueMultisig || addressLower === dbEnterpriseMultisig) {
+      // Use the first available owner's private key for execution
+      return process.env.MULTISIG_OWNER_1_PRIVATE_KEY || process.env.ESCROW_PRIVATE_KEY;
+    }
+    
+    console.warn(`[MultiSigApprovalService] No private key found for wallet: ${walletAddress} (type: ${walletType})`);
+    return undefined;
   }
 
   /**
@@ -1028,90 +1072,82 @@ export class MultiSigApprovalService {
         throw new Error(`Insufficient signatures: ${approval.current_signatures}/${approval.required_signatures}`);
       }
 
-      // Initialize Safe SDK client
+      // Multi-sig approval complete - now execute via bridge wallet
       const rpcUrl = process.env.ARBITRUM_SEPOLIA_RPC_URL;
       if (!rpcUrl) {
         throw new Error('ARBITRUM_SEPOLIA_RPC_URL environment variable not set');
       }
 
-      logger.info('Executing multi-sig transaction with Safe SDK', {
+      logger.info('Executing approved multi-sig transaction via bridge wallet', {
         transactionId,
         executorAddress,
-        safeAddress: approval.wallet_address,
+        approvalType: approval.approval_type,
         approvalStatus: approval.status,
         requiredSignatures: approval.required_signatures,
         currentSignatures: approval.current_signatures
       });
 
-      // Get wallet configuration for the executor
-      const executorWalletConfig = this.walletConfigs.get(executorAddress);
-      if (!executorWalletConfig || !executorWalletConfig.privateKey) {
-        throw new Error('Executor wallet configuration or private key not found');
+      // Get bridge wallet private key for execution
+      const bridgeWalletPrivateKey = process.env.BRIDGE_WALLET_PRIVATE_KEY;
+      if (!bridgeWalletPrivateKey) {
+        throw new Error('Bridge wallet private key not found in environment variables');
       }
 
-      // Create Safe client with executor's credentials
-      const safeClient = await createSafeClient({
-        provider: rpcUrl,
-        signer: executorWalletConfig.privateKey,
-        safeAddress: approval.wallet_address
-      });
+      // Initialize provider and bridge wallet signer
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const bridgeWalletSigner = new ethers.Wallet(bridgeWalletPrivateKey, provider);
 
-      // Prepare transaction data
-      const transactionData = approval.transaction_data || {};
-      const transactions = [{
-        to: transactionData.recipient || transactionData.to,
-        value: transactionData.value || '0',
-        data: transactionData.data || '0x'
-      }];
-
-      // Check if there are pending transactions that match our transaction
-      const pendingTransactions = await safeClient.getPendingTransactions();
-      let safeTxHash: string | undefined;
-      let existingTransaction = null;
-
-      // Look for existing transaction with matching data
-      for (const pendingTx of pendingTransactions.results) {
-        if (pendingTx.to === transactions[0].to && 
-            pendingTx.value === transactions[0].value &&
-            pendingTx.data === transactions[0].data) {
-          existingTransaction = pendingTx;
-          safeTxHash = pendingTx.safeTxHash;
-          break;
-        }
-      }
-
-      let txResult;
-      if (existingTransaction && safeTxHash) {
-        // Confirm existing transaction
-        logger.info('Confirming existing Safe transaction', {
-          transactionId,
-          safeTxHash
-        });
-        txResult = await safeClient.confirm({ safeTxHash });
-      } else {
-        // Send new transaction
-        logger.info('Sending new Safe transaction', {
-          transactionId,
-          transactions
-        });
-        txResult = await safeClient.send({ transactions });
-        safeTxHash = txResult.transactions?.safeTxHash;
-      }
-
-      // Extract transaction hash from the result
-      // Note: The exact property name may vary based on Safe SDK version
-      const executionTxHash = (txResult as any).transactionHash || 
-                             (txResult as any).hash || 
-                             safeTxHash; // Fallback to safeTxHash if no execution hash
+      // Execute based on approval type
+      let txHash: string;
       
-      if (!executionTxHash) {
-        throw new Error('Transaction execution failed - no transaction hash returned');
+      if (approval.approval_type === 'release') {
+        // Execute escrow release via bridge wallet
+        const escrowContractAddress = process.env.ESCROW_CONTRACT_ADDRESS;
+        if (!escrowContractAddress) {
+          throw new Error('Escrow contract address not found in environment variables');
+        }
+
+        // Get escrow ID from transaction data or metadata
+        const transactionData = approval.transaction_data || {};
+        const escrowId = transactionData.escrowId || approval.metadata?.escrowId;
+        
+        if (!escrowId) {
+          throw new Error('Escrow ID not found in approval transaction data');
+        }
+
+        // Create escrow contract instance
+        const escrowAbi = [
+          "function release(uint256 escrowId) external"
+        ];
+        const escrowContract = new ethers.Contract(escrowContractAddress, escrowAbi, bridgeWalletSigner);
+
+        // Execute escrow release
+        logger.info('Executing escrow release', { escrowId, bridgeWallet: bridgeWalletSigner.address });
+        const tx = await escrowContract.release(escrowId);
+        txHash = tx.hash;
+        
+        // Wait for confirmation
+        await tx.wait();
+        logger.info('Escrow release transaction confirmed', { txHash, escrowId });
+        
+      } else {
+        // For other transaction types, execute generic transaction via bridge wallet
+        const transactionData = approval.transaction_data || {};
+        const tx = await bridgeWalletSigner.sendTransaction({
+          to: transactionData.recipient || transactionData.to,
+          value: transactionData.value || '0',
+          data: transactionData.data || '0x'
+        });
+        
+        txHash = tx.hash;
+        await tx.wait();
+        logger.info('Generic transaction confirmed', { txHash });
       }
 
       // Update approval request status
       await client.query(
-        'UPDATE multisig_approval_requests SET status = $1, transaction_hash = $2, safe_tx_hash = $3, executed_at = NOW(), executed_by = $4, updated_at = NOW() WHERE id = $5',
-        ['executed', executionTxHash, safeTxHash, executorAddress, parseInt(transactionId)]
+        'UPDATE multisig_approval_requests SET status = $1, transaction_hash = $2, executed_at = NOW(), executed_by = $3, updated_at = NOW() WHERE id = $4',
+        ['executed', txHash, bridgeWalletSigner.address, parseInt(transactionId)]
       );
 
       // Update payment status if this was a payment-related transaction
@@ -1127,13 +1163,12 @@ export class MultiSigApprovalService {
       
       logger.info('Multi-sig transaction executed successfully', {
         transactionId,
-        executionTxHash,
-        safeTxHash,
-        executorAddress,
+        txHash,
+        executorAddress: bridgeWalletSigner.address,
         safeAddress: approval.wallet_address
       });
 
-      return executionTxHash;
+      return txHash;
 
     } catch (error) {
       await client.query('ROLLBACK');
@@ -1141,99 +1176,6 @@ export class MultiSigApprovalService {
         error: error instanceof Error ? error.message : 'Unknown error',
         transactionId,
         executorAddress
-      });
-      throw error;
-    } finally {
-      client.release();
-    }
-  }
-
-  /**
-   * Create a Safe transaction and return the hash for signing
-   * This method prepares the transaction for wallet signature collection
-   */
-  async createSafeTransactionForSigning(transactionId: string): Promise<{
-    safeTxHash: string;
-    safeAddress: string;
-    transactionData: any;
-    requiredSignatures: number;
-    currentSignatures: number;
-  }> {
-    const client = await this.db.connect();
-    
-    try {
-      // Get the approval request details
-      const approvalResult = await client.query(
-        'SELECT * FROM multisig_approval_requests WHERE id = $1',
-        [parseInt(transactionId)]
-      );
-
-      if (approvalResult.rows.length === 0) {
-        throw new Error('Approval request not found');
-      }
-
-      const approval = approvalResult.rows[0];
-      
-      // Get wallet configuration
-      const walletConfig = this.walletConfigs.get(approval.wallet_address);
-      if (!walletConfig) {
-        throw new Error('Wallet configuration not found');
-      }
-
-      // Initialize Safe SDK client
-      const rpcUrl = process.env.ARBITRUM_SEPOLIA_RPC_URL;
-      if (!rpcUrl) {
-        throw new Error('ARBITRUM_SEPOLIA_RPC_URL environment variable not set');
-      }
-
-      // For transaction creation, we can use any owner's credentials or a read-only connection
-      // We'll use the first owner's address for now (this is just for creating the transaction hash)
-      const firstOwner = walletConfig.owners[0];
-      if (!firstOwner) {
-        throw new Error('No owners found in wallet configuration');
-      }
-
-      // Create Safe client for transaction preparation
-      const safeClient = await createSafeClient({
-        provider: rpcUrl,
-        signer: walletConfig.privateKey || '0x' + '0'.repeat(64), // Use wallet's private key or dummy key for read-only
-        safeAddress: approval.wallet_address
-      });
-
-      // Prepare transaction data
-      const transactionData = approval.transaction_data || {};
-      const transactions = [{
-        to: transactionData.recipient || transactionData.to,
-        value: transactionData.value || '0',
-        data: transactionData.data || '0x'
-      }];
-
-      // Create Safe transaction (this will return the safeTxHash for signing)
-      const txResult = await safeClient.send({ transactions });
-      const safeTxHash = txResult.transactions?.safeTxHash;
-      
-      if (!safeTxHash) {
-        throw new Error('Failed to create Safe transaction hash');
-      }
-
-      logger.info('Safe transaction created for signing', {
-        transactionId,
-        safeTxHash,
-        safeAddress: approval.wallet_address
-      });
-
-      return {
-        safeTxHash,
-        safeAddress: approval.wallet_address,
-        transactionData: transactions[0],
-        requiredSignatures: approval.required_signatures,
-        currentSignatures: approval.current_signatures
-      };
-
-    } catch (error) {
-      logger.error('Failed to create Safe transaction for signing', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        transactionId
       });
       throw error;
     } finally {
@@ -1468,20 +1410,72 @@ export class MultiSigApprovalService {
       return approvalRequest;
 
     } catch (error) {
+      await client.query('ROLLBACK');
       logger.error('Failed to reject multi-sig transaction', {
         error: error instanceof Error ? error.message : 'Unknown error',
         transactionId,
         signerAddress
       });
       throw error;
+    } finally {
+      client.release();
     }
   }
 
   /**
-   * Get pending transactions (alias for getPendingApprovals)
+   * Create a Safe transaction and return the hash for signing
+   * This method prepares the transaction for wallet signature collection
    */
-  async getPendingTransactions(walletAddress?: string): Promise<ApprovalRequest[]> {
-    return this.getPendingApprovals(walletAddress);
+  async createSafeTransactionForSigning(transactionId: string): Promise<{
+    safeTxHash: string;
+    safeAddress: string;
+    transactionData: any;
+    requiredSignatures: number;
+    currentSignatures: number;
+  }> {
+    const client = await this.db.connect();
+    
+    try {
+      // Get the approval request details
+      const approvalResult = await client.query(
+        'SELECT * FROM multisig_approval_requests WHERE id = $1',
+        [parseInt(transactionId)]
+      );
+
+      if (approvalResult.rows.length === 0) {
+        throw new Error('Approval request not found');
+      }
+
+      const approval = approvalResult.rows[0];
+      
+      // Mock implementation for now - would use Safe SDK in production
+      const mockSafeTxHash = ethers.keccak256(
+        ethers.toUtf8Bytes(`Safe transaction ${transactionId} ${Date.now()}`)
+      );
+
+      logger.info('Mock Safe transaction created for signing', {
+        transactionId,
+        safeTxHash: mockSafeTxHash,
+        safeAddress: approval.wallet_address
+      });
+
+      return {
+        safeTxHash: mockSafeTxHash,
+        safeAddress: approval.wallet_address,
+        transactionData: approval.transaction_data || {},
+        requiredSignatures: approval.required_signatures,
+        currentSignatures: approval.current_signatures
+      };
+
+    } catch (error) {
+      logger.error('Failed to create Safe transaction for signing', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        transactionId
+      });
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   /**
@@ -1493,10 +1487,90 @@ export class MultiSigApprovalService {
     paymentId?: string;
     limit?: number;
   }): Promise<ApprovalRequest[]> {
+    const client = await this.db.connect();
+    
     try {
-      // Mock implementation - would query database with filters
-      logger.info('Getting approval requests', options);
-      return [];
+      let query = `
+        SELECT 
+          mar.id,
+          mar.payment_id,
+          mar.transaction_hash,
+          mar.wallet_address,
+          mar.required_signatures,
+          mar.current_signatures,
+          mar.status,
+          mar.approval_type,
+          mar.amount,
+          mar.amount_usd,
+          mar.recipient_address,
+          mar.transaction_data,
+          mar.expires_at,
+          mar.created_at,
+          mar.updated_at,
+          mar.created_by,
+          mar.metadata
+        FROM multisig_approval_requests mar
+        WHERE 1=1
+      `;
+      
+      const params: any[] = [];
+      let paramIndex = 1;
+      
+      if (options?.status) {
+        query += ` AND mar.status = $${paramIndex}`;
+        params.push(options.status);
+        paramIndex++;
+      }
+      
+      if (options?.walletAddress) {
+        query += ` AND mar.wallet_address = $${paramIndex}`;
+        params.push(options.walletAddress);
+        paramIndex++;
+      }
+      
+      if (options?.paymentId) {
+        query += ` AND mar.payment_id = $${paramIndex}`;
+        params.push(parseInt(options.paymentId));
+        paramIndex++;
+      }
+      
+      query += ` ORDER BY mar.created_at DESC`;
+      
+      if (options?.limit) {
+        query += ` LIMIT $${paramIndex}`;
+        params.push(options.limit);
+      }
+      
+      const result = await client.query(query, params);
+      
+      const approvals: ApprovalRequest[] = result.rows.map(row => ({
+        id: row.id.toString(),
+        transactionId: row.id.toString(),
+        paymentId: row.payment_id.toString(),
+        walletAddress: row.wallet_address,
+        amount: row.amount,
+        amountUsd: parseFloat(row.amount_usd || '0'),
+        recipientAddress: row.recipient_address || '',
+        recipient: row.recipient_address || '',
+        type: row.approval_type,
+        transactionType: row.approval_type,
+        status: row.status,
+        requiredSignatures: row.required_signatures,
+        currentSignatures: row.current_signatures,
+        expiresAt: new Date(row.expires_at),
+        createdBy: row.created_by || '',
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+        signatures: [],
+        metadata: row.metadata || {}
+      }));
+      
+      logger.info('Getting approval requests', {
+        options,
+        count: approvals.length
+      });
+      
+      return approvals;
 
     } catch (error) {
       logger.error('Failed to get approval requests', {
@@ -1504,6 +1578,8 @@ export class MultiSigApprovalService {
         options
       });
       throw error;
+    } finally {
+      client.release();
     }
   }
 

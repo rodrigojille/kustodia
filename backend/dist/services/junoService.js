@@ -269,8 +269,8 @@ async function redeemMXNBToMXN(amount, destinationBankAccountId, idempotencyKey)
     const method = 'POST';
     const nonce = Date.now().toString();
     // 🚨 FIX: Use provided idempotency key for retries, or generate new one
-    // Generate unique idempotency key for each redemption attempt
-    const finalIdempotencyKey = idempotencyKey || `redemption-${destinationBankAccountId}-${amount}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Generate unique idempotency key for each redemption attempt (max 36 chars)
+    const finalIdempotencyKey = idempotencyKey || crypto.randomUUID();
     // 🚨 FIX: Ensure amount is sent as NUMBER, not string
     // NOTE: According to Juno docs, idempotency_key should NOT be in request body - only in header
     const bodyData = {

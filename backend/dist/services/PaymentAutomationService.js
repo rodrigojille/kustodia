@@ -162,10 +162,18 @@ class PaymentAutomationService {
                                 try {
                                     const recipients = [];
                                     if (paymentToUpdate.payer_email) {
-                                        recipients.push({ email: paymentToUpdate.payer_email, role: 'payer' });
+                                        recipients.push({
+                                            email: paymentToUpdate.payer_email,
+                                            role: 'payer',
+                                            name: paymentToUpdate.user?.full_name || 'Cliente'
+                                        });
                                     }
                                     if (paymentToUpdate.recipient_email) {
-                                        recipients.push({ email: paymentToUpdate.recipient_email, role: 'seller' });
+                                        recipients.push({
+                                            email: paymentToUpdate.recipient_email,
+                                            role: 'seller',
+                                            name: paymentToUpdate.seller?.full_name || 'Vendedor'
+                                        });
                                     }
                                     if (recipients.length > 0) {
                                         await (0, paymentNotificationService_1.sendPaymentEventNotification)({
@@ -291,7 +299,7 @@ class PaymentAutomationService {
     /**
      * Process SPEI redemption to seller
      * Auto-registers bank account with Juno if missing
-     * Redeems MXNB directly from Juno's balance (no bridge transfer needed)
+     * First transfers MXNB from bridge wallet to Juno, then redeems to MXN
      */
     async processSellerRedemption(payment, amount) {
         try {
@@ -323,13 +331,25 @@ class PaymentAutomationService {
                     throw new Error(`Bank account registration failed: ${registrationError.message}`);
                 }
             }
-            // Get registered bank accounts and find the seller's account
+            // STEP 1: Transfer MXNB from bridge wallet to Juno wallet
+            console.log(`🌉 Step 1: Transferring ${amount} MXNB from bridge wallet to Juno...`);
+            try {
+                const transferTxHash = await this.transferBridgeToJuno(amount);
+                await this.paymentService.logPaymentEvent(payment.id, 'bridge_to_juno_transfer', `Transferred ${amount} MXNB from bridge wallet to Juno. Tx: ${transferTxHash}`, false);
+                console.log(`✅ Bridge to Juno transfer completed for payment ${payment.id}`);
+            }
+            catch (transferError) {
+                console.error(`❌ Bridge to Juno transfer failed for payment ${payment.id}:`, transferError.message);
+                throw new Error(`Bridge to Juno transfer failed: ${transferError.message}`);
+            }
+            // STEP 2: Get registered bank accounts and find the seller's account
             const bankAccounts = await (0, junoService_1.getRegisteredBankAccounts)();
             const destinationBankAccount = bankAccounts.find(account => account.id === payment.seller.juno_bank_account_id);
             if (!destinationBankAccount) {
                 throw new Error(`Seller's bank account ${payment.seller.juno_bank_account_id} not found in registered accounts`);
             }
-            // Process the redemption
+            // STEP 3: Process the MXNB redemption to MXN via SPEI
+            console.log(`🏦 Step 2: Redeeming ${amount} MXNB to MXN via SPEI...`);
             const redemptionResult = await (0, junoService_1.redeemMXNBToMXN)(amount, destinationBankAccount.id);
             await this.paymentService.logPaymentEvent(payment.id, 'spei_redemption_initiated', `SPEI redemption of ${amount} MXNB -> MXN to ${destinationBankAccount.clabe}. Tx ID: ${redemptionResult.id}`, false);
             // Send payout completed notification
@@ -438,8 +458,10 @@ class PaymentAutomationService {
             payment.escrow.status = 'active';
             payment.status = 'escrowed'; // Always escrowed for user visibility
             // Check if this is a high-value payment requiring multi-sig approval for RELEASE
-            if (payment.escrow.custody_amount && Number(payment.escrow.custody_amount) * 0.06 >= 1000) {
-                console.log(`💰 High-value payment detected: ${payment.escrow.custody_amount} MXN (~$${Number(payment.escrow.custody_amount) * 0.06} USD)`);
+            const thresholdUSD = parseFloat(process.env.MULTISIG_THRESHOLD_USD || '1000');
+            const amountUSD = Number(payment.escrow.custody_amount) / 20; // Consistent with PreApprovalService: 1 USD = 20 MXN
+            if (payment.escrow.custody_amount && amountUSD >= thresholdUSD) {
+                console.log(`💰 High-value payment detected: ${payment.escrow.custody_amount} MXN (~$${amountUSD} USD) >= $${thresholdUSD} USD threshold`);
                 // Flag for multi-sig approval during escrow release (admin-only visibility)
                 payment.multisig_required = true;
                 payment.multisig_status = 'pending'; // Set status for admin tracking
@@ -448,7 +470,7 @@ class PaymentAutomationService {
                     const preApproval = await MultiSigApprovalService_1.multiSigApprovalService.proposeTransaction({
                         paymentId: payment.id.toString(),
                         amount: payment.escrow.custody_amount,
-                        amountUsd: Number(payment.escrow.custody_amount) * 0.06,
+                        amountUsd: amountUSD,
                         type: 'release',
                         createdBy: 'system',
                         description: `Pre-approval for escrow release - Payment ${payment.id}`,
@@ -650,13 +672,14 @@ class PaymentAutomationService {
                     }
                     console.log(`🔍 Validating on-chain funding for escrow ID ${escrow.smart_contract_escrow_id}`);
                     // 🚀 NEW: Check if multi-sig approval is required
+                    // Use custody_amount for escrow releases, not total payment amount
                     const route = await this.transactionRouter.routeTransaction({
-                        amount: escrow.payment.amount,
+                        amount: parseFloat(escrow.custody_amount.toString()),
                         type: 'escrow_release',
                         paymentId: escrow.payment.id
                     });
                     if (route.requiresApproval) {
-                        console.log(`🔐 Multi-sig approval required for Payment ${escrow.payment.id} ($${escrow.payment.amount})`);
+                        console.log(`🔐 Multi-sig approval required for Payment ${escrow.payment.id} (escrow: $${escrow.custody_amount})`);
                         // 🆕 CHECK FOR PRE-APPROVED TRANSACTION
                         const preApprovedTx = await this.checkForPreApprovedTransaction(escrow.payment.id);
                         if (preApprovedTx && preApprovedTx.isFullySigned) {
@@ -674,7 +697,7 @@ class PaymentAutomationService {
                         }
                     }
                     else {
-                        console.log(`⚡ Direct release for Payment ${escrow.payment.id} ($${escrow.payment.amount})`);
+                        console.log(`⚡ Direct release for Payment ${escrow.payment.id} (escrow: $${escrow.custody_amount})`);
                         const releaseTxHash = await this.releaseEscrowDirectly(escrow);
                         // Handle notifications for direct releases
                         await this.handleDirectReleaseNotifications(escrow, releaseTxHash);
@@ -748,10 +771,18 @@ class PaymentAutomationService {
                         try {
                             const recipients = [];
                             if (payment.payer_email) {
-                                recipients.push({ email: payment.payer_email, role: 'payer' });
+                                recipients.push({
+                                    email: payment.payer_email,
+                                    role: 'payer',
+                                    name: payment.user?.full_name || 'Cliente'
+                                });
                             }
                             if (payment.recipient_email) {
-                                recipients.push({ email: payment.recipient_email, role: 'seller' });
+                                recipients.push({
+                                    email: payment.recipient_email,
+                                    role: 'seller',
+                                    name: payment.seller?.full_name || 'Vendedor'
+                                });
                             }
                             if (recipients.length > 0) {
                                 await (0, paymentNotificationService_1.sendPaymentEventNotification)({
@@ -759,9 +790,13 @@ class PaymentAutomationService {
                                     paymentId: payment.id.toString(),
                                     paymentDetails: {
                                         amount: payment.amount,
+                                        currency: payment.currency || 'MXN',
                                         description: payment.description,
                                         payer_email: payment.payer_email,
-                                        recipient_email: payment.recipient_email
+                                        recipient_email: payment.recipient_email,
+                                        status: 'completed',
+                                        escrowId: payment.escrow?.smart_contract_escrow_id,
+                                        reference: payment.reference
                                     },
                                     recipients
                                 });
@@ -946,7 +981,9 @@ class PaymentAutomationService {
             const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
             console.log(`🚀 Executing pre-approved multi-sig transaction ${approvalId} for Payment ${escrow.payment.id}`);
             // Execute the multi-sig transaction
-            const executionTxHash = await MultiSigApprovalService_1.multiSigApprovalService.executeTransaction(approvalId, 'system');
+            // Use the first multi-sig owner address as executor (has private key configured)
+            const executorAddress = '0xe120e428b2bb7e28b21d2634ad1d601c6cd6b33f'; // MULTISIG_OWNER_1
+            const executionTxHash = await MultiSigApprovalService_1.multiSigApprovalService.executeTransaction(approvalId, executorAddress);
             // Update escrow status to released and store transaction hash
             escrow.status = 'released';
             escrow.release_tx_hash = executionTxHash;
@@ -1001,7 +1038,7 @@ class PaymentAutomationService {
             const multiSigTx = await MultiSigApprovalService_1.multiSigApprovalService.proposeTransaction({
                 paymentId: escrow.payment.id.toString(),
                 amount: escrow.custody_amount || 0,
-                amountUsd: Number(escrow.custody_amount || 0) * 0.06, // Approximate USD conversion
+                amountUsd: Number(escrow.custody_amount || 0) / 20, // Consistent MXN/USD conversion: 1 USD = 20 MXN
                 type: 'release',
                 createdBy: 'system',
                 description: `Escrow release for payment ${escrow.payment.id}`,
@@ -1090,7 +1127,9 @@ class PaymentAutomationService {
             }
             // Execute the escrow release via multi-sig
             console.log(`🔐 Executing multi-sig approved escrow release for Payment ${paymentId}`);
-            const releaseTxHash = await MultiSigApprovalService_1.multiSigApprovalService.executeTransaction(approval.id, 'system');
+            // Use the first multi-sig owner address as executor (has private key configured)
+            const executorAddress = '0xe120e428b2bb7e28b21d2634ad1d601c6cd6b33f'; // MULTISIG_OWNER_1
+            const releaseTxHash = await MultiSigApprovalService_1.multiSigApprovalService.executeTransaction(approval.id, executorAddress);
             // Update escrow and payment status
             escrow.status = 'released';
             escrow.release_tx_hash = releaseTxHash;

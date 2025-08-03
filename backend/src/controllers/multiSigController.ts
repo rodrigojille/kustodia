@@ -223,13 +223,14 @@ export class MultiSigController {
       }
 
       // Check if amount requires multi-sig (using threshold logic)
-      const amountUsd = parseFloat(amount as string) * 0.06; // Approximate MXN to USD
-      const requiresMultiSig = amountUsd >= 1000; // $1000 USD threshold
+      const amountUsd = parseFloat(amount as string) / 20; // Consistent MXN/USD conversion: 1 USD = 20 MXN
+      const thresholdUsd = parseFloat(process.env.MULTISIG_THRESHOLD_USD || '1000');
+      const requiresMultiSig = amountUsd >= thresholdUsd;
       
       res.json({
         success: true,
         requiresMultiSig,
-        threshold: process.env.MULTISIG_THRESHOLD_USD || 1000
+        threshold: thresholdUsd
       });
     } catch (error) {
       console.error('Error checking multi-sig requirement:', error);

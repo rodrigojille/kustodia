@@ -80,9 +80,24 @@ class PaymentService {
     }
     // 4. Fondear escrow en el contrato
     async fundEscrow(payment) {
-        // Llama a contrato, registra evento y guarda txHash/escrowId
-        // Devuelve el Escrow actualizado o null si falla
-        return null;
+        try {
+            if (!payment.escrow) {
+                console.error('[PaymentService] No escrow found for payment', payment.id);
+                return null;
+            }
+            const escrowId = payment.escrow.smart_contract_escrow_id;
+            if (!escrowId) {
+                console.error('[PaymentService] No smart contract escrow ID found', payment.escrow.id);
+                return null;
+            }
+            console.log(`[PaymentService] Escrow ${escrowId} for payment ${payment.id} is already funded during creation`);
+            // Escrow funding happens during createEscrow, so we just return the existing escrow
+            return payment.escrow;
+        }
+        catch (error) {
+            console.error('[PaymentService] Error funding escrow:', error);
+            return null;
+        }
     }
     // 5. Liberar escrow (trigger manual o automático)
     async releaseEscrow(payment) {
