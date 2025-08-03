@@ -90,9 +90,9 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
         const paymentData = data.payment || data;
         
 
-        // For this page, we only handle 'nuevo_flujo' and 'web3' types.
+        // For this page, we only handle 'nuevo_flujo' and 'cobro_inteligente' types.
         // The traditional tracker is at a different route.
-        if (paymentData.payment_type !== 'nuevo_flujo' && paymentData.payment_type !== 'web3') {
+        if (paymentData.payment_type !== 'nuevo_flujo' && paymentData.payment_type !== 'cobro_inteligente') {
           // Redirect to the traditional tracker page if it's not a supported type
           router.push(`/pagos/${paymentId}`);
           return;
