@@ -3,7 +3,8 @@ import { Request, Response } from "express";
 import { User } from '../entity/User';
 import bcrypt from "bcryptjs";
 import { generateToken } from "./emailTokenUtil";
-import { sendEmail } from "../utils/emailService";
+import { sendEmail } from '../utils/emailService';
+import { createEmailVerificationTemplate, createPasswordResetTemplate } from '../utils/emailTemplates';
 import { createJunoClabe } from "../services/junoService";
 import { createPortalClientSession, createPortalWallet, notifyPortalSharesStored, getPortalClientDetails } from '../services/portalService';
 
@@ -200,7 +201,7 @@ export const register = async (req: Request, res: Response) => {
     await sendEmail({
       to: email,
       subject: "Verifica tu correo electrónico | Kustodia",
-      text: `Hola,\nPor favor verifica tu correo electrónico ingresando al siguiente enlace: ${verifyUrl}\nSi no creaste esta cuenta, puedes ignorar este mensaje.`
+      html: createEmailVerificationTemplate(user.full_name, verifyUrl)
     });
     res.status(201).json({ message: "User registered. Verification email sent.", user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
     return;
@@ -244,7 +245,7 @@ export async function resendVerificationEmail(req: Request, res: Response) {
     await sendEmail({
       to: user.email,
       subject: "Verifica tu correo electrónico | Kustodia",
-      html: `<p>Hola,</p><p>Por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Si no creaste esta cuenta, puedes ignorar este mensaje.</p>`
+      html: createEmailVerificationTemplate(user.full_name, verifyUrl)
     });
     console.log('Verification email send attempted');
     res.json({ message: "Correo de verificación reenviado." });
@@ -283,7 +284,7 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
     await sendEmail({
       to: email,
       subject: "Restablece tu contraseña | Kustodia",
-      html: `<p>Hola,</p><p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>Si no solicitaste este cambio, ignora este mensaje.</p>`
+      html: createPasswordResetTemplate(user.full_name, resetUrl)
     });
     res.status(200).json({ message: "If the email exists, a reset link has been sent." });
     return;

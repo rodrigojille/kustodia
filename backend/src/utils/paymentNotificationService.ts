@@ -1,4 +1,5 @@
 import { sendEmail } from './emailService';
+import { createPaymentNotificationTemplate } from './emailTemplates';
 import { SPEIReceiptService, SPEIReceiptData } from '../services/speiReceiptService';
 import fs from 'fs';
 import path from 'path';
