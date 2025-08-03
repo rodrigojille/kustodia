@@ -8,6 +8,7 @@ import DisputeDetailsModal from '../../../components/admin/DisputeDetailsModal';
 import TicketDetailsModal from '../../../components/admin/TicketDetailsModal';
 import HerokuLogsViewer from '../../../components/admin/HerokuLogsViewer';
 import MultiSigDashboard from '../../../components/admin/MultiSigDashboard';
+import BridgeWalletBalance from '../../../components/admin/BridgeWalletBalance';
 
 interface Ticket {
   id: number;
@@ -1149,7 +1150,13 @@ const AdminDashboardPage = () => {
 
           {/* Multi-Sig Tab */}
           {activeTab === 'multisig' && (
-            <MultiSigDashboard />
+            <div className="space-y-6">
+              {/* Bridge Wallet Balance - Critical for escrow operations */}
+              <BridgeWalletBalance />
+              
+              {/* Multi-Sig Dashboard */}
+              <MultiSigDashboard />
+            </div>
           )}
 
           {/* Recovery Tab */}

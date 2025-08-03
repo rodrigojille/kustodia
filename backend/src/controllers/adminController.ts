@@ -6,6 +6,7 @@ import { Escrow } from "../entity/Escrow";
 import { Payment } from "../entity/Payment";
 import axios from "axios";
 import { Between, IsNull, Not } from "typeorm";
+import { ethers } from "ethers";
 
 // Utility to get Juno API credentials from env
 const JUNO_API_KEY = process.env.JUNO_API_KEY;
@@ -540,5 +541,66 @@ export const getAllPayments = async (req: Request, res: Response): Promise<void>
   } catch (error) {
     console.error('Error fetching payments:', error);
     res.status(500).json({ error: 'Failed to fetch payments' });
+  }
+};
+
+// =============================================================================
+// 💰 BRIDGE WALLET BALANCE MONITORING
+// =============================================================================
+
+export const getBridgeWalletBalance = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL!);
+    const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS!;
+    const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET!;
+    
+    const ERC20_ABI = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function decimals() view returns (uint8)",
+      "function symbol() view returns (string)",
+      "function name() view returns (string)"
+    ];
+    
+    const token = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+    const [balance, decimals, symbol, name] = await Promise.all([
+      token.balanceOf(bridgeWallet),
+      token.decimals(),
+      token.symbol(),
+      token.name()
+    ]);
+    
+    const formattedBalance = ethers.formatUnits(balance, decimals);
+    const balanceNumber = parseFloat(formattedBalance);
+    
+    // Get ETH balance too for gas monitoring
+    const ethBalance = await provider.getBalance(bridgeWallet);
+    const formattedEthBalance = ethers.formatEther(ethBalance);
+    
+    res.json({
+      success: true,
+      bridgeWallet,
+      mxnb: {
+        balance: balanceNumber,
+        formattedBalance,
+        rawBalance: balance.toString(),
+        decimals: Number(decimals),
+        symbol,
+        name,
+        contractAddress: tokenAddress
+      },
+      eth: {
+        balance: parseFloat(formattedEthBalance),
+        formattedBalance: formattedEthBalance,
+        rawBalance: ethBalance.toString()
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('Error fetching bridge wallet balance:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch bridge wallet balance',
+      details: error.message 
+    });
   }
 };

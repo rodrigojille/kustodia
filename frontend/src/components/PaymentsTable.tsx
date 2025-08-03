@@ -243,8 +243,8 @@ function PaymentsTableContent() {
                         Detalle
                       </a>
                       
-                      {/* Interactive Tracker for nuevo-flujo payments only */}
-                      {p.payment_type === 'nuevo_flujo' && (
+                      {/* Interactive Tracker for nuevo-flujo and cobro-inteligente payments */}
+                      {(p.payment_type === 'nuevo_flujo' || p.payment_type === 'cobro_inteligente') && (
                         <a
                           href={`/dashboard/pagos/${p.id}/tracker`}
                           className="inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-green-100 text-green-700 font-medium text-xs"

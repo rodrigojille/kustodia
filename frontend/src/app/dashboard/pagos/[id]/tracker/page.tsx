@@ -257,7 +257,7 @@ export default function NuevoFlujoTrackerPage({ params }: { params: { id: string
         />
       )}
 
-      {currentUser && payment.payment_type === 'nuevo_flujo' && (
+      {currentUser && (payment.payment_type === 'nuevo_flujo' || payment.payment_type === 'cobro_inteligente') && (
         <NuevoFlujoTracker 
           payment={payment}
           currentUser={currentUser}

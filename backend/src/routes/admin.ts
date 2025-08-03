@@ -22,7 +22,8 @@ import {
   getPaymentHealth,
   bulkFixMissingUUIDs,
   getJunoApiStatus,
-  getUserAnalytics
+  getUserAnalytics,
+  getBridgeWalletBalance
 } from "../controllers/adminController";
 
 const router = Router();
@@ -189,6 +190,17 @@ router.post("/tickets/:id/reply", authenticateJWT, requireAdminRole, async (req,
 router.patch("/tickets/:id/close", authenticateJWT, requireAdminRole, async (req, res, next) => {
   try {
     await closeTicket(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   GET /api/admin/bridge-wallet-balance
+// @desc    Get MXNB balance of bridge wallet
+// @access  Private (admin)
+router.get("/bridge-wallet-balance", authenticateJWT, requireAdminRole, async (req, res, next) => {
+  try {
+    await getBridgeWalletBalance(req, res);
   } catch (error) {
     next(error);
   }

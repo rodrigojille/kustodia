@@ -225,9 +225,9 @@ export class CobroPaymentController {
       try {
         const { sendPaymentEventNotification } = require('../utils/paymentNotificationService');
         const recipients = [
-          { email: buyer_email, role: 'buyer' },
-          { email: seller_email, role: 'seller' },
-          { email: broker_email, role: 'broker' }
+          { email: buyer_email, role: 'buyer', name: buyer.full_name || buyer.email.split('@')[0] },
+          { email: seller_email, role: 'seller', name: seller.full_name || seller.email.split('@')[0] },
+          { email: broker_email, role: 'broker', name: broker.full_name || broker.email.split('@')[0] }
         ];
         await sendPaymentEventNotification({
           eventType: 'cobro_payment_created',
