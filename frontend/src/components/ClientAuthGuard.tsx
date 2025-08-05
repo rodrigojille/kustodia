@@ -80,8 +80,8 @@ export default function ClientAuthGuard({ children }: { children: React.ReactNod
         setIsAuthenticated(false);
         setIsChecking(false);
         // Preserve the current URL for after-login redirect
-        const returnTo = encodeURIComponent(pathname);
-        router.replace(`/login?returnTo=${returnTo}`);
+        const returnTo = pathname ? encodeURIComponent(pathname) : '';
+        router.replace(returnTo ? `/login?returnTo=${returnTo}` : '/login');
       }
     } catch (error) {
       console.error('[AUTH GUARD] Error checking authentication:', error);
@@ -99,8 +99,8 @@ export default function ClientAuthGuard({ children }: { children: React.ReactNod
       setIsAuthenticated(false);
       setIsChecking(false);
       // Preserve the current URL for after-login redirect
-      const returnTo = encodeURIComponent(pathname);
-      router.replace(`/login?returnTo=${returnTo}`);
+      const returnTo = pathname ? encodeURIComponent(pathname) : '';
+      router.replace(returnTo ? `/login?returnTo=${returnTo}` : '/login');
     } finally {
       checkingRef.current = false;
     }

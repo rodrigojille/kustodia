@@ -1,18 +1,47 @@
 'use client';
 import Head from 'next/head';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { FaShieldAlt, FaHeadset, FaRocket, FaLock, FaCheckCircle } from 'react-icons/fa';
-import { ArcadeEmbed } from '../components/ArcadeEmbed';
-import ApiSneakPeek from '../components/ApiSneakPeek';
-import CasosDeUso from '../components/CasosDeUso';
 import Header from '../components/Header';
-import MXNBSection from '../components/MXNBSection';
 import EarlyAccessCounter from '../components/EarlyAccessCounter';
-import EarlyAccessForm from '../components/EarlyAccessForm';
 import UrgencyNotice from '../components/UrgencyNotice';
 import RevealAnimation from '../components/RevealAnimation';
 import VideoAvatar from '../components/VideoAvatar';
 import { useAnalyticsContext } from '../components/AnalyticsProvider';
+import PerformanceMonitor from '../components/PerformanceMonitor';
+import { LazySection } from '../components/LazyComponents';
+import dynamic from 'next/dynamic';
+
+// Lazy load heavy components
+const LazyVideoAvatar = dynamic(() => import('../components/VideoAvatar'), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-3xl" />,
+  ssr: false,
+});
+
+const LazyArcadeEmbed = dynamic(() => import('../components/ArcadeEmbed').then(mod => ({ default: mod.ArcadeEmbed })), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false,
+});
+
+const LazyApiSneakPeek = dynamic(() => import('../components/ApiSneakPeek'), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false,
+});
+
+const LazyCasosDeUso = dynamic(() => import('../components/CasosDeUso'), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false,
+});
+
+const LazyMXNBSection = dynamic(() => import('../components/MXNBSection'), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false,
+});
+
+const LazyEarlyAccessForm = dynamic(() => import('../components/EarlyAccessForm'), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false,
+});
 
 const benefits = [
   {
@@ -302,6 +331,7 @@ export default function LandingPage() {
         }) }} />
       </Head>
       
+      <PerformanceMonitor />
       <Header userName={userName} isAuthenticated={isAuthenticated} />
       
       <main className="bg-gradient-to-b from-blue-50 to-white min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-20">
@@ -1168,7 +1198,9 @@ export default function LandingPage() {
 
         {/* Casos de Uso Section */}
         <RevealAnimation>
-          <CasosDeUso />
+          <LazySection>
+            <LazyCasosDeUso />
+          </LazySection>
         </RevealAnimation>
 
         {/* Early Access Section */}
@@ -1209,7 +1241,9 @@ export default function LandingPage() {
                 </div>
                 
                 <EarlyAccessCounter />
-                <EarlyAccessForm />
+                <LazySection>
+                  <LazyEarlyAccessForm />
+                </LazySection>
                 
                 <div className="mt-10 pt-8 border-t border-gray-200">
                   <div className="flex flex-wrap justify-center gap-8 text-base text-gray-500 font-medium" role="list">
@@ -1348,7 +1382,9 @@ export default function LandingPage() {
 
         {/* MXNB Section */}
         <RevealAnimation>
-          <MXNBSection />
+          <LazySection>
+            <LazyMXNBSection />
+          </LazySection>
         </RevealAnimation>
 
       </main>

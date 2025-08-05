@@ -8,12 +8,15 @@ import AnalyticsProvider from "../components/AnalyticsProvider";
 import CookieBanner from "../components/CookieBanner";
 import { Providers } from "../components/Providers";
 import FooterWithAnalytics from "../components/FooterWithAnalytics";
+import CriticalCSS from "../components/CriticalCSS";
 
+// Optimized font loading
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  display: 'swap', // Improve font loading performance
+  display: 'swap',
   preload: true,
+  fallback: ['system-ui', 'arial'], // Fallback fonts
 });
 
 export const metadata: Metadata = {
@@ -95,7 +98,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Critical CSS */}
+        <CriticalCSS />
+        
+        {/* Preload critical resources */}
+        <link rel="preload" href="/kustodia-logo.png" as="image" type="image/png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Optimized favicon */}
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
 
         
         {/* Structured Data for SEO */}

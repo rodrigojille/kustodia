@@ -28,7 +28,15 @@ const nextConfig = {
   // Bundle optimization
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['@heroicons/react', 'lucide-react'],
+    optimizePackageImports: ['@heroicons/react', 'lucide-react', 'react-icons'],
+    webpackBuildWorker: true, // Faster builds
+    gzipSize: true,
+  },
+  
+  // Performance optimizations
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
   
   // Webpack optimizations
@@ -106,6 +114,10 @@ const nextConfig = {
   images: {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 31536000, // 1 year
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   
