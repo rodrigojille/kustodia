@@ -100,6 +100,7 @@ interface SidebarProps {
 export default function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userData, setUserData] = useState<{name?: string, email?: string} | null>(null);
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -109,8 +110,14 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
         if (response.ok) {
           const data = await response.json();
           const role = data.user?.role || data.role;
+          const user = data.user || data;
           setUserRole(role);
+          setUserData({
+            name: user.full_name || user.name || 'Usuario',
+            email: user.email || 'usuario@kustodia.mx'
+          });
           console.log('[SIDEBAR] User role detected:', role);
+          console.log('[SIDEBAR] User data:', user);
         } else {
           console.log('[SIDEBAR] Failed to get user role, response:', response.status);
         }
@@ -193,6 +200,41 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
             </>
           )}
         </nav>
+        
+        {/* User Profile & Logout Section */}
+        <div className="px-3 pb-4 border-t border-gray-200 mt-4">
+          {/* User Profile */}
+          <div className="flex items-center gap-3 px-3 py-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md">
+              <span className="text-lg">{userData?.name?.[0]?.toUpperCase() || 'U'}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{userData?.name || 'Usuario'}</p>
+              <p className="text-xs text-gray-500 truncate">{userData?.email || 'usuario@kustodia.mx'}</p>
+            </div>
+          </div>
+          
+          {/* Logout Button */}
+          <button
+            onClick={() => {
+              // Remove token/cookie if stored, then redirect
+              if (typeof window !== 'undefined') {
+                // Remove token if stored in localStorage (use correct key)
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('userEmail');
+                // Remove session cookies if needed (use correct cookie name)
+                document.cookie = 'auth_token=; Max-Age=0; path=/;';
+                window.location.href = '/login';
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-medium transition-all duration-200 text-white bg-red-600 hover:bg-red-700 shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m10.5 0a2.25 2.25 0 012.25 2.25v7.5A2.25 2.25 0 0018.75 21H5.25A2.25 2.25 0 013 18.75v-7.5A2.25 2.25 0 015.25 9m13.5 0h-13.5" />
+            </svg>
+            <span className="text-sm font-medium">Cerrar sesión</span>
+          </button>
+        </div>
       </aside>
     </>
   );

@@ -76,25 +76,7 @@ export default function FintechDashboardHeader(props: FintechDashboardHeaderProp
     >
       <span className="text-lg">R</span>
     </button>
-    <button
-      className="ml-2 p-2 rounded hover:bg-red-50 text-red-600 border border-red-100 transition"
-      title="Cerrar sesión"
-      onClick={() => {
-        // Remove token/cookie if stored, then redirect
-        if (typeof window !== 'undefined') {
-          // Remove token if stored in localStorage (use correct key)
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('userEmail');
-          // Remove session cookies if needed (use correct cookie name)
-          document.cookie = 'auth_token=; Max-Age=0; path=/;';
-          window.location.href = '/login';
-        }
-      }}
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m10.5 0a2.25 2.25 0 012.25 2.25v7.5A2.25 2.25 0 0018.75 21H5.25A2.25 2.25 0 013 18.75v-7.5A2.25 2.25 0 015.25 9m13.5 0h-13.5" />
-      </svg>
-    </button>
+
   </div>
 </header>
   );
