@@ -79,9 +79,29 @@ const truoraWebhook = async (req, res) => {
         }
         console.log(`[Truora Webhook] Successfully updated KYC status to '${status}' for user: ${user.email}`);
         // Send email notification to user about KYC status change
+        // Map Truora status to email template status
+        let emailStatus;
+        switch (status.toLowerCase()) {
+            case 'completed':
+            case 'approved':
+                emailStatus = 'approved';
+                break;
+            case 'rejected':
+            case 'failed':
+                emailStatus = 'rejected';
+                break;
+            case 'pending':
+            case 'in_progress':
+            case 'processing':
+                emailStatus = 'pending';
+                break;
+            default:
+                console.log(`[Truora Webhook] Unknown status '${status}', defaulting to pending for email`);
+                emailStatus = 'pending';
+        }
         try {
-            await (0, emailService_1.sendKYCStatusEmail)(user.email, status, user.full_name);
-            console.log(`[Truora Webhook] KYC status email sent to: ${user.email}`);
+            await (0, emailService_1.sendKYCStatusEmail)(user.email, emailStatus, user.full_name);
+            console.log(`[Truora Webhook] KYC status email sent to: ${user.email} with status: ${emailStatus} (original: ${status})`);
         }
         catch (emailError) {
             console.error(`[Truora Webhook] Failed to send KYC status email to ${user.email}:`, emailError);
@@ -353,10 +373,7 @@ const updateKYCStatus = async (req, res) => {
                 kyc_status: status === 'completed' ? 'approved' : status,
                 truora_process_id: process_id,
             };
-            // Add Truora result data if available
-            if (truoraResult) {
-                updateData.truora_result = JSON.stringify(truoraResult);
-            }
+            // Note: truora_result field removed as it doesn't exist in User entity
             const result = await userRepo.update({ email: email }, updateData);
             console.log('[Truora] Update result:', {
                 affected: result.affected,

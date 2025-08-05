@@ -247,13 +247,23 @@ async function withdrawCryptoToBridgeWallet(amount, destinationAddress) {
 }
 async function listJunoTransactions() {
     const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
-    // Get the correct API secret and base URL based on environment
+    // 🚨 FIX: Use the correct API secret that matches the API key
+    // The API key and secret must be from the same Juno account
     const apiSecret = networkConfig.junoEnv === 'production'
         ? process.env.JUNO_PROD_API_SECRET
         : process.env.JUNO_STAGE_API_SECRET;
     const baseUrl = networkConfig.junoEnv === 'production'
         ? process.env.JUNO_PROD_BASE_URL
         : process.env.JUNO_STAGE_BASE_URL;
+    // 🚨 CRITICAL: Verify we have both API key and secret
+    if (!networkConfig.junoApiKey || !apiSecret) {
+        console.error('[JUNO] Missing API credentials:', {
+            hasApiKey: !!networkConfig.junoApiKey,
+            hasApiSecret: !!apiSecret,
+            environment: networkConfig.junoEnv
+        });
+        throw new Error('Missing Juno API credentials');
+    }
     // Use the new, correct endpoint for SPEI deposits that includes the receiver_clabe
     const requestPath = '/spei/v1/deposits/';
     const url = `${baseUrl}${requestPath}`;
