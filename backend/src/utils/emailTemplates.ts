@@ -48,22 +48,28 @@ export function createEmailTemplate(options: EmailTemplateOptions): string {
       <h3 style="color:#111827;text-align:center;margin:0 0 24px 0;font-size:20px;font-weight:600;">¿Por qué Kustodia? 🚀</h3>
       
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;">
-        <div style="background-color:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
-          <div style="font-size:24px;margin-bottom:8px;">🔍</div>
-          <div style="font-weight:600;color:#2e7ef7;font-size:16px;margin-bottom:8px;">Transparencia</div>
-          <div style="font-size:14px;color:#6b7280;line-height:1.4;">Verifica la existencia y respaldo de MXNB en tiempo real</div>
+        <div style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
+          <div style="font-size:32px;margin-bottom:12px;">🔒</div>
+          <h4 style="color:#111827;margin:0 0 8px 0;font-size:16px;font-weight:600;">Seguridad Total</h4>
+          <p style="color:#6b7280;margin:0;font-size:14px;">Custodia institucional y tecnología blockchain</p>
         </div>
         
-        <div style="background-color:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
-          <div style="font-size:24px;margin-bottom:8px;">⚙️</div>
-          <div style="font-weight:600;color:#2e7ef7;font-size:16px;margin-bottom:8px;">Automatización</div>
-          <div style="font-size:14px;color:#6b7280;line-height:1.4;">Pagos solo se liberan al cumplir condiciones pactadas</div>
+        <div style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
+          <div style="font-size:32px;margin-bottom:12px;">⚡</div>
+          <h4 style="color:#111827;margin:0 0 8px 0;font-size:16px;font-weight:600;">Transferencias Rápidas</h4>
+          <p style="color:#6b7280;margin:0;font-size:14px;">Envíos instantáneos 24/7</p>
         </div>
         
-        <div style="background-color:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
-          <div style="font-size:24px;margin-bottom:8px;">🛡️</div>
-          <div style="font-weight:600;color:#2e7ef7;font-size:16px;margin-bottom:8px;">Seguridad</div>
-          <div style="font-size:14px;color:#6b7280;line-height:1.4;">Fondos protegidos y custodiados con tecnología blockchain</div>
+        <div style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
+          <div style="font-size:32px;margin-bottom:12px;">⚙️</div>
+          <h4 style="color:#111827;margin:0 0 8px 0;font-size:16px;font-weight:600;">Condiciones Controladas</h4>
+          <p style="color:#6b7280;margin:0;font-size:14px;">Pagos automatizados según condiciones pactadas</p>
+        </div>
+        
+        <div style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center;">
+          <div style="font-size:32px;margin-bottom:12px;">📄</div>
+          <h4 style="color:#111827;margin:0 0 8px 0;font-size:16px;font-weight:600;">Contratos Inteligentes</h4>
+          <p style="color:#6b7280;margin:0;font-size:14px;">Ejecución automática y transparente</p>
         </div>
       </div>
     </div>
@@ -150,13 +156,17 @@ export function createEmailTemplate(options: EmailTemplateOptions): string {
           <!-- Social Links -->
           <div style="margin:20px 0;">
             <a href="https://twitter.com/kustodia_mx" target="_blank" style="display:inline-block;margin:0 8px;text-decoration:none;">
-              <div style="width:40px;height:40px;background-color:#1da1f2;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
-                <span style="color:#ffffff;font-size:18px;">🐦</span>
+              <div style="width:40px;height:40px;background-color:#000000;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
               </div>
             </a>
-            <a href="https://linkedin.com/company/kustodia" target="_blank" style="display:inline-block;margin:0 8px;text-decoration:none;">
+            <a href="https://linkedin.com/company/kustodia-mx" target="_blank" style="display:inline-block;margin:0 8px;text-decoration:none;">
               <div style="width:40px;height:40px;background-color:#0077b5;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
-                <span style="color:#ffffff;font-size:18px;">💼</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
               </div>
             </a>
           </div>
@@ -165,9 +175,8 @@ export function createEmailTemplate(options: EmailTemplateOptions): string {
           <div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">
             <p style="font-size:12px;color:#9ca3af;margin:0 0 8px 0;">© 2025 Kustodia. Todos los derechos reservados.</p>
             <p style="font-size:12px;color:#9ca3af;margin:0;">
-              <a href="https://kustodia.mx/privacy" style="color:#9ca3af;text-decoration:none;">Política de Privacidad</a> | 
-              <a href="https://kustodia.mx/terms" style="color:#9ca3af;text-decoration:none;">Términos de Servicio</a> | 
-              <a href="https://kustodia.mx/contact" style="color:#9ca3af;text-decoration:none;">Contacto</a>
+              <a href="https://kustodia.mx/privacidad" style="color:#9ca3af;text-decoration:none;">Política de Privacidad</a> | 
+              <a href="https://kustodia.mx/terminos" style="color:#9ca3af;text-decoration:none;">Términos de Servicio</a>
             </p>
           </div>
         </div>
@@ -219,6 +228,92 @@ export function createPasswordResetTemplate(resetUrl: string, userName?: string)
 }
 
 /**
+ * KYC status notification template
+ */
+export function createKYCStatusTemplate(status: 'approved' | 'rejected' | 'pending', userName?: string, reason?: string): string {
+  let title: string;
+  let mainMessage: string;
+  let actionButton: { text: string; url: string; color: string } | undefined;
+  let additionalContent = '';
+  
+  const frontendUrl = process.env.FRONTEND_URL || 'https://kustodia.mx';
+  
+  switch (status) {
+    case 'approved':
+      title = '✅ ¡Verificación KYC Aprobada!';
+      mainMessage = 'Excelente noticia: tu identidad ha sido verificada exitosamente. Ya puedes operar sin restricciones en Kustodia y acceder a todas nuestras funcionalidades.';
+      actionButton = {
+        text: '🚀 Ir al Dashboard',
+        url: `${frontendUrl}/dashboard`,
+        color: '#10b981'
+      };
+      additionalContent = `
+        <div style="background-color:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:16px;margin:24px 0;">
+          <p style="color:#065f46;margin:0;font-size:14px;font-weight:600;">✨ ¡Felicidades! Ahora puedes:</p>
+          <ul style="color:#065f46;margin:8px 0 0 0;font-size:14px;">
+            <li>Realizar transferencias sin límites</li>
+            <li>Acceder a productos de inversión</li>
+            <li>Utilizar todas las funciones premium</li>
+          </ul>
+        </div>
+      `;
+      break;
+      
+    case 'rejected':
+      title = '❌ Verificación KYC Rechazada';
+      mainMessage = 'Lamentablemente, tu verificación de identidad no pudo ser completada en esta ocasión.';
+      actionButton = {
+        text: '🔄 Intentar de Nuevo',
+        url: `${frontendUrl}/kyc`,
+        color: '#ef4444'
+      };
+      additionalContent = `
+        ${reason ? `
+          <div style="background-color:#fef2f2;border:1px solid #ef4444;border-radius:8px;padding:16px;margin:24px 0;">
+            <p style="color:#991b1b;margin:0;font-size:14px;font-weight:600;">⚠️ Motivo del rechazo:</p>
+            <p style="color:#991b1b;margin:8px 0 0 0;font-size:14px;">${reason}</p>
+          </div>
+        ` : ''}
+        <div style="background-color:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:16px;margin:24px 0;">
+          <p style="color:#92400e;margin:0;font-size:14px;font-weight:600;">📝 Consejos para el próximo intento:</p>
+          <ul style="color:#92400e;margin:8px 0 0 0;font-size:14px;">
+            <li>Asegúrate de que los documentos estén claros y legibles</li>
+            <li>Verifica que la información coincida exactamente</li>
+            <li>Usa buena iluminación al tomar las fotos</li>
+          </ul>
+        </div>
+      `;
+      break;
+      
+    case 'pending':
+    default:
+      title = '🔍 Verificación KYC en Proceso';
+      mainMessage = 'Hemos recibido tu documentación y estamos revisando tu información. Este proceso puede tomar entre 24 y 48 horas hábiles.';
+      additionalContent = `
+        <div style="background-color:#f0f9ff;border:1px solid #2e7ef7;border-radius:8px;padding:16px;margin:24px 0;">
+          <p style="color:#1e40af;margin:0;font-size:14px;font-weight:600;">⏳ ¿Qué sigue?</p>
+          <ul style="color:#1e40af;margin:8px 0 0 0;font-size:14px;">
+            <li>Nuestro equipo revisará tu documentación</li>
+            <li>Te notificaremos por email cuando esté listo</li>
+            <li>Mientras tanto, puedes explorar la plataforma</li>
+          </ul>
+        </div>
+      `;
+      break;
+  }
+  
+  return createEmailTemplate({
+    greeting: userName ? `Hola ${userName}` : 'Hola',
+    title,
+    mainMessage,
+    actionButton,
+    additionalContent,
+    footerMessage: 'Si tienes alguna pregunta sobre tu verificación, no dudes en contactarnos.',
+    includeFeatures: status === 'approved'
+  });
+}
+
+/**
  * Welcome email template (enhanced)
  */
 export function createWelcomeTemplate(userName?: string, accessCode?: string): string {
@@ -228,13 +323,6 @@ export function createWelcomeTemplate(userName?: string, accessCode?: string): s
       <div style="font-size:18px;font-weight:600;color:#1e40af;margin-bottom:12px;">🔑 Código de Acceso Anticipado</div>
       <div style="font-family:monospace;color:#2e7ef7;font-size:24px;font-weight:700;background-color:#ffffff;padding:16px;border-radius:8px;letter-spacing:2px;border:1px solid #e5e7eb;">${accessCode}</div>
       <p style="font-size:14px;color:#6b7280;margin:12px 0 0 0;">⚠️ Guarda este código, lo necesitarás para acceder a la plataforma</p>
-    </div>
-    
-    <!-- Special Offer -->
-    <div style="background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);border:2px solid #f59e0b;border-radius:16px;padding:24px;margin:32px 0;text-align:center;">
-      <div style="font-size:20px;margin-bottom:8px;">🎊</div>
-      <h3 style="color:#92400e;margin:0 0 8px 0;font-size:18px;font-weight:700;">¡Felicidades!</h3>
-      <p style="color:#92400e;margin:0;font-size:16px;font-weight:600;">Tienes <strong>0% fee de por vida</strong> por ser de los primeros 100 registros</p>
     </div>
   ` : '';
 
