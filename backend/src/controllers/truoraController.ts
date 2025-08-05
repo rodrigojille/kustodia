@@ -96,9 +96,30 @@ export const truoraWebhook = async (req: Request, res: Response): Promise<void> 
     console.log(`[Truora Webhook] Successfully updated KYC status to '${status}' for user: ${user.email}`);
     
     // Send email notification to user about KYC status change
+    // Map Truora status to email template status
+    let emailStatus: 'approved' | 'rejected' | 'pending';
+    switch (status.toLowerCase()) {
+      case 'completed':
+      case 'approved':
+        emailStatus = 'approved';
+        break;
+      case 'rejected':
+      case 'failed':
+        emailStatus = 'rejected';
+        break;
+      case 'pending':
+      case 'in_progress':
+      case 'processing':
+        emailStatus = 'pending';
+        break;
+      default:
+        console.log(`[Truora Webhook] Unknown status '${status}', defaulting to pending for email`);
+        emailStatus = 'pending';
+    }
+    
     try {
-      await sendKYCStatusEmail(user.email, status, user.full_name);
-      console.log(`[Truora Webhook] KYC status email sent to: ${user.email}`);
+      await sendKYCStatusEmail(user.email, emailStatus, user.full_name);
+      console.log(`[Truora Webhook] KYC status email sent to: ${user.email} with status: ${emailStatus} (original: ${status})`);
     } catch (emailError) {
       console.error(`[Truora Webhook] Failed to send KYC status email to ${user.email}:`, emailError);
       // Don't fail the webhook if email fails
