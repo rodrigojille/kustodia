@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAnalyticsContext } from '../../components/AnalyticsProvider';
 import useAnalytics from '../../hooks/useAnalytics';
 
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   // 🔥 Track login page load
   useEffect(() => {
@@ -127,9 +128,15 @@ export default function LoginPage() {
         
         setSuccess("¡Ingreso exitoso! Redirigiendo...");
         console.log("About to redirect to dashboard");
+        
+        // Check for returnTo parameter to redirect to original destination
+        const returnTo = searchParams?.get('returnTo');
+        const redirectUrl = returnTo ? decodeURIComponent(returnTo) : '/dashboard';
+        
+        console.log("Redirect URL:", redirectUrl);
         setTimeout(() => {
-          console.log("Executing redirect now");
-          router.push("/dashboard");
+          console.log("Executing redirect now to:", redirectUrl);
+          router.push(redirectUrl);
         }, 1200);
       }
     } catch (err: any) {
