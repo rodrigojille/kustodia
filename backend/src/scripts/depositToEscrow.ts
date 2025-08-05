@@ -1,11 +1,12 @@
 import { createEscrow } from '../services/escrowService';
 import dotenv from 'dotenv';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 dotenv.config();
 
 async function main() {
   // Parámetros para el test manual:
-  const sellerAddress = process.env.BRIDGE_WALLET_ADDRESS!; // Usa la wallet de la plataforma
+  const sellerAddress = getCurrentNetworkConfig().bridgeWallet; // Usa la wallet de la plataforma
   const custodyAmount = '2000000000000000000000'; // 2,000 MXNB en wei (ajusta según decimales)
   const custodyPeriod = 604800; // 7 días en segundos
 

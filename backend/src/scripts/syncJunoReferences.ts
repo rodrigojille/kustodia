@@ -105,7 +105,7 @@ async function main() {
   const junoTxRepo = localDataSource.getRepository(JunoTransaction);
 
   // 1. Obtener todas las transacciones de Juno
-  const junoTxs = await listJunoTransactions(true); // true = stage
+  const junoTxs = await listJunoTransactions();
 
   let updatedPayments = 0;
   let updatedJunoTxs = 0;

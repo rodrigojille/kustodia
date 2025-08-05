@@ -1,11 +1,12 @@
 // paymentControllerV2.ts
 // Version 2: Handles Flow 2.0 wallet-based payment flow with payment tracker integration
 
-import { Request, Response } from "express";
-import { getRepository } from "typeorm";
-import { Payment } from "../entity/Payment";
-import { Escrow } from "../entity/Escrow";
-import { createEscrow } from "../services/escrowService"; // fundEscrow removed because it is not exported
+import { Request, Response } from 'express';
+import { createEscrow } from '../services/escrowService';
+import { Payment } from '../entity/Payment';
+import { Escrow } from '../entity/Escrow';
+import AppDataSource from '../ormconfig';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 // POST /api/payments/flow2v2-notify
 export const flow2v2Notify = async (req: Request, res: Response) => {
@@ -20,7 +21,7 @@ export const flow2v2Notify = async (req: Request, res: Response) => {
       tx_hash_custody
     } = req.body;
     // 1. Create payment record
-    const paymentRepo = getRepository(Payment);
+    const paymentRepo = AppDataSource.getRepository(Payment);
     // Only use properties defined in Payment entity
     const payment = paymentRepo.create({
       amount,
@@ -37,9 +38,9 @@ export const flow2v2Notify = async (req: Request, res: Response) => {
     
     // Updated for KustodiaEscrow2_0 API
     const escrow = await createEscrow({
-      payer: process.env.ESCROW_BRIDGE_WALLET!, // Bridge wallet acts as payer
+      payer: getCurrentNetworkConfig().bridgeWallet, // Bridge wallet acts as payer
       payee: req.body.recipient_wallet || '', // Recipient wallet as payee
-      token: process.env.MOCK_ERC20_ADDRESS!, // MXNB token address
+      token: getCurrentNetworkConfig().mxnbTokenAddress, // MXNB token address
       amount: custodyAmountStr, // Custody amount
       deadline: deadline, // Unix timestamp for deadline
       vertical: 'flow2v2', // Business vertical

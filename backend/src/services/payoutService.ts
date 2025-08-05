@@ -11,6 +11,7 @@ import { releaseEscrow } from './escrowService'; // Import on-chain release func
 import { sendPaymentEventNotification } from '../utils/paymentNotificationService';
 import { createPaymentNotifications } from './paymentNotificationIntegration';
 import { SPEIReceiptData } from './speiReceiptService';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 import axios from 'axios';
 import crypto from 'crypto';
 
@@ -298,11 +299,12 @@ export async function redeemMXNBToMXNAndPayout(escrowId: number, amountMXNB: num
     asset: 'mxn',
   };
 
-  // Prepare headers/signature
-  const JUNO_ENV = process.env.JUNO_ENV || 'stage';
-  const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY! : process.env.JUNO_API_KEY!;
-  const JUNO_API_SECRET = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_SECRET! : process.env.JUNO_API_SECRET!;
-  const BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
+  // Prepare headers/signature using network configuration
+  const networkConfig = getCurrentNetworkConfig();
+  const JUNO_ENV = networkConfig.junoEnv;
+  const JUNO_API_KEY = networkConfig.junoApiKey;
+  const JUNO_API_SECRET = process.env.JUNO_API_SECRET!; // Keep secret in env
+  const BASE_URL = JUNO_ENV === 'production' ? process.env.JUNO_PROD_BASE_URL! : process.env.JUNO_STAGE_BASE_URL!;
   const endpoint = '/mint_platform/v1/redemptions';
   const url = `${BASE_URL}${endpoint}`;
   const body = JSON.stringify(bodyObj);
@@ -480,11 +482,12 @@ export async function redeemAndPayout(escrowId: number, destAddress: string) {
   const bodyObj: any = { amount, asset, blockchain, address };
   // Optionally add compliance if needed (future)
 
-  // Prepare headers/signature (same as junoWithdrawOnchain.ts)
-  const JUNO_ENV = process.env.JUNO_ENV || 'stage';
-  const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY! : process.env.JUNO_API_KEY!;
-  const JUNO_API_SECRET = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_SECRET! : process.env.JUNO_API_SECRET!;
-  const BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
+  // Prepare headers/signature using network configuration
+  const networkConfig = getCurrentNetworkConfig();
+  const JUNO_ENV = networkConfig.junoEnv;
+  const JUNO_API_KEY = networkConfig.junoApiKey;
+  const JUNO_API_SECRET = process.env.JUNO_API_SECRET!; // Keep secret in env
+  const BASE_URL = JUNO_ENV === 'production' ? process.env.JUNO_PROD_BASE_URL! : process.env.JUNO_STAGE_BASE_URL!;
   const endpoint = '/mint_platform/v1/withdrawals';
   const url = `${BASE_URL}${endpoint}`;
   const body = JSON.stringify(bodyObj);

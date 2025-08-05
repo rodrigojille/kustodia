@@ -5,6 +5,7 @@ import { PaymentEvent } from '../entity/PaymentEvent';
 import { createEscrow } from './escrowService';
 import { sendEmail } from '../utils/emailService';
 import { sendPaymentEventNotification } from '../utils/paymentNotificationService';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 export interface EscrowRecoveryResult {
   success: boolean;
@@ -172,9 +173,9 @@ export class EscrowSafetyService {
       
       // Create escrow on smart contract
       const escrowResult = await createEscrow({
-        payer: process.env.ESCROW_BRIDGE_WALLET!,
-        payee: process.env.ESCROW_BRIDGE_WALLET!,
-        token: process.env.MXNB_CONTRACT_ADDRESS!,
+        payer: getCurrentNetworkConfig().bridgeWallet,
+        payee: getCurrentNetworkConfig().bridgeWallet,
+        token: getCurrentNetworkConfig().mxnbTokenAddress,
         amount: custodyAmount.toString(),
         deadline: Math.floor(custodyEndDate.getTime() / 1000),
         vertical: payment.vertical_type || '',
@@ -343,7 +344,7 @@ export class EscrowSafetyService {
     try {
       // Simple test to verify contract is accessible
       const { ethers } = require('ethers');
-      const provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL);
+      const provider = new ethers.JsonRpcProvider(getCurrentNetworkConfig().rpcUrl);
       const code = await provider.getCode(process.env.KUSTODIA_ESCROW_V2_ADDRESS);
       
       if (code === '0x') {

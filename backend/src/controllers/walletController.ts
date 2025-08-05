@@ -1,17 +1,18 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../AuthenticatedRequest';
 import AppDataSource from '../ormconfig';
 import { WalletTransaction } from '../entity/WalletTransaction';
+import { User } from '../entity/User';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 // Asumiremos que existe un junoService con un método para crear CLABEs
-import { createJunoClabe } from '../services/junoService'; 
-import { User } from "../entity/User";
+import { createJunoClabe } from '../services/junoService';
 
 
 
 export const generateDepositClabe = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const walletTransactionRepo = AppDataSource.getRepository(WalletTransaction);
-    const userId = req.user.id;
+    const userId = req.user!.id;
 
     // 1. Crear una CLABE única a través de Juno
     const newClabe = await createJunoClabe();
@@ -66,7 +67,7 @@ export async function initiateWithdrawal(req: AuthenticatedRequest, res: Respons
     // Return the bridge wallet address so the user knows where to send the funds
     res.status(201).json({
       message: 'Withdrawal initiated. Please send the specified MXNB amount to the bridge wallet.',
-      bridgeWalletAddress: process.env.BRIDGE_WALLET_ADDRESS,
+      bridgeWalletAddress: getCurrentNetworkConfig().bridgeWallet,
       transactionId: newTransaction.id
     });
   } catch (error) {

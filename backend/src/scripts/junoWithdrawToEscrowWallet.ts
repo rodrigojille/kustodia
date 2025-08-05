@@ -2,11 +2,12 @@ console.log('--- Script execution started ---');
 import dotenv from 'dotenv';
 import path from 'path';
 import { withdrawCryptoToBridgeWallet } from '../services/junoService';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 async function main() {
-  const destinationAddress = process.env.BRIDGE_WALLET_ADDRESS!;
+  const destinationAddress = getCurrentNetworkConfig().bridgeWallet;
   const amount = parseFloat(process.env.WITHDRAW_AMOUNT || '2000');
 
   if (!destinationAddress) {

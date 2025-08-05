@@ -2,9 +2,13 @@ import { ethers } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from 'dotenv';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 // Load environment variables with explicit path
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+// Get current network configuration
+const networkConfig = getCurrentNetworkConfig();
 
 console.log('[escrowService] Starting import');
 console.log('[escrowService] ENV.ESCROW_CONTRACT_ADDRESS:', process.env.ESCROW_CONTRACT_ADDRESS);
@@ -22,21 +26,21 @@ console.log('[escrowService] Resolved ERC20.json path:', erc20ArtifactPath);
 console.log('[escrowService] KustodiaEscrow2_0.json exists:', fs.existsSync(escrowArtifactPath));
 console.log('[escrowService] ERC20.json exists:', fs.existsSync(erc20ArtifactPath));
 
-// Arbitrum testnet/configurable
-const RPC_URL = process.env.ETH_RPC_URL!;
+// Dynamic network configuration
+const RPC_URL = networkConfig.rpcUrl;
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 
-// Use mainnet deployer/escrow key from env
-const PRIVATE_KEY = process.env.ESCROW_PRIVATE_KEY!;
+// Use network-specific private key
+const PRIVATE_KEY = networkConfig.privateKey;
 const signer = new ethers.Wallet(PRIVATE_KEY, provider);
 
-// Use ESCROW_CONTRACT_ADDRESS_2 for the new KustodiaEscrow2_0 contract
-const ESCROW_ADDRESS = process.env.KUSTODIA_ESCROW_V2_ADDRESS!;
-console.log('[escrowService] Using ESCROW_CONTRACT_ADDRESS_2:', ESCROW_ADDRESS);
+// Use network-specific escrow contract address
+const ESCROW_ADDRESS = networkConfig.escrowV2Address;
+console.log(`[escrowService] Using Escrow V2 Address (${networkConfig.networkName}):`, ESCROW_ADDRESS);
 
-// MXNB token contract address
-const TOKEN_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS!;
-console.log('[escrowService] MXNB_CONTRACT_ADDRESS from env:', TOKEN_ADDRESS);
+// Network-specific MXNB token contract address
+const TOKEN_ADDRESS = networkConfig.mxnbTokenAddress;
+console.log(`[escrowService] MXNB Token Address (${networkConfig.networkName}):`, TOKEN_ADDRESS);
 
 // Load ABIs with error handling
 let ESCROW_ABI;

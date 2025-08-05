@@ -17,6 +17,7 @@ import { createHmac } from 'node:crypto';
 import axios from 'axios';
 import { ethers } from 'ethers';
 import { Pool } from 'pg';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 dotenv.config();
 
@@ -415,7 +416,7 @@ export class PaymentAutomationService {
    * Process MXNB withdrawal to bridge wallet with enhanced error handling
    */
   private async processBridgeWithdrawal(payment: Payment, amount: number): Promise<void> {
-    const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET!;
+    const bridgeWallet = getCurrentNetworkConfig().bridgeWallet;
     if (!bridgeWallet) throw new Error('ESCROW_BRIDGE_WALLET not set in .env');
 
     try {
@@ -483,9 +484,10 @@ export class PaymentAutomationService {
    */
   private async checkBridgeWalletBalance(requiredAmount: number): Promise<{ hasBalance: boolean; currentBalance: string; requiredBalance: string }> {
     try {
-      const provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL!);
-      const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS!;
-      const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET!;
+      const networkConfig = getCurrentNetworkConfig();
+      const provider = new ethers.JsonRpcProvider(networkConfig.rpcUrl);
+      const tokenAddress = networkConfig.mxnbTokenAddress;
+      const bridgeWallet = getCurrentNetworkConfig().bridgeWallet;
       
       const ERC20_ABI = [
         "function balanceOf(address owner) view returns (uint256)",
@@ -523,7 +525,7 @@ export class PaymentAutomationService {
     const escrowRepo = AppDataSource.getRepository(Escrow);
     const paymentRepo = AppDataSource.getRepository(Payment);
     const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS!;
-    const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET!;
+    const bridgeWallet = getCurrentNetworkConfig().bridgeWallet;
 
     if (!payment.escrow) throw new Error(`Payment ${payment.id} missing escrow relation`);
     if (!payment.escrow.custody_end) throw new Error(`Payment ${payment.id} escrow missing custody_end date`);
@@ -1160,11 +1162,12 @@ export class PaymentAutomationService {
   }
 
   private async withdrawFromJunoToBridge(amount: number): Promise<void> {
-    const JUNO_ENV = process.env.JUNO_ENV || 'stage';
-    const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY! : process.env.JUNO_API_KEY!;
-    const JUNO_API_SECRET = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_SECRET! : process.env.JUNO_API_SECRET!;
-    const BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
-    const DESTINATION_ADDRESS = process.env.ESCROW_BRIDGE_WALLET!;
+    const networkConfig = getCurrentNetworkConfig();
+    const JUNO_ENV = networkConfig.junoEnv;
+    const JUNO_API_KEY = networkConfig.junoApiKey;
+    const JUNO_API_SECRET = process.env.JUNO_API_SECRET!; // Keep secret in env
+    const BASE_URL = JUNO_ENV === 'production' ? process.env.JUNO_PROD_BASE_URL! : process.env.JUNO_STAGE_BASE_URL!;
+    const DESTINATION_ADDRESS = getCurrentNetworkConfig().bridgeWallet;
 
     const endpoint = '/mint_platform/v1/crypto_withdrawals';
     const url = `${BASE_URL}${endpoint}`;
@@ -1195,7 +1198,7 @@ export class PaymentAutomationService {
   private async transferBridgeToJuno(amount: number): Promise<string> {
     const MXNB_TOKEN = "0x82B9e52b26A2954E113F94Ff26647754d5a4247D";
     const BRIDGE_WALLET_PK = process.env.ESCROW_PRIVATE_KEY;
-    const PROVIDER_URL = process.env.ETH_RPC_URL;
+    const PROVIDER_URL = getCurrentNetworkConfig().rpcUrl;
     const JUNO_WALLET = process.env.JUNO_WALLET;
 
     if (!BRIDGE_WALLET_PK || !JUNO_WALLET) {

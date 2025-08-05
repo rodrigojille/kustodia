@@ -729,7 +729,7 @@ const AdminDashboardPage = () => {
                     With AI: {pendingDisputes.filter(d => d.aiAssessment).length}
                   </p>
                   <p className="text-sm text-yellow-700">
-                    AI Assessment status: {pendingDisputes.some(d => d.aiAssessment) ? 'Available' : 'Not loaded'}
+                    AI Assessment status: {aiAnalysisLoading ? 'Loading...' : pendingDisputes.some(d => d.aiAssessment) ? 'Available' : 'Not loaded'}
                   </p>
                 </div>
               )}

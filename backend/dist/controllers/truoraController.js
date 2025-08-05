@@ -40,18 +40,64 @@ const VALIDATION_TYPES = {
 const truoraWebhook = async (req, res) => {
     try {
         const payload = req.body;
-        console.log('Received Truora KYC webhook:', payload);
+        console.log('[Truora Webhook] Received payload:', JSON.stringify(payload, null, 2));
         const processId = payload.process_id;
         const status = payload.status || payload.result;
-        if (processId) {
-            const userRepo = ormconfig_1.default.getRepository(User_1.User);
-            await userRepo.update({ truora_process_id: processId }, { kyc_status: status });
+        const validationId = payload.validation_id;
+        console.log('[Truora Webhook] Extracted data:', {
+            processId,
+            status,
+            validationId,
+            timestamp: new Date().toISOString()
+        });
+        if (!processId) {
+            console.error('[Truora Webhook] Missing process_id in payload');
+            res.status(400).json({ error: 'Missing process_id' });
+            return;
         }
-        res.status(200).json({ received: true });
+        if (!status) {
+            console.error('[Truora Webhook] Missing status in payload');
+            res.status(400).json({ error: 'Missing status' });
+            return;
+        }
+        const userRepo = ormconfig_1.default.getRepository(User_1.User);
+        // Find the user first to get their details
+        const user = await userRepo.findOne({ where: { truora_process_id: processId } });
+        if (!user) {
+            console.error(`[Truora Webhook] No user found with process_id: ${processId}`);
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+        console.log(`[Truora Webhook] Found user: ${user.email}, current KYC status: ${user.kyc_status}`);
+        // Update the user's KYC status
+        const updateResult = await userRepo.update({ truora_process_id: processId }, { kyc_status: status });
+        console.log(`[Truora Webhook] Update result:`, updateResult);
+        if (updateResult.affected === 0) {
+            console.error(`[Truora Webhook] No rows updated for process_id: ${processId}`);
+            res.status(500).json({ error: 'Update failed' });
+            return;
+        }
+        console.log(`[Truora Webhook] Successfully updated KYC status to '${status}' for user: ${user.email}`);
+        // Send email notification to user about KYC status change
+        try {
+            await (0, emailService_1.sendKYCStatusEmail)(user.email, status, user.full_name);
+            console.log(`[Truora Webhook] KYC status email sent to: ${user.email}`);
+        }
+        catch (emailError) {
+            console.error(`[Truora Webhook] Failed to send KYC status email to ${user.email}:`, emailError);
+            // Don't fail the webhook if email fails
+        }
+        res.status(200).json({
+            received: true,
+            processId,
+            status,
+            userEmail: user.email,
+            updated: true
+        });
     }
     catch (err) {
-        console.error('Error processing Truora webhook:', err);
-        res.status(500).json({ error: 'Webhook processing failed' });
+        console.error('[Truora Webhook] Error processing webhook:', err);
+        res.status(500).json({ error: 'Webhook processing failed', details: err instanceof Error ? err.message : 'Unknown error' });
     }
 };
 exports.truoraWebhook = truoraWebhook;

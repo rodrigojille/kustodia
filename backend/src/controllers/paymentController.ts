@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import AppDataSource from '../ormconfig'; // CORRECTED IMPORT PATH
+import { ethers } from 'ethers';
+import AppDataSource from '../ormconfig';
 import { Payment } from '../entity/Payment';
 import { User } from '../entity/User';
 import { Escrow } from '../entity/Escrow';
@@ -12,7 +13,7 @@ import { createEscrow, releaseCustody } from '../services/escrowService';
 import { fundV3Escrow, releaseV3Escrow } from '../services/escrowV3Service';
 import { signAndBroadcastWithPortal } from '../services/portalSignerService';
 import { createJunoClabe } from '../services/junoService';
-import { ethers } from 'ethers';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 // Helper function to create a payment event
 const createPaymentEvent = async (payment: Payment, type: string, description: string, isAutomatic: boolean = false) => {
@@ -209,7 +210,7 @@ export const initiateWeb3Payment = async (req: AuthenticatedRequest, res: Respon
     const savedEscrow = await escrowRepo.save(newEscrow);
 
     // Real Portal MPC token approval step
-    const MXNB_CONTRACT_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS!;
+    const MXNB_CONTRACT_ADDRESS = getCurrentNetworkConfig().mxnbTokenAddress;
     const ESCROW_CONTRACT_ADDRESS = process.env.KUSTODIA_ESCROW_V3_ADDRESS!;
     
     if (!MXNB_CONTRACT_ADDRESS || !ESCROW_CONTRACT_ADDRESS) {

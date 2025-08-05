@@ -1,10 +1,15 @@
 import { ethers } from 'ethers';
+import logger from '../utils/logger';
+import { Payment } from '../entity/Payment';
+import { Escrow } from '../entity/Escrow';
+import AppDataSource from '../ormconfig';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 // Use the correct environment variable names from the user's .env file
-const rpcUrl = process.env.ETH_RPC_URL;
+const rpcUrl = getCurrentNetworkConfig().rpcUrl;
 const privateKey = process.env.ESCROW_PRIVATE_KEY;
 const contractAddress = process.env.MOCK_ERC20_ADDRESS;
 

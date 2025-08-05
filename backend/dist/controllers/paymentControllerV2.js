@@ -1,17 +1,21 @@
 "use strict";
 // paymentControllerV2.ts
 // Version 2: Handles Flow 2.0 wallet-based payment flow with payment tracker integration
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.flow2v2Notify = void 0;
-const typeorm_1 = require("typeorm");
+const escrowService_1 = require("../services/escrowService");
 const Payment_1 = require("../entity/Payment");
-const escrowService_1 = require("../services/escrowService"); // fundEscrow removed because it is not exported
+const ormconfig_1 = __importDefault(require("../ormconfig"));
+const networkConfig_1 = require("../utils/networkConfig");
 // POST /api/payments/flow2v2-notify
 const flow2v2Notify = async (req, res) => {
     try {
         const { recipient_email, amount, custody_percent, custody_days, description, tx_hash_direct, tx_hash_custody } = req.body;
         // 1. Create payment record
-        const paymentRepo = (0, typeorm_1.getRepository)(Payment_1.Payment);
+        const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
         // Only use properties defined in Payment entity
         const payment = paymentRepo.create({
             amount,
@@ -27,9 +31,9 @@ const flow2v2Notify = async (req, res) => {
         const deadline = Math.floor(Date.now() / 1000) + custodyDays * 86400;
         // Updated for KustodiaEscrow2_0 API
         const escrow = await (0, escrowService_1.createEscrow)({
-            payer: process.env.ESCROW_BRIDGE_WALLET, // Bridge wallet acts as payer
+            payer: (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet, // Bridge wallet acts as payer
             payee: req.body.recipient_wallet || '', // Recipient wallet as payee
-            token: process.env.MOCK_ERC20_ADDRESS, // MXNB token address
+            token: (0, networkConfig_1.getCurrentNetworkConfig)().mxnbTokenAddress, // MXNB token address
             amount: custodyAmountStr, // Custody amount
             deadline: deadline, // Unix timestamp for deadline
             vertical: 'flow2v2', // Business vertical

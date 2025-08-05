@@ -24,25 +24,12 @@ async function sendWelcomeEmail(to, userName, accessCode) {
         html: (0, emailTemplates_1.createWelcomeTemplate)(userName, accessCode)
     });
 }
-async function sendKYCStatusEmail(to, status, reason) {
-    let subject = 'Actualización de tu verificación KYC';
-    let html = `<div style='font-family:Montserrat,Arial,sans-serif;background:#f6f8fc;padding:2rem;'>
-    <img src='https://kustodia.mx/kustodia-logo.png' alt='Kustodia Logo' width='56' height='56' style='display:block;margin-bottom:1rem;'>`;
-    if (status === 'approved') {
-        html += `<h2 style='color:#27ae60;'>¡Verificación KYC aprobada!</h2>
-      <p>Tu identidad ha sido verificada exitosamente. Ya puedes operar sin restricciones en Kustodia.</p>`;
-    }
-    else if (status === 'rejected') {
-        html += `<h2 style='color:#c0392b;'>Verificación KYC rechazada</h2>
-      <p>Lamentablemente, tu verificación fue rechazada.${reason ? `<br>Motivo: <b>${reason}</b>` : ''}</p>
-      <p>Por favor revisa tus documentos y vuelve a intentarlo.</p>`;
-    }
-    else {
-        html += `<h2 style='color:#2e7ef7;'>Verificación KYC en proceso</h2>
-      <p>Estamos revisando tu información. Te avisaremos cuando el proceso finalice.</p>`;
-    }
-    html += `<br><p style='font-size:13px;color:#999;'>Equipo Kustodia</p></div>`;
-    return sendEmail({ to, subject, html });
+async function sendKYCStatusEmail(to, status, userName, reason) {
+    return sendEmail({
+        to,
+        subject: 'Actualización de tu verificación KYC',
+        html: (0, emailTemplates_1.createKYCStatusTemplate)(status, userName, reason)
+    });
 }
 async function sendEmail({ to, subject, html, text }) {
     // Fallback: If only HTML is provided, generate a plain text version by stripping tags

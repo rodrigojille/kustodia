@@ -13,10 +13,11 @@ exports.transferMXNB = transferMXNB;
 // src/services/portalService.ts
 // Service for interacting with Portal HQ API for user wallet management
 const axios_1 = __importDefault(require("axios"));
+const networkConfig_1 = require("../utils/networkConfig");
 const PORTAL_CUSTODIAN_API_KEY = process.env.PORTAL_CUSTODIAN_API_KEY;
 const PORTAL_API_URL = 'https://api.portalhq.io/v1';
 const CHAIN = 'eip155:421614'; // Arbitrum Sepolia testnet in CAIP-2 format (Portal API requirement)
-const MXNB_CONTRACT_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS || '0xYourMXNBAddress';
+const getMXNBContractAddress = () => (0, networkConfig_1.getCurrentNetworkConfig)().mxnbTokenAddress;
 if (!PORTAL_CUSTODIAN_API_KEY)
     throw new Error('Missing PORTAL_CUSTODIAN_API_KEY in env');
 /**
@@ -204,7 +205,7 @@ async function getPortalWalletBalance(walletId) {
             'Authorization': `Bearer ${PORTAL_CUSTODIAN_API_KEY}`,
         },
         params: {
-            contractAddress: MXNB_CONTRACT_ADDRESS,
+            contractAddress: getMXNBContractAddress(),
             chain: CHAIN,
         },
     });
@@ -217,7 +218,7 @@ async function transferMXNB(fromWalletId, toAddress, amount) {
         to: toAddress,
         asset: {
             type: 'erc20',
-            contractAddress: MXNB_CONTRACT_ADDRESS,
+            contractAddress: getMXNBContractAddress(),
             chain: CHAIN,
         },
         amount,

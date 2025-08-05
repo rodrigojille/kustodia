@@ -5,10 +5,9 @@ import { Response } from "express";
 import type { AuthenticatedRequest } from '../authenticateJWT';
 import ormconfig from "../ormconfig";
 import { User } from "../entity/User";
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 const ESCROW3_CONTRACT_ADDRESS = process.env.ESCROW3_CONTRACT_ADDRESS;
-const MXNBS_CONTRACT_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS;
-const ARBITRUM_SEPOLIA_RPC_URL = process.env.ARBITRUM_SEPOLIA_RPC_URL;
 
 const escrowAbi = [
   "event EscrowCreated(uint256 indexed smart_contract_escrow_id, address indexed payer, address indexed seller, uint256 amount, uint256 custodyAmount, address commission)",
@@ -72,9 +71,9 @@ export const preflightEscrow3 = async (req: AuthenticatedRequest, res: Response)
         abi: escrowAbi
       },
       token: {
-        address: MXNBS_CONTRACT_ADDRESS
+        address: getCurrentNetworkConfig().mxnbTokenAddress
       },
-      rpc_url: ARBITRUM_SEPOLIA_RPC_URL
+      rpc_url: getCurrentNetworkConfig().rpcUrl
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

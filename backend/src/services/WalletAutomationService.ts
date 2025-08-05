@@ -68,7 +68,7 @@ export class WalletAutomationService {
 
         // 2. Get recent transactions from Juno
         // Assuming isStage=true for development environment
-        const junoTransactions = await listJunoTransactions(true);
+        const junoTransactions = await listJunoTransactions();
 
         // 3. Match transactions
         for (const tx of pendingTransactions) {

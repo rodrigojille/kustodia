@@ -1,10 +1,8 @@
-// Temporarily disabled GnosisSafeService for compilation
-// Will be re-enabled once Gnosis Safe SDK issues are resolved
+// GnosisSafeService removed - using custom database-driven multi-sig system only
+// All multi-sig functionality is handled by MultiSigApprovalService
 
-import { ethers } from 'ethers';
-// import Safe, { EthersAdapter } from '@safe-global/safe-core-sdk';
-import { SafeTransactionDataPartial } from '@safe-global/safe-core-sdk-types';
-import SafeServiceClient from '@safe-global/safe-service-client';
+// This file is kept as a placeholder to avoid breaking imports
+// but all functionality has been moved to the custom multi-sig system
 
 export interface SafeTransactionProposal {
   to: string;
@@ -24,18 +22,18 @@ export interface SafeSignature {
   signature: string;
 }
 
+// Placeholder class to maintain compatibility
 export class GnosisSafeService {
-  // Placeholder methods for compilation
   async createTransaction(): Promise<any> { 
-    throw new Error('GnosisSafeService not implemented yet'); 
+    throw new Error('GnosisSafeService removed - use MultiSigApprovalService instead'); 
   }
   
   async signTransaction(): Promise<any> { 
-    throw new Error('GnosisSafeService not implemented yet'); 
+    throw new Error('GnosisSafeService removed - use MultiSigApprovalService instead'); 
   }
   
   async executeTransaction(): Promise<any> { 
-    throw new Error('GnosisSafeService not implemented yet'); 
+    throw new Error('GnosisSafeService removed - use MultiSigApprovalService instead'); 
   }
   
   async getPendingTransactions(): Promise<any[]> { 
@@ -43,7 +41,7 @@ export class GnosisSafeService {
   }
   
   async getTransactionStatus(): Promise<any> { 
-    throw new Error('GnosisSafeService not implemented yet'); 
+    throw new Error('GnosisSafeService removed - use MultiSigApprovalService instead'); 
   }
   
   async estimateGas(): Promise<string> { 
@@ -51,7 +49,7 @@ export class GnosisSafeService {
   }
   
   async getSafeInfo(): Promise<any> {
-    throw new Error('GnosisSafeService not implemented yet');
+    throw new Error('GnosisSafeService removed - use MultiSigApprovalService instead');
   }
   
   async getSafeOwners(): Promise<string[]> {
@@ -62,3 +60,5 @@ export class GnosisSafeService {
     return false;
   }
 }
+
+export const gnosisSafeService = new GnosisSafeService();

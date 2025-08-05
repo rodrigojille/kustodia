@@ -44,6 +44,7 @@ const Payment_1 = require("../../entity/Payment");
 const PaymentEvent_1 = require("../../entity/PaymentEvent");
 const Escrow_1 = require("../../entity/Escrow");
 const PaymentAutomationService_1 = require("../../services/PaymentAutomationService");
+const networkConfig_1 = require("../../utils/networkConfig");
 const axios_1 = __importDefault(require("axios"));
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
@@ -81,9 +82,10 @@ async function checkServiceHealth() {
     }
     try {
         // Check Juno API (simple ping)
-        const junoBaseUrl = process.env.JUNO_ENV === 'stage'
-            ? 'https://stage.buildwithjuno.com'
-            : 'https://buildwithjuno.com';
+        const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+        const junoBaseUrl = networkConfig.junoEnv === 'production'
+            ? process.env.JUNO_PROD_BASE_URL
+            : process.env.JUNO_STAGE_BASE_URL;
         const response = await axios_1.default.get(`${junoBaseUrl}/ping`, {
             timeout: 5000,
             validateStatus: () => true // Don't throw on any status

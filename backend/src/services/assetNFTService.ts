@@ -1,4 +1,8 @@
 import { ethers } from 'ethers';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 import { getRepository } from 'typeorm';
 import { User } from '../entity/User';
 import { Payment } from '../entity/Payment';
@@ -112,7 +116,7 @@ class AssetNFTService {
   constructor() {
     try {
       // Initialize blockchain connection
-      this.provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc');
+      this.provider = new ethers.JsonRpcProvider(getCurrentNetworkConfig().rpcUrl);
       
       // Initialize Kustodia wallet for contract interactions
       const privateKey = process.env.KUSTODIA_PRIVATE_KEY;

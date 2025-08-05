@@ -37,7 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initiatePayment = exports.junoWebhook = exports.releaseWeb3Payment = exports.fundWeb3Escrow = exports.initiateWeb3Payment = exports.getPaymentById = exports.getPayments = void 0;
-const ormconfig_1 = __importDefault(require("../ormconfig")); // CORRECTED IMPORT PATH
+const ormconfig_1 = __importDefault(require("../ormconfig"));
 const Payment_1 = require("../entity/Payment");
 const User_1 = require("../entity/User");
 const Escrow_1 = require("../entity/Escrow");
@@ -47,6 +47,7 @@ const CommissionRecipient_1 = require("../entity/CommissionRecipient");
 const notificationService_1 = require("../services/notificationService");
 const escrowV3Service_1 = require("../services/escrowV3Service");
 const junoService_1 = require("../services/junoService");
+const networkConfig_1 = require("../utils/networkConfig");
 // Helper function to create a payment event
 const createPaymentEvent = async (payment, type, description, isAutomatic = false) => {
     const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
@@ -220,7 +221,7 @@ const initiateWeb3Payment = async (req, res) => {
         newEscrow.status = 'pending_creation';
         const savedEscrow = await escrowRepo.save(newEscrow);
         // Real Portal MPC token approval step
-        const MXNB_CONTRACT_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS;
+        const MXNB_CONTRACT_ADDRESS = (0, networkConfig_1.getCurrentNetworkConfig)().mxnbTokenAddress;
         const ESCROW_CONTRACT_ADDRESS = process.env.KUSTODIA_ESCROW_V3_ADDRESS;
         if (!MXNB_CONTRACT_ADDRESS || !ESCROW_CONTRACT_ADDRESS) {
             throw new Error('Missing contract addresses in environment variables');

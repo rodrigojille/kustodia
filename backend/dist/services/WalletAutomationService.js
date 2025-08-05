@@ -96,7 +96,7 @@ class WalletAutomationService {
                 }
                 // 2. Get recent transactions from Juno
                 // Assuming isStage=true for development environment
-                const junoTransactions = await (0, junoService_1.listJunoTransactions)(true);
+                const junoTransactions = await (0, junoService_1.listJunoTransactions)();
                 // 3. Match transactions
                 for (const tx of pendingTransactions) {
                     const matchedJunoTx = junoTransactions.find((junoTx) => junoTx.details?.clabe === tx.deposit_clabe && junoTx.category === 'DEPOSIT');

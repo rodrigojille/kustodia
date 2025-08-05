@@ -1,18 +1,28 @@
 import { Request, Response } from "express";
 import axios from "axios";
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
-const JUNO_API_KEY = process.env.JUNO_API_KEY!;
-const JUNO_API_SECRET = process.env.JUNO_API_SECRET!;
-const JUNO_BASE_URL = process.env.JUNO_BASE_URL || "https://stage.buildwithjuno.com";
+// Get Juno configuration dynamically
+function getJunoConfig() {
+  const networkConfig = getCurrentNetworkConfig();
+  return {
+    apiKey: networkConfig.junoApiKey,
+    apiSecret: process.env.JUNO_API_SECRET!, // Keep secret in env
+    baseUrl: networkConfig.junoEnv === 'production' 
+      ? process.env.JUNO_PROD_BASE_URL! 
+      : process.env.JUNO_STAGE_BASE_URL!
+  };
+}
 
 function getJunoAuthHeaders(method: string, path: string, body: string = "") {
+  const junoConfig = getJunoConfig();
   const nonce = Date.now().toString();
   const stringToSign = `${nonce}${method}${path}${body}`;
   const signature = require('crypto')
-    .createHmac('sha256', JUNO_API_SECRET)
+    .createHmac('sha256', junoConfig.apiSecret)
     .update(stringToSign)
     .digest('hex');
-  const header = `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`;
+  const header = `Bitso ${junoConfig.apiKey}:${nonce}:${signature}`;
   return {
     'Authorization': header,
     'Content-Type': 'application/json'
@@ -25,8 +35,9 @@ export const getJunoTxDetails = async (req: Request, res: Response): Promise<voi
     res.status(400).json({ error: "Missing transaction_id" });
     return;
   }
+  const junoConfig = getJunoConfig();
   const path = `/mint_platform/v1/transactions/${transaction_id}`;
-  const url = `${JUNO_BASE_URL}${path}`;
+  const url = `${junoConfig.baseUrl}${path}`;
   const headers = getJunoAuthHeaders("POST", path);
   try {
     const response = await axios.post(url, {}, { headers });

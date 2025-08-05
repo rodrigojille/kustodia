@@ -1,17 +1,21 @@
 import { Request, Response } from "express";
-import ormconfig from "../ormconfig";
-import { Dispute } from "../entity/Dispute";
-import { User } from "../entity/User";
-import { Escrow } from "../entity/Escrow";
-import { Payment } from "../entity/Payment";
-import axios from "axios";
-import { Between, IsNull, Not } from "typeorm";
-import { ethers } from "ethers";
+import { Payment } from '../entity/Payment';
+import { User } from '../entity/User';
+import { Escrow } from '../entity/Escrow';
+import { PaymentEvent } from '../entity/PaymentEvent';
+import { Dispute } from '../entity/Dispute';
+import AppDataSource from '../ormconfig';
+import { Between, LessThan, MoreThan, IsNull } from 'typeorm';
+import { ethers } from 'ethers';
+import { createHmac } from 'crypto';
+import axios from 'axios';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
-// Utility to get Juno API credentials from env
 const JUNO_API_KEY = process.env.JUNO_API_KEY;
 const JUNO_API_SECRET = process.env.JUNO_API_SECRET;
 const JUNO_BASE_URL = process.env.JUNO_BASE_URL || 'https://api.juno.com';
+
+// Utility to get Juno API credentials from env
 
 // =============================================================================
 // 🎯 PAYMENT OPERATIONS CONTROL ROOM
@@ -19,9 +23,9 @@ const JUNO_BASE_URL = process.env.JUNO_BASE_URL || 'https://api.juno.com';
 
 // --- Dispute Management ---
 export const getAllDisputes = async (req: Request, res: Response): Promise<void> => {
-  const disputeRepo = ormconfig.getRepository(Dispute);
-  const userRepo = ormconfig.getRepository(User);
-  const escrowRepo = ormconfig.getRepository(Escrow);
+  const disputeRepo = AppDataSource.getRepository(Dispute);
+  const userRepo = AppDataSource.getRepository(User);
+  const escrowRepo = AppDataSource.getRepository(Escrow);
   const disputes = await disputeRepo.find({ 
     relations: ["escrow", "raisedBy", "escrow.payment"] 
   });
@@ -30,7 +34,7 @@ export const getAllDisputes = async (req: Request, res: Response): Promise<void>
 
 // --- User Management ---
 export const getAllUsersWithDetails = async (req: Request, res: Response): Promise<void> => {
-  const userRepo = ormconfig.getRepository(User);
+  const userRepo = AppDataSource.getRepository(User);
   const users = await userRepo.find();
   // Optionally, fetch balances and clabes here
   res.json({ users });
@@ -93,9 +97,9 @@ export const getUserDeposits = async (req: Request, res: Response): Promise<void
 
 export const getPaymentAnalytics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const paymentRepo = ormconfig.getRepository(Payment);
-    const escrowRepo = ormconfig.getRepository(Escrow);
-    const userRepo = ormconfig.getRepository(User);
+    const paymentRepo = AppDataSource.getRepository(Payment);
+    const escrowRepo = AppDataSource.getRepository(Escrow);
+    const userRepo = AppDataSource.getRepository(User);
 
     // Date filters
     const { timeframe = '30d' } = req.query;
@@ -550,9 +554,10 @@ export const getAllPayments = async (req: Request, res: Response): Promise<void>
 
 export const getBridgeWalletBalance = async (req: Request, res: Response): Promise<void> => {
   try {
-    const provider = new ethers.JsonRpcProvider(process.env.ETH_RPC_URL!);
-    const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS!;
-    const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET!;
+    const networkConfig = getCurrentNetworkConfig();
+    const provider = new ethers.JsonRpcProvider(networkConfig.rpcUrl);
+    const tokenAddress = networkConfig.mxnbTokenAddress;
+    const bridgeWallet = networkConfig.bridgeWallet;
     
     const ERC20_ABI = [
       "function balanceOf(address owner) view returns (uint256)",

@@ -96,7 +96,7 @@ async function main() {
     const paymentRepo = localDataSource.getRepository(Payment_1.Payment);
     const junoTxRepo = localDataSource.getRepository(JunoTransaction_1.JunoTransaction);
     // 1. Obtener todas las transacciones de Juno
-    const junoTxs = await (0, junoService_1.listJunoTransactions)(true); // true = stage
+    const junoTxs = await (0, junoService_1.listJunoTransactions)();
     let updatedPayments = 0;
     let updatedJunoTxs = 0;
     // Fetch SPEI deposits

@@ -7,9 +7,10 @@ exports.generateDepositClabe = void 0;
 exports.initiateWithdrawal = initiateWithdrawal;
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const WalletTransaction_1 = require("../entity/WalletTransaction");
+const User_1 = require("../entity/User");
+const networkConfig_1 = require("../utils/networkConfig");
 // Asumiremos que existe un junoService con un método para crear CLABEs
 const junoService_1 = require("../services/junoService");
-const User_1 = require("../entity/User");
 const generateDepositClabe = async (req, res) => {
     try {
         const walletTransactionRepo = ormconfig_1.default.getRepository(WalletTransaction_1.WalletTransaction);
@@ -59,7 +60,7 @@ async function initiateWithdrawal(req, res) {
         // Return the bridge wallet address so the user knows where to send the funds
         res.status(201).json({
             message: 'Withdrawal initiated. Please send the specified MXNB amount to the bridge wallet.',
-            bridgeWalletAddress: process.env.BRIDGE_WALLET_ADDRESS,
+            bridgeWalletAddress: (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet,
             transactionId: newTransaction.id
         });
     }

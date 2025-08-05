@@ -8,9 +8,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.preflightEscrow3 = void 0;
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const User_1 = require("../entity/User");
+const networkConfig_1 = require("../utils/networkConfig");
 const ESCROW3_CONTRACT_ADDRESS = process.env.ESCROW3_CONTRACT_ADDRESS;
-const MXNBS_CONTRACT_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS;
-const ARBITRUM_SEPOLIA_RPC_URL = process.env.ARBITRUM_SEPOLIA_RPC_URL;
 const escrowAbi = [
     "event EscrowCreated(uint256 indexed smart_contract_escrow_id, address indexed payer, address indexed seller, uint256 amount, uint256 custodyAmount, address commission)",
     "event EscrowReleased(uint256 indexed smart_contract_escrow_id, address indexed to)",
@@ -68,9 +67,9 @@ const preflightEscrow3 = async (req, res) => {
                 abi: escrowAbi
             },
             token: {
-                address: MXNBS_CONTRACT_ADDRESS
+                address: (0, networkConfig_1.getCurrentNetworkConfig)().mxnbTokenAddress
             },
-            rpc_url: ARBITRUM_SEPOLIA_RPC_URL
+            rpc_url: (0, networkConfig_1.getCurrentNetworkConfig)().rpcUrl
         });
     }
     catch (err) {

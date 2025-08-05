@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { ethers } from 'ethers';
 import logger from '../utils/logger';
-import { createSafeClient } from '@safe-global/sdk-starter-kit';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 export interface ApprovalRequest {
   id: string;
@@ -75,7 +75,7 @@ export class MultiSigApprovalService {
 
   constructor() {
     // Initialize provider
-    const rpcUrl = process.env.ARBITRUM_SEPOLIA_RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc';
+    const rpcUrl = getCurrentNetworkConfig().rpcUrl;
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
     // Initialize database connection
@@ -178,7 +178,7 @@ export class MultiSigApprovalService {
     const addressLower = walletAddress.toLowerCase();
     
     // Bridge wallet
-    const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET || '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b';
+    const bridgeWallet = getCurrentNetworkConfig().bridgeWallet;
     if (addressLower === bridgeWallet.toLowerCase()) {
       return process.env.ESCROW_PRIVATE_KEY;
     }
@@ -234,7 +234,7 @@ export class MultiSigApprovalService {
           updated_at = CURRENT_TIMESTAMP
         RETURNING *
       `, [
-        process.env.ESCROW_BRIDGE_WALLET || '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b',
+        getCurrentNetworkConfig().bridgeWallet,
         'low_value',
         1, // Bridge wallet - single signature
         1, // Single owner (bridge wallet)
@@ -294,7 +294,7 @@ export class MultiSigApprovalService {
       ]);
 
       // Add owner for bridge wallet (standard transactions)
-      const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET || '0xa383c8843ad37B95C3CceF2d2f4eBf0f3B8bBd2b';
+      const bridgeWallet = getCurrentNetworkConfig().bridgeWallet;
       await client.query(`
         INSERT INTO multisig_wallet_owners (
           wallet_address, owner_address, owner_name, is_active
@@ -1073,10 +1073,7 @@ export class MultiSigApprovalService {
       }
 
       // Multi-sig approval complete - now execute via bridge wallet
-      const rpcUrl = process.env.ARBITRUM_SEPOLIA_RPC_URL;
-      if (!rpcUrl) {
-        throw new Error('ARBITRUM_SEPOLIA_RPC_URL environment variable not set');
-      }
+      const rpcUrl = getCurrentNetworkConfig().rpcUrl;
 
       logger.info('Executing approved multi-sig transaction via bridge wallet', {
         transactionId,

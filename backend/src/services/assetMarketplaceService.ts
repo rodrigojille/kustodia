@@ -1,5 +1,8 @@
+import { ethers } from 'ethers';
+import { getRepository } from 'typeorm';
 import { User } from '../entity/User';
 import { Payment } from '../entity/Payment';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 import assetNFTService from './assetNFTService';
 import ormconfig from '../ormconfig';
 
@@ -146,7 +149,7 @@ class AssetIntegrationService {
       console.log('[AssetIntegration] Getting owned tokens for wallet:', walletAddress);
       
       const ethers = require('ethers');
-      const rpcUrl = process.env.ETH_RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc';
+      const rpcUrl = getCurrentNetworkConfig().rpcUrl;
       const universalContractAddress = process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS;
       
       if (!rpcUrl || !universalContractAddress) {

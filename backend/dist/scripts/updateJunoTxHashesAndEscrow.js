@@ -26,7 +26,7 @@ async function main() {
     const custodyTime = 3 * 24 * 60 * 60; // 3 días en segundos, ajusta según tu lógica
     // 1. Obtener hash de la transacción withdrawal Juno
     console.log('Buscando hash on-chain de withdrawal Juno:', withdrawalId);
-    let txHash = await (0, junoService_1.getJunoTxHashFromTimeline)(withdrawalId, true);
+    let txHash = await (0, junoService_1.getJunoTxHashFromTimeline)(withdrawalId);
     if (!txHash) {
         // Hash recuperado manualmente para la prueba
         txHash = '0x3b2e7dd88c73338370d001d90345c6b1ca4af659b2b4a145615ae10bab735fd0';

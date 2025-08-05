@@ -4,17 +4,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBridgeWalletBalance = exports.getAllPayments = exports.getUserAnalytics = exports.getJunoApiStatus = exports.bulkFixMissingUUIDs = exports.getPaymentHealth = exports.searchPayments = exports.getPaymentAnalytics = exports.getUserDeposits = exports.getUserClabes = exports.getAllUsersWithDetails = exports.getAllDisputes = void 0;
-const ormconfig_1 = __importDefault(require("../ormconfig"));
-const Dispute_1 = require("../entity/Dispute");
+const Payment_1 = require("../entity/Payment");
 const User_1 = require("../entity/User");
 const Escrow_1 = require("../entity/Escrow");
-const Payment_1 = require("../entity/Payment");
-const axios_1 = __importDefault(require("axios"));
+const Dispute_1 = require("../entity/Dispute");
+const ormconfig_1 = __importDefault(require("../ormconfig"));
 const ethers_1 = require("ethers");
-// Utility to get Juno API credentials from env
+const axios_1 = __importDefault(require("axios"));
+const networkConfig_1 = require("../utils/networkConfig");
 const JUNO_API_KEY = process.env.JUNO_API_KEY;
 const JUNO_API_SECRET = process.env.JUNO_API_SECRET;
 const JUNO_BASE_URL = process.env.JUNO_BASE_URL || 'https://api.juno.com';
+// Utility to get Juno API credentials from env
 // =============================================================================
 // 🎯 PAYMENT OPERATIONS CONTROL ROOM
 // =============================================================================
@@ -41,7 +42,7 @@ const getUserClabes = async (req, res) => {
     const { userId } = req.params;
     // Fetch CLABEs from DB and Juno API
     // DB fetch (assume User has clabe field or related entity)
-    const userRepo = ormconfig_1.default.getRepository(User_1.User);
+    const userRepo = ormconfig.getRepository(User_1.User);
     const user = await userRepo.findOne({ where: { id: Number(userId) } });
     // Collect both deposit and payout CLABEs
     let dbClabes = [];
@@ -69,7 +70,7 @@ const getUserDeposits = async (req, res) => {
     const { userId } = req.params;
     // Fetch deposits from DB and Juno API
     // DB fetch (assume Escrow has deposits or related entity)
-    const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
+    const escrowRepo = ormconfig.getRepository(Escrow_1.Escrow);
     // Assuming Escrow -> Payment -> User
     // Fetch escrows where payment.user.id = userId
     const dbDeposits = await escrowRepo.find({
@@ -117,7 +118,7 @@ const getPaymentAnalytics = async (req, res) => {
             default: startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         }
         // 📊 Payment Volume Analytics
-        const paymentStats = await ormconfig_1.default.query(`
+        const paymentStats = await ormconfig.query(`
       SELECT 
         COUNT(*) as total_payments,
         COUNT(CASE WHEN status = 'escrowed' THEN 1 END) as escrowed_payments,
@@ -130,7 +131,7 @@ const getPaymentAnalytics = async (req, res) => {
       WHERE created_at >= $1
     `, [startDate]);
         // 🔄 Escrow Status Distribution
-        const escrowStats = await ormconfig_1.default.query(`
+        const escrowStats = await ormconfig.query(`
       SELECT 
         e.status,
         COUNT(*) as count,
@@ -142,7 +143,7 @@ const getPaymentAnalytics = async (req, res) => {
       ORDER BY count DESC
     `, [startDate]);
         // 🏦 Juno Integration Health
-        const junoHealth = await ormconfig_1.default.query(`
+        const junoHealth = await ormconfig.query(`
       SELECT 
         COUNT(CASE WHEN payout_juno_bank_account_id IS NOT NULL THEN 1 END) as payments_with_juno_uuid,
         COUNT(CASE WHEN payout_juno_bank_account_id IS NULL THEN 1 END) as payments_missing_juno_uuid,
@@ -151,7 +152,7 @@ const getPaymentAnalytics = async (req, res) => {
       WHERE created_at >= $1
     `, [startDate]);
         // 👥 User Activity
-        const userStats = await ormconfig_1.default.query(`
+        const userStats = await ormconfig.query(`
       SELECT 
         COUNT(DISTINCT user_id) as active_buyers,
         COUNT(DISTINCT seller_id) as active_sellers,
@@ -161,7 +162,7 @@ const getPaymentAnalytics = async (req, res) => {
       WHERE p.created_at >= $1
     `, [startDate]);
         // 📈 Daily Transaction Trends
-        const dailyTrends = await ormconfig_1.default.query(`
+        const dailyTrends = await ormconfig.query(`
       SELECT 
         DATE(created_at) as date,
         COUNT(*) as transaction_count,
@@ -256,13 +257,13 @@ const searchPayments = async (req, res) => {
         }
         // Count total for pagination
         const countSql = sql.replace(/SELECT[\s\S]*?FROM/, 'SELECT COUNT(*) as total FROM');
-        const countResult = await ormconfig_1.default.query(countSql, params);
+        const countResult = await ormconfig.query(countSql, params);
         const total = parseInt(countResult[0].total);
         // Add pagination
         const offset = (parseInt(page) - 1) * parseInt(limit);
         sql += ` ORDER BY p.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
         params.push(parseInt(limit), offset);
-        const payments = await ormconfig_1.default.query(sql, params);
+        const payments = await ormconfig.query(sql, params);
         res.json({
             success: true,
             payments,
@@ -286,7 +287,7 @@ exports.searchPayments = searchPayments;
 const getPaymentHealth = async (req, res) => {
     try {
         // 🚨 Critical Issues Detection
-        const criticalIssues = await ormconfig_1.default.query(`
+        const criticalIssues = await ormconfig.query(`
       SELECT 
         'Missing Juno UUID' as issue_type,
         COUNT(*) as count,
@@ -323,7 +324,7 @@ const getPaymentHealth = async (req, res) => {
       WHERE status = 'pending' AND created_at < NOW() - INTERVAL '24 hours'
     `);
         // 🔍 Automation Readiness Check
-        const automationReadiness = await ormconfig_1.default.query(`
+        const automationReadiness = await ormconfig.query(`
       SELECT 
         COUNT(CASE WHEN e.status = 'released' AND p.payout_juno_bank_account_id IS NOT NULL THEN 1 END) as ready_for_automation,
         COUNT(CASE WHEN e.status = 'released' AND p.payout_juno_bank_account_id IS NULL THEN 1 END) as blocked_automation,
@@ -333,7 +334,7 @@ const getPaymentHealth = async (req, res) => {
       WHERE p.status = 'escrowed'
     `);
         // 📊 Recent Activity Summary
-        const recentActivity = await ormconfig_1.default.query(`
+        const recentActivity = await ormconfig.query(`
       SELECT 
         DATE_TRUNC('hour', created_at) as hour,
         COUNT(*) as payment_count,
@@ -366,7 +367,7 @@ const bulkFixMissingUUIDs = async (req, res) => {
         const { payment_ids, fix_type } = req.body;
         if (fix_type === 'seller_uuid') {
             // Fix missing seller UUIDs
-            const result = await ormconfig_1.default.query(`
+            const result = await ormconfig.query(`
         UPDATE payment 
         SET payout_juno_bank_account_id = u.juno_bank_account_id
         FROM "user" u
@@ -449,7 +450,7 @@ const getUserAnalytics = async (req, res) => {
                 break;
             default: startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         }
-        const userStats = await ormconfig_1.default.query(`
+        const userStats = await ormconfig.query(`
       SELECT 
         COUNT(DISTINCT u.id) as total_users,
         COUNT(DISTINCT CASE WHEN p.user_id IS NOT NULL THEN u.id END) as active_buyers,
@@ -466,7 +467,7 @@ const getUserAnalytics = async (req, res) => {
       ) payment_count ON true
       WHERE u.created_at >= $1
     `, [startDate]);
-        const topUsers = await ormconfig_1.default.query(`
+        const topUsers = await ormconfig.query(`
       SELECT 
         u.id, u.email, u.full_name, u.kyc_status,
         COUNT(p.id) as payment_count,
@@ -500,7 +501,7 @@ exports.getUserAnalytics = getUserAnalytics;
 // Legacy function - preserved for backward compatibility
 const getAllPayments = async (req, res) => {
     try {
-        const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
+        const paymentRepo = ormconfig.getRepository(Payment_1.Payment);
         const payments = await paymentRepo.find({
             relations: ["user", "escrow"],
             order: { created_at: "DESC" },
@@ -520,9 +521,10 @@ exports.getAllPayments = getAllPayments;
 // =============================================================================
 const getBridgeWalletBalance = async (req, res) => {
     try {
-        const provider = new ethers_1.ethers.JsonRpcProvider(process.env.ETH_RPC_URL);
-        const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS;
-        const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET;
+        const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+        const provider = new ethers_1.ethers.JsonRpcProvider(networkConfig.rpcUrl);
+        const tokenAddress = networkConfig.mxnbTokenAddress;
+        const bridgeWallet = networkConfig.bridgeWallet;
         const ERC20_ABI = [
             "function balanceOf(address owner) view returns (uint256)",
             "function decimals() view returns (uint8)",

@@ -560,4 +560,124 @@ router.get('/create-safe-transaction/:transactionId', authenticateJWT, validateA
   }
 });
 
+/**
+ * POST /api/multisig/approve/:transactionId
+ * Approve a multi-sig transaction
+ */
+router.post('/approve/:transactionId', authenticateJWT, validateAdminAccess, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { transactionId } = req.params;
+    const { signature } = req.body;
+    const signerAddress = (req as any).user?.wallet_address || req.body.address;
+
+    if (!signerAddress) {
+      res.status(400).json({ error: 'Signer address is required' });
+      return;
+    }
+
+    const approvalRequest = await multiSigService.approveTransaction(
+      transactionId,
+      signerAddress,
+      signature
+    );
+
+    logger.info('Multi-sig transaction approved', {
+      transactionId,
+      signerAddress,
+      currentSignatures: approvalRequest.currentSignatures,
+      requiredSignatures: approvalRequest.requiredSignatures
+    });
+
+    res.json({
+      success: true,
+      data: approvalRequest
+    });
+  } catch (error) {
+    logger.error('Error approving multi-sig transaction:', error);
+    res.status(500).json({ 
+      error: 'Failed to approve transaction',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * POST /api/multisig/reject/:transactionId
+ * Reject a multi-sig transaction
+ */
+router.post('/reject/:transactionId', authenticateJWT, validateAdminAccess, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { transactionId } = req.params;
+    const { reason } = req.body;
+    const signerAddress = (req as any).user?.wallet_address || req.body.address;
+
+    if (!signerAddress) {
+      res.status(400).json({ error: 'Signer address is required' });
+      return;
+    }
+
+    const approvalRequest = await multiSigService.rejectTransaction(
+      transactionId,
+      signerAddress,
+      reason
+    );
+
+    logger.info('Multi-sig transaction rejected', {
+      transactionId,
+      signerAddress,
+      reason
+    });
+
+    res.json({
+      success: true,
+      data: approvalRequest
+    });
+  } catch (error) {
+    logger.error('Error rejecting multi-sig transaction:', error);
+    res.status(500).json({ 
+      error: 'Failed to reject transaction',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * POST /api/multisig/execute/:transactionId
+ * Execute a fully approved multi-sig transaction
+ */
+router.post('/execute/:transactionId', authenticateJWT, validateAdminAccess, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { transactionId } = req.params;
+    const executorAddress = (req as any).user?.wallet_address || req.body.address;
+
+    if (!executorAddress) {
+      res.status(400).json({ error: 'Executor address is required' });
+      return;
+    }
+
+    const txHash = await multiSigService.executeTransaction(transactionId, executorAddress);
+
+    logger.info('Multi-sig transaction executed', {
+      transactionId,
+      executorAddress,
+      txHash
+    });
+
+    res.json({
+      success: true,
+      data: {
+        transactionHash: txHash,
+        executedBy: executorAddress,
+        executedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    logger.error('Error executing multi-sig transaction:', error);
+    res.status(500).json({ 
+      error: 'Failed to execute transaction',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

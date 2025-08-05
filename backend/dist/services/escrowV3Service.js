@@ -42,6 +42,7 @@ const portalSignerService_1 = require("./portalSignerService");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const dotenv = __importStar(require("dotenv"));
+const networkConfig_1 = require("../utils/networkConfig");
 // Load environment variables with explicit path
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 console.log('[escrowV3Service] Starting import for V3');
@@ -54,16 +55,17 @@ const erc20ArtifactPath = path.resolve(artifactsBase, 'contracts/MockERC20.sol/M
 console.log('[escrowV3Service] Resolved KustodiaEscrow3_0.json path:', escrowArtifactPath);
 console.log('[escrowV3Service] KustodiaEscrow3_0.json exists:', fs.existsSync(escrowArtifactPath));
 // Configurable RPC URL
-const RPC_URL = process.env.ETH_RPC_URL;
+const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+const RPC_URL = networkConfig.rpcUrl;
 const provider = new ethers_1.ethers.JsonRpcProvider(RPC_URL);
 // Use the platform's escrow private key for signing transactions
-const PRIVATE_KEY = process.env.ESCROW_PRIVATE_KEY;
+const PRIVATE_KEY = networkConfig.privateKey;
 const signer = new ethers_1.ethers.Wallet(PRIVATE_KEY, provider);
 // Use KUSTODIA_ESCROW_V3_ADDRESS for the Web3 flow
 const ESCROW_ADDRESS = process.env.KUSTODIA_ESCROW_V3_ADDRESS;
 console.log('[escrowV3Service] Using KUSTODIA_ESCROW_V3_ADDRESS:', ESCROW_ADDRESS);
 // MXNB Token contract address
-const TOKEN_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS;
+const TOKEN_ADDRESS = networkConfig.mxnbTokenAddress;
 // Load ABIs with error handling
 let ESCROW_ABI;
 try {

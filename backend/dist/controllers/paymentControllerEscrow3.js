@@ -12,9 +12,8 @@ const Escrow_1 = require("../entity/Escrow");
 // NOTE: Use the backup User entity with portal_share field for correct typing
 const User_1 = require("../entity/User");
 const ethers_1 = require("ethers");
+const networkConfig_1 = require("../utils/networkConfig");
 const ESCROW3_CONTRACT_ADDRESS = process.env.KUSTODIA_ESCROW_V3_ADDRESS;
-const MXNBS_CONTRACT_ADDRESS = process.env.MXNB_CONTRACT_ADDRESS;
-const ARBITRUM_SEPOLIA_RPC_URL = process.env.ARBITRUM_SEPOLIA_RPC_URL;
 const escrowAbi = [
     "event EscrowCreated(uint256 indexed smart_contract_escrow_id, address indexed payer, address indexed seller, uint256 amount, uint256 custodyAmount, address commission)",
     "event EscrowReleased(uint256 indexed smart_contract_escrow_id, address indexed to)",
@@ -139,7 +138,7 @@ exports.initiateEscrow3Payment = initiateEscrow3Payment;
 // This function should be called by a backend job or webhook
 const syncEscrow3Events = async (req, res) => {
     try {
-        const provider = new ethers_1.ethers.JsonRpcProvider(ARBITRUM_SEPOLIA_RPC_URL || "");
+        const provider = new ethers_1.ethers.JsonRpcProvider((0, networkConfig_1.getCurrentNetworkConfig)().rpcUrl);
         const escrow = new ethers_1.ethers.Contract(ESCROW3_CONTRACT_ADDRESS || "", escrowAbi, provider);
         // 1. Get last synced block from DB or config (implement as needed)
         const fromBlock = Number(process.env.LAST_SYNCED_BLOCK || 0);

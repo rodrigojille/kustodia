@@ -417,10 +417,7 @@ export const updateKYCStatus = async (req: Request, res: Response): Promise<void
         truora_process_id: process_id,
       };
 
-      // Add Truora result data if available
-      if (truoraResult) {
-        updateData.truora_result = JSON.stringify(truoraResult);
-      }
+      // Note: truora_result field removed as it doesn't exist in User entity
 
       const result = await userRepo.update(
         { email: email },

@@ -5,10 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const escrowService_1 = require("../services/escrowService");
 const dotenv_1 = __importDefault(require("dotenv"));
+const networkConfig_1 = require("../utils/networkConfig");
 dotenv_1.default.config();
 async function main() {
     // Parámetros para el test manual:
-    const sellerAddress = process.env.BRIDGE_WALLET_ADDRESS; // Usa la wallet de la plataforma
+    const sellerAddress = (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet; // Usa la wallet de la plataforma
     const custodyAmount = '2000000000000000000000'; // 2,000 MXNB en wei (ajusta según decimales)
     const custodyPeriod = 604800; // 7 días en segundos
     if (!sellerAddress) {

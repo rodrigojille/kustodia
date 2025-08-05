@@ -55,6 +55,7 @@ const dotenv = __importStar(require("dotenv"));
 const node_crypto_1 = require("node:crypto");
 const axios_1 = __importDefault(require("axios"));
 const ethers_1 = require("ethers");
+const networkConfig_1 = require("../utils/networkConfig");
 dotenv.config();
 class PaymentAutomationService {
     constructor() {
@@ -371,7 +372,7 @@ class PaymentAutomationService {
      * Process MXNB withdrawal to bridge wallet with enhanced error handling
      */
     async processBridgeWithdrawal(payment, amount) {
-        const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET;
+        const bridgeWallet = (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet;
         if (!bridgeWallet)
             throw new Error('ESCROW_BRIDGE_WALLET not set in .env');
         try {
@@ -408,9 +409,10 @@ class PaymentAutomationService {
      */
     async checkBridgeWalletBalance(requiredAmount) {
         try {
-            const provider = new ethers_1.ethers.JsonRpcProvider(process.env.ETH_RPC_URL);
-            const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS;
-            const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET;
+            const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+            const provider = new ethers_1.ethers.JsonRpcProvider(networkConfig.rpcUrl);
+            const tokenAddress = networkConfig.mxnbTokenAddress;
+            const bridgeWallet = (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet;
             const ERC20_ABI = [
                 "function balanceOf(address owner) view returns (uint256)",
                 "function decimals() view returns (uint8)"
@@ -443,7 +445,7 @@ class PaymentAutomationService {
         const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
         const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
         const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS;
-        const bridgeWallet = process.env.ESCROW_BRIDGE_WALLET;
+        const bridgeWallet = (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet;
         if (!payment.escrow)
             throw new Error(`Payment ${payment.id} missing escrow relation`);
         if (!payment.escrow.custody_end)
@@ -952,11 +954,12 @@ class PaymentAutomationService {
         // but we can implement flags to disable processing
     }
     async withdrawFromJunoToBridge(amount) {
-        const JUNO_ENV = process.env.JUNO_ENV || 'stage';
-        const JUNO_API_KEY = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_KEY : process.env.JUNO_API_KEY;
-        const JUNO_API_SECRET = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_API_SECRET : process.env.JUNO_API_SECRET;
-        const BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
-        const DESTINATION_ADDRESS = process.env.ESCROW_BRIDGE_WALLET;
+        const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+        const JUNO_ENV = networkConfig.junoEnv;
+        const JUNO_API_KEY = networkConfig.junoApiKey;
+        const JUNO_API_SECRET = process.env.JUNO_API_SECRET; // Keep secret in env
+        const BASE_URL = JUNO_ENV === 'production' ? process.env.JUNO_PROD_BASE_URL : process.env.JUNO_STAGE_BASE_URL;
+        const DESTINATION_ADDRESS = (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet;
         const endpoint = '/mint_platform/v1/crypto_withdrawals';
         const url = `${BASE_URL}${endpoint}`;
         const bodyObj = {
@@ -981,7 +984,7 @@ class PaymentAutomationService {
     async transferBridgeToJuno(amount) {
         const MXNB_TOKEN = "0x82B9e52b26A2954E113F94Ff26647754d5a4247D";
         const BRIDGE_WALLET_PK = process.env.ESCROW_PRIVATE_KEY;
-        const PROVIDER_URL = process.env.ETH_RPC_URL;
+        const PROVIDER_URL = (0, networkConfig_1.getCurrentNetworkConfig)().rpcUrl;
         const JUNO_WALLET = process.env.JUNO_WALLET;
         if (!BRIDGE_WALLET_PK || !JUNO_WALLET) {
             throw new Error('Missing bridge wallet private key or Juno wallet address in .env');

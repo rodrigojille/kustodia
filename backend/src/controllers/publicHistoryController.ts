@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import assetNFTService from '../services/assetNFTService';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 /**
  * Public Vehicle History Controller
@@ -48,9 +49,9 @@ export const getPublicVehicleHistory = async (req: Request, res: Response): Prom
       fuelType: metadata.metadata?.fuelType || 'No especificado',
       // Don't expose VIN, owner address, or other sensitive data
       isVerified: metadata.metadata ? true : false,
-      contractAddress: process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS,
+      contractAddress: getCurrentNetworkConfig().nftCompactAddress,
       blockchain: 'Arbitrum Sepolia',
-      verificationUrl: `https://sepolia.arbiscan.io/token/${process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS}?a=${tokenId}`
+      verificationUrl: `${getCurrentNetworkConfig().explorerUrl}/token/${getCurrentNetworkConfig().nftCompactAddress}?a=${tokenId}`
     };
 
     // Create public response
@@ -119,7 +120,7 @@ export const getPublicVehicleSummary = async (req: Request, res: Response): Prom
       },
       blockchain: {
         network: 'Arbitrum Sepolia',
-        contractAddress: process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS,
+        contractAddress: getCurrentNetworkConfig().nftCompactAddress,
         verified: true
       },
       publicAccess: true
@@ -174,7 +175,7 @@ export const getVehicleVerificationCertificate = async (req: Request, res: Respo
         },
         blockchain: {
           network: 'Arbitrum Sepolia',
-          contractAddress: process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS,
+          contractAddress: getCurrentNetworkConfig().nftCompactAddress,
           tokenStandard: 'ERC-721',
           verified: true
         },

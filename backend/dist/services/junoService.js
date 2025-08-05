@@ -52,6 +52,7 @@ exports.getRegisteredBankAccounts = getRegisteredBankAccounts;
 const axios_1 = __importDefault(require("axios"));
 const crypto = __importStar(require("crypto"));
 const dotenv = __importStar(require("dotenv"));
+const networkConfig_1 = require("../utils/networkConfig");
 // Load environment variables
 dotenv.config();
 let JUNO_ENV;
@@ -59,20 +60,21 @@ let JUNO_API_KEY;
 let JUNO_API_SECRET;
 let JUNO_BASE_URL;
 function initializeJunoService() {
-    JUNO_ENV = process.env.JUNO_ENV || 'stage';
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    JUNO_ENV = networkConfig.junoEnv;
+    JUNO_API_KEY = networkConfig.junoApiKey;
+    // Get API secret from environment (not in network config for security)
     if (JUNO_ENV === 'stage') {
-        JUNO_API_KEY = process.env.JUNO_STAGE_API_KEY;
         JUNO_API_SECRET = process.env.JUNO_STAGE_API_SECRET;
     }
     else {
-        JUNO_API_KEY = process.env.JUNO_API_KEY;
-        JUNO_API_SECRET = process.env.JUNO_API_SECRET;
+        JUNO_API_SECRET = process.env.JUNO_PROD_API_SECRET;
     }
     if (!JUNO_API_KEY || !JUNO_API_SECRET) {
         throw new Error(`[JUNO] Missing required API credentials for environment: ${JUNO_ENV}. Please check your .env file.`);
     }
-    JUNO_BASE_URL = JUNO_ENV === 'stage' ? 'https://stage.buildwithjuno.com' : 'https://buildwithjuno.com';
-    console.log(`[JUNO] Service Initialized. Using environment: ${JUNO_ENV}`);
+    JUNO_BASE_URL = JUNO_ENV === 'stage' ? process.env.JUNO_STAGE_BASE_URL : process.env.JUNO_PROD_BASE_URL;
+    console.log(`[JUNO] Service Initialized. Using environment: ${JUNO_ENV} (Network: ${networkConfig.networkName})`);
     console.log(`[JUNO] Using API key: ${JUNO_API_KEY.slice(0, 4)}... (stage: ${JUNO_ENV === 'stage'})`);
 }
 /**
@@ -82,22 +84,29 @@ function initializeJunoService() {
  * @returns The created CLABE string
  */
 async function createJunoClabe() {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     // Correct endpoint for CLABE creation (for deposits)
-    const url = 'https://stage.buildwithjuno.com/mint_platform/v1/clabes';
+    const url = `${JUNO_BASE_URL}/mint_platform/v1/clabes`;
     const requestPath = '/mint_platform/v1/clabes';
     const method = 'POST';
     const nonce = Date.now().toString();
     const body = '{}'; // No payload for AUTO_PAYMENT CLABE
     // Build signature as per Bitso/Juno docs
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     // Bitso HMAC header
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`,
     };
     // Debug logging for troubleshooting
     console.log('--- JUNO CLABE DEBUG ---');
+    console.log('Environment:', networkConfig.junoEnv);
+    console.log('API Key being used:', networkConfig.junoApiKey);
+    console.log('Base URL:', JUNO_BASE_URL);
     console.log('String to sign:', dataToSign);
     console.log('Signature:', signature);
     console.log('Headers:', headers);
@@ -124,6 +133,10 @@ async function createJunoClabe() {
  * @returns The redemption response from the API
  */
 async function redeemMXNbForMXN(amount, destination_bank_account_id, idempotencyKey) {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const endpoint = '/mint_platform/v1/redemptions';
     const url = `${JUNO_BASE_URL}${endpoint}`;
     // Generate unique idempotency key for each redemption attempt
@@ -139,10 +152,10 @@ async function redeemMXNbForMXN(amount, destination_bank_account_id, idempotency
     const method = 'POST';
     const requestPath = endpoint;
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`,
         'X-Idempotency-Key': finalIdempotencyKey
     };
     console.log(`[JUNO] Redeeming ${amount} MXNB to bank account ${destination_bank_account_id}...`);
@@ -160,20 +173,24 @@ async function redeemMXNbForMXN(amount, destination_bank_account_id, idempotency
         throw err;
     }
 }
-async function getJunoTxHashFromTimeline(transactionId, isStage = true) {
-    const baseUrl = isStage
-        ? 'https://stage.buildwithjuno.com'
-        : 'https://buildwithjuno.com';
+async function getJunoTxHashFromTimeline(transactionId) {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const baseUrl = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_BASE_URL
+        : process.env.JUNO_STAGE_BASE_URL;
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const requestPath = `/mint_platform/v1/transactions/${transactionId}`;
     const url = `${baseUrl}${requestPath}`;
     const method = 'GET';
     const nonce = Date.now().toString();
     const body = '';
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`,
     };
     try {
         const response = await axios_1.default.get(url, { headers });
@@ -192,6 +209,10 @@ async function getJunoTxHashFromTimeline(transactionId, isStage = true) {
  * @returns Array de transacciones Juno
  */
 async function withdrawCryptoToBridgeWallet(amount, destinationAddress) {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const endpoint = '/mint_platform/v1/withdrawals';
     const url = `${JUNO_BASE_URL}${endpoint}`;
     const bodyObj = {
@@ -205,10 +226,10 @@ async function withdrawCryptoToBridgeWallet(amount, destinationAddress) {
     const method = 'POST';
     const requestPath = endpoint;
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`,
     };
     console.log('Enviando withdrawal de MXNB via junoService...');
     console.log('Destino:', destinationAddress);
@@ -224,22 +245,35 @@ async function withdrawCryptoToBridgeWallet(amount, destinationAddress) {
         throw err;
     }
 }
-async function listJunoTransactions(isStage = true) {
-    const baseUrl = isStage
-        ? 'https://stage.buildwithjuno.com'
-        : 'https://buildwithjuno.com';
+async function listJunoTransactions() {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    // Get the correct API secret and base URL based on environment
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
+    const baseUrl = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_BASE_URL
+        : process.env.JUNO_STAGE_BASE_URL;
     // Use the new, correct endpoint for SPEI deposits that includes the receiver_clabe
-    const requestPath = '/spei/v1/deposits';
+    const requestPath = '/spei/v1/deposits/';
     const url = `${baseUrl}${requestPath}`;
     const method = 'GET';
     const nonce = Date.now().toString();
     const body = ''; // GET request has no body
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`,
     };
+    console.log('--- JUNO DEPOSITS DEBUG (listJunoTransactions) ---');
+    console.log('Environment:', networkConfig.junoEnv);
+    console.log('API Key:', networkConfig.junoApiKey);
+    console.log('Base URL:', baseUrl);
+    console.log('Full URL:', url);
+    console.log('String to sign:', dataToSign);
+    console.log('Signature:', signature);
+    console.log('Auth Header:', headers.Authorization);
     try {
         const response = await axios_1.default.get(url, { headers });
         // Enhanced logging for better debugging
@@ -264,6 +298,10 @@ async function listJunoTransactions(isStage = true) {
  * @returns Redemption transaction details
  */
 async function redeemMXNBToMXN(amount, destinationBankAccountId, idempotencyKey) {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const url = `${JUNO_BASE_URL}/mint_platform/v1/redemptions`;
     const requestPath = '/mint_platform/v1/redemptions';
     const method = 'POST';
@@ -281,10 +319,10 @@ async function redeemMXNBToMXN(amount, destinationBankAccountId, idempotencyKey)
     const body = JSON.stringify(bodyData);
     // Build signature
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`,
         'X-Idempotency-Key': finalIdempotencyKey
     };
     console.log(`[JUNO] Redeeming ${amount} MXN to bank account ${destinationBankAccountId}`);
@@ -321,6 +359,10 @@ async function redeemMXNBToMXN(amount, destinationBankAccountId, idempotencyKey)
  * @returns Withdrawal status details
  */
 async function getWithdrawalStatus(withdrawalId) {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const url = `${JUNO_BASE_URL}/mint_platform/v1/withdrawals/${withdrawalId}`;
     const requestPath = `/mint_platform/v1/withdrawals/${withdrawalId}`;
     const method = 'GET';
@@ -328,10 +370,10 @@ async function getWithdrawalStatus(withdrawalId) {
     const body = '';
     // Build signature
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`
     };
     try {
         const response = await axios_1.default.get(url, { headers });
@@ -347,6 +389,10 @@ async function getWithdrawalStatus(withdrawalId) {
  * @returns Array of recent withdrawals
  */
 async function listRecentWithdrawals() {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const url = `${JUNO_BASE_URL}/mint_platform/v1/withdrawals`;
     const requestPath = '/mint_platform/v1/withdrawals';
     const method = 'GET';
@@ -354,10 +400,10 @@ async function listRecentWithdrawals() {
     const body = '';
     // Build signature
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`
     };
     try {
         const response = await axios_1.default.get(url, { headers });
@@ -406,6 +452,10 @@ async function verifyWithdrawalProcessed(amount, walletAddress, timeWindow = 5) 
  * @returns Withdrawal transaction details
  */
 async function withdrawMXNBToBridge(amount, walletAddress) {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const url = `${JUNO_BASE_URL}/mint_platform/v1/withdrawals`;
     const requestPath = '/mint_platform/v1/withdrawals';
     const method = 'POST';
@@ -433,10 +483,10 @@ async function withdrawMXNBToBridge(amount, walletAddress) {
     const body = JSON.stringify(bodyData);
     // Build signature
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`,
         'X-Idempotency-Key': idempotencyKey
     };
     console.log(`[JUNO] Withdrawing ${amount} MXNB to bridge wallet ${walletAddress}`);
@@ -486,6 +536,10 @@ async function withdrawMXNBToBridge(amount, walletAddress) {
  * @returns Registration result with UUID
  */
 async function registerBankAccount(clabe, accountHolderName) {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const url = `${JUNO_BASE_URL}/mint_platform/v1/accounts/banks`;
     const requestPath = '/mint_platform/v1/accounts/banks';
     const method = 'POST';
@@ -500,10 +554,10 @@ async function registerBankAccount(clabe, accountHolderName) {
     const body = JSON.stringify(bodyData);
     // Build signature
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`,
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`,
         'X-Idempotency-Key': crypto.randomUUID() // Prevent duplicates
     };
     console.log(`[JUNO] Registering bank account CLABE ${clabe} for ${accountHolderName}`);
@@ -539,6 +593,10 @@ async function registerBankAccount(clabe, accountHolderName) {
  * @returns Array of registered bank accounts
  */
 async function getRegisteredBankAccounts() {
+    const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+    const apiSecret = networkConfig.junoEnv === 'production'
+        ? process.env.JUNO_PROD_API_SECRET
+        : process.env.JUNO_STAGE_API_SECRET;
     const url = `${JUNO_BASE_URL}/mint_platform/v1/accounts/banks`;
     const requestPath = '/mint_platform/v1/accounts/banks';
     const method = 'GET';
@@ -546,10 +604,10 @@ async function getRegisteredBankAccounts() {
     const body = '';
     // Build signature
     const dataToSign = nonce + method + requestPath + body;
-    const signature = crypto.createHmac('sha256', JUNO_API_SECRET).update(dataToSign).digest('hex');
+    const signature = crypto.createHmac('sha256', apiSecret).update(dataToSign).digest('hex');
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bitso ${JUNO_API_KEY}:${nonce}:${signature}`
+        'Authorization': `Bitso ${networkConfig.junoApiKey}:${nonce}:${signature}`
     };
     try {
         const response = await axios_1.default.get(url, { headers });

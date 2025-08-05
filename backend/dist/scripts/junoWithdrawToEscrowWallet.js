@@ -7,9 +7,10 @@ console.log('--- Script execution started ---');
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 const junoService_1 = require("../services/junoService");
+const networkConfig_1 = require("../utils/networkConfig");
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../../../.env') });
 async function main() {
-    const destinationAddress = process.env.BRIDGE_WALLET_ADDRESS;
+    const destinationAddress = (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet;
     const amount = parseFloat(process.env.WITHDRAW_AMOUNT || '2000');
     if (!destinationAddress) {
         throw new Error('Falta BRIDGE_WALLET_ADDRESS en .env');

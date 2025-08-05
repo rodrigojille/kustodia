@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import axios from 'axios';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 // Transaction types that can be routed
 export type TransactionType = 
@@ -60,7 +61,7 @@ export class TransactionRouterService {
   private readonly WALLET_CONFIG = {
     // Single-sig bridge wallet (current system)
     BRIDGE_WALLET: {
-      address: process.env.BRIDGE_WALLET_ADDRESS || '',
+      address: getCurrentNetworkConfig().bridgeWallet,
       type: 'single-sig' as const,
       threshold: 1,
     },

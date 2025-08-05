@@ -7,6 +7,7 @@ import { PaymentEvent } from '../../entity/PaymentEvent';
 import { Escrow } from '../../entity/Escrow';
 import { Dispute } from '../../entity/Dispute';
 import { PaymentAutomationService } from '../../services/PaymentAutomationService';
+import { getCurrentNetworkConfig } from '../../utils/networkConfig';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 
@@ -49,9 +50,10 @@ async function checkServiceHealth() {
 
   try {
     // Check Juno API (simple ping)
-    const junoBaseUrl = process.env.JUNO_ENV === 'stage' 
-      ? 'https://stage.buildwithjuno.com' 
-      : 'https://buildwithjuno.com';
+    const networkConfig = getCurrentNetworkConfig();
+    const junoBaseUrl = networkConfig.junoEnv === 'production' 
+      ? process.env.JUNO_PROD_BASE_URL! 
+      : process.env.JUNO_STAGE_BASE_URL!;
     
     const response = await axios.get(`${junoBaseUrl}/ping`, { 
       timeout: 5000,

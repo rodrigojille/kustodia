@@ -7,10 +7,11 @@ exports.bridgeWalletAddress = void 0;
 exports.sendMxnbToAddress = sendMxnbToAddress;
 exports.getTransactionReceipt = getTransactionReceipt;
 const ethers_1 = require("ethers");
+const networkConfig_1 = require("../utils/networkConfig");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 // Use the correct environment variable names from the user's .env file
-const rpcUrl = process.env.ETH_RPC_URL;
+const rpcUrl = (0, networkConfig_1.getCurrentNetworkConfig)().rpcUrl;
 const privateKey = process.env.ESCROW_PRIVATE_KEY;
 const contractAddress = process.env.MOCK_ERC20_ADDRESS;
 if (!rpcUrl || !privateKey || !contractAddress) {
