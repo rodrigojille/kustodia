@@ -76,7 +76,7 @@ export class NetworkConfigManager {
       chainId: 421614,
       networkName: 'Arbitrum Sepolia Testnet',
       junoEnv: process.env.JUNO_ENV || 'stage',
-      junoApiKey: process.env.JUNO_API_KEY || '',
+      junoApiKey: process.env.JUNO_STAGE_API_KEY || '', // 🚨 FIX: Use JUNO_STAGE_API_KEY to match JUNO_STAGE_API_SECRET
       // Multi-sig configuration (testnet)
       highValueMultisigAddress: process.env.HIGH_VALUE_MULTISIG_ADDRESS || '',
       enterpriseMultisigAddress: process.env.ENTERPRISE_MULTISIG_ADDRESS || '',
