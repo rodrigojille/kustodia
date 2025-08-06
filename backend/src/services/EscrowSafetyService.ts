@@ -2,7 +2,7 @@ import AppDataSource from '../ormconfig';
 import { Payment } from '../entity/Payment';
 import { Escrow } from '../entity/Escrow';
 import { PaymentEvent } from '../entity/PaymentEvent';
-import { createEscrow } from './escrowService';
+import { createEscrow, checkAndUnpauseIfNeeded } from './escrowService';
 import { sendEmail } from '../utils/emailService';
 import { sendPaymentEventNotification } from '../utils/paymentNotificationService';
 import { getCurrentNetworkConfig } from '../utils/networkConfig';
@@ -76,7 +76,7 @@ export class EscrowSafetyService {
       
       // Validate smart contract connectivity
       try {
-        const contractTest = await this.testSmartContractConnection();
+        const contractTest = await EscrowSafetyService.testSmartContractConnection();
         if (!contractTest.success) {
           errors.push(`Smart contract connectivity failed: ${contractTest.error}`);
         }
@@ -171,6 +171,13 @@ export class EscrowSafetyService {
       const custodyAmount = Number(payment.escrow.custody_amount);
       const custodyEndDate = payment.escrow.custody_end || new Date(Date.now() + 24 * 60 * 60 * 1000);
       
+      // Check if contract is paused and unpause if needed
+      console.log('🔍 Checking if escrow contract is paused...');
+      const wasUnpaused = await checkAndUnpauseIfNeeded();
+      if (wasUnpaused) {
+        console.log('✅ Contract was paused and has been unpaused');
+      }
+      
       // Create escrow on smart contract
       const escrowResult = await createEscrow({
         payer: getCurrentNetworkConfig().bridgeWallet,
@@ -180,12 +187,18 @@ export class EscrowSafetyService {
         deadline: Math.floor(custodyEndDate.getTime() / 1000),
         vertical: payment.vertical_type || '',
         clabe: payment.deposit_clabe || '',
-        conditions: 'Flow 1: Platform-managed custody'
+        conditions: 'flow1-platform-managed-custody'
       });
       
       if (!escrowResult?.escrowId) {
         throw new Error('Escrow creation failed to return a valid ID');
       }
+      
+      // Fund the escrow (pausable contract requires separate funding step)
+      console.log(`💰 Funding escrow ${escrowResult.escrowId} with ${custodyAmount} tokens...`);
+      const { fundEscrow } = await import('./escrowService');
+      const fundTxHash = await fundEscrow(escrowResult.escrowId, getCurrentNetworkConfig().mxnbTokenAddress, custodyAmount.toString());
+      console.log(`✅ Escrow funded successfully: ${fundTxHash}`);
       
       // Update escrow with smart contract details
       payment.escrow.smart_contract_escrow_id = escrowResult.escrowId;
@@ -337,7 +350,7 @@ export class EscrowSafetyService {
   /**
    * Test smart contract connection
    */
-  private static async testSmartContractConnection(): Promise<{
+  static async testSmartContractConnection(): Promise<{
     success: boolean;
     error?: string;
   }> {

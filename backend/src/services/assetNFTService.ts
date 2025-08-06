@@ -115,11 +115,14 @@ class AssetNFTService {
 
   constructor() {
     try {
+      // Get network configuration
+      const networkConfig = getCurrentNetworkConfig();
+      
       // Initialize blockchain connection
-      this.provider = new ethers.JsonRpcProvider(getCurrentNetworkConfig().rpcUrl);
+      this.provider = new ethers.JsonRpcProvider(networkConfig.rpcUrl);
       
       // Initialize Kustodia wallet for contract interactions
-      const privateKey = process.env.KUSTODIA_PRIVATE_KEY;
+      const privateKey = networkConfig.privateKey;
       if (!privateKey || privateKey === '0x0000000000000000000000000000000000000000000000000000000000000000') {
         console.warn('[AssetNFT] KUSTODIA_PRIVATE_KEY not configured - NFT functionality will be disabled');
         return;
@@ -127,7 +130,7 @@ class AssetNFTService {
       this.wallet = new ethers.Wallet(privateKey, this.provider);
 
       // Initialize contract instances
-      const universalAssetAddress = process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS;
+      const universalAssetAddress = networkConfig.nftCompactAddress;
 
       if (!universalAssetAddress || universalAssetAddress === '0x0000000000000000000000000000000000000000') {
         console.warn('[AssetNFT] Universal Asset Contract address not configured - NFT functionality will be disabled');

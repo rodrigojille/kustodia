@@ -44,6 +44,7 @@ const Escrow_1 = require("../entity/Escrow");
 const CommissionService_1 = require("../services/CommissionService");
 const cobroValidation_1 = require("../validation/cobroValidation");
 const junoService_1 = require("../services/junoService");
+const platformCommissionConfig_1 = require("../utils/platformCommissionConfig");
 class CobroPaymentController {
     constructor() {
         this.paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
@@ -108,6 +109,12 @@ class CobroPaymentController {
                     }
                 }
             }
+            // Calculate platform commission
+            const baseAmount = parseFloat(payment_amount.toString());
+            const platformCommissionPercent = (0, platformCommissionConfig_1.getPlatformCommissionPercent)('cobro_inteligente');
+            const platformCommissionBreakdown = (0, platformCommissionConfig_1.calculatePlatformCommission)(baseAmount, 'cobro_inteligente');
+            const totalAmountToPay = platformCommissionBreakdown.totalAmountToPay;
+            console.log(`[Platform Commission - Cobro] Commission: ${platformCommissionPercent}%, Amount: $${baseAmount}, Total to pay: $${totalAmountToPay}`);
             // Calculate commission breakdown
             const commissionBreakdown = this.commissionService.calculateCommissions(payment_amount, total_commission_percentage, commission_recipients);
             // Generate unique CLABE via Juno API for deposit
@@ -147,6 +154,11 @@ class CobroPaymentController {
                 commission_amount: commissionBreakdown.total_commission, // Use existing commission field
                 commission_beneficiary_juno_bank_account_id: broker.juno_bank_account_id,
                 commission_beneficiary_clabe: broker.payout_clabe,
+                // Platform commission fields
+                platform_commission_percent: platformCommissionPercent,
+                platform_commission_amount: platformCommissionBreakdown.amount,
+                platform_commission_beneficiary_email: 'platform@kustodia.mx',
+                total_amount_to_pay: totalAmountToPay, // What user actually pays (base + platform commission)
                 initiator_type: 'payee',
                 release_conditions,
                 // Product-specific fields

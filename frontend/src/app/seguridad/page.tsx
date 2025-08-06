@@ -96,6 +96,72 @@ export default function Seguridad() {
           <strong>Colaboración Activa:</strong> Tu experiencia y retroalimentación son esenciales para construir una plataforma cada vez más segura y confiable.
         </div>
         
+        <h3 className="mt-8 font-semibold text-xl text-green-700">7. AUDITORÍA DE SEGURIDAD DE CONTRATOS INTELIGENTES</h3>
+        <p className="mb-2">Nuestros contratos inteligentes han sido <strong>auditados exhaustivamente</strong> para garantizar la máxima seguridad:</p>
+        <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h4 className="font-bold text-lg text-green-800">🔒 Reporte de Auditoría Oficial</h4>
+              <p className="text-green-700 text-sm">KustodiaEscrow2_0Pausable - Arbitrum Mainnet</p>
+            </div>
+            <div className="text-right">
+              <div className="bg-green-600 text-white px-4 py-2 rounded-full font-bold text-lg mb-1">
+                94/100
+              </div>
+              <p className="text-xs text-green-700">Puntuación de Seguridad</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="bg-white p-3 rounded border">
+              <p className="text-sm text-gray-600 mb-1"><strong>Contrato Proxy:</strong></p>
+              <p className="text-xs font-mono text-gray-800 break-all">0x82fE581F39B1701b6E7Bd0247AFD2aF08ce04c40</p>
+            </div>
+            <div className="bg-white p-3 rounded border">
+              <p className="text-sm text-gray-600 mb-1"><strong>Implementación:</strong></p>
+              <p className="text-xs font-mono text-gray-800 break-all">0xbd1ecFC0b016d399b1C8CEf6AaAF9787e91F4128</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">✅ VERIFICADO</span>
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">UUPS PROXY</span>
+            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-semibold">OPENZEPPELIN</span>
+            <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-semibold">PAUSABLE</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a 
+              href="/audit-report.html" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold text-center transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              📄 Ver Reporte Completo
+            </a>
+            <a 
+              href="https://arbiscan.io/address/0xbd1ecFC0b016d399b1C8CEf6AaAF9787e91F4128#code" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold text-center transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              🔍 Ver en Arbiscan
+            </a>
+          </div>
+        </div>
+        
+        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded">
+          <strong>Seguridad Comprobada:</strong> Nuestros contratos inteligentes implementan las mejores prácticas de seguridad de la industria, incluyendo protección contra reentrancy, controles de acceso robustos, y mecanismos de pausa de emergencia.
+        </div>
+        
+        <ul className="list-disc list-inside mb-6 space-y-1">
+          <li><strong>Patrón UUPS:</strong> Proxy actualizable con autorización segura del propietario</li>
+          <li><strong>Bibliotecas OpenZeppelin:</strong> Estándares de seguridad probados en la industria</li>
+          <li><strong>Control de Acceso:</strong> Funciones críticas restringidas a roles autorizados</li>
+          <li><strong>Pausa de Emergencia:</strong> Capacidad de detener operaciones en caso de emergencia</li>
+          <li><strong>Protección Reentrancy:</strong> Prevención de ataques de reentrada</li>
+          <li><strong>Manejo Seguro de Fondos:</strong> Solo tokens ERC20, sin exposición directa a ETH</li>
+          <li><strong>Eventos Comprensivos:</strong> Registro completo para auditoría y monitoreo</li>
+          <li><strong>6/6 Transacciones Exitosas:</strong> 100% de éxito en mainnet sin fallos</li>
+        </ul>
+        
         <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-xl">
           <h4 className="font-semibold text-lg text-gray-800 mb-2">CONTACTO DE SEGURIDAD</h4>
           <p className="text-gray-700 mb-2"><strong>Tecnologías Avanzadas Centrales, S.A.P.I. de C.V.</strong></p>

@@ -17,6 +17,7 @@
     "fix-prod-db": "ts-node scripts/fix-production-database.ts",
     "force-schema-sync": "ts-node scripts/force-schema-sync.ts",
     "health-check": "ts-node scripts/check-production-health.ts",
+    "migrate-commission": "ts-node scripts/migrate-commission-amounts.ts",
     "db:sync": "ts-node -e \"import AppDataSource from './src/ormconfig'; AppDataSource.initialize().then(() => AppDataSource.synchronize()).then(() => process.exit(0))\""
   },
   "dependencies": {

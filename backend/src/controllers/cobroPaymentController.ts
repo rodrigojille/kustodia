@@ -7,6 +7,7 @@ import { Escrow } from '../entity/Escrow';
 import { CommissionService } from '../services/CommissionService';
 import { validateCobroPayment } from '../validation/cobroValidation';
 import { createJunoClabe } from '../services/junoService';
+import { getPlatformCommissionPercent, calculatePlatformCommission, type PaymentFlowType } from '../utils/platformCommissionConfig';
 
 export class CobroPaymentController {
   private paymentRepo: Repository<Payment>;
@@ -107,6 +108,14 @@ export class CobroPaymentController {
         }
       }
 
+      // Calculate platform commission
+      const baseAmount = parseFloat(payment_amount.toString());
+      const platformCommissionPercent = getPlatformCommissionPercent('cobro_inteligente');
+      const platformCommissionBreakdown = calculatePlatformCommission(baseAmount, 'cobro_inteligente');
+      const totalAmountToPay = platformCommissionBreakdown.totalAmountToPay;
+      
+      console.log(`[Platform Commission - Cobro] Commission: ${platformCommissionPercent}%, Amount: $${baseAmount}, Total to pay: $${totalAmountToPay}`);
+
       // Calculate commission breakdown
       const commissionBreakdown = this.commissionService.calculateCommissions(
         payment_amount,
@@ -153,6 +162,12 @@ export class CobroPaymentController {
         commission_amount: commissionBreakdown.total_commission, // Use existing commission field
         commission_beneficiary_juno_bank_account_id: broker.juno_bank_account_id,
         commission_beneficiary_clabe: broker.payout_clabe,
+        
+        // Platform commission fields
+        platform_commission_percent: platformCommissionPercent,
+        platform_commission_amount: platformCommissionBreakdown.amount,
+        platform_commission_beneficiary_email: 'platform@kustodia.mx',
+        total_amount_to_pay: totalAmountToPay, // What user actually pays (base + platform commission)
         initiator_type: 'payee',
         release_conditions,
         

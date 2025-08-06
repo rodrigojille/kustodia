@@ -7,6 +7,7 @@ import { PaymentEvent } from '../entity/PaymentEvent';
 import AppDataSource from '../ormconfig';
 import axios from 'axios';
 import { ethers } from 'ethers';
+import { getCurrentNetworkConfig } from '../utils/networkConfig';
 
 const router = Router();
 
@@ -184,7 +185,7 @@ router.post('/create', authenticateJWT, async (req, res): Promise<void> => {
     ]).encodeFunctionData('approve', [process.env.ESCROW3_CONTRACT_ADDRESS, approvalAmount]);
 
     const approvalTxHash = await sendPortalTransaction(payer, {
-      to: process.env.MXNB_CONTRACT_ADDRESS!,
+      to: getCurrentNetworkConfig().mxnbTokenAddress,
       data: approveCalldata,
       description: `Token approval for payment ${payment.id}: ${description}`
     });
@@ -218,7 +219,7 @@ router.post('/create', authenticateJWT, async (req, res): Promise<void> => {
       ethers.parseUnits(custodyAmount.toString(), 18),
       custodyDaysInt,
       ethers.parseUnits(releaseAmount.toString(), 18),
-      process.env.MXNB_CONTRACT_ADDRESS!,
+      getCurrentNetworkConfig().mxnbTokenAddress,
       description
     ]);
 

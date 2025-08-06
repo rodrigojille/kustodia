@@ -19,7 +19,7 @@ const PaymentEvent_1 = require("../entity/PaymentEvent");
 const createEscrowForPayment = async (payment) => {
     const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
     // Se espera que payment tenga custody_percent y custody_period definidos
-    const custodyPercent = Number(payment.commission_percent || 100); // fallback a 100 si no existe
+    const custodyPercent = Number(payment.custody_percent || 100); // fallback a 100 si no existe
     const custodyPeriod = Number(payment.custody_period || 1); // fallback a 1 día si no existe
     const custodyAmount = Number(payment.amount) * (custodyPercent / 100);
     const releaseAmount = Number(payment.amount) - custodyAmount;

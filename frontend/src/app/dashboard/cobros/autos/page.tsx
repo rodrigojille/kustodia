@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { authFetch } from "../../../../utils/authFetch";
 import { DigitalTwinSelector } from "../../../../components/DigitalTwinSelector";
+import { calculatePlatformCommission, formatCurrency } from "../../../../utils/platformCommissionConfig";
 
 type CommissionRecipient = {
   id: string;
-  email: string;
-  percentage: string;
-  name?: string;
+  broker_email: string;
+  broker_name?: string;
+  broker_percentage: string;
 };
 
 type FormDataType = {
@@ -98,6 +99,9 @@ export default function CobroAutosPage() {
   const [buyerVerified, setBuyerVerified] = useState<boolean | undefined>(undefined);
   const [buyerLoading, setBuyerLoading] = useState(false);
   const [buyerError, setBuyerError] = useState<string | null>(null);
+  
+  // Platform commission state
+  const [platformCommission, setPlatformCommission] = useState({ percent: 0, amount: 0, totalAmountToPay: 0 });
   const [sellerValid, setSellerValid] = useState<boolean | undefined>(undefined);
   const [sellerVerified, setSellerVerified] = useState<boolean | undefined>(undefined);
   const [sellerLoading, setSellerLoading] = useState(false);
@@ -125,6 +129,21 @@ export default function CobroAutosPage() {
     loadUser();
   }, []);
 
+  // Calculate platform commission when payment amount changes
+  useEffect(() => {
+    if (data.payment_amount) {
+      const baseAmount = parseFloat(data.payment_amount);
+      if (!isNaN(baseAmount) && baseAmount > 0) {
+        const commission = calculatePlatformCommission(baseAmount, 'cobro_inteligente');
+        setPlatformCommission(commission);
+      } else {
+        setPlatformCommission({ percent: 0, amount: 0, totalAmountToPay: 0 });
+      }
+    } else {
+      setPlatformCommission({ percent: 0, amount: 0, totalAmountToPay: 0 });
+    }
+  }, [data.payment_amount]);
+
   const steps: string[] = [
     "Datos del cobro y comprador",
     "Información del vehículo",
@@ -136,8 +155,9 @@ export default function CobroAutosPage() {
   const addCommissionRecipient = () => {
     const newRecipient: CommissionRecipient = {
       id: Date.now().toString(),
-      email: '',
-      percentage: ''
+      broker_email: '',
+      broker_name: '',
+      broker_percentage: ''
     };
     setData({
       ...data,
@@ -274,18 +294,18 @@ export default function CobroAutosPage() {
     setSubmitting(true);
     
     // Validate commission splits if commission is set
-    if (data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0) {
-      const totalBrokerPercentage = data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0);
+    if (data.has_commission && data.commission_recipients.length > 0) {
+      const totalBrokerPercentage = data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.broker_percentage || '0'), 0);
       
-      if (totalBrokerPercentage > 100) {
-        alert('El total de comisiones a brokers no puede exceder el 100%');
+      if (totalBrokerPercentage > 50) {
+        alert('El total de comisiones no puede exceder el 50%');
         setSubmitting(false);
         return;
       }
       
       // Check if all commission recipients have valid emails
       for (const recipient of data.commission_recipients) {
-        if (!recipient.email || !recipient.percentage) {
+        if (!recipient.broker_email || !recipient.broker_percentage) {
           alert('Por favor complete todos los campos de comisiones');
           setSubmitting(false);
           return;
@@ -303,11 +323,8 @@ export default function CobroAutosPage() {
         payer_email: data.buyer_email, // The buyer who will pay
         payee_email: data.seller_email, // The seller who receives the payment
         vertical: 'autos',
-        // Commission calculation
-        total_commission_amount: ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100),
-        net_amount: (parseFloat(data.payment_amount) - ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100)),
-        // Add broker's commission percentage (if commission is set)
-        broker_commission_percentage: data.total_commission_percentage ? (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)) : 0
+        // Commission recipients (nuevo flujo style)
+        commission_recipients: data.commission_recipients
       };
 
       const response = await authFetch('payments/cobro-inteligente', {
@@ -479,36 +496,25 @@ export default function CobroAutosPage() {
             {/* Broker Commission Section - Only show if commissions are enabled */}
             {data.has_commission && (
               <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-                <h4 className="font-semibold text-blue-800 mb-3">
-                  🏢 Distribución de comisiones
-                </h4>
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-semibold text-blue-800">
+                    🏢 Comisiones de asesores
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={addCommissionRecipient}
+                    className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    ➕ Agregar asesor
+                  </button>
+                </div>
                 
                 <div className="space-y-4">
-                  <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
-                    <label className="block font-medium text-gray-700 mb-2">
-                      💰 Porcentaje total de comisión
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        placeholder="5.0"
-                        min="0"
-                        max="50"
-                        step="0.1"
-                        value={data.total_commission_percentage}
-                        onChange={(e) => setData({ ...data, total_commission_percentage: e.target.value })}
-                        className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      />
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                  {data.commission_recipients.length === 0 && (
+                    <div className="bg-white p-4 rounded-lg border border-gray-200 text-center text-gray-500">
+                      No hay asesores agregados. El vendedor recibirá el 100% del monto.
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Porcentaje total que se deducirá del monto y se distribuirá entre brokers
-                    </p>
-                  </div>
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <p className="text-sm text-blue-700 font-medium mb-2">💡 Broker principal</p>
-                    <p className="text-sm text-blue-600">Recibirás la comisión restante después de splits adicionales</p>
-                  </div>
+                  )}
                   
                   {data.commission_recipients.map((recipient, index) => (
                     <div key={recipient.id} className="bg-white p-4 rounded-lg border-2 border-blue-200">
@@ -526,38 +532,51 @@ export default function CobroAutosPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block font-medium text-gray-700 mb-2">
-                            📧 Email del broker
+                            📧 Email del asesor
                           </label>
                           <input
                             type="email"
-                            placeholder="broker@automotriz.com"
-                            value={recipient.email}
-                            onChange={(e) => updateCommissionRecipient(recipient.id, 'email', e.target.value)}
+                            placeholder="asesor@automotriz.com"
+                            value={recipient.broker_email || ''}
+                            onChange={(e) => updateCommissionRecipient(recipient.id, 'broker_email', e.target.value)}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                           />
                         </div>
                         
                         <div>
                           <label className="block font-medium text-gray-700 mb-2">
-                            💰 Porcentaje de la comisión total
+                            👤 Nombre del asesor (opcional)
                           </label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              placeholder="50"
-                              min="0"
-                              max="100"
-                              step="1"
-                              value={recipient.percentage}
-                              onChange={(e) => updateCommissionRecipient(recipient.id, 'percentage', e.target.value)}
-                              className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                            />
-                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
-                          </div>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Porcentaje de la comisión total que recibirá este broker
-                          </p>
+                          <input
+                            type="text"
+                            placeholder="Juan Pérez"
+                            value={recipient.broker_name || ''}
+                            onChange={(e) => updateCommissionRecipient(recipient.id, 'broker_name', e.target.value)}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                          />
                         </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          💰 Porcentaje de comisión
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            placeholder="5.0"
+                            min="0"
+                            max="50"
+                            step="0.1"
+                            value={recipient.broker_percentage || ''}
+                            onChange={(e) => updateCommissionRecipient(recipient.id, 'broker_percentage', e.target.value)}
+                            className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Porcentaje del monto total que recibirá este asesor
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -576,11 +595,11 @@ export default function CobroAutosPage() {
                       <div className="space-y-1">
                         {data.commission_recipients.map((recipient, index) => (
                           <p key={recipient.id} className="text-sm text-blue-600">
-                            Broker #{index + 1}: {recipient.percentage}%
+                            Asesor #{index + 1}: {recipient.broker_percentage}% - {recipient.broker_email}
                           </p>
                         ))}
                         <p className="text-sm text-blue-700 font-medium border-t border-blue-200 pt-1">
-                          Tu comisión: {(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}%
+                          Total comisiones: {data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.broker_percentage || '0'), 0).toFixed(1)}%
                         </p>
                       </div>
                     </div>
@@ -858,6 +877,30 @@ export default function CobroAutosPage() {
                   <span className="font-semibold">{data.seller_email}</span>
                 </div>
                 
+                {/* Platform Commission Breakdown */}
+                {data.payment_amount && parseFloat(data.payment_amount) > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-800 mb-2">💰 Desglose de Pago Transparente</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Monto base:</span>
+                        <span className="font-medium">{formatCurrency(parseFloat(data.payment_amount))}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Comisión plataforma ({platformCommission.percent}%):</span>
+                        <span className="font-medium">{formatCurrency(platformCommission.amount)}</span>
+                      </div>
+                      <div className="flex justify-between border-t border-blue-300 pt-1 mt-2">
+                        <span className="font-semibold text-blue-800">Total que pagará el comprador:</span>
+                        <span className="font-bold text-blue-800">{formatCurrency(platformCommission.totalAmountToPay)}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      ℹ️ Comisión por servicio de custodia digital.
+                    </p>
+                  </div>
+                )}
+                
                 {data.vehicle_brand && data.vehicle_model && (
                   <div className="bg-green-50 p-4 rounded-lg border-t">
                     <div className="flex items-center justify-between mb-2">
@@ -901,7 +944,7 @@ export default function CobroAutosPage() {
                   </div>
                 )}
                 
-                {data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0 && (
+                {data.has_commission && data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0 && (
                   <div className="space-y-2 border-t pt-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Comisión total:</span>
@@ -915,18 +958,14 @@ export default function CobroAutosPage() {
                     
                     <p className="text-gray-600 font-medium mt-3">Distribución de comisiones:</p>
                     {data.commission_recipients.map((recipient, index) => {
-                      const brokerCommission = (parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0') * parseFloat(recipient.percentage)) / 10000;
+                      const brokerCommission = (parseFloat(data.payment_amount) * parseFloat(recipient.broker_percentage || '0')) / 100;
                       return (
                         <div key={recipient.id} className="flex justify-between ml-4">
-                          <span className="text-gray-600">Broker #{index + 1}:</span>
-                          <span className="font-semibold">{recipient.email} ({recipient.percentage}% = ${brokerCommission.toFixed(2)} MXN)</span>
+                          <span className="text-gray-600">Asesor #{index + 1}:</span>
+                          <span className="font-semibold">{recipient.broker_email} ({recipient.broker_percentage}% = ${brokerCommission.toFixed(2)} MXN)</span>
                         </div>
                       );
                     })}
-                    <div className="flex justify-between ml-4 border-t pt-2">
-                      <span className="text-gray-600">Tu comisión (broker principal):</span>
-                      <span className="font-semibold">{(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}% = ${((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0') * (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0))) / 10000).toFixed(2)} MXN</span>
-                    </div>
                   </div>
                 )}
                 

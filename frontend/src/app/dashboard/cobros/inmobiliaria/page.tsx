@@ -5,9 +5,9 @@ import { authFetch } from "../../../../utils/authFetch";
 
 type CommissionRecipient = {
   id: string;
-  email: string;
-  percentage: string;
-  name?: string;
+  broker_email: string;
+  broker_percentage: string;
+  broker_name?: string;
 };
 
 type FormDataType = {
@@ -72,7 +72,7 @@ export default function CobroInmobiliariaPage() {
     custody_period: '30',
     operation_type: '',
     release_conditions: '',
-    has_commission: true
+    has_commission: false
   });
   const [buyerValid, setBuyerValid] = useState<boolean | undefined>(undefined);
   const [buyerVerified, setBuyerVerified] = useState<boolean | undefined>(undefined);
@@ -96,8 +96,8 @@ export default function CobroInmobiliariaPage() {
   const addCommissionRecipient = () => {
     const newRecipient: CommissionRecipient = {
       id: Date.now().toString(),
-      email: '',
-      percentage: ''
+      broker_email: '',
+      broker_percentage: ''
     };
     setData({
       ...data,
@@ -233,19 +233,19 @@ export default function CobroInmobiliariaPage() {
   const handleSubmit = async () => {
     setSubmitting(true);
     
-    // Validate commission splits only if commission is enabled
-    if (data.has_commission && data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0) {
-      const totalBrokerPercentage = data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0);
+    // Validate commission splits if commission is set
+    if (data.has_commission && data.commission_recipients.length > 0) {
+      const totalBrokerPercentage = data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.broker_percentage || '0'), 0);
       
-      if (totalBrokerPercentage > 100) {
-        alert('El total de comisiones a brokers no puede exceder el 100%');
+      if (totalBrokerPercentage > 50) {
+        alert('El total de comisiones a brokers no puede exceder el 50%');
         setSubmitting(false);
         return;
       }
       
       // Check if all commission recipients have valid emails
       for (const recipient of data.commission_recipients) {
-        if (!recipient.email || !recipient.percentage) {
+        if (!recipient.broker_email || !recipient.broker_percentage) {
           alert('Por favor complete todos los campos de comisiones');
           setSubmitting(false);
           return;
@@ -254,12 +254,6 @@ export default function CobroInmobiliariaPage() {
     }
     
     try {
-      // Transform commission recipients to match backend validation format
-      const transformedCommissionRecipients = data.commission_recipients.map(recipient => ({
-        broker_email: recipient.email,
-        broker_name: recipient.name || '',
-        broker_percentage: parseFloat(recipient.percentage || '0')
-      }));
 
       const payload = {
         payment_amount: parseFloat(data.payment_amount),
@@ -270,7 +264,7 @@ export default function CobroInmobiliariaPage() {
         payer_email: data.buyer_email, // The buyer who will pay
         payee_email: data.seller_email, // The seller who receives the payment
         total_commission_percentage: data.has_commission ? parseFloat(data.total_commission_percentage || '0') : 0,
-        commission_recipients: data.has_commission ? transformedCommissionRecipients : [],
+        commission_recipients: data.has_commission ? data.commission_recipients : [],
         custody_percent: parseFloat(data.custody_percent || '0'),
         custody_period: parseInt(data.custody_period || '0'),
         operation_type: data.operation_type,
@@ -449,15 +443,12 @@ export default function CobroInmobiliariaPage() {
                       Porcentaje total que se deducirá del monto y se distribuirá entre brokers
                     </p>
                   </div>
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <p className="text-sm text-blue-700 font-medium mb-2">💡 Broker principal</p>
-                    <p className="text-sm text-blue-600">Recibirás la comisión restante después de splits adicionales</p>
-                  </div>
+
                   
                   {data.commission_recipients.map((recipient, index) => (
                     <div key={recipient.id} className="bg-white p-4 rounded-lg border-2 border-blue-200">
                       <div className="flex justify-between items-start mb-3">
-                        <h5 className="font-medium text-gray-800">Broker adicional #{index + 1}</h5>
+                        <h5 className="font-medium text-gray-800">Asesor #{index + 1}</h5>
                         <button
                           type="button"
                           onClick={() => removeCommissionRecipient(recipient.id)}
@@ -475,8 +466,8 @@ export default function CobroInmobiliariaPage() {
                           <input
                             type="email"
                             placeholder="broker@inmobiliaria.com"
-                            value={recipient.email}
-                            onChange={(e) => updateCommissionRecipient(recipient.id, 'email', e.target.value)}
+                            value={recipient.broker_email}
+                            onChange={(e) => updateCommissionRecipient(recipient.id, 'broker_email', e.target.value)}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                           />
                         </div>
@@ -492,8 +483,8 @@ export default function CobroInmobiliariaPage() {
                               min="0"
                               max="100"
                               step="1"
-                              value={recipient.percentage}
-                              onChange={(e) => updateCommissionRecipient(recipient.id, 'percentage', e.target.value)}
+                              value={recipient.broker_percentage}
+                              onChange={(e) => updateCommissionRecipient(recipient.id, 'broker_percentage', e.target.value)}
                               className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                             />
                             <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
@@ -511,24 +502,9 @@ export default function CobroInmobiliariaPage() {
                     onClick={addCommissionRecipient}
                     className="w-full p-3 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-colors"
                   >
-                    ➕ Agregar broker adicional
+                    ➕ Agregar broker
                   </button>
                   
-                  {data.commission_recipients.length > 0 && (
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <p className="text-sm text-blue-700 font-medium mb-1">📊 Resumen de comisiones:</p>
-                      <div className="space-y-1">
-                        {data.commission_recipients.map((recipient, index) => (
-                          <p key={recipient.id} className="text-sm text-blue-600">
-                            Broker #{index + 1}: {recipient.percentage}%
-                          </p>
-                        ))}
-                        <p className="text-sm text-blue-700 font-medium border-t border-blue-200 pt-1">
-                          Tu comisión: {(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}%
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
@@ -656,18 +632,14 @@ export default function CobroInmobiliariaPage() {
                       
                       <p className="text-gray-600 font-medium mt-3">Distribución de comisiones:</p>
                       {data.commission_recipients.map((recipient, index) => {
-                        const brokerCommission = (parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0') * parseFloat(recipient.percentage)) / 10000;
+                        const brokerCommission = (parseFloat(data.payment_amount) * parseFloat(recipient.broker_percentage || '0')) / 100;
                         return (
                           <div key={recipient.id} className="flex justify-between ml-4">
-                            <span className="text-gray-600">Broker #{index + 1}:</span>
-                            <span className="font-semibold">{recipient.email} ({recipient.percentage}% = ${brokerCommission.toFixed(2)} MXN)</span>
+                            <span className="text-gray-600">Asesor #{index + 1}:</span>
+                            <span className="font-semibold">{recipient.broker_email} ({recipient.broker_percentage}% = ${brokerCommission.toFixed(2)} MXN)</span>
                           </div>
                         );
                       })}
-                      <div className="flex justify-between ml-4 border-t pt-2">
-                        <span className="text-gray-600">Tu comisión (broker principal):</span>
-                        <span className="font-semibold">{(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}% = ${((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0') * (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0))) / 10000).toFixed(2)} MXN</span>
-                      </div>
                     </div>
                   )
                 ) : (

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { authFetch } from "../../../utils/authFetch";
 import { MultipleBrokersSection } from "../../../components/MultipleBrokersSection";
+import { calculatePlatformCommission, formatCurrency } from "../../../utils/platformCommissionConfig";
 
 
 // Minimal utility for fetch with auth from localStorage
@@ -660,6 +661,12 @@ async function handleCreatePayment(vertical: string, data: FormDataType, router:
 // Summary view component
 function SummaryView({ vertical, data }: { vertical: string; data: FormDataType }) {
   const steps = stepsByVertical[vertical] || [];
+  
+  // Calculate platform commission
+  const platformCommission = data.payment_amount 
+    ? calculatePlatformCommission(parseFloat(data.payment_amount), 'nuevo_flujo')
+    : { percent: 0, amount: 0, totalAmountToPay: 0 };
+  
   return (
     <div>
       <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, color: '#1e40af' }}>
@@ -680,6 +687,46 @@ function SummaryView({ vertical, data }: { vertical: string; data: FormDataType 
             ${Number(data.payment_amount || 0).toLocaleString('es-MX')} MXN
           </span>
         </div>
+        
+        {/* Platform Commission Breakdown */}
+        {data.payment_amount && parseFloat(data.payment_amount) > 0 && (
+          <div style={{
+            backgroundColor: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            borderRadius: '8px',
+            padding: '12px',
+            marginBottom: '12px'
+          }}>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#1e40af', marginBottom: '8px' }}>
+              💰 Desglose de Pago Transparente
+            </div>
+            <div style={{ fontSize: '13px', color: '#374151' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span>Monto base:</span>
+                <span style={{ fontWeight: 500 }}>{formatCurrency(parseFloat(data.payment_amount))}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span>Comisión plataforma ({platformCommission.percent}%):</span>
+                <span style={{ fontWeight: 500 }}>{formatCurrency(platformCommission.amount)}</span>
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                borderTop: '1px solid #bfdbfe', 
+                paddingTop: '4px', 
+                marginTop: '8px',
+                fontWeight: 600,
+                color: '#1e40af'
+              }}>
+                <span>Total a pagar:</span>
+                <span>{formatCurrency(platformCommission.totalAmountToPay)}</span>
+              </div>
+            </div>
+            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '8px' }}>
+              ℹ️ Comisión por servicio de custodia digital.
+            </div>
+          </div>
+        )}
         
         <div style={{ marginBottom: '12px' }}>
           <strong style={{ color: '#374151' }}>👤 Beneficiario:</strong> 

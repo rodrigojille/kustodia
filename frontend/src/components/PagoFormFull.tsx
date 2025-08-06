@@ -5,6 +5,7 @@ import PaymentLoadingModal from './PaymentLoadingModal';
 // Utility for fetch with auth
 type FetchOptions = RequestInit & { headers?: Record<string, string> };
 import { authFetch } from '../utils/authFetch';
+import { calculatePlatformCommission, formatCurrency } from '../utils/platformCommissionConfig';
 
 export default function PagoFormFull() {
   const [recipient, setRecipient] = useState("");
@@ -20,6 +21,9 @@ export default function PagoFormFull() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  
+  // Platform commission state
+  const [platformCommission, setPlatformCommission] = useState({ percent: 0, amount: 0, totalAmountToPay: 0 });
 
   // Recipient validation
   const [recipientValid, setRecipientValid] = useState<boolean | undefined>(undefined);
@@ -97,6 +101,21 @@ export default function PagoFormFull() {
       setCommissionAmount(calc.toFixed(2));
     } else {
       setCommissionAmount("N/A");
+    }
+  }, [amount, commissionPercent]);
+
+  // Calculate platform commission when amount changes
+  React.useEffect(() => {
+    if (amount) {
+      const baseAmount = parseFloat(amount);
+      if (!isNaN(baseAmount) && baseAmount > 0) {
+        const commission = calculatePlatformCommission(baseAmount, 'traditional');
+        setPlatformCommission(commission);
+      } else {
+        setPlatformCommission({ percent: 0, amount: 0, totalAmountToPay: 0 });
+      }
+    } else {
+      setPlatformCommission({ percent: 0, amount: 0, totalAmountToPay: 0 });
     }
   }, [amount, commissionPercent]);
 
@@ -207,6 +226,30 @@ export default function PagoFormFull() {
           required 
           min={1} 
         />
+        
+        {/* Platform Commission Breakdown */}
+        {amount && parseFloat(amount) > 0 && (
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="text-sm font-semibold text-blue-800 mb-2">💰 Desglose de Pago Transparente</h4>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-700">Monto base:</span>
+                <span className="font-medium">{formatCurrency(parseFloat(amount))}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">Comisión plataforma ({platformCommission.percent}%):</span>
+                <span className="font-medium">{formatCurrency(platformCommission.amount)}</span>
+              </div>
+              <div className="flex justify-between border-t border-blue-300 pt-1 mt-2">
+                <span className="font-semibold text-blue-800">Total a pagar:</span>
+                <span className="font-bold text-blue-800">{formatCurrency(platformCommission.totalAmountToPay)}</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 mt-2">
+              ℹ️ Comisión por servicio de custodia digital.
+            </p>
+          </div>
+        )}
       </div>
       
       {/* Description Input */}

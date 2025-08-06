@@ -26,6 +26,8 @@ export interface NetworkConfig {
   highValueMultisigAddress: string;
   enterpriseMultisigAddress: string;
   multisigAdmin1: string;
+  // ABI configuration
+  escrowAbiPath: string;
 }
 
 export class NetworkConfigManager {
@@ -71,7 +73,7 @@ export class NetworkConfigManager {
       bridgeWallet: process.env.ESCROW_BRIDGE_WALLET || '',
       platformWallet: process.env.PLATFORM_WALLET || '',
       junoWallet: process.env.JUNO_WALLET || '',
-      explorerUrl: 'https://sepolia.arbiscan.io',
+      explorerUrl: process.env.TEST_NET_ARBISCAN || 'https://sepolia.arbiscan.io',
       explorerApiKey: process.env.ARBISCAN_API_KEY || '',
       chainId: 421614,
       networkName: 'Arbitrum Sepolia Testnet',
@@ -80,7 +82,9 @@ export class NetworkConfigManager {
       // Multi-sig configuration (testnet)
       highValueMultisigAddress: process.env.HIGH_VALUE_MULTISIG_ADDRESS || '',
       enterpriseMultisigAddress: process.env.ENTERPRISE_MULTISIG_ADDRESS || '',
-      multisigAdmin1: process.env.MULTISIG_ADMIN_1 || ''
+      multisigAdmin1: process.env.MULTISIG_ADMIN_1 || '',
+      // ABI configuration (testnet - regular contract)
+      escrowAbiPath: 'contracts/KustodiaEscrow2_0.sol/KustodiaEscrow2_0.json'
     };
   }
 
@@ -103,7 +107,9 @@ export class NetworkConfigManager {
       // Multi-sig configuration (mainnet - using same addresses per user preference)
       highValueMultisigAddress: process.env.HIGH_VALUE_MULTISIG_ADDRESS || '',
       enterpriseMultisigAddress: process.env.ENTERPRISE_MULTISIG_ADDRESS || '',
-      multisigAdmin1: process.env.BRIDGE_WALLET_MAIN || process.env.MULTISIG_ADMIN_1 || ''
+      multisigAdmin1: process.env.BRIDGE_WALLET_MAIN || process.env.MULTISIG_ADMIN_1 || '',
+      // ABI configuration (mainnet - pausable contract)
+      escrowAbiPath: 'contracts/KustodiaEscrow2_0Pausable.sol/KustodiaEscrow2_0Pausable.json'
     };
   }
 

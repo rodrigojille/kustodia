@@ -81,11 +81,21 @@ class PaymentAutomationService {
         cron.schedule('*/2 * * * *', async () => {
             await this.processPendingPayouts();
         });
-        // Every 3 minutes: Retry failed escrow creations for funded payments
-        cron.schedule('*/3 * * * *', async () => {
+        // Every 1 minute: Retry failed escrow creations for funded payments (increased frequency)
+        cron.schedule('* * * * *', async () => {
             await this.retryFailedEscrowCreations();
         });
+        // Every 30 seconds: Quick escrow retry for recent failures (aggressive recovery)
+        cron.schedule('*/30 * * * * *', async () => {
+            await this.quickEscrowRetry();
+        });
         console.log('✅ Automatización iniciada exitosamente');
+        console.log('📊 Automation Schedule:');
+        console.log('   • New deposits: Every 1 minute');
+        console.log('   • Escrow retries: Every 1 minute');
+        console.log('   • Quick retries: Every 30 seconds');
+        console.log('   • Payouts: Every 2 minutes');
+        console.log('   • Custody releases: Every 10 minutes');
     }
     /**
      * AUTOMATION 1: Detect new deposits and trigger payment processing
@@ -238,9 +248,9 @@ class PaymentAutomationService {
                 throw new Error(`Payment ${paymentId} not found`);
             if (payment.status !== 'funded')
                 throw new Error(`Payment ${paymentId} not in 'funded' status`);
-            // Wait 1 minute after deposit detection for Juno to mint MXNB tokens
-            console.log(`⏳ Waiting 1 minute for Juno to process deposit and mint MXNB tokens...`);
-            await new Promise(resolve => setTimeout(resolve, 60000)); // 1 minute delay
+            // Wait 3 minutes after deposit detection for Juno to mint MXNB tokens
+            console.log(`⏳ Waiting 3 minutes for Juno to process deposit and mint MXNB tokens...`);
+            await new Promise(resolve => setTimeout(resolve, 180000)); // 3 minute delay
             console.log(`✅ Wait complete - proceeding with automation`);
             const totalAmount = Number(payment.amount);
             const custodyPercent = payment.escrow?.custody_percent || 0;
@@ -264,6 +274,13 @@ class PaymentAutomationService {
             // Always try to create escrow with original custody amount
             if (custodyAmount > 0) {
                 try {
+                    // Verify bridge wallet has sufficient MXNB balance before proceeding
+                    console.log(`🔍 Verifying bridge wallet balance before escrow creation...`);
+                    const balanceCheck = await this.checkBridgeWalletBalance(custodyAmount);
+                    if (!balanceCheck.hasBalance) {
+                        throw new Error(`Insufficient MXNB balance in bridge wallet. Required: ${balanceCheck.requiredBalance}, Available: ${balanceCheck.currentBalance}`);
+                    }
+                    console.log(`✅ Bridge wallet balance verified: ${balanceCheck.currentBalance} MXNB available`);
                     await this.processBridgeWithdrawal(payment, custodyAmount);
                     await this.processEscrowCreationAndFunding(payment, custodyAmount);
                     console.log(`✅ Escrow created with ${custodyAmount} MXN`);
@@ -332,22 +349,49 @@ class PaymentAutomationService {
                     throw new Error(`Bank account registration failed: ${registrationError.message}`);
                 }
             }
-            // STEP 1: Transfer MXNB from bridge wallet to Juno wallet
-            console.log(`🌉 Step 1: Transferring ${amount} MXNB from bridge wallet to Juno...`);
-            try {
-                const transferTxHash = await this.transferBridgeToJuno(amount);
-                await this.paymentService.logPaymentEvent(payment.id, 'bridge_to_juno_transfer', `Transferred ${amount} MXNB from bridge wallet to Juno. Tx: ${transferTxHash}`, false);
-                console.log(`✅ Bridge to Juno transfer completed for payment ${payment.id}`);
+            // STEP 1: Check if bridge-to-juno transfer already completed (idempotency)
+            console.log(`🔍 Checking if bridge-to-juno transfer already completed for payment ${payment.id}...`);
+            const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
+            const existingTransfer = await paymentEventRepo.findOne({
+                where: {
+                    paymentId: payment.id,
+                    type: 'bridge_to_juno_transfer'
+                }
+            });
+            if (existingTransfer) {
+                console.log(`✅ Bridge-to-juno transfer already completed for payment ${payment.id}. Skipping duplicate transfer.`);
+                console.log(`📋 Existing transfer event:`, existingTransfer);
             }
-            catch (transferError) {
-                console.error(`❌ Bridge to Juno transfer failed for payment ${payment.id}:`, transferError.message);
-                throw new Error(`Bridge to Juno transfer failed: ${transferError.message}`);
+            else {
+                // STEP 1: Transfer MXNB from bridge wallet to Juno wallet
+                console.log(`🌉 Step 1: Transferring ${amount} MXNB from bridge wallet to Juno...`);
+                try {
+                    const transferTxHash = await this.transferBridgeToJuno(amount);
+                    await this.paymentService.logPaymentEvent(payment.id, 'bridge_to_juno_transfer', `Transferred ${amount} MXNB from bridge wallet to Juno. Tx: ${transferTxHash}`, false);
+                    console.log(`✅ Bridge to Juno transfer completed for payment ${payment.id}`);
+                }
+                catch (transferError) {
+                    console.error(`❌ Bridge to Juno transfer failed for payment ${payment.id}:`, transferError.message);
+                    throw new Error(`Bridge to Juno transfer failed: ${transferError.message}`);
+                }
             }
-            // STEP 2: Get registered bank accounts and find the seller's account
-            const bankAccounts = await (0, junoService_1.getRegisteredBankAccounts)();
-            const destinationBankAccount = bankAccounts.find(account => account.id === payment.seller.juno_bank_account_id);
+            // STEP 2: Get registered bank accounts and find the seller's account (with retry logic)
+            console.log(`🔍 Looking for bank account ID: ${payment.seller.juno_bank_account_id}`);
+            let destinationBankAccount = null;
+            let retryCount = 0;
+            const maxRetries = 3;
+            while (!destinationBankAccount && retryCount < maxRetries) {
+                if (retryCount > 0) {
+                    console.log(`⏳ Waiting 3 seconds for Juno API synchronization (attempt ${retryCount + 1}/${maxRetries})...`);
+                    await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay
+                }
+                const bankAccounts = await (0, junoService_1.getRegisteredBankAccounts)();
+                console.log(`📋 Found ${bankAccounts.length} registered bank accounts`);
+                destinationBankAccount = bankAccounts.find(account => account.id === payment.seller.juno_bank_account_id);
+                retryCount++;
+            }
             if (!destinationBankAccount) {
-                throw new Error(`Seller's bank account ${payment.seller.juno_bank_account_id} not found in registered accounts`);
+                throw new Error(`Seller's bank account ${payment.seller.juno_bank_account_id} not found in registered accounts after ${maxRetries} attempts`);
             }
             // STEP 3: Process the MXNB redemption to MXN via SPEI
             console.log(`🏦 Step 2: Redeeming ${amount} MXNB to MXN via SPEI...`);
@@ -444,7 +488,7 @@ class PaymentAutomationService {
     async processEscrowCreationAndFunding(payment, custodyAmount) {
         const escrowRepo = ormconfig_1.default.getRepository(Escrow_1.Escrow);
         const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
-        const tokenAddress = process.env.MXNB_CONTRACT_ADDRESS;
+        const tokenAddress = (0, networkConfig_1.getCurrentNetworkConfig)().mxnbTokenAddress;
         const bridgeWallet = (0, networkConfig_1.getCurrentNetworkConfig)().bridgeWallet;
         if (!payment.escrow)
             throw new Error(`Payment ${payment.id} missing escrow relation`);
@@ -494,10 +538,15 @@ class PaymentAutomationService {
                 deadline: deadline,
                 vertical: payment.vertical_type || '',
                 clabe: payment.deposit_clabe || '',
-                conditions: 'Flow 1: Platform-managed custody'
+                conditions: 'flow1-platform-managed-custody'
             });
             if (!createResult?.escrowId)
                 throw new Error('Escrow creation failed to return a valid ID.');
+            // Fund the escrow (pausable contract requires separate funding step)
+            console.log(`💰 Funding escrow ${createResult.escrowId} with ${custodyAmount} tokens...`);
+            const { fundEscrow } = await Promise.resolve().then(() => __importStar(require('./escrowService')));
+            const fundTxHash = await fundEscrow(createResult.escrowId, tokenAddress, custodyAmount.toString());
+            console.log(`✅ Escrow funded successfully: ${fundTxHash}`);
             payment.escrow.smart_contract_escrow_id = createResult.escrowId;
             payment.escrow.blockchain_tx_hash = createResult.txHash;
             payment.escrow.status = 'active';
@@ -571,7 +620,7 @@ class PaymentAutomationService {
                             recipient_email: payment.recipient_email,
                             escrowId: createResult.escrowId,
                             txHash: createResult.txHash,
-                            arbiscanUrl: `https://sepolia.arbiscan.io/tx/${createResult.txHash}`,
+                            arbiscanUrl: `${(0, networkConfig_1.getCurrentNetworkConfig)().explorerUrl}/tx/${createResult.txHash}`,
                             custodyAmount: payment.escrow.custody_amount,
                             custodyEnd: payment.escrow.custody_end
                         },
@@ -982,10 +1031,11 @@ class PaymentAutomationService {
         console.log(`💰 Juno withdrawal successful: ${JSON.stringify(response.data)}`);
     }
     async transferBridgeToJuno(amount) {
-        const MXNB_TOKEN = "0x82B9e52b26A2954E113F94Ff26647754d5a4247D";
-        const BRIDGE_WALLET_PK = process.env.ESCROW_PRIVATE_KEY;
-        const PROVIDER_URL = (0, networkConfig_1.getCurrentNetworkConfig)().rpcUrl;
-        const JUNO_WALLET = process.env.JUNO_WALLET;
+        const networkConfig = (0, networkConfig_1.getCurrentNetworkConfig)();
+        const MXNB_TOKEN = networkConfig.mxnbTokenAddress; // Use network-aware token address
+        const BRIDGE_WALLET_PK = networkConfig.privateKey; // 🚨 FIX: Use network-aware bridge wallet private key
+        const PROVIDER_URL = networkConfig.rpcUrl;
+        const JUNO_WALLET = networkConfig.junoWallet; // ✅ FIXED: Use network-aware Juno wallet
         if (!BRIDGE_WALLET_PK || !JUNO_WALLET) {
             throw new Error('Missing bridge wallet private key or Juno wallet address in .env');
         }
@@ -1250,11 +1300,71 @@ class PaymentAutomationService {
         }
     }
     /**
+     * Quick retry for very recent escrow failures (runs every 30 seconds)
+     * Focuses on payments that failed in the last 2 minutes due to balance issues
+     */
+    async quickEscrowRetry() {
+        try {
+            if (!ormconfig_1.default.isInitialized) {
+                return;
+            }
+            const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
+            const eventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
+            // Find payments that failed escrow creation in the last 2 minutes
+            const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+            console.log(`⚡ Quick retry: Looking for automation errors after ${twoMinutesAgo.toISOString()}`);
+            const recentFailures = await eventRepo.find({
+                where: {
+                    type: 'automation_error',
+                    created_at: (0, typeorm_1.MoreThan)(twoMinutesAgo) // Fixed: should be MoreThan, not LessThan
+                },
+                order: { created_at: 'DESC' }
+            });
+            console.log(`⚡ Quick retry: Found ${recentFailures.length} recent automation errors`);
+            const balanceFailures = recentFailures.filter(event => event.description?.includes('Insufficient MXNB balance') ||
+                event.description?.includes('transfer amount exceeds balance'));
+            if (balanceFailures.length === 0) {
+                return;
+            }
+            console.log(`⚡ Quick retry: Found ${balanceFailures.length} recent balance failures`);
+            for (const failureEvent of balanceFailures.slice(0, 3)) { // Limit to 3 per cycle
+                try {
+                    const payment = await paymentRepo.findOne({
+                        where: { id: failureEvent.paymentId },
+                        relations: ['escrow']
+                    });
+                    if (!payment || payment.status !== 'funded' || payment.escrow?.smart_contract_escrow_id) {
+                        continue; // Skip if payment not found, not funded, or escrow already exists
+                    }
+                    const custodyAmount = Number(payment.escrow?.custody_amount || 0);
+                    if (custodyAmount <= 0)
+                        continue;
+                    // Quick balance check
+                    const balanceCheck = await this.checkBridgeWalletBalance(custodyAmount);
+                    if (!balanceCheck.hasBalance) {
+                        console.log(`⏳ Payment ${payment.id}: Still insufficient balance (${balanceCheck.currentBalance}/${balanceCheck.requiredBalance} MXNB)`);
+                        continue;
+                    }
+                    console.log(`⚡ Payment ${payment.id}: Balance now sufficient, attempting escrow creation`);
+                    await this.processEscrowCreationAndFunding(payment, custodyAmount);
+                    await this.paymentService.logPaymentEvent(payment.id, 'quick_retry_success', `Quick retry successful - escrow created after balance recovery`, true);
+                }
+                catch (error) {
+                    console.error(`❌ Quick retry failed for payment ${failureEvent.paymentId}:`, error.message);
+                }
+            }
+        }
+        catch (error) {
+            console.error('❌ Error in quickEscrowRetry:', error.message);
+        }
+    }
+    /**
      * Retry failed escrow creations for funded payments
      * This handles cases where MXNB balance was insufficient during initial automation
      */
     async retryFailedEscrowCreations() {
         try {
+            console.log('🔄 Starting retryFailedEscrowCreations...');
             if (!ormconfig_1.default.isInitialized) {
                 console.warn('⚠️ Database not initialized, skipping escrow retry');
                 return;
@@ -1262,22 +1372,26 @@ class PaymentAutomationService {
             const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
             const eventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
             // Find funded payments that don't have escrow created yet
-            // and have been funded for more than 2 minutes
-            const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+            // and have been funded for more than 1 minute (reduced from 2 minutes for faster retries)
+            const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000);
+            console.log(`🔍 Looking for funded payments older than ${oneMinuteAgo.toISOString()}`);
             const fundedPayments = await paymentRepo.find({
                 where: {
                     status: 'funded'
                 },
                 relations: ['escrow', 'user', 'seller']
             });
+            console.log(`📊 Found ${fundedPayments.length} total funded payments`);
             const paymentsNeedingEscrow = fundedPayments.filter(payment => {
                 // Check if payment has escrow configuration but no smart contract created
                 const hasEscrowConfig = payment.escrow && payment.escrow.custody_percent > 0;
                 const noSmartContract = !payment.escrow?.smart_contract_escrow_id;
-                const fundedLongEnough = payment.updated_at && payment.updated_at < twoMinutesAgo;
+                const fundedLongEnough = payment.updated_at && payment.updated_at < oneMinuteAgo;
+                console.log(`🔍 Payment ${payment.id}: hasEscrowConfig=${hasEscrowConfig}, noSmartContract=${noSmartContract}, fundedLongEnough=${fundedLongEnough}, updated_at=${payment.updated_at?.toISOString()}`);
                 return hasEscrowConfig && noSmartContract && fundedLongEnough;
             });
             if (paymentsNeedingEscrow.length === 0) {
+                console.log('ℹ️ No payments need escrow retry');
                 return; // No payments need escrow retry
             }
             console.log(`🔄 Found ${paymentsNeedingEscrow.length} payments needing escrow retry`);
@@ -1293,20 +1407,35 @@ class PaymentAutomationService {
                         order: { created_at: 'DESC' },
                         take: 1
                     });
-                    const hasRecentError = recentErrors.length > 0 &&
-                        recentErrors[0].description?.includes('transfer amount exceeds balance');
-                    if (hasRecentError) {
-                        console.log(`🔄 Payment ${payment.id} had balance error, retrying escrow creation...`);
-                        const totalAmount = Number(payment.amount);
-                        const custodyPercent = payment.escrow?.custody_percent || 0;
-                        const custodyAmount = Math.round(totalAmount * (custodyPercent / 100));
-                        if (custodyAmount > 0) {
-                            // Wait a bit for MXNB tokens to be available
-                            console.log(`⏳ Waiting 30 seconds before retry for payment ${payment.id}...`);
+                    console.log(`📋 Payment ${payment.id}: Found ${recentErrors.length} recent errors`);
+                    if (recentErrors.length > 0) {
+                        console.log(`📋 Most recent error: ${recentErrors[0].description}`);
+                    }
+                    // Check for balance-related errors (expanded detection)
+                    const hasRecentBalanceError = recentErrors.length > 0 && (recentErrors[0].description?.includes('transfer amount exceeds balance') ||
+                        recentErrors[0].description?.includes('Insufficient MXNB balance') ||
+                        recentErrors[0].description?.includes('insufficient funds'));
+                    // Always attempt retry for payments needing escrow, regardless of error type
+                    console.log(`🔄 Payment ${payment.id}: Attempting escrow creation retry...`);
+                    const totalAmount = Number(payment.amount);
+                    const custodyPercent = payment.escrow?.custody_percent || 0;
+                    const custodyAmount = Math.round(totalAmount * (custodyPercent / 100));
+                    console.log(`💰 Payment ${payment.id}: Amount=${totalAmount}, CustodyPercent=${custodyPercent}%, CustodyAmount=${custodyAmount}`);
+                    if (custodyAmount > 0) {
+                        // Check current balance before attempting
+                        const balanceCheck = await this.checkBridgeWalletBalance(custodyAmount);
+                        console.log(`💳 Payment ${payment.id}: Balance check - Required: ${balanceCheck.requiredBalance}, Available: ${balanceCheck.currentBalance}, HasBalance: ${balanceCheck.hasBalance}`);
+                        if (!balanceCheck.hasBalance && hasRecentBalanceError) {
+                            console.log(`⏳ Payment ${payment.id}: Insufficient balance and recent balance error, waiting 30 seconds...`);
                             await new Promise(resolve => setTimeout(resolve, 30000));
-                            await this.processEscrowCreationAndFunding(payment, custodyAmount);
-                            await this.paymentService.logPaymentEvent(payment.id, 'escrow_retry_success', `Escrow creation retry successful after balance error`, true);
                         }
+                        console.log(`🚀 Payment ${payment.id}: Calling processEscrowCreationAndFunding...`);
+                        await this.processEscrowCreationAndFunding(payment, custodyAmount);
+                        await this.paymentService.logPaymentEvent(payment.id, 'escrow_retry_success', `Escrow creation retry successful`, true);
+                        console.log(`✅ Payment ${payment.id}: Escrow retry completed successfully`);
+                    }
+                    else {
+                        console.log(`⚠️ Payment ${payment.id}: Custody amount is 0, skipping`);
                     }
                 }
                 catch (error) {

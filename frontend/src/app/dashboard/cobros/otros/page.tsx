@@ -5,9 +5,9 @@ import { authFetch } from "../../../../utils/authFetch";
 
 type CommissionRecipient = {
   id: string;
-  email: string;
-  percentage: string;
-  name?: string;
+  broker_email: string;
+  broker_percentage: string;
+  broker_name?: string;
 };
 
 type FormDataType = {
@@ -48,7 +48,7 @@ export default function CobroOtrosPage() {
     delivery_date: '',
     delivery_conditions: '',
     delivery_notes: '',
-    has_commission: true
+    has_commission: false
   });
   const [buyerValid, setBuyerValid] = useState<boolean | undefined>(undefined);
   const [buyerVerified, setBuyerVerified] = useState<boolean | undefined>(undefined);
@@ -71,8 +71,8 @@ export default function CobroOtrosPage() {
   const addCommissionRecipient = () => {
     const newRecipient: CommissionRecipient = {
       id: Date.now().toString(),
-      email: '',
-      percentage: ''
+      broker_email: '',
+      broker_percentage: ''
     };
     setData({
       ...data,
@@ -210,17 +210,17 @@ export default function CobroOtrosPage() {
     
     // Validate commission splits only if commission is enabled
     if (data.has_commission && data.total_commission_percentage && parseFloat(data.total_commission_percentage) > 0) {
-      const totalBrokerPercentage = data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0);
+      const totalBrokerPercentage = data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.broker_percentage || '0'), 0);
       
-      if (totalBrokerPercentage > 100) {
-        alert('El total de comisiones a colaboradores no puede exceder el 100%');
+      if (totalBrokerPercentage > 50) {
+        alert('El total de comisiones a colaboradores no puede exceder el 50%');
         setSubmitting(false);
         return;
       }
       
       // Check if all commission recipients have valid emails
       for (const recipient of data.commission_recipients) {
-        if (!recipient.email || !recipient.percentage) {
+        if (!recipient.broker_email || !recipient.broker_percentage) {
           alert('Por favor complete todos los campos de comisiones');
           setSubmitting(false);
           return;
@@ -242,7 +242,7 @@ export default function CobroOtrosPage() {
         total_commission_amount: data.has_commission ? ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100) : 0,
         net_amount: data.has_commission ? (parseFloat(data.payment_amount) - ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100)) : parseFloat(data.payment_amount),
         // Add broker's commission percentage (only if commission is enabled)
-        broker_commission_percentage: data.has_commission && data.total_commission_percentage ? (100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)) : 0
+        commission_recipients: data.commission_recipients
       };
 
       const response = await authFetch('payments/cobro-inteligente', {
@@ -410,15 +410,12 @@ export default function CobroOtrosPage() {
                       Porcentaje total que se deducirá del monto y se distribuirá entre colaboradores
                     </p>
                   </div>
-                  <div className="bg-purple-100 p-3 rounded-lg">
-                    <p className="text-sm text-purple-700 font-medium mb-2">💡 Colaborador principal</p>
-                    <p className="text-sm text-purple-600">Recibirás la comisión restante después de splits adicionales</p>
-                  </div>
+
                   
                   {data.commission_recipients.map((recipient, index) => (
                     <div key={recipient.id} className="bg-white p-4 rounded-lg border-2 border-purple-200">
                       <div className="flex justify-between items-start mb-3">
-                        <h5 className="font-medium text-gray-800">Colaborador #{index + 1}</h5>
+                        <h5 className="font-medium text-gray-800">Asesor #{index + 1}</h5>
                         <button
                           type="button"
                           onClick={() => removeCommissionRecipient(recipient.id)}
@@ -436,8 +433,8 @@ export default function CobroOtrosPage() {
                           <input
                             type="email"
                             placeholder="colaborador@empresa.com"
-                            value={recipient.email}
-                            onChange={(e) => updateCommissionRecipient(recipient.id, 'email', e.target.value)}
+                            value={recipient.broker_email}
+                            onChange={(e) => updateCommissionRecipient(recipient.id, 'broker_email', e.target.value)}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
                           />
                         </div>
@@ -453,8 +450,8 @@ export default function CobroOtrosPage() {
                               min="0"
                               max="100"
                               step="1"
-                              value={recipient.percentage}
-                              onChange={(e) => updateCommissionRecipient(recipient.id, 'percentage', e.target.value)}
+                              value={recipient.broker_percentage}
+                              onChange={(e) => updateCommissionRecipient(recipient.id, 'broker_percentage', e.target.value)}
                               className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
                             />
                             <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
@@ -472,24 +469,8 @@ export default function CobroOtrosPage() {
                     onClick={addCommissionRecipient}
                     className="w-full p-3 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-colors"
                   >
-                    ➕ Agregar colaborador adicional
+                    ➕ Agregar colaborador
                   </button>
-                  
-                  {data.commission_recipients.length > 0 && (
-                    <div className="bg-purple-100 p-3 rounded-lg">
-                      <p className="text-sm text-purple-700 font-medium mb-1">📊 Resumen de comisiones:</p>
-                      <div className="space-y-1">
-                        {data.commission_recipients.map((recipient, index) => (
-                          <p key={recipient.id} className="text-sm text-purple-600">
-                            Colaborador #{index + 1}: {recipient.percentage}%
-                          </p>
-                        ))}
-                        <p className="text-sm text-purple-700 font-medium border-t border-purple-200 pt-1">
-                          Tu comisión: {(100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)).toFixed(1)}%
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
@@ -672,17 +653,17 @@ export default function CobroOtrosPage() {
                           <span className="font-medium">${((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100).toFixed(2)}</span>
                         </div>
                         
-                        {data.commission_recipients.map((recipient, index) => (
-                          <div key={recipient.id} className="flex justify-between text-sm">
-                            <span className="text-gray-500">Colaborador #{index + 1} ({recipient.percentage}%):</span>
-                            <span>${(((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100) * (parseFloat(recipient.percentage || '0') / 100)).toFixed(2)}</span>
-                          </div>
-                        ))}
+                        {data.commission_recipients.map((recipient, index) => {
+                          const brokerCommission = (parseFloat(data.payment_amount) * parseFloat(recipient.broker_percentage || '0')) / 100;
+                          return (
+                            <div key={recipient.id} className="flex justify-between text-sm">
+                              <span className="text-gray-500">Asesor #{index + 1}:</span>
+                              <span>{recipient.broker_email} ({recipient.broker_percentage}% = ${brokerCommission.toFixed(2)} MXN)</span>
+                            </div>
+                          );
+                        })}
                         
-                        <div className="flex justify-between border-t pt-2">
-                          <span className="text-purple-700 font-medium">Tu comisión:</span>
-                          <span className="font-medium">${(((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100) * ((100 - data.commission_recipients.reduce((sum, r) => sum + parseFloat(r.percentage || '0'), 0)) / 100)).toFixed(2)}</span>
-                        </div>
+
                         
                         <div className="flex justify-between border-t pt-2 font-bold">
                           <span className="text-green-700">Monto neto al proveedor:</span>

@@ -14,6 +14,7 @@ import { fundV3Escrow, releaseV3Escrow } from '../services/escrowV3Service';
 import { signAndBroadcastWithPortal } from '../services/portalSignerService';
 import { createJunoClabe } from '../services/junoService';
 import { getCurrentNetworkConfig } from '../utils/networkConfig';
+import { getPlatformCommissionPercent, calculatePlatformCommission, type PaymentFlowType } from '../utils/platformCommissionConfig';
 
 // Helper function to create a payment event
 const createPaymentEvent = async (payment: Payment, type: string, description: string, isAutomatic: boolean = false) => {
@@ -677,12 +678,20 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
       return;
     }
 
-    // 5. Create Payment record
+    // 5. Calculate platform commission
+    const baseAmount = parseFloat(amount.toString());
+    const platformCommissionPercent = getPlatformCommissionPercent(payment_type as PaymentFlowType);
+    const platformCommissionBreakdown = calculatePlatformCommission(baseAmount, payment_type as PaymentFlowType);
+    const totalAmountToPay = platformCommissionBreakdown.totalAmountToPay;
+    
+    console.log(`[Platform Commission] Payment type: ${payment_type}, Commission: ${platformCommissionPercent}%, Amount: $${baseAmount}, Total to pay: $${totalAmountToPay}`);
+
+    // 6. Create Payment record
     const payment = new Payment();
     payment.user = payerUser;
     payment.seller = recipientUser;
     payment.recipient_email = recipient_email; // Fix: Add missing recipient_email
-    payment.amount = parseFloat(amount.toString());
+    payment.amount = baseAmount;
     payment.currency = currency;
     payment.description = description || 'Pago directo';
     payment.status = 'pending';
@@ -696,6 +705,12 @@ export const initiatePayment = async (req: AuthenticatedRequest, res: Response):
     payment.payer_email = payerUser.email;
     payment.payer_clabe = payerUser.deposit_clabe;
     payment.reference = undefined; // Will be set by automation when deposit is detected
+    
+    // Platform commission fields
+    payment.platform_commission_percent = platformCommissionPercent;
+    payment.platform_commission_amount = platformCommissionBreakdown.amount;
+    payment.platform_commission_beneficiary_email = 'platform@kustodia.mx'; // Platform email
+    payment.total_amount_to_pay = totalAmountToPay; // What user actually pays (base + platform commission)
     
     // Set nuevo_flujo specific fields
     payment.payment_type = payment_type;

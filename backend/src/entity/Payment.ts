@@ -91,6 +91,9 @@ export class Payment {
   @Column({ nullable: true })
   platform_commission_beneficiary_email?: string;
 
+  @Column({ type: "decimal", precision: 18, scale: 2, nullable: true })
+  total_amount_to_pay?: number; // Base amount + platform commission (what user actually pays)
+
   @Column({ nullable: true, length: 255 })
   commission_beneficiary_name?: string;
 

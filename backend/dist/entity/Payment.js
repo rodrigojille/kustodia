@@ -114,6 +114,10 @@ __decorate([
     __metadata("design:type", String)
 ], Payment.prototype, "platform_commission_beneficiary_email", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: "decimal", precision: 18, scale: 2, nullable: true }),
+    __metadata("design:type", Number)
+], Payment.prototype, "total_amount_to_pay", void 0);
+__decorate([
     (0, typeorm_1.Column)({ nullable: true, length: 255 }),
     __metadata("design:type", String)
 ], Payment.prototype, "commission_beneficiary_name", void 0);
