@@ -238,11 +238,35 @@ export class PaymentAutomationService {
   async processPaymentAutomation(paymentId: number): Promise<void> {
     try {
       console.log(`🚀 Starting automation for payment ${paymentId}`);
+      
+      // Debug: Check network configuration first
+      const networkConfig = getCurrentNetworkConfig();
+      console.log(`🔧 Network config - Network: ${networkConfig.networkName}`);
+      console.log(`🔧 Network config - Bridge wallet: ${networkConfig.bridgeWallet || 'NOT SET'}`);
+      console.log(`🔧 Network config - Juno env: ${networkConfig.junoEnv}`);
+      console.log(`🔧 Network config - Juno API key: ${networkConfig.junoApiKey ? networkConfig.junoApiKey.slice(0, 8) + '...' : 'NOT SET'}`);
+      
+      if (!networkConfig.bridgeWallet) {
+        const errorMsg = `❌ CRITICAL: Bridge wallet not configured for ${networkConfig.networkName}. Required env var: ${networkConfig.networkName.includes('Mainnet') ? 'BRIDGE_WALLET_MAIN' : 'ESCROW_BRIDGE_WALLET'}`;
+        console.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+      
       const paymentRepo = AppDataSource.getRepository(Payment);
       const payment = await paymentRepo.findOne({ where: { id: paymentId }, relations: ['escrow', 'user', 'seller'] });
 
-      if (!payment) throw new Error(`Payment ${paymentId} not found`);
-      if (payment.status !== 'funded') throw new Error(`Payment ${paymentId} not in 'funded' status`);
+      if (!payment) {
+        const errorMsg = `Payment ${paymentId} not found`;
+        console.error(`❌ ${errorMsg}`);
+        throw new Error(errorMsg);
+      }
+      if (payment.status !== 'funded') {
+        const errorMsg = `Payment ${paymentId} not in 'funded' status (current: ${payment.status})`;
+        console.error(`❌ ${errorMsg}`);
+        throw new Error(errorMsg);
+      }
+
+      console.log(`✅ Payment ${paymentId} validation passed - proceeding with automation`);
 
       // Wait 3 minutes after deposit detection for Juno to mint MXNB tokens
       console.log(`⏳ Waiting 3 minutes for Juno to process deposit and mint MXNB tokens...`);
@@ -253,6 +277,8 @@ export class PaymentAutomationService {
       const custodyPercent = payment.escrow?.custody_percent || 0;
       const custodyAmount = Math.round(totalAmount * (custodyPercent / 100));
       const payoutAmount = totalAmount - custodyAmount;
+      
+      console.log(`💰 Payment amounts - Total: ${totalAmount}, Custody: ${custodyAmount}, Payout: ${payoutAmount}`);
 
       let payoutSucceeded = false;
 
