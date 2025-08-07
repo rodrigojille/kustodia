@@ -97,7 +97,7 @@ const EarlyAccessModal: React.FC<EarlyAccessModalProps> = ({ open, onClose }) =>
           <div className="flex flex-col items-center gap-4">
             <div className="text-green-700 font-bold text-xl">¡Gracias por registrarte!</div>
             <div className="text-gray-700">Te avisaremos por correo cuando tengas acceso.</div>
-            {zeroFee && <div className="bg-yellow-100 text-yellow-800 rounded p-2 font-semibold">¡Obtendrás comisión cero de por vida!</div>}
+            {zeroFee && <div className="bg-blue-100 text-blue-800 rounded p-2 font-semibold">¡Tendrás acceso prioritario exclusivo!</div>}
             <button onClick={onClose} className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">Cerrar</button>
           </div>
         )}

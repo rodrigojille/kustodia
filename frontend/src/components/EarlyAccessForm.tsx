@@ -98,7 +98,7 @@ export default function EarlyAccessForm() {
     
     // Track form submission attempt
     trackUserAction('early_access_form_submit', {
-      button_text: 'Conseguir 0% comisión de por vida',
+      button_text: 'Obtener acceso prioritario',
       form_data: {
         has_name: !!form.name,
         has_email: !!form.email,
@@ -263,7 +263,7 @@ export default function EarlyAccessForm() {
         onClick={() => {
           if (!loading) {
             trackUserAction('early_access_button_click', {
-              button_text: loading ? 'Enviando...' : 'Conseguir 0% comisión de por vida',
+              button_text: loading ? 'Enviando...' : 'Obtener acceso prioritario',
               form_completion: {
                 name_filled: !!form.name,
                 email_filled: !!form.email,
@@ -274,7 +274,7 @@ export default function EarlyAccessForm() {
           }
         }}
       >
-        {loading ? 'Enviando...' : 'Conseguir 0% comisión de por vida'}
+        {loading ? 'Enviando...' : 'Obtener acceso prioritario'}
       </button>
     </form>
   );

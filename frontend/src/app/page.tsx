@@ -1,7 +1,7 @@
 'use client';
 import Head from 'next/head';
 import { useState, useEffect, Suspense } from 'react';
-import { FaShieldAlt, FaHeadset, FaRocket, FaLock, FaCheckCircle } from 'react-icons/fa';
+import { FaShieldAlt, FaHeadset, FaRocket, FaLock, FaCheckCircle, FaCar, FaHome, FaLaptop, FaShoppingCart } from 'react-icons/fa';
 import Header from '../components/Header';
 import EarlyAccessCounter from '../components/EarlyAccessCounter';
 import UrgencyNotice from '../components/UrgencyNotice';
@@ -28,45 +28,53 @@ const LazyApiSneakPeek = dynamic(() => import('../components/ApiSneakPeek'), {
   ssr: false,
 });
 
-const LazyCasosDeUso = dynamic(() => import('../components/CasosDeUso'), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
-  ssr: false,
-});
-
 const LazyMXNBSection = dynamic(() => import('../components/MXNBSection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });
 
 const LazyEarlyAccessForm = dynamic(() => import('../components/EarlyAccessForm'), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false,
+});
+
+const LazyBeforeAfterComparison = dynamic(() => import('../components/BeforeAfterComparison'), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });
 
 const benefits = [
   {
-    title: "Tan fácil como un SPEI, pero con tus condiciones",
-    icon: <FaRocket className="text-blue-700 text-3xl" />,
-    description: "Haz pagos como siempre. No necesitas aprender nada nuevo.",
-    subtext: '',
+    title: "Venta de auto usado - $180,000",
+    icon: <FaCar className="w-6 h-6" />,
+    description: "Comprador: Ya no te preocupes por dar el anticipo de $30,000. Vendedor: Tu dinero está asegurado desde que entregas las llaves.",
+    buyerValue: 'Anticipo sin riesgo',
+    sellerValue: 'Cobras seguro',
+    color: 'from-blue-500 to-blue-600',
   },
   {
-    title: 'Control total',
-    icon: <FaShieldAlt size={38} className="text-blue-600 mb-2" />,
-    description: 'Tú decides cuándo se libera el dinero. Protege cada paso de tu operación.',
-    subtext: '',
+    title: 'Depósito de renta - $25,000',
+    icon: <FaHome className="w-6 h-6" />,
+    description: 'Inquilino: Tu depósito regresa completo si todo está bien. Propietario: Ya no te preocupes por inquilinos que no paguen.',
+    buyerValue: 'Depósito protegido',
+    sellerValue: 'Rentas seguras',
+    color: 'from-green-500 to-green-600',
   },
   {
-    title: 'Seguridad real',
-    icon: <FaLock size={38} className="text-blue-600 mb-2" />,
-    description: 'Protege enganches, rentas y ventas: el dinero solo se libera como acordado.',
-    subtext: '',
+    title: 'Freelance/Servicios - $50,000',
+    icon: <FaLaptop className="w-6 h-6" />,
+    description: 'Cliente: Solo pagas cuando recibas el trabajo como lo pediste. Freelancer: Ya no más clientes que desaparecen sin pagar.',
+    buyerValue: 'Pagas al recibir',
+    sellerValue: 'Cobras siempre',
+    color: 'from-purple-500 to-purple-600',
   },
   {
-    title: 'Soporte humano',
-    icon: <FaHeadset size={38} className="text-blue-600 mb-2" />,
-    description: 'Te acompañamos en cada paso. Cualquier duda, estamos aquí.',
-    subtext: '',
+    title: 'Marketplace/Ventas online',
+    icon: <FaShoppingCart className="w-6 h-6" />,
+    description: 'Comprador: Tu dinero se libera cuando recibas tu producto. Vendedor: Más gente te compra porque confían en ti.',
+    buyerValue: 'Compras sin miedo',
+    sellerValue: 'Vendes más',
+    color: 'from-orange-500 to-orange-600',
   },
 ];
 
@@ -341,33 +349,32 @@ export default function LandingPage() {
           <section className="w-full max-w-7xl px-6 mx-auto mb-24 mt-20" aria-labelledby="hero-heading">
             <div className="flex flex-col items-center justify-center w-full">
               <div className="flex flex-col items-center justify-center text-center w-full max-w-5xl">
-                {/* Trust indicator badge */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 text-sm font-medium px-6 py-3 rounded-full border border-blue-200 mb-8 shadow-sm">
-                  🔒 Servicio de custodia digital mediante blockchain
-                </div>
-                
                 <h1 id="hero-heading" className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 text-gray-900 leading-[0.95] max-w-6xl mx-auto text-center tracking-tight">
-                  Pagos seguros: 
-                  <span className="text-blue-600"> tu dinero solo se libera</span> cuando se cumple el trato.
+                  ¿Vas a hacer una transferencia bancaria?
+                  <span className="text-blue-600"> Protege tu dinero</span> con Kustodia.
                 </h1>
                 
-                <p className="text-xl md:text-2xl lg:text-3xl text-gray-500 mb-16 max-w-4xl mx-auto font-light leading-relaxed text-center">
-                  Protege compras, ventas o servicios. <span className="font-medium text-gray-700">Sin riesgos de fraudes.</span>
+                <p className="text-xl md:text-2xl lg:text-3xl text-gray-600 mb-8 max-w-4xl mx-auto font-light leading-relaxed text-center">
+                  <span className="font-medium text-gray-800">El dinero no se mueve hasta que se cumple el acuerdo.</span> Tan fácil como una transferencia bancaria, pero con control remoto.
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-6 items-center">
-                  <a href="#early-access" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-semibold px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] min-w-[320px]" aria-describedby="cta-description"
+                <p className="text-lg text-gray-500 mb-12 max-w-3xl mx-auto text-center">
+                  <span className="font-medium text-gray-700">¿Hacer el pago te da ansiedad?</span> ¿No sabes si puedes confiar en el comprador o vendedor? <span className="font-semibold text-blue-600">Paga con Kustodia.</span>
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center justify-center w-full">
+                  <a href="#early-access" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-lg sm:text-xl font-semibold px-8 sm:px-12 py-4 sm:py-6 rounded-2xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] w-full sm:w-auto sm:min-w-[280px] text-center" aria-describedby="cta-description"
                      onClick={() => trackUserAction('hero_cta_click', {
-                       button_text: 'Registro prioritario exclusivo',
+                       button_text: 'Paga sin miedo',
                        target_section: 'early-access',
                        engagement_level: 'very_high',
                        conversion_stage: 'interest'
                      })}>
-                    Registro prioritario exclusivo
+                    Paga sin miedo →
                   </a>
-                  <div id="cta-description" className="text-base text-gray-500 flex items-center gap-3 font-medium">
-                    <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></span>
-                    Acceso prioritario exclusivo
+                  <div id="cta-description" className="text-sm sm:text-base text-gray-500 flex items-center gap-2 sm:gap-3 font-medium justify-center">
+                    <span className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></span>
+                    Acceso prioritario • Sin comisiones
                   </div>
                 </div>
               </div>
@@ -375,120 +382,354 @@ export default function LandingPage() {
           </section>
         </RevealAnimation>
 
-        {/* Benefits Section */}
+        {/* Pain Points Section */}
         <RevealAnimation>
-          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="benefits-heading">
-            <div className="text-center mb-20">
-              <h2 id="benefits-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-                ¿Por qué elegir Kustodia?
-              </h2>
-              <p className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
-                La forma más segura y simple de proteger tus pagos en México
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8" role="list">
-              {benefits.map((benefit, index) => (
-                <RevealAnimation key={benefit.title} delay={index * 0.1} direction="up">
-                  <article className="bg-white rounded-3xl shadow-sm p-8 lg:p-10 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:scale-[1.02] group h-80" role="listitem">
-                    <div className="mb-6 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" aria-hidden="true">
-                      {benefit.icon}
-                    </div>
-                    <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 leading-tight min-h-[3.5rem] flex items-center justify-center">
-                      {benefit.title}
-                    </h3>
-                    {benefit.subtext && (
-                      <div className="text-base text-blue-600 mb-3 font-medium">{benefit.subtext}</div>
-                    )}
-                    <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-light flex-1 flex items-center justify-center">
-                      {benefit.description}
-                    </p>
-                  </article>
-                </RevealAnimation>
-              ))}
-            </div>
-          </section>
-        </RevealAnimation>
-
-        {/* Video Avatar Section */}
-        <RevealAnimation>
-          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="video-avatar-heading">
+          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="pain-points-heading">
             <div className="text-center mb-16">
-              <h2 id="video-avatar-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-                Conoce cómo funciona
+              <h2 id="pain-points-heading" className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                ¿Te ha pasado esto?
               </h2>
-              <p className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
-                Nuestro equipo te explica paso a paso cómo proteger tus pagos
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Historias reales de mexicanos que perdieron dinero. Con Kustodia, esto ya no pasa.
               </p>
             </div>
             
-            <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-16">
-              {/* Video Avatar */}
-              <div className="flex-1 max-w-md">
-                <VideoAvatar 
-                  title="Tu asesor digital"
-                  subtitle="Haz clic para que te explique paso a paso cómo protegemos tus pagos."
-                  muted={true}
-                />
-              </div>
-              
-              {/* Supporting Content */}
-              <div className="flex-1 max-w-lg">
-                <div className="space-y-8">
-                  {/* Step 1 */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 font-bold shadow-lg">
-                      1
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Scenario 1: Car Sale */}
+              <RevealAnimation delay={0.1}>
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-red-50 p-6 border-b border-red-100">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-2xl">🚗</span>
+                      <h3 className="text-lg font-bold text-red-800">Vendiste tu coche</h3>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Haces un SPEI como siempre, pero con tus condiciones</h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        Realiza el pago como lo harías normalmente, pero con la seguridad de que tus condiciones se cumplirán.
-                      </p>
+                    <div className="bg-red-100 rounded-lg p-4 mb-4">
+                      <p className="text-red-700 font-medium mb-2">❌ Sin protección:</p>
+                      <p className="text-sm text-red-600">"Me dieron un cheque sin fondos y ya se llevaron mi auto de $180,000"</p>
                     </div>
                   </div>
-                  
-                  {/* Step 2 */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 font-bold shadow-lg">
-                      2
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Custodia Inteligente</h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        Los fondos se quedan protegidos en una custodia inteligente hasta cumplir las condiciones acordadas.
-                      </p>
+                  <div className="bg-green-50 p-6">
+                    <div className="bg-green-100 rounded-lg p-4">
+                      <p className="text-green-700 font-medium mb-2">✅ Con Kustodia:</p>
+                      <p className="text-sm text-green-600">El dinero se confirma ANTES de entregar las llaves. Cero riesgo.</p>
                     </div>
                   </div>
-                  
-                  {/* Step 3 */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 font-bold shadow-lg">
-                      3
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Validar condiciones</h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        Se valida la entrega de productos, servicios, o cualquier condición acordada.
-                      </p>
-                    </div>
-                  </div>
+                </div>
+              </RevealAnimation>
 
-                  {/* Step 4 */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 font-bold shadow-lg">
-                      4
+              {/* Scenario 2: Advance Payment */}
+              <RevealAnimation delay={0.2}>
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-red-50 p-6 border-b border-red-100">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-2xl">💸</span>
+                      <h3 className="text-lg font-bold text-red-800">Pagaste un anticipo</h3>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Liberación Inteligente</h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        La custodia inteligente libera los fondos al vendedor de forma automática e instantánea.
-                      </p>
+                    <div className="bg-red-100 rounded-lg p-4 mb-4">
+                      <p className="text-red-700 font-medium mb-2">❌ Sin protección:</p>
+                      <p className="text-sm text-red-600">"El vendedor desapareció con mis $50,000 de anticipo"</p>
                     </div>
+                  </div>
+                  <div className="bg-green-50 p-6">
+                    <div className="bg-green-100 rounded-lg p-4">
+                      <p className="text-green-700 font-medium mb-2">✅ Con Kustodia:</p>
+                      <p className="text-sm text-green-600">El anticipo se libera solo cuando te entreguen lo acordado.</p>
+                    </div>
+                  </div>
+                </div>
+              </RevealAnimation>
+
+              {/* Scenario 3: Freelance Work */}
+              <RevealAnimation delay={0.3}>
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-red-50 p-6 border-b border-red-100">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-2xl">💻</span>
+                      <h3 className="text-lg font-bold text-red-800">Contrataste un freelancer</h3>
+                    </div>
+                    <div className="bg-red-100 rounded-lg p-4 mb-4">
+                      <p className="text-red-700 font-medium mb-2">❌ Sin protección:</p>
+                      <p className="text-sm text-red-600">"Pagué $25,000 por adelantado y nunca entregó el trabajo"</p>
+                    </div>
+                  </div>
+                  <div className="bg-green-50 p-6">
+                    <div className="bg-green-100 rounded-lg p-4">
+                      <p className="text-green-700 font-medium mb-2">✅ Con Kustodia:</p>
+                      <p className="text-sm text-green-600">Solo pagas cuando recibas el trabajo terminado y aprobado.</p>
+                    </div>
+                  </div>
+                </div>
+              </RevealAnimation>
+            </div>
+            
+            {/* Call to Action */}
+            <div className="text-center mt-12">
+              <p className="text-xl text-gray-700 mb-6 font-medium">
+                🤝 <span className="text-blue-600">Ya no tienes que confiar a ciegas.</span> Nosotros cuidamos tu dinero.
+              </p>
+              <a href="#early-access" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02]"
+                 onClick={() => trackUserAction('pain_points_cta_click', {
+                   section: 'pain-points',
+                   button_text: 'Protege tu próximo pago',
+                   engagement_level: 'high',
+                   conversion_stage: 'consideration'
+                 })}>
+                Protege tu próximo pago →
+              </a>
+            </div>
+          </section>
+        </RevealAnimation>
+
+        {/* How Kustodia Works Section */}
+        <RevealAnimation>
+          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="how-it-works-heading">
+            <div className="text-center mb-16">
+              <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                ¿Cómo funciona Kustodia?
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Tecnología blockchain que hace los pagos seguros y automáticos. Simple para ti, inteligente por dentro.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Step 1: Unique CLABE */}
+              <RevealAnimation delay={0.1}>
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center h-full flex flex-col">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-2xl">🏦</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">1. CLABE única por pago</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                    Cada pago genera una CLABE bancaria única. Transfieres como siempre, pero tu dinero va directo a un contrato inteligente.
+                  </p>
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <p className="text-blue-700 text-xs font-medium">Tu banco → CLABE Kustodia → Smart Contract</p>
+                  </div>
+                </div>
+              </RevealAnimation>
+
+              {/* Step 2: Smart Contract */}
+              <RevealAnimation delay={0.2}>
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center h-full flex flex-col">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-2xl">⚙️</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">2. Contrato inteligente</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                    El blockchain 'congela' tu dinero hasta que ambas partes confirmen que todo está listo. Sin intermediarios, sin errores humanos.
+                  </p>
+                  <div className="bg-purple-50 rounded-lg p-3">
+                    <p className="text-purple-700 text-xs font-medium">Código automático = Cero manipulación</p>
+                  </div>
+                </div>
+              </RevealAnimation>
+
+              {/* Step 3: MXNB Backing */}
+              <RevealAnimation delay={0.3}>
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center h-full flex flex-col">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-2xl">💰</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">3. Respaldo con MXNB</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                    Tus pesos se convierten en MXNB (token respaldado 1:1). Al liberar el pago, regresan automáticamente a pesos mexicanos. El pago se envía mediante transferencia bancaria SPEI como siempre.
+                  </p>
+                  <div className="bg-green-50 rounded-lg p-3">
+                    <p className="text-green-700 text-xs font-medium">1 Peso = 1 MXNB = 1 Peso garantizado</p>
+                  </div>
+                </div>
+              </RevealAnimation>
+            </div>
+            
+            {/* How it all connects */}
+            <div className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 max-w-4xl mx-auto">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  ¿Por qué es tan seguro?
+                </h3>
+                <p className="text-lg text-gray-700 mb-6">
+                  El blockchain hace que sea <strong>imposible</strong> manipular, hackear o perder tu dinero. Es como tener un notario digital que nunca duerme.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                  <div className="bg-white rounded-lg p-4">
+                    <span className="text-green-600 font-semibold">✓ Programable:</span> Las reglas se cumplen automáticamente
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <span className="text-blue-600 font-semibold">✓ Transparente:</span> Puedes verificar todo en tiempo real
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <span className="text-purple-600 font-semibold">✓ Inmutable:</span> Nadie puede cambiar las condiciones
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <span className="text-orange-600 font-semibold">✓ Descentralizado:</span> No depende de una sola empresa
                   </div>
                 </div>
               </div>
             </div>
+            
+
+          </section>
+        </RevealAnimation>
+
+        {/* Payment Comparison Section */}
+        <RevealAnimation>
+          <section className="w-full max-w-7xl px-6 mx-auto mb-24" aria-labelledby="comparison-heading">
+            <div className="text-center mb-16">
+              <h2 id="comparison-heading" className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+                ¿Cómo es diferente a un pago normal?
+              </h2>
+              <p className="text-xl md:text-2xl text-gray-500 max-w-4xl mx-auto font-light leading-relaxed">
+                La diferencia entre enviar dinero sin protección y usar Kustodia
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
+              {/* Traditional Payment Process */}
+              <RevealAnimation delay={0.1} direction="left">
+                <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-3xl p-8 border-2 border-red-200 relative flex flex-col h-full">
+                  <div className="absolute -top-4 left-6 bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                    ❌ Pago tradicional
+                  </div>
+                  
+                  <div className="mt-6 space-y-6 flex-grow">
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 text-sm font-bold">
+                        1
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Envías tu dinero</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          Haces la transferencia bancaria esperando que todo salga bien
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 text-sm font-bold">
+                        2
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Esperas y confías</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          No tienes control sobre tu dinero una vez enviado
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 text-sm font-bold">
+                        ?
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-red-700 mb-2">¿Y si algo sale mal?</h3>
+                        <p className="text-red-600 text-sm leading-relaxed font-medium">
+                          Tu dinero ya se fue. Difícil recuperarlo si hay problemas.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-8 p-4 bg-red-100 rounded-xl border border-red-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-red-600 text-lg">⚠️</span>
+                      <span className="font-bold text-red-800">Riesgos comunes:</span>
+                    </div>
+                    <ul className="text-sm text-red-700 space-y-1">
+                      <li>• No recibes lo que compraste</li>
+                      <li>• El producto llega dañado</li>
+                      <li>• Te dejan plantado</li>
+                      <li>• Fraudes y estafas</li>
+                    </ul>
+                  </div>
+                </div>
+              </RevealAnimation>
+              
+              {/* Kustodia Payment Process */}
+              <RevealAnimation delay={0.2} direction="right">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 border-2 border-blue-200 relative flex flex-col h-full">
+                  <div className="absolute -top-4 left-6 bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold">
+                    ✅ Con Kustodia
+                  </div>
+                  
+                  <div className="mt-6 space-y-6 flex-grow">
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 text-sm font-bold">
+                        1
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Transferencia protegida</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          Pagas como siempre, pero tu dinero queda en custodia segura
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 text-sm font-bold">
+                        2
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Aprobación dual</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          Comprador y vendedor deben aprobar antes de liberar los fondos.
+                          Sin la aprobación de ambos, el dinero permanece protegido.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 text-sm font-bold">
+                        3
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-blue-700 mb-2">El pago se realiza de forma segura y mediante SPEI</h3>
+                        <p className="text-blue-600 text-sm leading-relaxed font-medium">
+                          Una vez aprobado, el dinero se transfiere automáticamente vía SPEI. Rápido, seguro y familiar.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-8 p-4 bg-blue-100 rounded-xl border border-blue-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-blue-600 text-lg">🛡️</span>
+                      <span className="font-bold text-blue-800">Protección garantizada:</span>
+                    </div>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Cero riesgo de fraude</li>
+                      <li>• Tu dinero protegido hasta recibir</li>
+                      <li>• Fácil como transferencia bancaria</li>
+                      <li>• Soporte humano 24/7</li>
+                    </ul>
+                  </div>
+                </div>
+              </RevealAnimation>
+            </div>
+            
+            {/* Bottom CTA */}
+            <RevealAnimation delay={0.3}>
+              <div className="text-center mt-16">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-8 max-w-4xl mx-auto">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-4">
+                    ¿Vas a hacer una transferencia bancaria?
+                  </h3>
+                  <p className="text-xl mb-6 text-blue-100">
+                    Cuida tu dinero con Kustodia. Tan fácil como un SPEI pero con control remoto.
+                  </p>
+                  <a href="#early-access" 
+                     className="inline-block bg-white text-blue-600 text-lg font-bold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all duration-300 transform hover:scale-[1.02]"
+                     onClick={() => trackUserAction('comparison_cta_click', {
+                       button_text: 'Paga sin miedo',
+                       section: 'comparison',
+                       engagement_level: 'high',
+                       conversion_stage: 'consideration'
+                     })}>
+                    Paga sin miedo →
+                  </a>
+                </div>
+              </div>
+            </RevealAnimation>
           </section>
         </RevealAnimation>
 
@@ -544,7 +785,7 @@ export default function LandingPage() {
                       <div className="space-y-3 text-sm">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">Ô£ô</span>
+                            <span className="text-white text-xs">💰</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Pago en custodia</div>
@@ -635,7 +876,7 @@ export default function LandingPage() {
                       <p className="text-sm text-gray-600 mb-2">
                         Transacción verificada en blockchain
                       </p>
-                      <a href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
+                      <a href="https://arbiscan.io/address/0x82fE581F39B1701b6E7Bd0247AFD2aF08ce04c40" 
                          target="_blank" 
                          rel="noopener noreferrer"
                          className="text-blue-600 hover:text-blue-800 text-sm font-medium underline">
@@ -683,7 +924,7 @@ export default function LandingPage() {
                       <div className="space-y-3 text-sm">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">Ô£ô</span>
+                            <span className="text-white text-xs">💰</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Apartado vehicular</div>
@@ -774,7 +1015,7 @@ export default function LandingPage() {
                       <p className="text-sm text-gray-600 mb-2">
                         Transacción verificada en blockchain
                       </p>
-                      <a href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
+                      <a href="https://arbiscan.io/address/0x82fE581F39B1701b6E7Bd0247AFD2aF08ce04c40" 
                          target="_blank" 
                          rel="noopener noreferrer"
                          className="text-green-600 hover:text-green-800 text-sm font-medium underline"
@@ -828,7 +1069,7 @@ export default function LandingPage() {
                       <div className="space-y-3 text-sm">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                            <span className="text-white text-xs">Ô£ô</span>
+                            <span className="text-white text-xs">💰</span>
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">Apartado inmobiliario</div>
@@ -919,7 +1160,7 @@ export default function LandingPage() {
                       <p className="text-sm text-gray-600 mb-2">
                         Transacción verificada en blockchain
                       </p>
-                      <a href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" 
+                      <a href="https://arbiscan.io/address/0x4e0e3c5a2f3a2d5c7a4e0e3c5a2f3a2d5c" 
                          target="_blank" 
                          rel="noopener noreferrer"
                          className="text-purple-600 hover:text-purple-800 text-sm font-medium underline">
@@ -1195,13 +1436,6 @@ export default function LandingPage() {
           </section>
         </RevealAnimation>
         )}
-
-        {/* Casos de Uso Section */}
-        <RevealAnimation>
-          <LazySection>
-            <LazyCasosDeUso />
-          </LazySection>
-        </RevealAnimation>
 
         {/* Early Access Section */}
         <RevealAnimation>
