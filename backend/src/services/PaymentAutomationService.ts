@@ -1822,6 +1822,10 @@ export class PaymentAutomationService {
               await new Promise(resolve => setTimeout(resolve, 30000));
             }
             
+            console.log(`🔄 Payment ${payment.id}: Processing Juno→Bridge withdrawal...`);
+            await this.processBridgeWithdrawal(payment, custodyAmount);
+            console.log(`✅ Payment ${payment.id}: Juno→Bridge withdrawal completed`);
+            
             console.log(`🚀 Payment ${payment.id}: Calling processEscrowCreationAndFunding...`);
             await this.processEscrowCreationAndFunding(payment, custodyAmount);
             
