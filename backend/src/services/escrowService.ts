@@ -236,15 +236,16 @@ export async function createEscrow({
   try {
     console.log('[escrowService] Calling createEscrow with parameters...');
     // Ensure BigInt parameters are properly handled for ethers v6
+    // FIXED: Correct parameter order to match contract ABI
     tx = await escrowContract.createEscrow(
       payer,                    // address payer
       payee,                    // address payee
+      token,                    // address token
       amountInTokenUnits,       // uint256 amount (BigInt)
       BigInt(deadline),         // uint256 deadline (convert to BigInt)
       sanitizedVertical,        // string memory vertical
       clabe,                    // string memory clabe
-      sanitizedConditions,      // string memory conditions
-      token                     // address token
+      sanitizedConditions       // string memory conditions
     );
     console.log('[escrowService] Transaction created:', tx.hash);
   } catch (contractError: any) {
