@@ -102,7 +102,6 @@ export default function RootLayout({
         <CriticalCSS />
         
         {/* Preload critical resources */}
-        <link rel="preload" href="/kustodia-logo.png" as="image" type="image/png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         

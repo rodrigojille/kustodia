@@ -12,34 +12,84 @@ import PerformanceMonitor from '../components/PerformanceMonitor';
 import { LazySection } from '../components/LazyComponents';
 import dynamic from 'next/dynamic';
 
-// Lazy load heavy components
+// Lazy load heavy components with optimized skeleton states
 const LazyVideoAvatar = dynamic(() => import('../components/VideoAvatar'), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-3xl" />,
+  loading: () => (
+    <div className="h-96 bg-gradient-to-r from-gray-100 to-gray-200 animate-pulse rounded-3xl flex items-center justify-center">
+      <div className="w-16 h-16 bg-gray-300 rounded-full animate-pulse" />
+    </div>
+  ),
   ssr: false,
 });
 
 const LazyArcadeEmbed = dynamic(() => import('../components/ArcadeEmbed').then(mod => ({ default: mod.ArcadeEmbed })), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+  loading: () => (
+    <div className="h-64 bg-gradient-to-r from-gray-100 to-gray-200 animate-pulse rounded-lg flex items-center justify-center">
+      <div className="w-12 h-12 bg-gray-300 rounded animate-pulse" />
+    </div>
+  ),
   ssr: false,
 });
 
 const LazyApiSneakPeek = dynamic(() => import('../components/ApiSneakPeek'), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
+  loading: () => (
+    <div className="h-96 bg-gradient-to-r from-gray-100 to-gray-200 animate-pulse rounded-lg p-6">
+      <div className="space-y-4">
+        <div className="h-6 bg-gray-300 rounded w-1/3 animate-pulse" />
+        <div className="h-4 bg-gray-300 rounded w-2/3 animate-pulse" />
+        <div className="h-32 bg-gray-300 rounded animate-pulse" />
+      </div>
+    </div>
+  ),
   ssr: false,
 });
 
 const LazyMXNBSection = dynamic(() => import('../components/MXNBSection'), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+  loading: () => (
+    <div className="h-64 bg-gradient-to-r from-gray-100 to-gray-200 animate-pulse rounded-lg p-6">
+      <div className="space-y-4">
+        <div className="h-8 bg-gray-300 rounded w-1/2 animate-pulse" />
+        <div className="h-4 bg-gray-300 rounded w-3/4 animate-pulse" />
+        <div className="h-4 bg-gray-300 rounded w-1/2 animate-pulse" />
+      </div>
+    </div>
+  ),
   ssr: false,
 });
 
 const LazyEarlyAccessForm = dynamic(() => import('../components/EarlyAccessForm'), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
+  loading: () => (
+    <div className="h-96 bg-gradient-to-r from-gray-100 to-gray-200 animate-pulse rounded-lg p-6">
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-300 rounded w-1/2 animate-pulse" />
+        <div className="space-y-4">
+          <div className="h-12 bg-gray-300 rounded animate-pulse" />
+          <div className="h-12 bg-gray-300 rounded animate-pulse" />
+          <div className="h-12 bg-blue-200 rounded animate-pulse" />
+        </div>
+      </div>
+    </div>
+  ),
   ssr: false,
 });
 
 const LazyBeforeAfterComparison = dynamic(() => import('../components/BeforeAfterComparison'), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
+  loading: () => (
+    <div className="h-96 bg-gradient-to-r from-gray-100 to-gray-200 animate-pulse rounded-lg p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+        <div className="space-y-4">
+          <div className="h-6 bg-gray-300 rounded w-1/2 animate-pulse" />
+          <div className="h-4 bg-gray-300 rounded animate-pulse" />
+          <div className="h-4 bg-gray-300 rounded w-3/4 animate-pulse" />
+        </div>
+        <div className="space-y-4">
+          <div className="h-6 bg-green-200 rounded w-1/2 animate-pulse" />
+          <div className="h-4 bg-gray-300 rounded animate-pulse" />
+          <div className="h-4 bg-gray-300 rounded w-3/4 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  ),
   ssr: false,
 });
 
@@ -87,17 +137,28 @@ export default function LandingPage() {
   const userName = '';
   const [currentExample, setCurrentExample] = useState(1);
   
-  // 📊 Track landing page load and customer journey start
+  // 📊 Track landing page load and customer journey start (optimized)
   useEffect(() => {
-    trackEvent('landing_page_loaded', {
-      journey_stage: 'awareness',
-      has_auth: isAuthenticated,
-      referrer: document.referrer || 'direct',
-      utm_source: new URLSearchParams(window.location.search).get('utm_source'),
-      utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
-      utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
-    });
-  }, []);
+    // Prevent duplicate events with a flag
+    if (typeof window !== 'undefined' && !(window as any).__kustodia_landing_tracked) {
+      (window as any).__kustodia_landing_tracked = true;
+      
+      // Batch analytics data
+      const analyticsData = {
+        journey_stage: 'awareness',
+        has_auth: isAuthenticated,
+        referrer: document.referrer || 'direct',
+        utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+        utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+        utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
+      };
+      
+      // Delay to prevent blocking initial render
+      setTimeout(() => {
+        trackEvent('landing_page_loaded', analyticsData);
+      }, 100);
+    }
+  }, [trackEvent]);
 
   const showExample = (num: number) => {
     setCurrentExample(num);
@@ -109,28 +170,37 @@ export default function LandingPage() {
     });
   };
 
-  // Handle hash navigation on page load
+  // Handle hash navigation on page load (optimized)
   useEffect(() => {
     const handleHashNavigation = () => {
       const hash = window.location.hash;
       if (hash === '#use-cases') {
-        setTimeout(() => {
+        // Use requestAnimationFrame for better performance
+        requestAnimationFrame(() => {
           const element = document.getElementById('use-cases-heading');
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
-        }, 100); // Small delay to ensure page is fully loaded
+        });
       }
     };
 
-    // Handle on initial load
-    handleHashNavigation();
+    // Debounce hash navigation to prevent excessive calls
+    let timeoutId: NodeJS.Timeout;
+    const debouncedHashNavigation = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleHashNavigation, 50);
+    };
 
-    // Handle hash changes
-    window.addEventListener('hashchange', handleHashNavigation);
+    // Handle on initial load with delay
+    setTimeout(handleHashNavigation, 200);
+
+    // Handle hash changes with debouncing
+    window.addEventListener('hashchange', debouncedHashNavigation);
     
     return () => {
-      window.removeEventListener('hashchange', handleHashNavigation);
+      clearTimeout(timeoutId);
+      window.removeEventListener('hashchange', debouncedHashNavigation);
     };
   }, []);
 
