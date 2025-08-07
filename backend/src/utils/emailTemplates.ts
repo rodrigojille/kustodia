@@ -340,3 +340,34 @@ export function createWelcomeTemplate(userName?: string, accessCode?: string): s
     includeFeatures: true
   });
 }
+
+/**
+ * Early Access Announcement email template
+ */
+export function createEarlyAccessAnnouncementTemplate(userName?: string): string {
+  return createEmailTemplate({
+    greeting: userName ? `Hola ${userName},` : 'Hola,',
+    title: '🚀 Ya puedes activar tu cuenta en Kustodia',
+    subtitle: 'Tu acceso anticipado está habilitado',
+    mainMessage: `Gracias por creer en Kustodia. Tu acceso anticipado ya está habilitado y puedes ser de los primeros en proteger tus pagos con tecnología confiable, sencilla y pensada para el contexto real de México.
+
+Esta etapa marca el inicio de una nueva forma de enviar y recibir pagos con condiciones claras y seguridad para ambas partes. Seguiremos mejorando la plataforma constantemente, tomando en cuenta la experiencia de usuarios como tú.
+
+Gracias por formar parte de este primer grupo. Estamos construyendo Kustodia contigo, y para ti.`,
+    actionButton: {
+      text: '🔐 Registrarse Ahora',
+      url: 'https://kustodia.mx/register',
+      color: '#2e7ef7'
+    },
+    additionalContent: `
+      <!-- Access Code Card -->
+      <div style="background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);border:2px solid #2e7ef7;border-radius:16px;padding:24px;margin:32px 0;text-align:center;">
+        <div style="font-size:18px;font-weight:600;color:#1e40af;margin-bottom:12px;">🔑 Código de Acceso</div>
+        <div style="font-family:monospace;color:#2e7ef7;font-size:24px;font-weight:700;background-color:#ffffff;padding:16px;border-radius:8px;letter-spacing:2px;border:1px solid #e5e7eb;">kustodiapremier</div>
+        <p style="font-size:14px;color:#6b7280;margin:12px 0 0 0;">⚠️ Usa este código al registrarte en la plataforma</p>
+      </div>
+    `,
+    footerMessage: 'Equipo Kustodia<br>soporte@kustodia.mx',
+    includeFeatures: false
+  });
+}

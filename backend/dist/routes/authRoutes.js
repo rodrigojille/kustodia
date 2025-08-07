@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const passport_1 = __importDefault(require("passport"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const userController_1 = require("../controllers/userController");
 const router = (0, express_1.Router)();
 // Step 1: Redirect to Google for authentication
 router.get('/google', passport_1.default.authenticate('google', { scope: ['profile', 'email'] }));
@@ -57,4 +58,7 @@ router.get('/google/callback', passport_1.default.authenticate('google', { failu
         res.redirect(`${process.env.FRONTEND_URL}/dashboard?token=${encodeURIComponent(token)}`);
     }
 });
+// Password reset endpoints - matching frontend expectations
+router.post('/request-password-reset', userController_1.requestPasswordReset);
+router.post('/reset-password', userController_1.resetPassword);
 exports.default = router;
