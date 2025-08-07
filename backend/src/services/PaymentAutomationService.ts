@@ -1822,12 +1822,25 @@ export class PaymentAutomationService {
               await new Promise(resolve => setTimeout(resolve, 30000));
             }
             
-            console.log(`🔄 Payment ${payment.id}: Processing Juno→Bridge withdrawal...`);
-            await this.processBridgeWithdrawal(payment, custodyAmount);
-            console.log(`✅ Payment ${payment.id}: Juno→Bridge withdrawal completed`);
+            // 🔄 IDEMPOTENCY CHECK: Only do Juno→Bridge withdrawal if bridge wallet needs more MXNB
+            const currentBalanceCheck = await this.checkBridgeWalletBalance(custodyAmount);
             
-            console.log(`🚀 Payment ${payment.id}: Calling processEscrowCreationAndFunding...`);
-            await this.processEscrowCreationAndFunding(payment, custodyAmount);
+            if (!currentBalanceCheck.hasBalance) {
+              console.log(`🔄 Payment ${payment.id}: Bridge wallet needs funding (${currentBalanceCheck.currentBalance}/${currentBalanceCheck.requiredBalance} MXNB)`);
+              console.log(`🔄 Payment ${payment.id}: Processing Juno→Bridge withdrawal...`);
+              await this.processBridgeWithdrawal(payment, custodyAmount);
+              console.log(`✅ Payment ${payment.id}: Juno→Bridge withdrawal completed`);
+            } else {
+              console.log(`✅ Payment ${payment.id}: Bridge wallet already has sufficient balance (${currentBalanceCheck.currentBalance}/${currentBalanceCheck.requiredBalance} MXNB) - skipping withdrawal`);
+            }
+            
+            // 🔄 IDEMPOTENCY CHECK: Only create escrow if it doesn't already exist
+            if (!payment.escrow?.smart_contract_escrow_id) {
+              console.log(`🚀 Payment ${payment.id}: Creating escrow (no existing smart contract ID)...`);
+              await this.processEscrowCreationAndFunding(payment, custodyAmount);
+            } else {
+              console.log(`✅ Payment ${payment.id}: Escrow already exists (ID: ${payment.escrow.smart_contract_escrow_id}) - skipping creation`);
+            }
             
             await this.paymentService.logPaymentEvent(
               payment.id,
