@@ -199,10 +199,10 @@ export default function LandingPage() {
         <link rel="alternate" hrefLang="es-MX" href="https://kustodia.mx/" />
         <link rel="alternate" hrefLang="es" href="https://kustodia.mx/" />
         <link rel="alternate" hrefLang="x-default" href="https://kustodia.mx/" />
-        <link rel="icon" href="/kustodia-logo.png" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/kustodia-logo.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/kustodia-logo.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/kustodia-logo.png" />
         <link rel="manifest" href="/site.webmanifest" />
         
         {/* Structured Data */}

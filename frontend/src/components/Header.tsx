@@ -76,7 +76,7 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
       </div>
       
       {/* Navigation */}
-      <nav className="flex items-center gap-2 sm:gap-4 lg:gap-6">
+      <nav className="flex items-center gap-1 sm:gap-3 lg:gap-6">
         {/* Casos de uso dropdown */}
         <div className="relative">
           <button
@@ -88,11 +88,11 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
               });
               setIsDropdownOpen(!isDropdownOpen);
             }}
-            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 rounded-lg hover:bg-blue-50"
+            className="flex items-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 rounded-lg hover:bg-blue-50"
             aria-expanded={isDropdownOpen}
             aria-haspopup="true"
           >
-            <span className="text-sm sm:text-base">Casos de uso</span>
+            <span className="text-xs sm:text-sm md:text-base">Casos de uso</span>
             <ChevronDownIcon className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           
@@ -153,6 +153,19 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
           )}
         </div>
 
+        {/* FAQ Link - Hidden on mobile to save space */}
+        <Link 
+          href="/faq" 
+          className="hidden md:flex text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-blue-50 text-base"
+          onClick={() => trackUserAction('header_faq_click', {
+            button_text: 'FAQ',
+            target_url: '/faq',
+            current_page: window.location.pathname
+          })}
+        >
+          Preguntas Frecuentes
+        </Link>
+
         {/* User section */}
         {isAuthenticated ? (
           <div className="flex items-center gap-3">
@@ -167,7 +180,7 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
           <div className="flex items-center gap-2 sm:gap-4">
             <Link 
               href="/login" 
-              className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 px-2 sm:px-3 py-2 rounded-lg hover:bg-blue-50 text-sm sm:text-base"
+              className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 px-1 sm:px-3 py-2 rounded-lg hover:bg-blue-50 text-xs sm:text-sm"
               onClick={() => trackUserAction('header_login_click', {
                 button_text: 'Iniciar sesión',
                 target_url: '/login',
@@ -179,7 +192,7 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
             </Link>
             <Link 
               href="/register" 
-              className="bg-blue-600 text-white font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-sm text-sm sm:text-base"
+              className="bg-blue-600 text-white font-medium px-2 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-sm text-xs sm:text-sm"
               onClick={() => trackUserAction('header_register_click', {
                 button_text: 'Registrarse',
                 target_url: '/register',

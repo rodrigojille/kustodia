@@ -3,6 +3,7 @@ import React from 'react';
 const Footer: React.FC = () => (
   <footer className="w-full py-8 bg-white text-center text-black text-sm mt-12 md:ml-64 md:pl-12">
     <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-2">
+      <a href="/faq" className="text-blue-700 underline mr-4">Preguntas Frecuentes</a>
       <a href="/terminos" className="text-blue-700 underline mr-4">Términos y Condiciones</a>
       <a href="/privacidad" className="text-blue-700 underline">Aviso de Privacidad</a>
     </div>
