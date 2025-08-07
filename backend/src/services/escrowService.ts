@@ -70,7 +70,7 @@ try {
   console.log('[escrowService] Using fallback minimal ABI');
   // Minimal ABI with essential functions for basic operation - Updated to match KustodiaEscrow2_0
   ESCROW_ABI = [
-    "function createEscrow(address payer, address payee, address token, uint256 amount, uint256 deadline, string memory vertical, string memory clabe, string memory conditions) external returns (uint256)",
+    "function createEscrow(address payer, address payee, uint256 amount, uint256 deadline, string memory vertical, string memory clabe, string memory conditions, address token) external returns (uint256)",
     "function fundEscrow(uint256 escrowId) external",
     "function releaseEscrow(uint256 escrowId) external",
     "function release(uint256 escrowId) external",
@@ -237,15 +237,16 @@ export async function createEscrow({
     console.log('[escrowService] Calling createEscrow with parameters...');
     // Ensure BigInt parameters are properly handled for ethers v6
     // FIXED: Correct parameter order to match contract ABI
+    // Contract signature: createEscrow(payer, payee, amount, deadline, vertical, clabe, conditions, token)
     tx = await escrowContract.createEscrow(
       payer,                    // address payer
       payee,                    // address payee
-      token,                    // address token
       amountInTokenUnits,       // uint256 amount (BigInt)
       BigInt(deadline),         // uint256 deadline (convert to BigInt)
       sanitizedVertical,        // string memory vertical
       clabe,                    // string memory clabe
-      sanitizedConditions       // string memory conditions
+      sanitizedConditions,      // string memory conditions
+      token                     // address token (LAST parameter!)
     );
     console.log('[escrowService] Transaction created:', tx.hash);
   } catch (contractError: any) {
