@@ -54,14 +54,29 @@ export default function LoginPage() {
       console.log("Backend response data:", data);
 
       if (!res.ok) {
-        // Handle unverified email case
-        if (res.status === 403 && data.unverified) {
+        // Handle specific error types from enhanced backend
+        if (data.errorType === 'email_not_verified') {
           setError(data.message || "Tu correo no ha sido verificado.");
           setShowResend(true);
-          console.log("Email not verified for:", data.email);
+          console.log("Email not verified for:", email);
+        } else if (data.errorType === 'account_not_found') {
+          setError(data.message || "No encontramos una cuenta con este correo electrónico.");
+          setShowResend(false);
+          console.log("Account not found for:", email);
+        } else if (data.errorType === 'password_mismatch') {
+          setError(data.message || "Contraseña incorrecta.");
+          setShowResend(false);
+          console.log("Password mismatch for:", email);
         } else {
-          setError(data.error || "Error en el inicio de sesión");
-          console.log("Login failed:", data.error);
+          // Fallback for generic errors or legacy responses
+          if (res.status === 403 && (data.unverified || data.errorType === 'email_not_verified')) {
+            setError(data.message || "Tu correo no ha sido verificado.");
+            setShowResend(true);
+          } else {
+            setError(data.message || data.error || "Error en el inicio de sesión");
+            setShowResend(false);
+          }
+          console.log("Login failed:", data.error || data.message);
         }
         
         // 🔥 ANALYTICS: Track login failure

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
+import { requestPasswordReset, resetPassword } from '../controllers/userController';
 
 const router = Router();
 
@@ -67,5 +68,9 @@ router.get(
     }
   }
 );
+
+// Password reset endpoints - matching frontend expectations
+router.post('/request-password-reset', requestPasswordReset);
+router.post('/reset-password', resetPassword);
 
 export default router;

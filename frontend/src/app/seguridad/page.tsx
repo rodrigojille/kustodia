@@ -89,7 +89,7 @@ export default function Seguridad() {
         <h3 className="mt-8 font-semibold text-xl text-green-700">6. COLABORAMOS CONTIGO PARA MEJORAR</h3>
         <p className="mb-2">Tu ayuda nos permite hacer Kustodia <strong>aún más seguro</strong> para todos:</p>
         <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
-          <p className="mb-1"><strong>Reporte colaborativo:</strong> <a href="mailto:security@kustodia.mx" className="text-gray-600 hover:underline font-semibold">security@kustodia.mx</a></p>
+          <p className="mb-1"><strong>Reporte colaborativo:</strong> <a href="mailto:soporte@kustodia.mx" className="text-gray-600 hover:underline font-semibold">soporte@kustodia.mx</a></p>
           <p className="text-sm text-gray-700">Respuesta rápida garantizada - trabajamos juntos por la seguridad</p>
         </div>
         <div className="mb-4 p-3 bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded">
@@ -165,7 +165,7 @@ export default function Seguridad() {
         <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-xl">
           <h4 className="font-semibold text-lg text-gray-800 mb-2">CONTACTO DE SEGURIDAD</h4>
           <p className="text-gray-700 mb-2"><strong>Tecnologías Avanzadas Centrales, S.A.P.I. de C.V.</strong></p>
-          <p className="text-gray-700 mb-1"><a href="mailto:security@kustodia.mx" className="text-gray-600 hover:underline font-semibold">security@kustodia.mx</a></p>
+          <p className="text-gray-700 mb-1"><a href="mailto:soporte@kustodia.mx" className="text-gray-600 hover:underline font-semibold">soporte@kustodia.mx</a></p>
           <p className="text-gray-700 mb-1"><a href="mailto:soporte@kustodia.mx" className="text-gray-600 hover:underline">soporte@kustodia.mx</a></p>
           <p className="text-gray-700 mb-1">Dirección: Calle 32 #298 x 11, Oficinas 205-206, Col. Montebello, C.P. 97113, Mérida, Yucatán</p>
           <p className="text-gray-700 text-sm">Para reportes de seguridad y consultas técnicas</p>

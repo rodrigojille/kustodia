@@ -120,15 +120,58 @@ export const getRecipientClabe = async (req: Request, res: Response): Promise<vo
 
 export const register = async (req: Request, res: Response) => {
   const { email, password, full_name } = req.body;
+  
+  // Validate required fields
   if (!email || !password) {
-    res.status(400).json({ error: "Email and password are required" });
+    res.status(400).json({ 
+      error: "Datos requeridos faltantes",
+      errorType: "missing_fields",
+      message: "El correo electrónico y la contraseña son obligatorios."
+    });
     return;
   }
+  
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ 
+      error: "Formato de correo inválido",
+      errorType: "invalid_email",
+      message: "Por favor ingresa un correo electrónico válido."
+    });
+    return;
+  }
+  
+  // Validate password strength
+  if (password.length < 8) {
+    res.status(400).json({ 
+      error: "Contraseña muy débil",
+      errorType: "weak_password",
+      message: "La contraseña debe tener al menos 8 caracteres."
+    });
+    return;
+  }
+  
+  // Validate full name
+  if (!full_name || full_name.trim().length < 2) {
+    res.status(400).json({ 
+      error: "Nombre completo requerido",
+      errorType: "invalid_name",
+      message: "Por favor ingresa tu nombre completo (mínimo 2 caracteres)."
+    });
+    return;
+  }
+  
   try {
     const userRepo = ormconfig.getRepository(User);
     const existing = await userRepo.findOne({ where: { email } });
     if (existing) {
-      res.status(409).json({ error: "Email already registered" });
+      console.log(`[REGISTER] Email already exists: ${email}`);
+      res.status(409).json({ 
+        error: "Este correo ya está registrado",
+        errorType: "email_exists",
+        message: "Ya existe una cuenta con este correo electrónico. ¿Quieres iniciar sesión?"
+      });
       return;
     }
     const password_hash = await bcrypt.hash(password, 10);
@@ -203,16 +246,39 @@ export const register = async (req: Request, res: Response) => {
       subject: "Verifica tu correo electrónico | Kustodia",
       html: createEmailVerificationTemplate(user.full_name, verifyUrl)
     });
-    res.status(201).json({ message: "User registered. Verification email sent.", user: { id: user.id, email: user.email, deposit_clabe: user.deposit_clabe, payout_clabe: user.payout_clabe } });
+    res.status(201).json({ 
+      message: "¡Registro exitoso! Revisa tu correo para verificar tu cuenta.", 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        deposit_clabe: user.deposit_clabe, 
+        payout_clabe: user.payout_clabe 
+      } 
+    });
     return;
   } catch (err) {
-    console.error('Registration error:', err);
+    console.error('[REGISTER] Registration error:', err);
+    
+    // Handle specific error types
     if (err && typeof err === 'object' && 'response' in err) {
-      // SendGrid error structure
+      // SendGrid email error
       // @ts-ignore
-      console.error('SendGrid response:', err.response?.body);
+      console.error('[REGISTER] SendGrid response:', err.response?.body);
+      res.status(500).json({ 
+        error: "Error enviando correo de verificación",
+        errorType: "email_send_failed",
+        message: "Tu cuenta fue creada pero no pudimos enviar el correo de verificación. Contacta soporte."
+      });
+      return;
     }
-    res.status(500).json({ error: "Registration failed", details: err instanceof Error ? err.message : err });
+    
+    // Database or other errors
+    console.error('[REGISTER] Unexpected error:', err);
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      errorType: "server_error",
+      message: "Ocurrió un error inesperado durante el registro. Por favor intenta nuevamente."
+    });
     return;
   }
 };
@@ -280,7 +346,8 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
     user.password_reset_token = token;
     user.password_reset_expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
     await userRepo.save(user);
-    const resetUrl = `https://your-frontend-domain.com/reset-password.html?token=${token}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://kustodia.mx';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
     await sendEmail({
       to: email,
       subject: "Restablece tu contraseña | Kustodia",
@@ -523,13 +590,64 @@ export const login = async (req: Request, res: Response) => {
   try {
     const userRepo = ormconfig.getRepository(User);
     const user = await userRepo.findOne({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      res.status(401).json({ error: "Credenciales inválidas, intenta nuevamente" });
+    
+    // Check if user exists
+    if (!user) {
+      console.log(`[LOGIN] Account not found for email: ${email}`);
+      res.status(404).json({ 
+        error: "No encontramos una cuenta con este correo electrónico",
+        errorType: "account_not_found",
+        message: "¿No tienes cuenta? Regístrate para comenzar a usar Kustodia."
+      });
       return;
     }
+    
+    // Validate password_hash exists and is a string
+    if (!user.password_hash || typeof user.password_hash !== 'string') {
+      console.error(`[LOGIN] Invalid password_hash for user ${email}:`, {
+        password_hash_type: typeof user.password_hash,
+        password_hash_value: user.password_hash,
+        user_id: user.id
+      });
+      
+      // This indicates a data integrity issue - account exists but has no password
+      res.status(401).json({ 
+        error: "Cuenta sin contraseña configurada",
+        errorType: "account_no_password",
+        message: "Esta cuenta no tiene una contraseña configurada. Por favor contacta soporte o intenta restablecer tu contraseña."
+      });
+      return;
+    }
+    
+    // Validate password is a string
+    if (!password || typeof password !== 'string') {
+      console.error(`[LOGIN] Invalid password type:`, typeof password);
+      res.status(400).json({ 
+        error: "Datos inválidos",
+        errorType: "invalid_data",
+        message: "La contraseña proporcionada no es válida."
+      });
+      return;
+    }
+    
+    // Check password
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+    if (!passwordMatch) {
+      console.log(`[LOGIN] Password mismatch for email: ${email}`);
+      res.status(401).json({ 
+        error: "Contraseña incorrecta",
+        errorType: "password_mismatch",
+        message: "La contraseña que ingresaste no es correcta. ¿Olvidaste tu contraseña?"
+      });
+      return;
+    }
+    
+    // Check email verification
     if (!user.email_verified) {
+      console.log(`[LOGIN] Email not verified for: ${email}`);
       res.status(403).json({ 
-        error: "Correo no verificado. Por favor verifica tu correo.", 
+        error: "Correo no verificado", 
+        errorType: "email_not_verified",
         unverified: true,
         email: user.email,
         message: "Tu correo no ha sido verificado. Revisa tu bandeja de entrada o solicita un nuevo email de verificación."
@@ -589,7 +707,12 @@ export const login = async (req: Request, res: Response) => {
     }
     return;
   } catch (err) {
-    res.status(500).json({ error: "Login failed", details: err });
+    console.error('[LOGIN] Unexpected error:', err);
+    res.status(500).json({ 
+      error: "Error interno del servidor", 
+      errorType: "server_error",
+      message: "Ocurrió un error inesperado. Por favor intenta nuevamente."
+    });
     return;
   }
 };

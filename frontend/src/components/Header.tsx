@@ -51,10 +51,10 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
   return (
     <header className={`sticky top-0 z-30 bg-white border-b border-gray-100 px-4 sm:px-8 py-4 flex items-center justify-between ${className}`}>
       {/* Logo Section */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <Link 
           href="/" 
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity"
           onClick={() => trackUserAction('header_logo_click', {
             button_text: 'Kustodia Logo',
             target_url: '/',
@@ -66,17 +66,17 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
             alt="Kustodia Logo" 
             width={32} 
             height={32} 
-            className="h-8 w-8" 
+            className="h-7 w-7 sm:h-8 sm:w-8" 
             priority 
           />
-          <span className="font-bold text-xl tracking-tight text-blue-700">
+          <span className="font-bold text-lg sm:text-xl tracking-tight text-blue-700">
             Kustodia
           </span>
         </Link>
       </div>
       
       {/* Navigation */}
-      <nav className="flex items-center gap-6">
+      <nav className="flex items-center gap-2 sm:gap-4 lg:gap-6">
         {/* Casos de uso dropdown */}
         <div className="relative">
           <button
@@ -88,12 +88,12 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
               });
               setIsDropdownOpen(!isDropdownOpen);
             }}
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 rounded-lg hover:bg-blue-50"
+            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 rounded-lg hover:bg-blue-50"
             aria-expanded={isDropdownOpen}
             aria-haspopup="true"
           >
-            <span>Casos de uso</span>
-            <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            <span className="text-sm sm:text-base">Casos de uso</span>
+            <ChevronDownIcon className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           
           {isDropdownOpen && (
@@ -164,8 +164,32 @@ const Header: React.FC<HeaderProps> = ({ className = "", isAuthenticated, userNa
             </button>
           </div>
         ) : (
-          <div className="flex items-center">
-            {/* Login and Register links hidden as requested */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link 
+              href="/login" 
+              className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 px-2 sm:px-3 py-2 rounded-lg hover:bg-blue-50 text-sm sm:text-base"
+              onClick={() => trackUserAction('header_login_click', {
+                button_text: 'Iniciar sesión',
+                target_url: '/login',
+                current_page: window.location.pathname
+              })}
+            >
+              <span className="hidden sm:inline">Iniciar sesión</span>
+              <span className="sm:hidden">Login</span>
+            </Link>
+            <Link 
+              href="/register" 
+              className="bg-blue-600 text-white font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-sm text-sm sm:text-base"
+              onClick={() => trackUserAction('header_register_click', {
+                button_text: 'Registrarse',
+                target_url: '/register',
+                current_page: window.location.pathname,
+                engagement_level: 'high'
+              })}
+            >
+              <span className="hidden sm:inline">Registrarse</span>
+              <span className="sm:hidden">Registro</span>
+            </Link>
           </div>
         )}
       </nav>

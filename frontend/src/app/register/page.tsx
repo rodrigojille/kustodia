@@ -8,7 +8,7 @@ export default function RegisterPage() {
   // 🔥 ANALYTICS: Initialize registration funnel tracking
   const { trackEvent, trackUserAction } = useAnalyticsContext();
   
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "", acceptTerms: false });
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "", earlyAccessPassword: "", acceptTerms: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -38,7 +38,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!form.name || !form.email || !form.password || !form.confirm) {
+    if (!form.name || !form.email || !form.password || !form.confirm || !form.earlyAccessPassword) {
       setError("Completa todos los campos.");
       
       // 🔥 ANALYTICS: Track validation errors
@@ -47,6 +47,20 @@ export default function RegisterPage() {
         category: 'user_acquisition',
         properties: {
           error_type: 'incomplete_fields',
+          form_completed: false
+        }
+      });
+      return;
+    }
+    if (form.earlyAccessPassword !== "kustodiapremier") {
+      setError("Código de acceso anticipado incorrecto.");
+      
+      // 🔥 ANALYTICS: Track early access validation error
+      analytics.track({
+        event_name: 'registration_form_error',
+        category: 'user_acquisition',
+        properties: {
+          error_type: 'invalid_early_access_code',
           form_completed: false
         }
       });
@@ -80,7 +94,7 @@ export default function RegisterPage() {
       
       if (res.ok || res.status === 201) {
         setSuccess("¡Registro exitoso! Revisa tu correo para verificar tu cuenta.");
-        setForm({ name: "", email: "", password: "", confirm: "", acceptTerms: false });
+        setForm({ name: "", email: "", password: "", confirm: "", earlyAccessPassword: "", acceptTerms: false });
         
         // 🔥 ANALYTICS: Track successful registration - KEY CONVERSION
         analytics.trackUserRegistration({
@@ -283,6 +297,32 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Early Access Password Input */}
+            <div className="relative">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Código de acceso anticipado
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m0 0a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9a2 2 0 012-2m0 0V7a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <input
+                  type="password"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/70 backdrop-blur-sm text-gray-900 placeholder-gray-500"
+                  placeholder="Ingresa el código de acceso"
+                  value={form.earlyAccessPassword}
+                  onChange={e => setForm(f => ({ ...f, earlyAccessPassword: e.target.value }))}
+                  disabled={loading}
+                  required
+                />
+              </div>
+              <p className="mt-2 text-xs text-gray-600">
+                Kustodia está en acceso anticipado. Necesitas un código especial para registrarte.
+              </p>
+            </div>
+
             {/* Enhanced Terms Checkbox */}
             <div className="flex items-start space-x-3 p-4 bg-gray-50/50 rounded-xl border border-gray-200">
               <input
@@ -325,24 +365,22 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          {/* Enhanced Divider */}
-          <div className="relative flex py-6 items-center">
+          {/* Google OAuth temporarily hidden during early access */}
+          {/* 
+          <div className="relative flex py-5 items-center">
             <div className="flex-grow border-t border-gray-200"></div>
             <span className="flex-shrink mx-4 text-gray-400 text-sm font-medium bg-white px-2">O continúa con</span>
             <div className="flex-grow border-t border-gray-200"></div>
           </div>
 
-          {/* Enhanced Google OAuth Button */}
           <button
             type="button"
             onClick={() => {
-              // 🔥 ANALYTICS: Track Google OAuth registration attempt
               trackUserAction('google_registration_clicked', {
                 registration_method: 'google_oauth',
                 journey_stage: 'acquisition'
               });
               
-              // Use production API URL or fallback to localhost for development
               const apiUrl = process.env.NEXT_PUBLIC_API_BASE || 'https://kustodia-backend-f991a7cb1824.herokuapp.com';
               window.location.href = `${apiUrl}/api/auth/google`;
             }}
@@ -361,6 +399,7 @@ export default function RegisterPage() {
               Registrarse con Google
             </span>
           </button>
+          */}
 
           {/* Login Link */}
           <div className="text-center text-sm text-gray-600 mt-6">

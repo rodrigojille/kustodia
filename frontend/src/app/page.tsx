@@ -346,7 +346,7 @@ export default function LandingPage() {
                   🔒 Servicio de custodia digital mediante blockchain
                 </div>
                 
-                <h1 id="hero-heading" className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 text-gray-900 leading-[0.95] max-w-6xl mx-auto text-center tracking-tight">
+                <h1 id="hero-heading" className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 text-gray-900 leading-[0.95] max-w-6xl mx-auto text-center tracking-tight">
                   Pagos seguros: 
                   <span className="text-blue-600"> tu dinero solo se libera</span> cuando se cumple el trato.
                 </h1>
