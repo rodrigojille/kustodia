@@ -88,7 +88,7 @@ export default function Web3PaymentDebugPage() {
             <div className="flex items-start space-x-3">
               <span className="text-green-500">✓</span>
               <div>
-                <strong>Network Connectivity:</strong> Verify connection to Arbitrum Sepolia
+                <strong>Network Connectivity:</strong> Verify connection to Arbitrum One
               </div>
             </div>
           </div>

@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 
 const ESCROW_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS!;
 const MXNBS_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS!;
-const ARBITRUM_SEPOLIA_RPC_URL = process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL!;
+const ARBITRUM_MAINNET_RPC_URL = process.env.NEXT_PUBLIC_ARBITRUM_MAINNET_RPC_URL!;
 
 const escrowAbi = [
   "function createEscrow(address seller, address commission, uint256 amount, uint256 custodyAmount, uint256 custodyPeriod) returns (uint256)",
@@ -104,7 +104,7 @@ export default function PagoFormEscrow3() {
       <button className="bg-blue-600 text-white rounded px-4 py-2" type="submit" disabled={loading}>Crear Escrow Directo</button>
       {status && <div className="text-green-700 mt-2">{status}</div>}
       {escrowId && <div className="text-blue-700 mt-2">Escrow ID: {escrowId}</div>}
-      {txHash && <div className="text-xs mt-2">Tx: <a href={`https://sepolia.arbiscan.io/tx/${txHash}`} target="_blank" rel="noopener noreferrer">{txHash.slice(0, 10)}…</a></div>}
+      {txHash && <div className="text-xs mt-2">Tx: <a href={`https://arbiscan.io/tx/${txHash}`} target="_blank" rel="noopener noreferrer">{txHash.slice(0, 10)}…</a></div>}
       {error && <div className="text-red-600 mt-2">{error}</div>}
     </form>
   );

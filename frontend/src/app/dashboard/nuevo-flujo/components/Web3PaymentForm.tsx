@@ -53,7 +53,7 @@ export default function Web3PaymentForm({ onBack }: Web3PaymentFormProps) {
   const checkBalance = useCallback(async (user: any) => {
     if (!user || !user.wallet_address) return;
     try {
-      const arbProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL);
+      const arbProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_ARBITRUM_MAINNET_RPC_URL);
       const mxnb = new ethers.Contract(MXNB_CONTRACT_ADDRESS!, ERC20_ABI, arbProvider);
       const bal = await mxnb.balanceOf(user.wallet_address);
       const decimals = await mxnb.decimals();

@@ -10,7 +10,7 @@ import ERC20_ABI from '@/abis/ERC20.json';
 
 const ESCROW_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS;
 const MXNB_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS;
-const ARB_SEPOLIA_RPC = process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL;
+const ARB_MAINNET_RPC = process.env.NEXT_PUBLIC_ARBITRUM_MAINNET_RPC_URL;
 
 export interface DebugResult {
   step: string;
@@ -76,7 +76,7 @@ export class Web3PaymentDebugger {
       NEXT_PUBLIC_PORTAL_API_KEY: process.env.NEXT_PUBLIC_PORTAL_API_KEY,
       NEXT_PUBLIC_ESCROW3_CONTRACT_ADDRESS: ESCROW_CONTRACT_ADDRESS,
       NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS: MXNB_CONTRACT_ADDRESS,
-      NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL: ARB_SEPOLIA_RPC,
+      NEXT_PUBLIC_ARBITRUM_MAINNET_RPC_URL: ARB_MAINNET_RPC,
       NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID
     };
 
@@ -188,7 +188,7 @@ export class Web3PaymentDebugger {
       }
 
       const address = await portal.getEip155Address();
-      const provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
+      const provider = new ethers.JsonRpcProvider(ARB_MAINNET_RPC);
       const mxnbContract = new ethers.Contract(MXNB_CONTRACT_ADDRESS!, ERC20_ABI, provider);
       
       const balance = await mxnbContract.balanceOf(address);
@@ -222,7 +222,7 @@ export class Web3PaymentDebugger {
 
   private async testContractInteractions() {
     try {
-      const provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
+      const provider = new ethers.JsonRpcProvider(ARB_MAINNET_RPC);
       
       // Test MXNB contract
       const mxnbContract = new ethers.Contract(MXNB_CONTRACT_ADDRESS!, ERC20_ABI, provider);
@@ -255,11 +255,11 @@ export class Web3PaymentDebugger {
 
   private async checkNetworkConnectivity() {
     try {
-      const provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
+      const provider = new ethers.JsonRpcProvider(ARB_MAINNET_RPC);
       const network = await provider.getNetwork();
       const blockNumber = await provider.getBlockNumber();
       
-      this.log('network_check', 'success', `Connected to Arbitrum Sepolia`, {
+      this.log('network_check', 'success', `Connected to Arbitrum One`, {
         chainId: network.chainId.toString(),
         name: network.name,
         blockNumber

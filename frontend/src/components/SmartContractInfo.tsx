@@ -23,7 +23,7 @@ export default function SmartContractInfo() {
           <span className="font-bold text-indigo-700 text-sm sm:text-base">Tú</span>
         </div>
         <span className="text-2xl text-indigo-600">→</span>
-        <a href="https://sepolia.arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center min-w-[72px] sm:min-w-[92px] group focus:outline-none">
+        <a href="https://arbiscan.io/address/0xa5b45dc1cf2e44844eba557df29687d24f5d8543" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center min-w-[72px] sm:min-w-[92px] group focus:outline-none">
           <FaLock size={28} className="text-indigo-600 mb-1 group-hover:text-blue-800 transition" />
           <span className="font-bold text-indigo-700 text-sm sm:text-base text-center w-full block">En custodia</span>
           <span className="text-indigo-500 text-xs text-center w-full block">(Smart Contract)</span>
