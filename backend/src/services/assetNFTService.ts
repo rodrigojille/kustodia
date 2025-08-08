@@ -43,18 +43,64 @@ const getUniversalAssetABI = () => {
     console.warn('[AssetNFT] Could not load compiled ABI, falling back to minimal ABI:', error instanceof Error ? error.message : String(error));
     // Fallback minimal ABI with CORRECT parameter order for both contracts
     return [
-      "function createAsset(string assetId, uint8 assetType, address owner, string[] metadataKeys, string[] metadataValues, string _tokenURI) external returns (uint256)",
-      "function addAssetEvent(uint256 tokenId, uint8 eventType, string description, uint256 transactionAmount, string[] supportingDocs, string[] customFieldKeys, string[] customFieldValues) external",
-      "function verifyAsset(uint256 tokenId) external",
-      "function updateAssetMetadata(uint256 tokenId, string key, string value) external",
-      "function getAssetMetadata(uint256 tokenId, string key) external view returns (string)",
-      "function getAssetHistoryLength(uint256 tokenId) external view returns (uint256)",
-      "function getAssetEvent(uint256 tokenId, uint256 eventIndex) external view returns (uint8, uint256, address, string, uint256, string[])",
-      "function getOwnerAssets(address owner) external view returns (uint256[])",
-      "function ownerOf(uint256 tokenId) external view returns (address)",
-      "function tokenURI(uint256 tokenId) external view returns (string)",
-      "function assetIdToTokenId(string assetId) external view returns (uint256)",
-      "function getAsset(uint256 tokenId) external view returns (string, uint8, address, bool, uint256, string)"
+      {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},
+      {"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"previousAdmin","type":"address"},{"indexed":false,"internalType":"address","name":"newAdmin","type":"address"}],"name":"AdminChanged","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":false,"internalType":"string","name":"assetId","type":"string"},{"indexed":false,"internalType":"enum AssetManagementLib.AssetType","name":"assetType","type":"uint8"},{"indexed":true,"internalType":"address","name":"owner","type":"address"}],"name":"AssetCreated","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":false,"internalType":"enum AssetManagementLib.EventType","name":"eventType","type":"uint8"},{"indexed":false,"internalType":"string","name":"description","type":"string"}],"name":"AssetEventAdded","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"AssetTransferred","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"verifier","type":"address"}],"name":"AssetVerified","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"_fromTokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"_toTokenId","type":"uint256"}],"name":"BatchMetadataUpdate","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"beacon","type":"address"}],"name":"BeaconUpgraded","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint8","name":"version","type":"uint8"}],"name":"Initialized","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"MetadataUpdate","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Paused","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"previousAdminRole","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"newAdminRole","type":"bytes32"}],"name":"RoleAdminChanged","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"sender","type":"address"}],"name":"RoleGranted","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"sender","type":"address"}],"name":"RoleRevoked","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Unpaused","type":"event"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"implementation","type":"address"}],"name":"Upgraded","type":"event"},
+      {"inputs":[],"name":"DEFAULT_ADMIN_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"KUSTODIA_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"PAUSER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"UPDATER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"VERIFIER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"enum AssetManagementLib.EventType","name":"eventType","type":"uint8"},{"internalType":"string","name":"description","type":"string"},{"internalType":"uint256","name":"transactionAmount","type":"uint256"},{"internalType":"string[]","name":"supportingDocs","type":"string[]"}],"name":"addAssetEvent","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"assetHistory","outputs":[{"internalType":"enum AssetManagementLib.EventType","name":"eventType","type":"uint8"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"address","name":"authorizedBy","type":"address"},{"internalType":"string","name":"description","type":"string"},{"internalType":"uint256","name":"transactionAmount","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"assetIdToTokenId","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"assets","outputs":[{"internalType":"string","name":"assetId","type":"string"},{"internalType":"enum AssetManagementLib.AssetType","name":"assetType","type":"uint8"},{"internalType":"address","name":"currentOwner","type":"address"},{"internalType":"uint256","name":"creationDate","type":"uint256"},{"internalType":"uint256","name":"lastUpdated","type":"uint256"},{"internalType":"bool","name":"isVerified","type":"bool"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"string","name":"assetId","type":"string"},{"internalType":"enum AssetManagementLib.AssetType","name":"assetType","type":"uint8"},{"internalType":"address","name":"owner","type":"address"},{"internalType":"string[]","name":"metadataKeys","type":"string[]"},{"internalType":"string[]","name":"metadataValues","type":"string[]"},{"internalType":"string","name":"_tokenURI","type":"string"}],"name":"createAsset","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getAsset","outputs":[{"internalType":"string","name":"assetId","type":"string"},{"internalType":"enum AssetManagementLib.AssetType","name":"assetType","type":"uint8"},{"internalType":"address","name":"currentOwner","type":"address"},{"internalType":"uint256","name":"creationDate","type":"uint256"},{"internalType":"bool","name":"isVerified","type":"bool"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"}],"name":"getRoleAdmin","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"grantRole","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"hasRole","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"address","name":"escrowAddress","type":"address"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"ownerAssets","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"pause","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[],"name":"paused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"proxiableUUID","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"renounceRole","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"revokeRole","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"totalAssets","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[],"name":"unpause","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"newImplementation","type":"address"}],"name":"upgradeTo","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"newImplementation","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"upgradeToAndCall","outputs":[],"stateMutability":"payable","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"verifyAsset","outputs":[],"stateMutability":"nonpayable","type":"function"}
     ];
   }
 };
@@ -449,67 +495,90 @@ class AssetNFTService {
         };
       }
       
-      const historyLength = Number(await this.universalAssetContract.getAssetEventCount(tokenId));
+      // Since getAssetEventCount doesn't exist, iterate through assetHistory mapping
+      console.log('[AssetNFT] Iterating through asset history for token:', tokenId);
       const history = [];
+      let index = 0;
+      const maxEvents = 1000; // Safety limit
+      
+      while (index < maxEvents) {
+        try {
+          const event = await this.universalAssetContract.assetHistory(tokenId, index);
+          
+          // Check if this is an empty/default event (indicates no more events)
+          if (!event || event.eventType === 0 || event.eventType === '0') {
+            console.log(`[AssetNFT] No more events found at index ${index} for token ${tokenId}`);
+            break;
+          }
+          
+          // Parse the event data
+          const eventTypeNumber = Number(event.eventType);
+          const timestamp = new Date(Number(event.timestamp) * 1000);
+          const description = event.description || '';
+          const transactionAmount = event.transactionAmount ? ethers.formatEther(event.transactionAmount) : '0';
+          const supportingDocs = event.supportingDocs || [];
+          const customFieldKeys = event.customFieldKeys || [];
+          const customFieldValues = event.customFieldValues || [];
+          
+          // Build custom fields object
+          const customFields: { [key: string]: string } = {};
+          for (let i = 0; i < customFieldKeys.length && i < customFieldValues.length; i++) {
+            customFields[customFieldKeys[i]] = customFieldValues[i];
+          }
 
-      for (let i = 0; i < historyLength; i++) {
-        const event = await this.universalAssetContract.getAssetEvent(tokenId, i);
-        
-        // Parse the 6 fields returned by getAssetEvent:
-        // [eventType, timestamp, authorizedBy, description, transactionAmount, supportingDocs]
-        const eventTypeNumber = Number(event[0]);
-        const timestamp = new Date(Number(event[1]) * 1000);
-        const authorizedBy = event[2];
-        const description = event[3];
-        const transactionAmount = ethers.formatEther(event[4]);
-        const supportingDocs = event[5] || [];
-        
-        // For now, custom fields are empty since the contract doesn't support them yet
-        const customFields: { [key: string]: string } = {};
+          // Enhanced event with Spanish translations and full metadata
+          const enhancedEvent = {
+            // Original data
+            eventType: eventTypeNumber,
+            timestamp,
+            authorizedBy: '0x0000000000000000000000000000000000000000', // Not available in assetHistory
+            description,
+            transactionAmount,
+            supportingDocs,
+            customFields,
+            
+            // Enhanced Spanish translations and metadata
+            eventTypeSpanish: this.getEventTypeSpanish(eventTypeNumber),
+            eventIcon: this.getEventIcon(eventTypeNumber),
+            eventColor: this.getEventColor(eventTypeNumber),
+            formattedDate: this.formatDateSpanish(timestamp),
+            formattedTime: this.formatTimeSpanish(timestamp),
+            relativeTime: this.getRelativeTimeSpanish(timestamp),
+            
+            // Enhanced descriptions
+            enhancedDescription: this.getEnhancedDescription(eventTypeNumber, description, customFields),
+            technicalDetails: this.getTechnicalDetails(eventTypeNumber, customFields, transactionAmount),
+            
+            // Trust and verification indicators
+            isVerified: false, // Cannot determine from assetHistory
+            verificationLevel: this.getVerificationLevel(eventTypeNumber, '0x0000000000000000000000000000000000000000'),
+            trustScore: this.calculateTrustScore(eventTypeNumber, customFields, supportingDocs.length),
+            
+            // Document analysis
+            documentCount: supportingDocs.length,
+            hasDocuments: supportingDocs.length > 0,
+            documentTypes: this.analyzeDocumentTypes(supportingDocs),
+            
+            // Business impact
+            impactLevel: this.getImpactLevel(eventTypeNumber),
+            affectsValue: this.affectsAssetValue(eventTypeNumber),
+            
+            // Index for ordering
+            sequenceNumber: index + 1,
+            isLatest: false // Will be set later
+          };
 
-        // Enhanced event with Spanish translations and full metadata
-        const enhancedEvent = {
-          // Original data
-          eventType: eventTypeNumber,
-          timestamp,
-          authorizedBy,
-          description,
-          transactionAmount,
-          supportingDocs,
-          customFields,
-          
-          // Enhanced Spanish translations and metadata
-          eventTypeSpanish: this.getEventTypeSpanish(eventTypeNumber),
-          eventIcon: this.getEventIcon(eventTypeNumber),
-          eventColor: this.getEventColor(eventTypeNumber),
-          formattedDate: this.formatDateSpanish(timestamp),
-          formattedTime: this.formatTimeSpanish(timestamp),
-          relativeTime: this.getRelativeTimeSpanish(timestamp),
-          
-          // Enhanced descriptions
-          enhancedDescription: this.getEnhancedDescription(eventTypeNumber, description, customFields),
-          technicalDetails: this.getTechnicalDetails(eventTypeNumber, customFields, transactionAmount),
-          
-          // Trust and verification indicators
-          isVerified: authorizedBy !== '0x0000000000000000000000000000000000000000',
-          verificationLevel: this.getVerificationLevel(eventTypeNumber, authorizedBy),
-          trustScore: this.calculateTrustScore(eventTypeNumber, customFields, supportingDocs.length),
-          
-          // Document analysis
-          documentCount: supportingDocs.length,
-          hasDocuments: supportingDocs.length > 0,
-          documentTypes: this.analyzeDocumentTypes(supportingDocs),
-          
-          // Business impact
-          impactLevel: this.getImpactLevel(eventTypeNumber),
-          affectsValue: this.affectsAssetValue(eventTypeNumber),
-          
-          // Index for ordering
-          sequenceNumber: i + 1,
-          isLatest: i === historyLength - 1
-        };
-
-        history.push(enhancedEvent);
+          history.push(enhancedEvent);
+          index++;
+        } catch (eventError: any) {
+          console.log(`[AssetNFT] No event at index ${index} for token ${tokenId}: ${eventError.message}`);
+          break;
+        }
+      }
+      
+      // Mark the latest event
+      if (history.length > 0) {
+        history[history.length - 1].isLatest = true;
       }
 
       // Sort by timestamp (newest first) and add additional metadata
@@ -681,24 +750,41 @@ class AssetNFTService {
       
       console.log('[AssetNFT] Retrieved metadata object:', metadata);
       
-      // Get asset history
-      const historyLength = await this.universalAssetContract.getAssetEventCount(tokenId);
+      // Get asset history using assetHistory mapping (no getAssetEventCount available)
+      console.log('[AssetNFT] Getting asset history via assetHistory mapping for token:', tokenId);
       const history = [];
-
-      for (let i = 0; i < historyLength; i++) {
+      let index = 0;
+      const maxEvents = 1000; // Safety limit
+      
+      while (index < maxEvents) {
         try {
-          const event = await this.universalAssetContract.getAssetEvent(tokenId, i);
+          const event = await this.universalAssetContract.assetHistory(tokenId, index);
+          
+          // Check if this is an empty/default event (indicates no more events)
+          if (!event || event.eventType === 0 || event.eventType === '0') {
+            console.log(`[AssetNFT] No more events found at index ${index} for token ${tokenId}`);
+            break;
+          }
+          
+          // Parse the event data
+          const eventTypeNumber = Number(event.eventType);
+          const timestamp = new Date(Number(event.timestamp) * 1000);
+          const description = event.description || '';
+          const transactionAmount = event.transactionAmount ? ethers.formatEther(event.transactionAmount) : '0';
+          
           history.push({
-            eventType: event[0],
-            timestamp: new Date(Number(event[1]) * 1000),
-            authorizedBy: event[2],
-            description: event[3],
-            transactionAmount: ethers.formatEther(event[4]),
-            supportingDocs: event[5]
+            eventType: eventTypeNumber,
+            timestamp,
+            authorizedBy: event.authorizedBy || '0x0000000000000000000000000000000000000000',
+            description,
+            transactionAmount,
+            supportingDocs: event.supportingDocs || []
           });
-        } catch (eventError) {
-          console.log(`[AssetNFT] Could not retrieve event ${i}:`, eventError);
-          // Continue with other events
+          
+          index++;
+        } catch (eventError: any) {
+          console.log(`[AssetNFT] No event at index ${index} for token ${tokenId}: ${eventError.message}`);
+          break;
         }
       }
 
@@ -1442,53 +1528,9 @@ class AssetNFTService {
     }
   }
 
-  /**
-   * Check if token exists
-   */
-  async tokenExists(tokenId: string): Promise<boolean> {
-    try {
-      if (!this.universalAssetContract) {
-        throw new Error('Universal Asset Contract not initialized');
-      }
 
-      try {
-        await this.universalAssetContract.ownerOf(tokenId);
-        return true;
-      } catch (error) {
-        return false;
-      }
-    } catch (error) {
-      console.error('[AssetNFT] Error checking token existence:', error);
-      return false;
-    }
-  }
 
-  /**
-   * Get asset event count (for history)
-   */
-  async getAssetEventCount(tokenId: string): Promise<number> {
-    try {
-      if (!this.universalAssetContract) {
-        throw new Error('Universal Asset Contract not initialized');
-      }
 
-      // Check if token exists first
-      const exists = await this.tokenExists(tokenId);
-      if (!exists) {
-        console.log('[AssetNFT] Token does not exist, returning 0 events:', tokenId);
-        return 0;
-      }
-
-      console.log('[AssetNFT] Getting event count for token:', tokenId);
-      
-      const count = await this.universalAssetContract.getAssetEventCount(tokenId);
-      return Number(count);
-    } catch (error) {
-      console.error('[AssetNFT] Error getting asset event count:', error);
-      // Return 0 instead of throwing to handle gracefully
-      return 0;
-    }
-  }
 
   /**
    * Get asset event by index

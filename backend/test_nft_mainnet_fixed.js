@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * 🔍 NFT MAINNET FUNCTIONALITY TEST - FIXED VERSION
+ * 🔍 NFT MAINNET ABI FIX VALIDATION TEST
  * 
- * This script tests NFT functionality using the correct ABI and configuration
- * for the deployed UniversalAssetNFTCompact contract on Arbitrum mainnet.
+ * This script tests the specific ABI fixes for UniversalAssetNFTPausable proxy contract:
+ * - Tests assetHistory mapping (NOT getAssetEventCount)
+ * - Validates token existence checks
+ * - Tests getAssetHistory and getAssetMetadata functions
  * 
  * Run: node test_nft_mainnet_fixed.js
  */
