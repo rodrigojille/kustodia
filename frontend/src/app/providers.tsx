@@ -36,7 +36,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         apiKey: portalApiKey,
         autoApprove: true,
         rpcConfig: {
-          'eip155:421614': process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc',
+          'eip155:42161': process.env.NEXT_PUBLIC_ARBITRUM_MAINNET_RPC_URL || 'https://arb1.arbitrum.io/rpc',
         },
         // The 'host' property should be used for custom subdomains if needed
         // host: 'YOUR-CUSTOM-SUBDOMAIN'

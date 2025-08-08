@@ -115,7 +115,7 @@ export default function PublicVehicleLandingPage() {
             </div>
             <div className="bg-gray-50 rounded-lg p-3 sm:p-4 sm:col-span-2 lg:col-span-1">
               <div className="font-medium text-gray-900 text-sm sm:text-base">Blockchain Verified</div>
-              <div className="text-gray-600 text-xs sm:text-sm">Arbitrum Sepolia</div>
+              <div className="text-gray-600 text-xs sm:text-sm">Arbitrum One</div>
               <div className="text-purple-600 mt-2 text-xs sm:text-sm">🔗 Inmutable</div>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function PublicVehicleLandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 mb-4">
             <a href="https://kustodia.mx" className="hover:text-blue-400 text-sm sm:text-base">Kustodia.mx</a>
             <span className="text-gray-400 hidden sm:inline">•</span>
-            <a href="https://sepolia.arbiscan.io" className="hover:text-blue-400 text-sm sm:text-base">Blockchain Explorer</a>
+            <a href="https://arbiscan.io" className="hover:text-blue-400 text-sm sm:text-base">Blockchain Explorer</a>
             <span className="text-gray-400 hidden sm:inline">•</span>
             <a href="mailto:soporte@kustodia.mx" className="hover:text-blue-400 text-sm sm:text-base">Soporte</a>
           </div>

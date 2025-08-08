@@ -92,7 +92,7 @@ const ClabeSection: React.FC<ClabeSectionProps> = ({ payoutClabe = '', depositCl
           {activeTab === 'withdraw' && (
             <div className="p-4 bg-gray-50 rounded-lg space-y-4">
               <div className="text-sm bg-white p-3 rounded-md border">
-                <p>Wallet: <a href={`https://sepolia.arbiscan.io/address/${walletAddress}`} target="_blank" rel="noopener noreferrer" className="font-mono text-blue-700 underline break-all hover:text-blue-900">{walletAddress || '-'}</a></p>
+                <p>Wallet: <a href={`https://arbiscan.io/address/${walletAddress}`} target="_blank" rel="noopener noreferrer" className="font-mono text-blue-700 underline break-all hover:text-blue-900">{walletAddress || '-'}</a></p>
                 <p>Balance: <span className="font-mono text-green-700">{mxnbsBalance !== null ? `${mxnbsBalance} MXNBS` : "-"}</span></p>
               </div>
               {editing ? (

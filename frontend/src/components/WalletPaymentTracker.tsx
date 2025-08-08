@@ -302,7 +302,7 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
                 <h4 className="font-medium text-amber-900">🔐 Detalles blockchain</h4>
                 {payment.escrow.blockchain_tx_hash && (
                   <a 
-                    href={`https://sepolia.arbiscan.io/tx/${payment.escrow.blockchain_tx_hash}`}
+                    href={`https://arbiscan.io/tx/${payment.escrow.blockchain_tx_hash}`}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs rounded-md transition-colors duration-200 font-medium"
@@ -371,7 +371,7 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
                     </div>
                     <div>
                       <a 
-                        href={`https://sepolia.arbiscan.io/tx/${payment.escrow.blockchain_tx_hash}`}
+                        href={`https://arbiscan.io/tx/${payment.escrow.blockchain_tx_hash}`}
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm rounded-lg transition-colors duration-200 font-medium border border-blue-200"

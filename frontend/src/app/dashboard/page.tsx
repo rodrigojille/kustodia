@@ -199,8 +199,8 @@ export default function DashboardHomePage() {
     const fetchMxnbsBalance = async () => {
       if (!user || !user.wallet_address) return;
       try {
-        // MXNBS Arbitrum Sepolia (ERC20)
-        const arbProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL);
+        // MXNBS Arbitrum Mainnet (ERC20)
+        const arbProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_ARBITRUM_MAINNET_RPC_URL);
         const mxnbAddress = process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS;
         if (!mxnbAddress) {
           setMxnbsBalance(null);

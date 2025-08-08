@@ -176,7 +176,7 @@ export default function PaymentTimeline({ paymentId }: { paymentId: string }) {
           const txHashMatch = desc.match(/Tx: (0x[a-fA-F0-9]{64})/);
           if (txHashMatch) {
             txHash = txHashMatch[1];
-            arbiscanUrl = `https://sepolia.arbiscan.io/tx/${txHash}`;
+            arbiscanUrl = `https://arbiscan.io/tx/${txHash}`;
           }
           
           // Extract escrow ID

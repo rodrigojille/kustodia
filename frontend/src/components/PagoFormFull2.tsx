@@ -43,8 +43,8 @@ function PagoFormFull2() {
       setBalanceLoading(true);
       setBalanceError(null);
       
-      // MXNB Arbitrum Sepolia (ERC20) - same as dashboard
-      const arbProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL);
+      // MXNB Arbitrum Mainnet (ERC20) - same as dashboard
+      const arbProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_ARBITRUM_MAINNET_RPC_URL);
       const mxnbAddress = process.env.NEXT_PUBLIC_MXNB_CONTRACT_ADDRESS;
       if (!mxnbAddress) {
         setBalance(null);
@@ -606,10 +606,10 @@ function PagoFormFull2() {
           <div className="font-bold mb-2">Progreso del pago:</div>
           <ol className="list-decimal ml-5 text-blue-700 space-y-1">
             <li className={step >= 1 ? "font-semibold" : ""}>
-              Pago directo al vendedor {txHashes.direct && (<span className="text-xs text-gray-500">Tx: <a href={`https://sepolia.arbiscan.io/tx/${txHashes.direct}`} target="_blank" rel="noopener noreferrer">{txHashes.direct.slice(0, 10)}…</a></span>)}
+              Pago directo al vendedor {txHashes.direct && (<span className="text-xs text-gray-500">Tx: <a href={`https://arbiscan.io/tx/${txHashes.direct}`} target="_blank" rel="noopener noreferrer">{txHashes.direct.slice(0, 10)}…</a></span>)}
             </li>
             <li className={step >= 2 ? "font-semibold" : ""}>
-              Pago bajo custodia a la plataforma {txHashes.custody && (<span className="text-xs text-gray-500">Tx: <a href={`https://sepolia.arbiscan.io/tx/${txHashes.custody}`} target="_blank" rel="noopener noreferrer">{txHashes.custody.slice(0, 10)}…</a></span>)}
+              Pago bajo custodia a la plataforma {txHashes.custody && (<span className="text-xs text-gray-500">Tx: <a href={`https://arbiscan.io/tx/${txHashes.custody}`} target="_blank" rel="noopener noreferrer">{txHashes.custody.slice(0, 10)}…</a></span>)}
             </li>
             <li className={step >= 3 ? "font-semibold" : ""}>
               Notificación a la plataforma para crear custodia
