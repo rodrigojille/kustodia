@@ -67,7 +67,7 @@ const getUniversalAssetABI = () => {
       {"inputs":[],"name":"PAUSER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
       {"inputs":[],"name":"UPDATER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
       {"inputs":[],"name":"VERIFIER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
-      {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"enum AssetManagementLib.EventType","name":"eventType","type":"uint8"},{"internalType":"string","name":"description","type":"string"},{"internalType":"uint256","name":"transactionAmount","type":"uint256"},{"internalType":"string[]","name":"supportingDocs","type":"string[]"},{"internalType":"string[]","name":"customFieldKeys","type":"string[]"},{"internalType":"string[]","name":"customFieldValues","type":"string[]"}],"name":"addAssetEvent","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"enum AssetManagementLib.EventType","name":"eventType","type":"uint8"},{"internalType":"string","name":"description","type":"string"},{"internalType":"uint256","name":"transactionAmount","type":"uint256"},{"internalType":"string[]","name":"supportingDocs","type":"string[]"}],"name":"addAssetEvent","outputs":[],"stateMutability":"nonpayable","type":"function"},
       {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"nonpayable","type":"function"},
       {"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"assetHistory","outputs":[{"internalType":"enum AssetManagementLib.EventType","name":"eventType","type":"uint8"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"address","name":"authorizedBy","type":"address"},{"internalType":"string","name":"description","type":"string"},{"internalType":"uint256","name":"transactionAmount","type":"uint256"}],"stateMutability":"view","type":"function"},
       {"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"assetIdToTokenId","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
@@ -925,15 +925,14 @@ class AssetNFTService {
         customFieldValues.push(maintenanceData.cost.toString());
       }
 
-      // Call addAssetEvent with MAINTENANCE type
+      // Call addAssetEvent with MAINTENANCE type (5-parameter version for deployed contract)
       const tx = await this.universalAssetContract.addAssetEvent(
         tokenId,
         3, // EventType.MAINTENANCE (0-indexed: CREATION=0, SALE=1, TRANSFER=2, MAINTENANCE=3)
         maintenanceData.description || 'Maintenance performed',
         ethers.parseEther((maintenanceData.cost || 0).toString()),
-        maintenanceData.supportingDocs || [],
-        customFieldKeys,
-        customFieldValues
+        maintenanceData.supportingDocs || []
+        // Note: customFieldKeys and customFieldValues not supported in deployed contract
       );
 
       const receipt = await tx.wait();
@@ -978,9 +977,8 @@ class AssetNFTService {
         7, // EventType.UPGRADE
         upgradeData.description || 'Asset upgraded',
         ethers.parseEther((upgradeData.cost || 0).toString()),
-        upgradeData.supportingDocs || [],
-        customFieldKeys,
-        customFieldValues
+        upgradeData.supportingDocs || []
+        // Note: customFieldKeys and customFieldValues not supported in deployed contract
       );
 
       const receipt = await tx.wait();
@@ -1034,15 +1032,14 @@ class AssetNFTService {
         customFieldValues.push(inspectionData.cost.toString());
       }
 
-      // Call addAssetEvent with INSPECTION type
+      // Call addAssetEvent with INSPECTION type (5-parameter version for deployed contract)
       const tx = await this.universalAssetContract.addAssetEvent(
         tokenId,
         4, // EventType.INSPECTION (0-indexed: CREATION=0, SALE=1, TRANSFER=2, MAINTENANCE=3, INSPECTION=4)
         inspectionData.description || 'Inspection performed',
         ethers.parseEther((inspectionData.cost || 0).toString()),
-        inspectionData.supportingDocs || [],
-        customFieldKeys,
-        customFieldValues
+        inspectionData.supportingDocs || []
+        // Note: customFieldKeys and customFieldValues not supported in deployed contract
       );
 
       const receipt = await tx.wait();
