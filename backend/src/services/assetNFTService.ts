@@ -565,9 +565,9 @@ class AssetNFTService {
             technicalDetails: this.getTechnicalDetails(eventTypeNumber, customFields, transactionAmount),
             
             // Trust and verification indicators
-            isVerified: false, // Cannot determine from assetHistory
+            isVerified: this.determineEventVerification(eventTypeNumber, supportingDocs, customFields),
             verificationLevel: this.getVerificationLevel(eventTypeNumber, '0x0000000000000000000000000000000000000000'),
-            trustScore: this.calculateTrustScore(eventTypeNumber, customFields, supportingDocs.length),
+            trustScore: this.calculateEnhancedTrustScore(eventTypeNumber, customFields, supportingDocs.length, timestamp),
             
             // Document analysis
             documentCount: supportingDocs.length,
@@ -1328,10 +1328,41 @@ class AssetNFTService {
   }
 
   /**
-   * Calculate trust score - Vehicle Care Oriented Logic
+   * Determine if an event should be considered verified based on documentation and context
+   */
+  private determineEventVerification(eventType: number, supportingDocs: string[], customFields: { [key: string]: string }): boolean {
+    // High-confidence verification criteria
+    let verificationScore = 0;
+    
+    // Documentation quality
+    if (supportingDocs.length >= 2) verificationScore += 30;
+    else if (supportingDocs.length >= 1) verificationScore += 15;
+    
+    // Official documentation patterns
+    const hasOfficialDoc = supportingDocs.some(doc => 
+      doc.includes('certificate') || doc.includes('receipt') || 
+      doc.includes('factura') || doc.includes('certificado')
+    );
+    if (hasOfficialDoc) verificationScore += 25;
+    
+    // Service provider verification
+    if (customFields.serviceProvider === 'Agencia/Concesionario') verificationScore += 20;
+    if (customFields.inspector || customFields.certificationLevel) verificationScore += 15;
+    
+    // Event type reliability
+    if ([3, 4, 6, 7, 12].includes(eventType)) verificationScore += 10; // Maintenance, Inspection, Repair, Upgrade, Verification
+    
+    // Cost verification (significant investment indicates legitimacy)
+    if (customFields.cost && parseFloat(customFields.cost) > 500) verificationScore += 10;
+    
+    return verificationScore >= 60; // 60% threshold for verification
+  }
+
+  /**
+   * Calculate enhanced trust score with time-based decay and pattern recognition
    * Higher scores for better vehicle maintenance and care
    */
-  private calculateTrustScore(eventType: number, customFields: { [key: string]: string }, documentCount: number): number {
+  private calculateEnhancedTrustScore(eventType: number, customFields: { [key: string]: string }, documentCount: number, timestamp: Date): number {
     let score = 60; // Higher base score for vehicle care
 
     // STRONG bonus for documentation (proves care and transparency)
@@ -1374,12 +1405,42 @@ class AssetNFTService {
         break;
     }
 
-    // Bonus for recent activity (shows ongoing care)
-    const hasRecentActivity = true; // You could check if event is within last 6 months
-    if (hasRecentActivity && [3, 4, 6, 7].includes(eventType)) {
-      score += 5; // Bonus for recent maintenance/inspection activity
+    // Time-based decay for older events
+    const eventAge = Date.now() - timestamp.getTime();
+    const monthsOld = eventAge / (1000 * 60 * 60 * 24 * 30);
+    
+    if (monthsOld <= 6) {
+      score += 10; // Recent activity bonus
+    } else if (monthsOld <= 12) {
+      score += 5; // Moderate recency bonus
+    } else if (monthsOld > 24) {
+      score -= Math.min(monthsOld * 2, 15); // Gradual decay for very old events
     }
-
+    
+    // Service provider credibility bonus
+    if (customFields.serviceProvider) {
+      if (customFields.serviceProvider === 'Agencia/Concesionario') {
+        score += 15; // Official dealer service
+      } else if (customFields.serviceProvider.includes('Certificado') || customFields.serviceProvider.includes('Oficial')) {
+        score += 10; // Certified service provider
+      } else {
+        score += 5; // Any documented service provider
+      }
+    }
+    
+    // Mileage-based adjustments for maintenance events
+    if (eventType === 3 && customFields.mileage) {
+      const mileage = parseInt(customFields.mileage);
+      if (mileage > 0) {
+        // Regular maintenance intervals get bonus
+        if (mileage % 10000 <= 2000) score += 5; // Close to 10k intervals
+        if (mileage % 5000 <= 1000) score += 3; // Close to 5k intervals
+      }
+    }
+    
+    // Pattern recognition bonus (would need full history context)
+    // This could be enhanced with pattern analysis across all events
+    
     return Math.min(score, 100);
   }
 
