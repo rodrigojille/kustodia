@@ -37,7 +37,7 @@ export default function CompraVentaVehiculos() {
     }
     
     // Track example vehicle view
-    trackVehicleView('0', 85);
+    trackVehicleView('1', 85);
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -90,8 +90,8 @@ export default function CompraVentaVehiculos() {
   const benefits = [
     {
       icon: <FaChartLine className="text-green-600 text-3xl" />,
-      title: "Obtén 23% Más Valor",
-      description: "Autos certificados alcanzan precios premium. Tu inversión en mantenimiento finalmente se refleja en el valor"
+      title: "IA Calcula 23% Más Valor",
+      description: "Sistema inteligente analiza cada documento y servicio para calcular el valor real de tu cuidado. Tu inversión finalmente se refleja en el precio"
     },
     {
       icon: <FaHistory className="text-blue-600 text-3xl" />,
@@ -123,8 +123,8 @@ export default function CompraVentaVehiculos() {
     },
     {
       icon: <HiTrendingUp className="text-purple-500 text-2xl" />,
-      title: "Score que Vende",
-      description: "Un puntaje alto de confianza justifica tu precio y elimina regateos"
+      title: "IA que Calcula tu Valor",
+      description: "Sistema inteligente que analiza documentos, servicios oficiales y patrones de mantenimiento para maximizar tu precio"
     },
     {
       icon: <HiSparkles className="text-orange-500 text-2xl" />,
@@ -143,7 +143,7 @@ export default function CompraVentaVehiculos() {
   return (
     <>
       <MarketplaceAnalytics 
-        vehicleId="example"
+        vehicleId="1"
         trustScore={85}
         verificationStatus="verified"
         eventType="view"
@@ -301,7 +301,7 @@ export default function CompraVentaVehiculos() {
                   <div className="space-y-4 mb-6">
                     <div 
                       className="flex justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                      onClick={() => trackTrustScoreInteraction('0', 85, 'trust_score_click')}
+                      onClick={() => trackTrustScoreInteraction('1', 85, 'trust_score_click')}
                     >
                       <span className="text-gray-600">Puntuación de Confianza:</span>
                       <span className="font-semibold text-green-600">85/100</span>
@@ -332,7 +332,7 @@ export default function CompraVentaVehiculos() {
                   
                   <div className="flex flex-col sm:flex-row gap-3 mt-6">
                     <Link 
-                      href="/public/vehicle/0"
+                      href="/public/vehicle/1"
                       onClick={() => {
                         if (typeof window !== 'undefined' && window.gtag) {
                           window.gtag('event', 'click', {
@@ -341,7 +341,7 @@ export default function CompraVentaVehiculos() {
                             page_location: window.location.href
                           });
                         }
-                        trackTrustScoreInteraction('0', 85, 'view_full_history');
+                        trackTrustScoreInteraction('1', 85, 'view_full_history');
                       }}
                       className="flex-1 text-center bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
                     >
@@ -362,6 +362,153 @@ export default function CompraVentaVehiculos() {
                     >
                       Me Interesa
                     </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Intelligent Trust Score System */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <HiSparkles className="mr-2" />
+                Sistema Inteligente de Confianza
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+                La IA que convierte tu mantenimiento en{' '}
+                <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                  dinero extra
+                </span>
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Nuestro sistema inteligente analiza cada documento, servicio y cuidado que le diste a tu auto 
+                para calcular un puntaje de confianza que justifica precios premium.
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-8">¿Cómo funciona la IA de confianza?</h3>
+                <div className="space-y-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <FaCheckCircle className="text-green-600 text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">Análisis de Documentación</h4>
+                      <p className="text-gray-600">
+                        Cada factura, certificado y foto suma puntos. 2+ documentos = +30 puntos de confianza.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <FaAward className="text-blue-600 text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">Reconocimiento de Servicios Oficiales</h4>
+                      <p className="text-gray-600">
+                        Mantenimiento en agencias/concesionarios recibe +15 puntos extra por credibilidad.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <FaHistory className="text-purple-600 text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">Análisis Temporal Inteligente</h4>
+                      <p className="text-gray-600">
+                        Mantenimientos recientes (≤6 meses) reciben +10 puntos. El cuidado constante se premia.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                      <FaChartLine className="text-orange-600 text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">Reconocimiento de Patrones de Kilometraje</h4>
+                      <p className="text-gray-600">
+                        Mantenimientos en intervalos correctos (5k/10k km) suman puntos por cuidado responsable.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="relative">
+                <div className="bg-gray-50 rounded-2xl p-8 shadow-lg">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold text-gray-900">Sistema de Puntuación IA</h3>
+                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      ✨ INTELIGENTE
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4 mb-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Base Score:</span>
+                      <span className="font-semibold text-gray-900">60 pts</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">+ Documentos (2+):</span>
+                      <span className="font-semibold text-green-600">+30 pts</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">+ Servicio Oficial:</span>
+                      <span className="font-semibold text-blue-600">+15 pts</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">+ Mantenimiento Reciente:</span>
+                      <span className="font-semibold text-purple-600">+10 pts</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">+ Intervalos Correctos:</span>
+                      <span className="font-semibold text-orange-600">+5 pts</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-4">
+                      <div className="flex justify-between items-center text-xl">
+                        <span className="font-bold text-gray-900">Score Total:</span>
+                        <span className="font-bold text-green-600">95/100</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4 border border-green-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <FaCertificate className="text-green-600" />
+                      <span className="font-semibold text-green-800">Estado: EXCELENTE</span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Este vehículo califica para precios premium por su excelente historial de cuidado.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 max-w-4xl mx-auto">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">¿Por qué los compradores pagan más?</h3>
+                <div className="grid md:grid-cols-3 gap-6 text-center">
+                  <div>
+                    <div className="text-3xl font-bold text-green-600 mb-2">95+</div>
+                    <div className="text-sm text-gray-600">Score = Precio Premium</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
+                    <div className="text-sm text-gray-600">Dudas sobre el historial</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-purple-600 mb-2">23%</div>
+                    <div className="text-sm text-gray-600">Más dinero en tu bolsillo</div>
                   </div>
                 </div>
               </div>
