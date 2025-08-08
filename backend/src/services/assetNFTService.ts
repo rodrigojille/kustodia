@@ -21,20 +21,45 @@ export enum AssetType {
   OTHER = 9         // Expandable for future categories
 }
 
-// Contract ABIs (based on actual UniversalAssetNFT.sol)
-const UNIVERSAL_ASSET_ABI = [
-  "function createAsset(string assetId, uint8 assetType, address owner, string tokenURI, string[] metadataKeys, string[] metadataValues) external returns (uint256)",
-  "function addAssetEvent(uint256 tokenId, uint8 eventType, string description, uint256 transactionAmount, string[] supportingDocs, string[] customFieldKeys, string[] customFieldValues) external",
-  "function verifyAsset(uint256 tokenId) external",
-  "function updateAssetMetadata(uint256 tokenId, string key, string value) external",
-  "function getAssetMetadata(uint256 tokenId, string key) external view returns (string)",
-  "function getAssetHistoryLength(uint256 tokenId) external view returns (uint256)",
-  "function getAssetEvent(uint256 tokenId, uint256 eventIndex) external view returns (uint8, uint256, address, string, uint256, string[])",
-  "function getOwnerAssets(address owner) external view returns (uint256[])",
-  "function ownerOf(uint256 tokenId) external view returns (address)",
-  "function tokenURI(uint256 tokenId) external view returns (string)",
-  "function assetIdToTokenId(string assetId) external view returns (uint256)"
-];
+// Load actual compiled contract ABI based on network
+const getUniversalAssetABI = () => {
+  try {
+    // Get current network to determine which contract ABI to use
+    const networkConfig = getCurrentNetworkConfig();
+    const isMainnet = networkConfig.chainId === 42161; // Arbitrum Mainnet
+    
+    if (isMainnet) {
+      // Mainnet uses UniversalAssetNFTPausable
+      const contractArtifact = require('../artifacts/contracts/UniversalAssetNFTPausable.sol/UniversalAssetNFTPausable.json');
+      console.log('[AssetNFT] Loading UniversalAssetNFTPausable ABI for mainnet');
+      return contractArtifact.abi;
+    } else {
+      // Testnet uses UniversalAssetNFTCompact
+      const contractArtifact = require('../artifacts/contracts/UniversalAssetNFTCompact.sol/UniversalAssetNFTCompact.json');
+      console.log('[AssetNFT] Loading UniversalAssetNFTCompact ABI for testnet');
+      return contractArtifact.abi;
+    }
+  } catch (error) {
+    console.warn('[AssetNFT] Could not load compiled ABI, falling back to minimal ABI:', error instanceof Error ? error.message : String(error));
+    // Fallback minimal ABI with CORRECT parameter order for both contracts
+    return [
+      "function createAsset(string assetId, uint8 assetType, address owner, string[] metadataKeys, string[] metadataValues, string _tokenURI) external returns (uint256)",
+      "function addAssetEvent(uint256 tokenId, uint8 eventType, string description, uint256 transactionAmount, string[] supportingDocs, string[] customFieldKeys, string[] customFieldValues) external",
+      "function verifyAsset(uint256 tokenId) external",
+      "function updateAssetMetadata(uint256 tokenId, string key, string value) external",
+      "function getAssetMetadata(uint256 tokenId, string key) external view returns (string)",
+      "function getAssetHistoryLength(uint256 tokenId) external view returns (uint256)",
+      "function getAssetEvent(uint256 tokenId, uint256 eventIndex) external view returns (uint8, uint256, address, string, uint256, string[])",
+      "function getOwnerAssets(address owner) external view returns (uint256[])",
+      "function ownerOf(uint256 tokenId) external view returns (address)",
+      "function tokenURI(uint256 tokenId) external view returns (string)",
+      "function assetIdToTokenId(string assetId) external view returns (uint256)",
+      "function getAsset(uint256 tokenId) external view returns (string, uint8, address, bool, uint256, string)"
+    ];
+  }
+};
+
+const UNIVERSAL_ASSET_ABI = getUniversalAssetABI();
 
 const VEHICLE_ASSET_ABI = [
   "function createVehicle(string vin, address owner, string make, string model, uint256 year, string engineNumber, string color, string fuelType, uint256 engineSize, uint256 currentMileage, bool isCommercial, string plateNumber, string tokenURI) external returns (uint256)",
@@ -185,13 +210,14 @@ class AssetNFTService {
       ];
 
       // Use Universal Asset Contract to create NFT (this actually mints!)
+      // FIXED: Parameter order matches actual contract ABI
       const tx = await this.universalAssetContract.createAsset(
         vehicleData.vin,        // assetId (VIN)
         assetType,              // assetType (0=VEHICLE, 1=PROPERTY, etc.)
         ownerAddress,           // owner
-        tokenURI,              // tokenURI
         metadataKeys,          // metadataKeys
-        metadataValues         // metadataValues
+        metadataValues,        // metadataValues
+        tokenURI               // _tokenURI (moved to last position)
       );
 
       const receipt = await tx.wait();
@@ -261,9 +287,9 @@ class AssetNFTService {
         propertyData.cadastralId, // assetId (Cadastral ID)
         assetType,                // assetType (1=PROPERTY)
         ownerAddress,             // owner
-        tokenURI,                // tokenURI
         metadataKeys,            // metadataKeys
-        metadataValues           // metadataValues
+        metadataValues,          // metadataValues
+        tokenURI                 // _tokenURI (moved to last position)
       );
 
       const receipt = await tx.wait();

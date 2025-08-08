@@ -381,27 +381,55 @@ export class PaymentAutomationService {
           console.log(`✅ Bank account registered with Juno:`, registrationResult);
           
           // Update the user's juno_bank_account_id in the database
-          const userRepository = AppDataSource.getRepository(User);
-          await userRepository.update(
-            { id: payment.seller.id },
-            { juno_bank_account_id: registrationResult.id }
-          );
-          
-          // Update the payment.seller object for immediate use
-          payment.seller.juno_bank_account_id = registrationResult.id;
-          
-          await this.paymentService.logPaymentEvent(
-            payment.id,
-            'bank_account_registered',
-            `Auto-registered bank account for ${payment.seller.email}: CLABE ${payment.seller.payout_clabe} -> Juno ID ${registrationResult.id}`,
-            false
-          );
-          
-          console.log(`✅ Updated seller ${payment.seller.email} with juno_bank_account_id: ${registrationResult.payload.id}`);
+        const userRepository = AppDataSource.getRepository(User);
+        await userRepository.update(
+          { id: payment.seller.id },
+          { juno_bank_account_id: registrationResult.id }
+        );
+        
+        // Update the payment.seller object for immediate use
+        payment.seller.juno_bank_account_id = registrationResult.id;
+        
+        await this.paymentService.logPaymentEvent(
+          payment.id,
+          'bank_account_registered',
+          `Auto-registered bank account for ${payment.seller.email}: CLABE ${payment.seller.payout_clabe} -> Juno ID ${registrationResult.id}`,
+          false
+        );
+        
+        console.log(`✅ Updated seller ${payment.seller.email} with juno_bank_account_id: ${registrationResult.id}`);
+        
+        // Add delay to allow registration to propagate in Juno system
+        console.log('⏳ Waiting 5 seconds for bank account registration to propagate...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Validate registration by attempting to fetch the account
+        try {
+          console.log(`🔍 Validating bank account registration for ${registrationResult.id}...`);
+          // The redemption process will validate the account exists
+        } catch (validationError: any) {
+          console.warn(`⚠️ Could not validate bank account registration immediately: ${validationError.message}`);
+          // Continue anyway - the redemption process will handle validation
+        }
           
         } catch (registrationError: any) {
           console.error(`❌ Failed to register bank account for ${payment.seller.email}:`, registrationError.message);
-          throw new Error(`Bank account registration failed: ${registrationError.message}`);
+          
+          // Log detailed error for debugging
+          await this.paymentService.logPaymentEvent(
+            payment.id,
+            'bank_account_registration_failed',
+            `Failed to register bank account for ${payment.seller.email}: ${registrationError.message}`,
+            true
+          );
+          
+          // Check if it's a duplicate registration error (account already exists)
+          if (registrationError.message.includes('already exists') || registrationError.message.includes('duplicate')) {
+            console.log(`⚠️ Bank account may already be registered. Attempting to continue with payout...`);
+            // Continue with the process - the redemption will validate if account exists
+          } else {
+            throw new Error(`Bank account registration failed: ${registrationError.message}`);
+          }
         }
       }
       

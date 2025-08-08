@@ -83,17 +83,42 @@ async function deployEscrowContract(deployer) {
 }
 
 /**
- * Deploy UniversalAssetNFTPausable
+ * Deploy AssetManagementLib Library
  */
-async function deployUniversalAssetContract(deployer) {
-  console.log('\n🎨 Deploying UniversalAssetNFTPausable...');
+async function deployAssetManagementLib(deployer) {
+  console.log('\n📚 Deploying AssetManagementLib library...');
   
-  const UniversalAssetNFT = await ethers.getContractFactory('UniversalAssetNFTPausable', deployer);
+  const AssetManagementLib = await ethers.getContractFactory("AssetManagementLib", deployer);
+  const assetManagementLib = await AssetManagementLib.deploy();
+  await assetManagementLib.waitForDeployment();
+  const libAddress = await assetManagementLib.getAddress();
+  
+  console.log('✅ AssetManagementLib deployed to:', libAddress);
+  
+  return {
+    address: libAddress,
+    contract: assetManagementLib
+  };
+}
+
+/**
+ * Deploy UniversalAssetNFTPausable with Asset Management Library linking
+ */
+async function deployUniversalAssetContract(deployer, assetManagementLibAddress) {
+  console.log('\n🎨 Deploying UniversalAssetNFTPausable with library linking...');
+  
+  // Deploy with library linking
+  const UniversalAssetNFT = await ethers.getContractFactory('UniversalAssetNFTPausable', {
+    libraries: {
+      AssetManagementLib: assetManagementLibAddress
+    }
+  });
   
   console.log('📋 Deployment parameters:');
   console.log('   Name:', MAINNET_CONFIG.contracts.universalAsset.name);
   console.log('   Symbol:', MAINNET_CONFIG.contracts.universalAsset.symbol);
   console.log('   Admin (Kustodia Role):', MAINNET_CONFIG.deployerAddress);
+  console.log('   Linked Library:', assetManagementLibAddress);
   
   // Deploy the contract
   const universalAsset = await UniversalAssetNFT.deploy(
@@ -109,7 +134,8 @@ async function deployUniversalAssetContract(deployer) {
   
   return {
     address: universalAssetAddress,
-    contract: universalAsset
+    contract: universalAsset,
+    linkedLibrary: assetManagementLibAddress
   };
 }
 
@@ -258,8 +284,12 @@ async function deployMainnet() {
     const escrowResult = await deployEscrowContract(deployer);
     deploymentTx.escrow = escrowResult.proxy;
     
-    // 2. Deploy Universal Asset Contract
-    const universalAssetResult = await deployUniversalAssetContract(deployer);
+    // 2. Deploy Asset Management Library
+    const assetManagementLibResult = await deployAssetManagementLib(deployer);
+    deploymentTx.assetManagementLib = assetManagementLibResult.address;
+    
+    // 3. Deploy Universal Asset Contract with library linking
+    const universalAssetResult = await deployUniversalAssetContract(deployer, assetManagementLibResult.address);
     deploymentTx.universalAsset = universalAssetResult.address;
     
     // 3. Verify deployment
