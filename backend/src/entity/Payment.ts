@@ -246,21 +246,8 @@ export class Payment {
   @JoinColumn({ name: "escrow_id" })
   escrow?: Escrow;
 
-  // Payment automation state tracking fields
-  @Column({ nullable: true, length: 50 })
-  automation_state?: string; // 'deposit_detected' | 'withdrawal_pending' | 'withdrawal_complete' | 'escrow_pending' | 'escrow_complete'
-
-  @Column({ nullable: true })
-  withdrawal_status?: string; // 'pending' | 'completed' | 'failed' | 'verified'
-
-  @Column({ nullable: true, length: 255 })
-  withdrawal_id?: string; // Juno withdrawal ID for idempotency
-
-  @Column({ nullable: true })
-  escrow_creation_locked?: boolean; // Prevent parallel escrow creation attempts
-
-  @Column({ nullable: true })
-  escrow_lock_expires_at?: Date; // Lock expiration timestamp
+  // Payment automation state tracking fields - REMOVED (feature deprioritized)
+  // These fields were planned for advanced payment retry logic but are not currently needed
 
   @CreateDateColumn()
   created_at!: Date;
