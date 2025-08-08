@@ -13,6 +13,7 @@ const logs_1 = __importDefault(require("./admin/logs"));
 const logs_simple_1 = __importDefault(require("./admin/logs-simple")); // Simple logs without Heroku API
 const heroku_debug_1 = __importDefault(require("./admin/heroku-debug")); // Heroku API debugging
 const debug_auth_1 = __importDefault(require("./admin/debug-auth")); // Authentication debugging
+const analytics_1 = __importDefault(require("./analytics")); // Analytics dashboard routes
 const ticketController_1 = require("../controllers/ticketController");
 const adminController_1 = require("../controllers/adminController");
 const router = (0, express_1.Router)();
@@ -139,6 +140,8 @@ router.use("/heroku-debug", heroku_debug_1.default); // Debug Heroku API issues
 router.use("/logs-unified", logs_1.default); // Move to different path
 // 🐛 Debug Authentication Issues
 router.use("/debug-auth", debug_auth_1.default); // Authentication debugging
+// 📊 Analytics Dashboard Routes
+router.use("/analytics", analytics_1.default); // Analytics dashboard endpoints
 // 🎫 Admin Ticket Management
 // @route   GET /api/admin/tickets
 // @desc    Get all tickets for admin
@@ -195,4 +198,7 @@ router.get("/bridge-wallet-balance", authenticateJWT_1.authenticateJWT, requireA
         next(error);
     }
 });
+// =============================================================================
+// 📊 CUSTOMER ANALYTICS DASHBOARD API ENDPOINTS
+// =============================================================================
 exports.default = router;

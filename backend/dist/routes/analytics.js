@@ -5,9 +5,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const authenticateJWT_1 = require("../authenticateJWT");
+const requireAdminRole_1 = require("../middleware/requireAdminRole");
+const analyticsController_1 = require("../controllers/analyticsController");
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 const router = (0, express_1.Router)();
-// GET /api/analytics/stats - Get analytics data
+// =============================================================================
+// 🎯 CUSTOMER ANALYTICS DASHBOARD ROUTES
+// =============================================================================
+// Admin-only analytics endpoints
+router.get('/key-metrics', authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, analyticsController_1.getKeyMetrics);
+router.get('/acquisition', authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, analyticsController_1.getAcquisitionAnalytics);
+router.get('/transactions', authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, analyticsController_1.getPaymentsAnalytics);
+router.get('/growth-kpis', authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, analyticsController_1.getGrowthKPIs);
+router.get('/trends', authenticateJWT_1.authenticateJWT, requireAdminRole_1.requireAdminRole, analyticsController_1.getTrends);
+// Legacy route - keeping for backward compatibility
 router.get('/stats', authenticateJWT_1.authenticateJWT, async (req, res) => {
     try {
         const userId = req.user.id;

@@ -8,6 +8,7 @@ import unifiedLogsRouter from './admin/logs';
 import simpleLogsRouter from './admin/logs-simple'; // Simple logs without Heroku API
 import herokuDebugRouter from './admin/heroku-debug'; // Heroku API debugging
 import debugAuthRouter from './admin/debug-auth'; // Authentication debugging
+import analyticsRouter from './analytics'; // Analytics dashboard routes
 import { getTicketById, getTicketsForAdmin, createReply, closeTicket } from '../controllers/ticketController';
 import { 
   // Legacy functions
@@ -25,6 +26,7 @@ import {
   getUserAnalytics,
   getBridgeWalletBalance
 } from "../controllers/adminController";
+
 
 const router = Router();
 
@@ -150,6 +152,9 @@ router.use("/logs-unified", unifiedLogsRouter); // Move to different path
 // 🐛 Debug Authentication Issues
 router.use("/debug-auth", debugAuthRouter); // Authentication debugging
 
+// 📊 Analytics Dashboard Routes
+router.use("/analytics", analyticsRouter); // Analytics dashboard endpoints
+
 // 🎫 Admin Ticket Management
 // @route   GET /api/admin/tickets
 // @desc    Get all tickets for admin
@@ -205,5 +210,11 @@ router.get("/bridge-wallet-balance", authenticateJWT, requireAdminRole, async (r
     next(error);
   }
 });
+
+// =============================================================================
+// 📊 CUSTOMER ANALYTICS DASHBOARD API ENDPOINTS
+// =============================================================================
+
+
 
 export default router;

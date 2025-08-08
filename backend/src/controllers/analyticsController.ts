@@ -32,9 +32,11 @@ const withRetry = async <T>(
 };
 
 // Get key metrics overview
-export const getKeyMetrics = async (req: Request, res: Response): Promise<void> => {
+export const getKeyMetrics = async (req: Request, res: Response) => {
   try {
-    const { period = '30d' } = req.query;
+    const { period = '30d', status, type } = req.query;
+    
+    // Calculate date ranges
     const now = new Date();
     let startDate: Date;
     let previousStartDate: Date;
@@ -61,25 +63,37 @@ export const getKeyMetrics = async (req: Request, res: Response): Promise<void> 
         previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
     }
 
+    // Build filter conditions
+    const statusFilter = status && status !== 'all' ? `AND p.status = '${status}'` : '';
+    const typeFilter = type && type !== 'all' ? `AND p.type = '${type}'` : '';
+    
     const metrics = await withRetry(async () => {
+      // Current period metrics
       const [currentMetrics] = await AppDataSource.query(`
         SELECT 
           COUNT(DISTINCT u.id) as total_users,
-          COUNT(DISTINCT CASE WHEN u.created_at >= $1 THEN u.id END) as new_acquisitions,
-          COUNT(DISTINCT CASE WHEN p.id IS NOT NULL AND p.created_at >= $1 THEN COALESCE(p.user_id, p.seller_id) END) as active_transactors,
-          COALESCE(SUM(CASE WHEN p.created_at >= $1 AND p.status = 'completed' THEN CAST(p.amount AS NUMERIC) END), 0) as total_revenue
+          COUNT(DISTINCT CASE WHEN u.created_at >= $1 THEN u.id END) as new_users,
+          COUNT(DISTINCT CASE WHEN p.id IS NOT NULL AND p.created_at >= $1 ${statusFilter} ${typeFilter} THEN COALESCE(p.user_id, p.seller_id) END) as active_transactors,
+          COALESCE(SUM(CASE WHEN p.created_at >= $1 AND p.status = 'completed' ${typeFilter} THEN CAST(p.amount AS NUMERIC) END), 0) as total_revenue,
+          COUNT(CASE WHEN p.created_at >= $1 ${statusFilter} ${typeFilter} THEN p.id END) as total_transactions,
+          COUNT(CASE WHEN e.created_at >= $1 THEN e.id END) as total_escrows,
+          COALESCE(AVG(CASE WHEN p.created_at >= $1 AND p.status = 'completed' ${typeFilter} THEN CAST(p.amount AS NUMERIC) END), 0) as avg_transaction_amount
         FROM "user" u
         LEFT JOIN payment p ON (p.user_id = u.id OR p.seller_id = u.id)
+        LEFT JOIN escrow e ON e.payment_id = p.id
       `, [startDate]);
 
+      // Previous period metrics for comparison
       const [previousMetrics] = await AppDataSource.query(`
         SELECT 
-          COUNT(DISTINCT u.id) as total_users,
-          COUNT(DISTINCT CASE WHEN u.created_at >= $1 AND u.created_at < $2 THEN u.id END) as new_acquisitions,
+          COUNT(DISTINCT CASE WHEN u.created_at >= $1 AND u.created_at < $2 THEN u.id END) as new_users,
           COUNT(DISTINCT CASE WHEN p.id IS NOT NULL AND p.created_at >= $1 AND p.created_at < $2 THEN COALESCE(p.user_id, p.seller_id) END) as active_transactors,
-          COALESCE(SUM(CASE WHEN p.created_at >= $1 AND p.created_at < $2 AND p.status = 'completed' THEN CAST(p.amount AS NUMERIC) END), 0) as total_revenue
+          COALESCE(SUM(CASE WHEN p.created_at >= $1 AND p.created_at < $2 AND p.status = 'completed' THEN CAST(p.amount AS NUMERIC) END), 0) as total_revenue,
+          COUNT(CASE WHEN p.created_at >= $1 AND p.created_at < $2 THEN p.id END) as total_transactions,
+          COUNT(CASE WHEN e.created_at >= $1 AND e.created_at < $2 THEN e.id END) as total_escrows
         FROM "user" u
         LEFT JOIN payment p ON (p.user_id = u.id OR p.seller_id = u.id)
+        LEFT JOIN escrow e ON e.payment_id = p.id
       `, [previousStartDate, startDate]);
 
       return { currentMetrics, previousMetrics };
@@ -97,16 +111,13 @@ export const getKeyMetrics = async (req: Request, res: Response): Promise<void> 
       metrics: {
         totalUsers: {
           value: parseInt(metrics.currentMetrics.total_users),
-          growth: calculateGrowth(
-            parseInt(metrics.currentMetrics.total_users),
-            parseInt(metrics.previousMetrics.total_users)
-          )
+          growth: 0 // Total users don't have growth comparison
         },
-        newAcquisitions: {
-          value: parseInt(metrics.currentMetrics.new_acquisitions),
+        newUsers: {
+          value: parseInt(metrics.currentMetrics.new_users),
           growth: calculateGrowth(
-            parseInt(metrics.currentMetrics.new_acquisitions),
-            parseInt(metrics.previousMetrics.new_acquisitions)
+            parseInt(metrics.currentMetrics.new_users),
+            parseInt(metrics.previousMetrics.new_users)
           )
         },
         activeTransactors: {
@@ -122,14 +133,32 @@ export const getKeyMetrics = async (req: Request, res: Response): Promise<void> 
             parseFloat(metrics.currentMetrics.total_revenue),
             parseFloat(metrics.previousMetrics.total_revenue)
           )
+        },
+        totalTransactions: {
+          value: parseInt(metrics.currentMetrics.total_transactions),
+          growth: calculateGrowth(
+            parseInt(metrics.currentMetrics.total_transactions),
+            parseInt(metrics.previousMetrics.total_transactions)
+          )
+        },
+        totalEscrows: {
+          value: parseInt(metrics.currentMetrics.total_escrows),
+          growth: calculateGrowth(
+            parseInt(metrics.currentMetrics.total_escrows),
+            parseInt(metrics.previousMetrics.total_escrows)
+          )
+        },
+        avgTransactionAmount: {
+          value: parseFloat(metrics.currentMetrics.avg_transaction_amount),
+          growth: 0 // Average doesn't have meaningful growth comparison
         }
       }
     });
   } catch (error) {
     console.error('Error fetching key metrics:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch key metrics',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      success: false, 
+      error: 'Failed to fetch key metrics' 
     });
   }
 };
@@ -199,101 +228,121 @@ export const getAcquisitionAnalytics = async (req: Request, res: Response): Prom
 };
 
 // Get transaction analytics
-export const getTransactionAnalytics = async (req: Request, res: Response): Promise<void> => {
+export const getPaymentsAnalytics = async (req: Request, res: Response) => {
   try {
     const { period = '30d' } = req.query;
+    
+    // Calculate date range
     const now = new Date();
     let startDate: Date;
     
     switch (period) {
-      case '7d': startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); break;
-      case '30d': startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); break;
-      case '90d': startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000); break;
-      case '12m': startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000); break;
-      default: startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case '12m':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
 
     const analytics = await withRetry(async () => {
-      // Payment method distribution
+      // Payment methods breakdown
       const paymentMethods = await AppDataSource.query(`
         SELECT 
-          CASE 
-            WHEN payment_type = 'bank_transfer' THEN 'Bank Transfer'
-            WHEN payment_type = 'card' THEN 'Credit Cards'
-            WHEN payment_type = 'digital_wallet' THEN 'Digital Wallets'
-            ELSE 'Other'
-          END as method,
+          COALESCE(payment_type, 'Unknown') as payment_method,
           COUNT(*) as count,
-          COALESCE(SUM(CAST(amount AS NUMERIC)), 0) as volume
+          COALESCE(SUM(CAST(amount AS NUMERIC)), 0) as total_amount,
+          ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM payment WHERE created_at >= $1), 2) as percentage
         FROM payment 
         WHERE created_at >= $1 AND status = 'completed'
         GROUP BY payment_type
+        ORDER BY total_amount DESC
       `, [startDate]);
 
-      // Transaction size metrics
+      // Transaction size analytics
       const [transactionSizes] = await AppDataSource.query(`
         SELECT 
-          AVG(CAST(amount AS NUMERIC)) as average_size,
-          PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(amount AS NUMERIC)) as median_size,
-          MAX(CAST(amount AS NUMERIC)) as largest_size,
-          SUM(CAST(amount AS NUMERIC)) as total_volume,
+          COALESCE(AVG(CAST(amount AS NUMERIC)), 0) as average_amount,
+          COALESCE(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(amount AS NUMERIC)), 0) as median_amount,
+          COALESCE(MAX(CAST(amount AS NUMERIC)), 0) as largest_amount,
+          COALESCE(MIN(CAST(amount AS NUMERIC)), 0) as smallest_amount,
+          COALESCE(SUM(CAST(amount AS NUMERIC)), 0) as total_volume,
           COUNT(*) as transaction_count
         FROM payment 
         WHERE created_at >= $1 AND status = 'completed'
       `, [startDate]);
 
-      // Customer Lifetime Value metrics
-      const [clvMetrics] = await AppDataSource.query(`
+      // Payment status breakdown
+      const paymentStatuses = await AppDataSource.query(`
         SELECT 
-          AVG(user_metrics.total_spent) as avg_clv,
-          AVG(user_metrics.transaction_count) as avg_transactions_per_user,
-          COUNT(CASE WHEN user_metrics.transaction_count > 1 THEN 1 END) * 100.0 / COUNT(*) as retention_rate
-        FROM (
-          SELECT 
-            COALESCE(p.user_id, p.seller_id) as user_id,
-            SUM(CAST(p.amount AS NUMERIC)) as total_spent,
-            COUNT(p.id) as transaction_count
-          FROM payment p
-          WHERE p.created_at >= $1 AND p.status = 'completed'
-          GROUP BY COALESCE(p.user_id, p.seller_id)
-        ) user_metrics
+          status,
+          COUNT(*) as count,
+          ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM payment WHERE created_at >= $1), 2) as percentage
+        FROM payment 
+        WHERE created_at >= $1
+        GROUP BY status
+        ORDER BY count DESC
       `, [startDate]);
 
-      // Calculate totals for percentages
-      const totalPaymentCount = paymentMethods.reduce((sum: number, method: any) => sum + parseInt(method.count), 0);
-      const paymentMethodsWithPercentage = paymentMethods.map((method: any) => ({
-        ...method,
-        percentage: totalPaymentCount > 0 ? (parseInt(method.count) / totalPaymentCount) * 100 : 0
-      }));
+      // Daily payment trends
+      const dailyTrends = await AppDataSource.query(`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as transaction_count,
+          COALESCE(SUM(CASE WHEN status = 'completed' THEN CAST(amount AS NUMERIC) END), 0) as daily_revenue,
+          COUNT(DISTINCT COALESCE(user_id, seller_id)) as unique_users
+        FROM payment 
+        WHERE created_at >= $1
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+        LIMIT 30
+      `, [startDate]);
 
-      return {
-        paymentMethods: paymentMethodsWithPercentage,
-        transactionSizes: {
-          average: parseFloat(transactionSizes.average_size || '0'),
-          median: parseFloat(transactionSizes.median_size || '0'),
-          largest: parseFloat(transactionSizes.largest_size || '0'),
-          totalVolume: parseFloat(transactionSizes.total_volume || '0'),
-          count: parseInt(transactionSizes.transaction_count || '0')
-        },
-        customerLifetimeValue: {
-          averageClv: parseFloat(clvMetrics.avg_clv || '0'),
-          retentionRate: parseFloat(clvMetrics.retention_rate || '0'),
-          avgTransactionsPerUser: parseFloat(clvMetrics.avg_transactions_per_user || '0'),
-          churnRate: 100 - parseFloat(clvMetrics.retention_rate || '0')
-        }
-      };
+      // User payment behavior
+      const [userBehavior] = await AppDataSource.query(`
+        SELECT 
+          COALESCE(AVG(user_total), 0) as avg_user_spending,
+          COALESCE(AVG(transaction_count), 0) as avg_transactions_per_user,
+          COUNT(DISTINCT user_id) as unique_customers,
+          COALESCE(MAX(user_total), 0) as highest_spender_amount
+        FROM (
+          SELECT 
+            COALESCE(user_id, seller_id) as user_id,
+            SUM(CASE WHEN status = 'completed' THEN CAST(amount AS NUMERIC) ELSE 0 END) as user_total,
+            COUNT(*) as transaction_count
+          FROM payment 
+          WHERE created_at >= $1
+          GROUP BY COALESCE(user_id, seller_id)
+        ) user_stats
+      `, [startDate]);
+
+      return { paymentMethods, transactionSizes, paymentStatuses, dailyTrends, userBehavior };
     });
 
     res.json({
       success: true,
       period,
-      transactions: analytics
+      analytics: {
+        paymentMethods: analytics.paymentMethods || [],
+        transactionSizes: analytics.transactionSizes || {},
+        paymentStatuses: analytics.paymentStatuses || [],
+        dailyTrends: analytics.dailyTrends || [],
+        userBehavior: analytics.userBehavior || {}
+      }
     });
   } catch (error) {
-    console.error('Error fetching transaction analytics:', error);
+    console.error('Error fetching payments analytics:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch transaction analytics',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      success: false, 
+      error: 'Failed to fetch payments analytics' 
     });
   }
 };
@@ -523,4 +572,223 @@ export const getAIInsights = async (req: Request, res: Response): Promise<void> 
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
+};
+
+// Get trends data for visualization
+export const getTrends = async (req: Request, res: Response) => {
+  try {
+    const { period = '30d', status, type } = req.query;
+    
+    // Calculate date ranges for trend data
+    const now = new Date();
+    let startDate: Date;
+    let intervals: number;
+    
+    switch (period) {
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        intervals = 7;
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        intervals = 30;
+        break;
+      case '90d':
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        intervals = 30; // Show 30 data points for 90 days
+        break;
+      case '12m':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        intervals = 12; // Show 12 months
+        break;
+      default:
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        intervals = 30;
+    }
+
+    // Build filter conditions
+    const statusFilter = status && status !== 'all' ? `AND p.status = '${status}'` : '';
+    const typeFilter = type && type !== 'all' ? `AND p.type = '${type}'` : '';
+
+    const trends = await withRetry(async () => {
+      // Generate trend data points
+      const trendData = [];
+      const intervalMs = (now.getTime() - startDate.getTime()) / intervals;
+      
+      for (let i = 0; i < intervals; i++) {
+        const intervalStart = new Date(startDate.getTime() + i * intervalMs);
+        const intervalEnd = new Date(startDate.getTime() + (i + 1) * intervalMs);
+        
+        const [metrics] = await AppDataSource.query(`
+          SELECT 
+            COUNT(DISTINCT CASE WHEN u.created_at >= $1 AND u.created_at < $2 THEN u.id END) as users,
+            COUNT(CASE WHEN p.created_at >= $1 AND p.created_at < $2 ${statusFilter} ${typeFilter} THEN p.id END) as payments,
+            COUNT(CASE WHEN e.created_at >= $1 AND e.created_at < $2 THEN e.id END) as escrows,
+            COALESCE(SUM(CASE WHEN p.created_at >= $1 AND p.created_at < $2 AND p.status = 'completed' ${typeFilter} THEN CAST(p.amount AS NUMERIC) END), 0) as revenue
+          FROM "user" u
+          LEFT JOIN payment p ON (p.user_id = u.id OR p.seller_id = u.id)
+          LEFT JOIN escrow e ON e.payment_id = p.id
+        `, [intervalStart, intervalEnd]);
+        
+        trendData.push({
+          date: intervalStart.toISOString().split('T')[0],
+          users: parseInt(metrics.users) || 0,
+          payments: parseInt(metrics.payments) || 0,
+          escrows: parseInt(metrics.escrows) || 0,
+          revenue: parseFloat(metrics.revenue) || 0
+        });
+      }
+      
+      return trendData;
+    });
+
+    res.json({
+      success: true,
+      trends,
+      period,
+      filters: { status, type }
+    });
+  } catch (error: any) {
+    console.error('Get trends error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get trends data',
+      details: error.message 
+    });
+  }
+};
+
+// Export analytics report as CSV
+export const exportAnalyticsReport = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { period = '30', format = 'csv' } = req.query;
+    
+    if (format !== 'csv') {
+      res.status(400).json({ error: 'Only CSV format is supported' });
+      return;
+    }
+
+    // Get all analytics data
+    const [keyMetrics, transactions, growthKPIs] = await Promise.all([
+      getKeyMetricsData(period as string),
+      getTransactionData(period as string),
+      getGrowthKPIsData(period as string)
+    ]);
+
+    // Generate CSV content
+    const csvContent = generateCSVReport({
+      keyMetrics,
+      transactions,
+      growthKPIs,
+      period: period as string
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=kustodia-analytics-${period}days-${new Date().toISOString().split('T')[0]}.csv`);
+    res.send(csvContent);
+  } catch (error) {
+    console.error('Error exporting analytics report:', error);
+    res.status(500).json({ 
+      error: 'Failed to export analytics report',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+
+
+// Helper functions for data extraction (used by export)
+const getKeyMetricsData = async (period: string) => {
+  const now = new Date();
+  let startDate: Date;
+  
+  switch (period) {
+    case '7':
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+    case '30':
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      break;
+    case '90':
+      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      break;
+    case '365':
+      startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+      break;
+    default:
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  }
+
+  const [currentMetrics] = await AppDataSource.query(`
+    SELECT 
+      COUNT(DISTINCT u.id) as total_users,
+      COUNT(DISTINCT CASE WHEN u.created_at >= $1 THEN u.id END) as new_acquisitions,
+      COUNT(DISTINCT CASE WHEN p.created_at >= $1 THEN COALESCE(p.user_id, p.seller_id) END) as active_transactors,
+      COALESCE(SUM(CASE WHEN p.created_at >= $1 AND p.status = 'completed' THEN CAST(p.amount AS NUMERIC) END), 0) as total_revenue
+    FROM "user" u
+    LEFT JOIN payment p ON (p.user_id = u.id OR p.seller_id = u.id)
+  `, [startDate]);
+
+  return currentMetrics;
+};
+
+const getTransactionData = async (period: string) => {
+  const now = new Date();
+  const startDate = new Date(now.getTime() - parseInt(period) * 24 * 60 * 60 * 1000);
+
+  const [transactionSizes] = await AppDataSource.query(`
+    SELECT 
+      AVG(CAST(amount AS NUMERIC)) as average_size,
+      PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(amount AS NUMERIC)) as median_size,
+      MAX(CAST(amount AS NUMERIC)) as largest_size,
+      SUM(CAST(amount AS NUMERIC)) as total_volume,
+      COUNT(*) as transaction_count
+    FROM payment 
+    WHERE created_at >= $1 AND status = 'completed'
+  `, [startDate]);
+
+  return transactionSizes;
+};
+
+const getGrowthKPIsData = async (period: string) => {
+  const now = new Date();
+  const startDate = new Date(now.getTime() - parseInt(period) * 24 * 60 * 60 * 1000);
+
+  const [kpis] = await AppDataSource.query(`
+    SELECT 
+      COUNT(DISTINCT CASE WHEN u.created_at >= $1 THEN u.id END) as new_customers,
+      COALESCE(SUM(CASE WHEN p.created_at >= $1 AND p.status = 'completed' THEN CAST(p.amount AS NUMERIC) END), 0) as revenue
+    FROM "user" u
+    LEFT JOIN payment p ON (p.user_id = u.id OR p.seller_id = u.id)
+  `, [startDate]);
+
+  return kpis;
+};
+
+const generateCSVReport = (data: any) => {
+  const { keyMetrics, transactions, growthKPIs, period } = data;
+  
+  let csv = `Kustodia Analytics Report - ${period} days\n`;
+  csv += `Generated on: ${new Date().toISOString()}\n\n`;
+  
+  // Key Metrics
+  csv += `KEY METRICS\n`;
+  csv += `Total Users,${keyMetrics.total_users}\n`;
+  csv += `New Acquisitions,${keyMetrics.new_acquisitions}\n`;
+  csv += `Active Transactors,${keyMetrics.active_transactors}\n`;
+  csv += `Total Revenue,${keyMetrics.total_revenue}\n\n`;
+  
+  // Transaction Data
+  csv += `TRANSACTION METRICS\n`;
+  csv += `Average Transaction Size,${transactions.average_size || 0}\n`;
+  csv += `Median Transaction Size,${transactions.median_size || 0}\n`;
+  csv += `Largest Transaction,${transactions.largest_size || 0}\n`;
+  csv += `Total Volume,${transactions.total_volume || 0}\n`;
+  csv += `Transaction Count,${transactions.transaction_count || 0}\n\n`;
+  
+  // Growth KPIs
+  csv += `GROWTH KPIS\n`;
+  csv += `New Customers,${growthKPIs.new_customers}\n`;
+  csv += `Revenue,${growthKPIs.revenue}\n`;
+  
+  return csv;
 };

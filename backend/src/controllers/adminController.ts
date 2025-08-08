@@ -44,7 +44,7 @@ export const getUserClabes = async (req: Request, res: Response): Promise<void> 
   const { userId } = req.params;
   // Fetch CLABEs from DB and Juno API
   // DB fetch (assume User has clabe field or related entity)
-  const userRepo = ormconfig.getRepository(User);
+  const userRepo = AppDataSource.getRepository(User);
   const user = await userRepo.findOne({ where: { id: Number(userId) } });
   // Collect both deposit and payout CLABEs
   let dbClabes: string[] = [];
@@ -533,7 +533,7 @@ export const getUserAnalytics = async (req: Request, res: Response): Promise<voi
 // Legacy function - preserved for backward compatibility
 export const getAllPayments = async (req: Request, res: Response): Promise<void> => {
   try {
-    const paymentRepo = ormconfig.getRepository(Payment);
+    const paymentRepo = AppDataSource.getRepository(Payment);
     const payments = await paymentRepo.find({ 
       relations: ["user", "escrow"],
       order: { created_at: "DESC" },

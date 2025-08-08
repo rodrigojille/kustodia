@@ -1,10 +1,29 @@
 import { Router, Request, Response } from 'express';
 import { authenticateJWT } from '../authenticateJWT';
+import { requireAdminRole } from '../middleware/requireAdminRole';
+import { 
+  getKeyMetrics, 
+  getAcquisitionAnalytics, 
+  getPaymentsAnalytics, 
+  getGrowthKPIs,
+  getTrends
+} from '../controllers/analyticsController';
 import ormconfig from '../ormconfig';
 
 const router = Router();
 
-// GET /api/analytics/stats - Get analytics data
+// =============================================================================
+// 🎯 CUSTOMER ANALYTICS DASHBOARD ROUTES
+// =============================================================================
+
+// Admin-only analytics endpoints
+router.get('/key-metrics', authenticateJWT, requireAdminRole, getKeyMetrics);
+router.get('/acquisition', authenticateJWT, requireAdminRole, getAcquisitionAnalytics);
+router.get('/transactions', authenticateJWT, requireAdminRole, getPaymentsAnalytics);
+router.get('/growth-kpis', authenticateJWT, requireAdminRole, getGrowthKPIs);
+router.get('/trends', authenticateJWT, requireAdminRole, getTrends);
+
+// Legacy route - keeping for backward compatibility
 router.get('/stats', authenticateJWT, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;

@@ -42,7 +42,7 @@ const getUserClabes = async (req, res) => {
     const { userId } = req.params;
     // Fetch CLABEs from DB and Juno API
     // DB fetch (assume User has clabe field or related entity)
-    const userRepo = ormconfig.getRepository(User_1.User);
+    const userRepo = ormconfig_1.default.getRepository(User_1.User);
     const user = await userRepo.findOne({ where: { id: Number(userId) } });
     // Collect both deposit and payout CLABEs
     let dbClabes = [];
@@ -501,7 +501,7 @@ exports.getUserAnalytics = getUserAnalytics;
 // Legacy function - preserved for backward compatibility
 const getAllPayments = async (req, res) => {
     try {
-        const paymentRepo = ormconfig.getRepository(Payment_1.Payment);
+        const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);
         const payments = await paymentRepo.find({
             relations: ["user", "escrow"],
             order: { created_at: "DESC" },
