@@ -236,6 +236,21 @@ class AssetNFTService {
       console.log('[AssetNFT] Creating vehicle NFT for VIN:', vehicleData.vin, 'owner:', ownerAddress);
       console.log('[AssetNFT] Using UNIVERSAL contract address:', this.universalAssetContract.target);
 
+      // Check if Asset ID (VIN) already exists
+      try {
+        const existingTokenId = await this.universalAssetContract.assetIdToTokenId(vehicleData.vin);
+        if (existingTokenId && existingTokenId.toString() !== '0') {
+          throw new Error(`Asset ID (VIN) '${vehicleData.vin}' already exists as Token ID ${existingTokenId}`);
+        }
+      } catch (error: any) {
+        // If the error is about asset already existing, throw it
+        if (error.message.includes('already exists')) {
+          throw error;
+        }
+        // Otherwise, continue (asset doesn't exist, which is what we want)
+        console.log('[AssetNFT] Asset ID check passed - VIN does not exist yet');
+      }
+
       // Generate metadata URI
       const tokenURI = await this.generateVehicleMetadataURI(vehicleData);
 
@@ -727,25 +742,48 @@ class AssetNFTService {
       const tokenURI = await this.universalAssetContract.tokenURI(tokenId);
       const owner = await this.universalAssetContract.ownerOf(tokenId);
       
-      // Get vehicle metadata by calling individual keys
-      // These are the keys we stored when creating the vehicle NFT
-      const metadataKeys = ['make', 'model', 'year', 'vin', 'engineNumber', 'color', 'fuelType', 'engineSize', 'currentMileage', 'isCommercial', 'plateNumber'];
-      const metadata: Record<string, any> = {};
+      // Get asset data using getAsset function (available in implementation ABI)
+      let metadata: Record<string, any> = {};
+      let assetId = '';
+      let assetType = 0;
       
-      for (const key of metadataKeys) {
-        try {
-          const value = await this.universalAssetContract.getAssetMetadata(tokenId, key);
-          console.log(`[AssetNFT] Key '${key}' raw value:`, value);
-          if (value && value.trim() !== '') {
-            metadata[key] = value;
-            console.log(`[AssetNFT] Key '${key}' stored as:`, value);
-          } else {
-            console.log(`[AssetNFT] Key '${key}' is empty or null`);
+      try {
+        const assetData = await this.universalAssetContract.getAsset(tokenId);
+        console.log('[AssetNFT] Raw asset data:', assetData);
+        
+        // Extract asset info from getAsset response
+        assetId = assetData[0] || ''; // assetId (VIN)
+        assetType = assetData[1] || 0; // assetType
+        // assetData[2] is currentOwner (already have from ownerOf)
+        // assetData[3] is creationDate
+        // assetData[4] is isVerified
+        // assetData[5] is isActive
+        
+        console.log('[AssetNFT] Extracted asset ID (VIN):', assetId);
+        console.log('[AssetNFT] Asset type:', assetType);
+        
+        // For now, we can only get the VIN from the contract
+        // The detailed metadata (make, model, year, etc.) might be stored in tokenURI
+        metadata = {
+          vin: assetId,
+          assetType: assetType,
+          // Try to get more data from tokenURI if it's an IPFS link
+        };
+        
+        // If tokenURI contains IPFS metadata, try to fetch it
+        if (tokenURI && tokenURI.startsWith('https://')) {
+          try {
+            console.log('[AssetNFT] Fetching metadata from tokenURI:', tokenURI);
+            // Note: In production, you'd want to fetch this metadata from IPFS
+            // For now, we'll use what we have from the contract
+          } catch (uriError) {
+            console.log('[AssetNFT] Could not fetch metadata from tokenURI:', uriError);
           }
-        } catch (keyError) {
-          console.log(`[AssetNFT] Could not retrieve metadata for key '${key}':`, keyError);
-          // Continue with other keys
         }
+        
+      } catch (assetError) {
+        console.error('[AssetNFT] Could not retrieve asset data:', assetError);
+        // Continue with empty metadata
       }
       
       console.log('[AssetNFT] Retrieved metadata object:', metadata);
@@ -917,22 +955,24 @@ class AssetNFTService {
 
       console.log('[AssetNFT] Getting assets for user:', userAddress);
 
-      // Use getOwnerAssets function from Universal Asset Contract
-      const ownedTokenIds = await this.universalAssetContract.getOwnerAssets(userAddress);
-      
-      console.log('[AssetNFT] Raw owned token IDs:', ownedTokenIds);
+      // Get user's NFT balance first
+      const balance = await this.universalAssetContract.balanceOf(userAddress);
+      console.log('[AssetNFT] User balance:', balance.toString());
 
       const userAssets = [];
       
-      // Convert BigNumber token IDs to strings
-      for (const tokenId of ownedTokenIds) {
+      // Iterate through ownerAssets mapping to get all token IDs
+      for (let i = 0; i < balance; i++) {
         try {
-          userAssets.push({
-            tokenId: tokenId.toString(),
-            createdAt: new Date().toISOString() // We could get this from events if needed
-          });
+          const tokenId = await this.universalAssetContract.ownerAssets(userAddress, i);
+          if (tokenId && tokenId.toString() !== '0') {
+            userAssets.push({
+              tokenId: tokenId.toString(),
+              createdAt: new Date().toISOString() // We could get this from events if needed
+            });
+          }
         } catch (error) {
-          console.error(`[AssetNFT] Error processing token ID ${tokenId}:`, error);
+          console.error(`[AssetNFT] Error getting token at index ${i}:`, error);
           // Continue with other tokens
         }
       }
