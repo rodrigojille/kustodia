@@ -419,4 +419,13 @@ class AssetIntegrationService {
   }
 }
 
-export default new AssetIntegrationService();
+// Create singleton instance
+const assetIntegrationService = new AssetIntegrationService();
+
+// Export singleton as default
+export default assetIntegrationService;
+
+// Export named functions for direct import by controllers
+export const createAssetNFT = (request: AssetCreationRequest) => assetIntegrationService.createAssetNFT(request);
+export const transferAssetOnPayment = (request: AssetTransferRequest) => assetIntegrationService.transferAssetOnPayment(request);
+export const getUserAssets = (userId: string) => assetIntegrationService.getUserAssets(userId);

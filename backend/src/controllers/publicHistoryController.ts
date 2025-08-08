@@ -69,7 +69,7 @@ export const getPublicVehicleHistory = async (req: Request, res: Response): Prom
         blockchainVerified: true,
         kustodiaVerified: historyData?.events?.length > 0,
         totalVerifications: historyData?.events?.length || 0,
-        riskLevel: historyData?.events?.some((event: any) => event.eventType?.includes('accident') || event.eventType?.includes('damage')) ? 'Medium' : 'Low'
+        riskLevel: historyData?.events?.some((event: any) => event.eventType === 3 || event.eventType === 4) ? 'Medium' : 'Low'
       }
     };
 
@@ -115,7 +115,7 @@ export const getPublicVehicleSummary = async (req: Request, res: Response): Prom
       },
       stats: {
         totalEvents: historyData?.events?.length || 0,
-        lastMaintenance: historyData?.events?.find((e: any) => e.eventType?.includes('maintenance'))?.timestamp,
+        lastMaintenance: historyData?.events?.find((e: any) => e.eventType === 1)?.timestamp,
         verificationScore: historyData?.events?.length > 0 ? 85 : 0,
         trustLevel: historyData?.events?.length > 0 ? 'Verificado' : 'No evaluado',
         hasRecentActivity: historyData?.events?.some((e: any) => {
@@ -123,7 +123,7 @@ export const getPublicVehicleSummary = async (req: Request, res: Response): Prom
           const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
           return eventDate > thirtyDaysAgo;
         }) || false,
-        riskFactors: historyData?.events?.filter((e: any) => e.eventType?.includes('accident') || e.eventType?.includes('damage'))?.length || 0
+        riskFactors: historyData?.events?.filter((e: any) => e.eventType === 3 || e.eventType === 4)?.length || 0
       },
       blockchain: {
         network: isMainnetActive() ? 'Arbitrum One Mainnet' : 'Arbitrum Sepolia Testnet',

@@ -762,22 +762,71 @@ class AssetNFTService {
         console.log('[AssetNFT] Extracted asset ID (VIN):', assetId);
         console.log('[AssetNFT] Asset type:', assetType);
         
-        // For now, we can only get the VIN from the contract
-        // The detailed metadata (make, model, year, etc.) might be stored in tokenURI
+        // Start with basic contract data
         metadata = {
           vin: assetId,
           assetType: assetType,
-          // Try to get more data from tokenURI if it's an IPFS link
         };
         
-        // If tokenURI contains IPFS metadata, try to fetch it
-        if (tokenURI && tokenURI.startsWith('https://')) {
+        // Parse TokenURI to extract detailed vehicle metadata
+        if (tokenURI) {
           try {
-            console.log('[AssetNFT] Fetching metadata from tokenURI:', tokenURI);
-            // Note: In production, you'd want to fetch this metadata from IPFS
-            // For now, we'll use what we have from the contract
+            let tokenMetadata: any = {};
+            
+            // Handle base64-encoded JSON (data:application/json;base64,...)
+            if (tokenURI.startsWith('data:application/json;base64,')) {
+              const base64Data = tokenURI.replace('data:application/json;base64,', '');
+              const jsonString = Buffer.from(base64Data, 'base64').toString('utf-8');
+              tokenMetadata = JSON.parse(jsonString);
+              console.log('[AssetNFT] Decoded TokenURI JSON:', tokenMetadata);
+            }
+            // Handle HTTPS URLs (IPFS or other metadata sources)
+            else if (tokenURI.startsWith('https://')) {
+              console.log('[AssetNFT] Fetching metadata from tokenURI:', tokenURI);
+              // Note: In production, you'd want to fetch this metadata from IPFS
+              // For now, we'll use what we have from the contract
+            }
+            
+            // Extract vehicle attributes from tokenMetadata
+            if (tokenMetadata.attributes && Array.isArray(tokenMetadata.attributes)) {
+              for (const attr of tokenMetadata.attributes) {
+                if (attr.trait_type === 'VIN') {
+                  metadata.vin = attr.value;
+                } else if (attr.trait_type === 'Marca') {
+                  metadata.make = attr.value;
+                } else if (attr.trait_type === 'Modelo') {
+                  metadata.model = attr.value;
+                } else if (attr.trait_type === 'Año') {
+                  metadata.year = attr.value;
+                } else if (attr.trait_type === 'Color') {
+                  metadata.color = attr.value;
+                } else if (attr.trait_type === 'Tipo de Combustible') {
+                  metadata.fuelType = attr.value;
+                } else if (attr.trait_type === 'Cilindraje') {
+                  metadata.engineSize = attr.value;
+                } else if (attr.trait_type === 'Kilometraje') {
+                  metadata.currentMileage = attr.value;
+                } else if (attr.trait_type === 'Comercial') {
+                  metadata.isCommercial = attr.value === 'Sí';
+                } else if (attr.trait_type === 'Placas') {
+                  metadata.plateNumber = attr.value;
+                }
+              }
+            }
+            
+            // Also extract name and description if available
+            if (tokenMetadata.name) {
+              metadata.name = tokenMetadata.name;
+            }
+            if (tokenMetadata.description) {
+              metadata.description = tokenMetadata.description;
+            }
+            
+            console.log('[AssetNFT] Enhanced metadata with TokenURI data:', metadata);
+            
           } catch (uriError) {
-            console.log('[AssetNFT] Could not fetch metadata from tokenURI:', uriError);
+            console.log('[AssetNFT] Could not parse metadata from tokenURI:', uriError);
+            // Continue with basic metadata from contract
           }
         }
         
@@ -1608,4 +1657,22 @@ class AssetNFTService {
   }
 }
 
-export default new AssetNFTService();
+// Create singleton instance
+const assetNFTService = new AssetNFTService();
+
+// Export singleton as default
+export default assetNFTService;
+
+// Export named functions for direct import by controllers
+export const getAssetHistory = (tokenId: string) => assetNFTService.getAssetHistory(tokenId);
+export const getAssetMetadata = (tokenId: string) => assetNFTService.getAssetMetadata(tokenId);
+export const tokenExists = (tokenId: string) => assetNFTService.tokenExists(tokenId);
+export const getAsset = (tokenId: string) => assetNFTService.getAsset(tokenId);
+export const getAssetOwner = (tokenId: string) => assetNFTService.getAssetOwner(tokenId);
+export const getUserAssets = (userAddress: string) => assetNFTService.getUserAssets(userAddress);
+export const getTokenIdByAssetId = (assetId: string) => assetNFTService.getTokenIdByAssetId(assetId);
+export const createVehicleNFT = (vehicleData: any, ownerAddress: string, assetType?: number) => assetNFTService.createVehicleNFT(vehicleData, ownerAddress, assetType);
+export const createPropertyNFT = (propertyData: any, ownerAddress: string, assetType?: number) => assetNFTService.createPropertyNFT(propertyData, ownerAddress, assetType);
+export const addMaintenanceRecord = (tokenId: string, maintenanceData: any) => assetNFTService.addMaintenanceRecord(tokenId, maintenanceData);
+export const addUpgradeRecord = (tokenId: string, upgradeData: any) => assetNFTService.addUpgradeRecord(tokenId, upgradeData);
+export const addInspectionRecord = (tokenId: string, inspectionData: any) => assetNFTService.addInspectionRecord(tokenId, inspectionData);
