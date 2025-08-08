@@ -1356,6 +1356,27 @@ class AssetNFTService {
   // ============================================================================
 
   /**
+   * Check if a token exists by trying to get its owner
+   */
+  async tokenExists(tokenId: string): Promise<boolean> {
+    try {
+      if (!this.universalAssetContract) {
+        throw new Error('Universal Asset Contract not initialized');
+      }
+
+      console.log('[AssetNFT] Checking if token exists:', tokenId);
+      
+      // Try to get the owner - this will throw if token doesn't exist
+      await this.universalAssetContract.ownerOf(tokenId);
+      console.log('[AssetNFT] Token exists:', tokenId);
+      return true;
+    } catch (error) {
+      console.log('[AssetNFT] Token does not exist:', tokenId, error);
+      return false;
+    }
+  }
+
+  /**
    * Get basic asset information from contract
    */
   async getAsset(tokenId: string): Promise<any> {
