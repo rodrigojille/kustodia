@@ -1,16 +1,16 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+class MakePasswordHashNullable1738360269000 {
+    name = 'MakePasswordHashNullable1738360269000';
 
-export class MakePasswordHashNullable1738360269000 implements MigrationInterface {
-    name = 'MakePasswordHashNullable1738360269000'
-
-    public async up(queryRunner: QueryRunner): Promise<void> {
+    async up(queryRunner) {
         // Make password_hash column nullable to support Google OAuth users
         await queryRunner.query(`ALTER TABLE "user" ALTER COLUMN "password_hash" DROP NOT NULL`);
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
+    async down(queryRunner) {
         // Revert: Make password_hash column NOT NULL again
         // Note: This will fail if there are users with NULL password_hash
         await queryRunner.query(`ALTER TABLE "user" ALTER COLUMN "password_hash" SET NOT NULL`);
     }
 }
+
+module.exports = { MakePasswordHashNullable1738360269000 };

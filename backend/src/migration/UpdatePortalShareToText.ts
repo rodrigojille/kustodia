@@ -1,13 +1,13 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+class UpdatePortalShareToText1737693000000 {
+    name = 'UpdatePortalShareToText1737693000000';
 
-export class UpdatePortalShareToText1737693000000 implements MigrationInterface {
-    name = 'UpdatePortalShareToText1737693000000'
-
-    public async up(queryRunner: QueryRunner): Promise<void> {
+    async up(queryRunner) {
         await queryRunner.query(`ALTER TABLE "user" ALTER COLUMN "portal_share" TYPE text`);
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
+    async down(queryRunner) {
         await queryRunner.query(`ALTER TABLE "user" ALTER COLUMN "portal_share" TYPE varchar(128)`);
     }
 }
+
+module.exports = { UpdatePortalShareToText1737693000000 };

@@ -149,8 +149,9 @@ class AssetIntegrationService {
       console.log('[AssetIntegration] Getting owned tokens for wallet:', walletAddress);
       
       const ethers = require('ethers');
-      const rpcUrl = getCurrentNetworkConfig().rpcUrl;
-      const universalContractAddress = process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS;
+      const networkConfig = getCurrentNetworkConfig();
+      const rpcUrl = networkConfig.rpcUrl;
+      const universalContractAddress = networkConfig.nftCompactAddress;
       
       if (!rpcUrl || !universalContractAddress) {
         console.log('[AssetIntegration] Missing RPC URL or contract address');
@@ -166,15 +167,33 @@ class AssetIntegrationService {
         return [];
       }
       
-      // Contract ABI for getOwnerAssets function
+      // Contract ABI for balanceOf and ownerAssets mapping (correct functions for UniversalAssetNFTPausable)
       const minimalABI = [
-        'function getOwnerAssets(address owner) external view returns (uint256[])'
+        'function balanceOf(address owner) external view returns (uint256)',
+        'function ownerAssets(address owner, uint256 index) external view returns (uint256)'
       ];
       
       const contract = new ethers.Contract(universalContractAddress, minimalABI, provider);
       
-      // Call getOwnerAssets
-      const ownedTokens = await contract.getOwnerAssets(walletAddress);
+      // Get user's NFT balance first
+      const balance = await contract.balanceOf(walletAddress);
+      console.log('[AssetIntegration] User balance:', balance.toString());
+      
+      const ownedTokens = [];
+      
+      // Iterate through ownerAssets mapping to get all token IDs
+      for (let i = 0; i < balance; i++) {
+        try {
+          const tokenId = await contract.ownerAssets(walletAddress, i);
+          if (tokenId && tokenId.toString() !== '0') {
+            ownedTokens.push(tokenId);
+          }
+        } catch (error) {
+          console.error(`[AssetIntegration] Error getting token at index ${i}:`, error);
+          // Continue with other tokens
+        }
+      }
+      
       console.log('[AssetIntegration] Found owned tokens:', ownedTokens?.length || 0);
       
       return ownedTokens || [];
