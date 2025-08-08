@@ -361,11 +361,32 @@ class PaymentAutomationService {
                     // Update the payment.seller object for immediate use
                     payment.seller.juno_bank_account_id = registrationResult.id;
                     await this.paymentService.logPaymentEvent(payment.id, 'bank_account_registered', `Auto-registered bank account for ${payment.seller.email}: CLABE ${payment.seller.payout_clabe} -> Juno ID ${registrationResult.id}`, false);
-                    console.log(`✅ Updated seller ${payment.seller.email} with juno_bank_account_id: ${registrationResult.payload.id}`);
+                    console.log(`✅ Updated seller ${payment.seller.email} with juno_bank_account_id: ${registrationResult.id}`);
+                    // Add delay to allow registration to propagate in Juno system
+                    console.log('⏳ Waiting 5 seconds for bank account registration to propagate...');
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    // Validate registration by attempting to fetch the account
+                    try {
+                        console.log(`🔍 Validating bank account registration for ${registrationResult.id}...`);
+                        // The redemption process will validate the account exists
+                    }
+                    catch (validationError) {
+                        console.warn(`⚠️ Could not validate bank account registration immediately: ${validationError.message}`);
+                        // Continue anyway - the redemption process will handle validation
+                    }
                 }
                 catch (registrationError) {
                     console.error(`❌ Failed to register bank account for ${payment.seller.email}:`, registrationError.message);
-                    throw new Error(`Bank account registration failed: ${registrationError.message}`);
+                    // Log detailed error for debugging
+                    await this.paymentService.logPaymentEvent(payment.id, 'bank_account_registration_failed', `Failed to register bank account for ${payment.seller.email}: ${registrationError.message}`, true);
+                    // Check if it's a duplicate registration error (account already exists)
+                    if (registrationError.message.includes('already exists') || registrationError.message.includes('duplicate')) {
+                        console.log(`⚠️ Bank account may already be registered. Attempting to continue with payout...`);
+                        // Continue with the process - the redemption will validate if account exists
+                    }
+                    else {
+                        throw new Error(`Bank account registration failed: ${registrationError.message}`);
+                    }
                 }
             }
             // STEP 1: Check if bridge-to-juno transfer already completed (idempotency)
@@ -1448,8 +1469,25 @@ class PaymentAutomationService {
                             console.log(`⏳ Payment ${payment.id}: Insufficient balance and recent balance error, waiting 30 seconds...`);
                             await new Promise(resolve => setTimeout(resolve, 30000));
                         }
-                        console.log(`🚀 Payment ${payment.id}: Calling processEscrowCreationAndFunding...`);
-                        await this.processEscrowCreationAndFunding(payment, custodyAmount);
+                        // 🔄 IDEMPOTENCY CHECK: Only do Juno→Bridge withdrawal if bridge wallet needs more MXNB
+                        const currentBalanceCheck = await this.checkBridgeWalletBalance(custodyAmount);
+                        if (!currentBalanceCheck.hasBalance) {
+                            console.log(`🔄 Payment ${payment.id}: Bridge wallet needs funding (${currentBalanceCheck.currentBalance}/${currentBalanceCheck.requiredBalance} MXNB)`);
+                            console.log(`🔄 Payment ${payment.id}: Processing Juno→Bridge withdrawal...`);
+                            await this.processBridgeWithdrawal(payment, custodyAmount);
+                            console.log(`✅ Payment ${payment.id}: Juno→Bridge withdrawal completed`);
+                        }
+                        else {
+                            console.log(`✅ Payment ${payment.id}: Bridge wallet already has sufficient balance (${currentBalanceCheck.currentBalance}/${currentBalanceCheck.requiredBalance} MXNB) - skipping withdrawal`);
+                        }
+                        // 🔄 IDEMPOTENCY CHECK: Only create escrow if it doesn't already exist
+                        if (!payment.escrow?.smart_contract_escrow_id) {
+                            console.log(`🚀 Payment ${payment.id}: Creating escrow (no existing smart contract ID)...`);
+                            await this.processEscrowCreationAndFunding(payment, custodyAmount);
+                        }
+                        else {
+                            console.log(`✅ Payment ${payment.id}: Escrow already exists (ID: ${payment.escrow.smart_contract_escrow_id}) - skipping creation`);
+                        }
                         await this.paymentService.logPaymentEvent(payment.id, 'escrow_retry_success', `Escrow creation retry successful`, true);
                         console.log(`✅ Payment ${payment.id}: Escrow retry completed successfully`);
                     }

@@ -308,6 +308,26 @@ __decorate([
     __metadata("design:type", Escrow_1.Escrow)
 ], Payment.prototype, "escrow", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Payment.prototype, "automation_state", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Payment.prototype, "withdrawal_status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, length: 255 }),
+    __metadata("design:type", String)
+], Payment.prototype, "withdrawal_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Boolean)
+], Payment.prototype, "escrow_creation_locked", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Date)
+], Payment.prototype, "escrow_lock_expires_at", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Payment.prototype, "created_at", void 0);

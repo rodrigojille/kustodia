@@ -640,7 +640,9 @@ export default function WalletPaymentTracker({ payment, currentUser, onApprovalC
           🕒 Línea de tiempo
         </h3>
         <div className="space-y-3">
-          {payment.events && payment.events.map((event, index) => (
+          {payment.events && payment.events
+            .filter(event => !event.type.includes('error') && !event.type.includes('failed'))
+            .map((event, index) => (
             <div key={index} className="flex items-center">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
               <span className="text-lg mr-2">{getEventIcon(event.type)}</span>

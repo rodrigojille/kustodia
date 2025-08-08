@@ -108,7 +108,7 @@ catch (error) {
     console.log('[escrowService] Using fallback minimal ABI');
     // Minimal ABI with essential functions for basic operation - Updated to match KustodiaEscrow2_0
     ESCROW_ABI = [
-        "function createEscrow(address payer, address payee, address token, uint256 amount, uint256 deadline, string memory vertical, string memory clabe, string memory conditions) external returns (uint256)",
+        "function createEscrow(address payer, address payee, uint256 amount, uint256 deadline, string memory vertical, string memory clabe, string memory conditions, address token) external returns (uint256)",
         "function fundEscrow(uint256 escrowId) external",
         "function releaseEscrow(uint256 escrowId) external",
         "function release(uint256 escrowId) external",
@@ -243,14 +243,17 @@ async function createEscrow({ payer, payee, token, amount, deadline, vertical, c
     let tx;
     try {
         console.log('[escrowService] Calling createEscrow with parameters...');
+        // Ensure BigInt parameters are properly handled for ethers v6
+        // FIXED: Correct parameter order to match contract ABI
+        // Contract signature: createEscrow(payer, payee, amount, deadline, vertical, clabe, conditions, token)
         tx = await exports.escrowContract.createEscrow(payer, // address payer
         payee, // address payee
-        amountInTokenUnits, // uint256 amount
-        deadline, // uint256 deadline
+        amountInTokenUnits, // uint256 amount (BigInt)
+        BigInt(deadline), // uint256 deadline (convert to BigInt)
         sanitizedVertical, // string memory vertical
         clabe, // string memory clabe
         sanitizedConditions, // string memory conditions
-        token // address token
+        token // address token (LAST parameter!)
         );
         console.log('[escrowService] Transaction created:', tx.hash);
     }
@@ -331,7 +334,7 @@ async function fundEscrow(escrowId, tokenAddress, amount) {
         console.log('[escrowService] Token approval for funding completed');
     }
     // Fund the escrow
-    const fundTx = await exports.escrowContract.fundEscrow(parseInt(escrowId));
+    const fundTx = await exports.escrowContract.fundEscrow(BigInt(escrowId));
     await fundTx.wait();
     console.log('[escrowService] Escrow funding completed:', fundTx.hash);
     return fundTx.hash;
@@ -346,11 +349,11 @@ async function releaseCustody(escrowId) {
     let tx;
     if (networkConfig.networkName.includes('Mainnet')) {
         console.log('[escrowService] Using releaseEscrow for mainnet (Escrow V2 Pausable)');
-        tx = await exports.escrowContract.releaseEscrow(escrowId);
+        tx = await exports.escrowContract.releaseEscrow(BigInt(escrowId));
     }
     else {
         console.log('[escrowService] Using release for testnet (Escrow V2)');
-        tx = await exports.escrowContract.release(escrowId);
+        tx = await exports.escrowContract.release(BigInt(escrowId));
     }
     await tx.wait();
     console.log('[escrowService] Escrow release transaction completed:', tx.hash);
@@ -359,19 +362,19 @@ async function releaseCustody(escrowId) {
 // Updated raiseDispute to use 'dispute' function from KustodiaEscrow2_0  
 async function raiseDispute(escrowId, reason) {
     console.log('[escrowService] Raising dispute for escrow ID:', escrowId, 'with reason:', reason);
-    const tx = await exports.escrowContract.dispute(escrowId, reason); // Updated function signature
+    const tx = await exports.escrowContract.dispute(BigInt(escrowId), reason); // Updated function signature
     await tx.wait();
     console.log('[escrowService] Dispute raised transaction completed:', tx.hash);
 }
 // Updated resolveDispute to match KustodiaEscrow2_0 API
 async function resolveDispute(escrowId, inFavorOfSeller) {
     console.log('[escrowService] Resolving dispute for escrow ID:', escrowId, 'in favor of seller:', inFavorOfSeller);
-    const tx = await exports.escrowContract.resolveDispute(escrowId, inFavorOfSeller); // Updated parameter name
+    const tx = await exports.escrowContract.resolveDispute(BigInt(escrowId), inFavorOfSeller); // Updated parameter name
     await tx.wait();
     console.log('[escrowService] Dispute resolution transaction completed:', tx.hash);
 }
 async function getEscrow(escrowId) {
-    return await exports.escrowContract.escrows(escrowId);
+    return await exports.escrowContract.escrows(BigInt(escrowId));
 }
 // Alias for backward compatibility with existing scripts
 async function releaseEscrow(escrowId) {

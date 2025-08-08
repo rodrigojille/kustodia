@@ -746,11 +746,12 @@ export default function NuevoFlujoTracker({ payment, currentUser, onApprovalChan
           🕒 Línea de tiempo
         </h3>
         <div className="space-y-3">
-          {payment.events && payment.events.map((event, index) => {
-            const isError = event.type.includes('error') || event.type.includes('failed');
+          {payment.events && payment.events
+            .filter(event => !event.type.includes('error') && !event.type.includes('failed'))
+            .map((event, index) => {
             return (
               <div key={index} className="flex items-start">
-                <div className={`w-3 h-3 ${isError ? 'bg-red-500' : 'bg-green-500'} rounded-full mr-3 mt-1 flex-shrink-0`}></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-3 mt-1 flex-shrink-0"></div>
                 <span className="text-lg mr-2 flex-shrink-0">{getEventIcon(event.type)}</span>
                 <div className="text-sm flex-1 min-w-0">
                   <div className="flex flex-wrap items-baseline">

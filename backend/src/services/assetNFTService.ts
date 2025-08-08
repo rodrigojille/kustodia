@@ -1324,6 +1324,159 @@ class AssetNFTService {
       totalEvents: history.length
     };
   }
+
+  // ============================================================================
+  // ASSET CONSULTATION FUNCTIONS
+  // ============================================================================
+
+  /**
+   * Get basic asset information from contract
+   */
+  async getAsset(tokenId: string): Promise<any> {
+    try {
+      if (!this.universalAssetContract) {
+        throw new Error('Universal Asset Contract not initialized');
+      }
+
+      console.log('[AssetNFT] Getting basic asset info for token:', tokenId);
+      
+      // Check if token exists first
+      try {
+        await this.universalAssetContract.ownerOf(tokenId);
+      } catch (error) {
+        console.log('[AssetNFT] Token does not exist:', tokenId);
+        return null;
+      }
+
+      // Get basic asset data using getAsset function
+      const assetData = await this.universalAssetContract.getAsset(tokenId);
+      
+      // Parse the returned data: [assetId, assetType, owner, verified, createdAt, tokenURI]
+      const [assetId, assetType, owner, verified, createdAt, tokenURI] = assetData;
+      
+      return {
+        tokenId: tokenId.toString(),
+        assetId,
+        assetType: Number(assetType),
+        owner,
+        verified,
+        createdAt: new Date(Number(createdAt) * 1000),
+        tokenURI
+      };
+    } catch (error) {
+      console.error('[AssetNFT] Error getting asset:', error);
+      throw new Error(`Failed to get asset: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get token ID by asset ID
+   */
+  async getTokenIdByAssetId(assetId: string): Promise<string | null> {
+    try {
+      if (!this.universalAssetContract) {
+        throw new Error('Universal Asset Contract not initialized');
+      }
+
+      console.log('[AssetNFT] Getting token ID for asset ID:', assetId);
+      
+      const tokenId = await this.universalAssetContract.assetIdToTokenId(assetId);
+      
+      // Check if token ID is valid (not 0)
+      if (tokenId.toString() === '0') {
+        console.log('[AssetNFT] Asset ID not found:', assetId);
+        return null;
+      }
+      
+      return tokenId.toString();
+    } catch (error) {
+      console.error('[AssetNFT] Error getting token ID by asset ID:', error);
+      throw new Error(`Failed to get token ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Check if token exists
+   */
+  async tokenExists(tokenId: string): Promise<boolean> {
+    try {
+      if (!this.universalAssetContract) {
+        throw new Error('Universal Asset Contract not initialized');
+      }
+
+      try {
+        await this.universalAssetContract.ownerOf(tokenId);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    } catch (error) {
+      console.error('[AssetNFT] Error checking token existence:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get asset event count (for history)
+   */
+  async getAssetEventCount(tokenId: string): Promise<number> {
+    try {
+      if (!this.universalAssetContract) {
+        throw new Error('Universal Asset Contract not initialized');
+      }
+
+      // Check if token exists first
+      const exists = await this.tokenExists(tokenId);
+      if (!exists) {
+        console.log('[AssetNFT] Token does not exist, returning 0 events:', tokenId);
+        return 0;
+      }
+
+      console.log('[AssetNFT] Getting event count for token:', tokenId);
+      
+      const count = await this.universalAssetContract.getAssetEventCount(tokenId);
+      return Number(count);
+    } catch (error) {
+      console.error('[AssetNFT] Error getting asset event count:', error);
+      // Return 0 instead of throwing to handle gracefully
+      return 0;
+    }
+  }
+
+  /**
+   * Get asset event by index
+   */
+  async getAssetEvent(tokenId: string, eventIndex: number): Promise<any> {
+    try {
+      if (!this.universalAssetContract) {
+        throw new Error('Universal Asset Contract not initialized');
+      }
+
+      // Check if token exists first
+      const exists = await this.tokenExists(tokenId);
+      if (!exists) {
+        console.log('[AssetNFT] Token does not exist:', tokenId);
+        return null;
+      }
+
+      console.log('[AssetNFT] Getting event', eventIndex, 'for token:', tokenId);
+      
+      const event = await this.universalAssetContract.getAssetEvent(tokenId, eventIndex);
+      
+      // Parse the event data based on contract return format
+      return {
+        eventType: Number(event[0]),
+        timestamp: new Date(Number(event[1]) * 1000),
+        authorizedBy: event[2],
+        description: event[3],
+        transactionAmount: ethers.formatEther(event[4]),
+        supportingDocs: event[5] || []
+      };
+    } catch (error) {
+      console.error('[AssetNFT] Error getting asset event:', error);
+      throw new Error(`Failed to get asset event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }
 
 export default new AssetNFTService();
