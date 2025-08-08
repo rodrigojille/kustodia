@@ -994,6 +994,68 @@ class AssetNFTService {
   }
 
   /**
+   * Add inspection record to an asset
+   */
+  async addInspectionRecord(tokenId: string, inspectionData: any): Promise<string> {
+    try {
+      if (!this.universalAssetContract) {
+        throw new Error('Universal Asset Contract not initialized');
+      }
+
+      console.log('[AssetNFT] Adding inspection record for token:', tokenId);
+      console.log('[AssetNFT] Inspection data:', inspectionData);
+
+      // Prepare custom fields for inspection
+      const customFieldKeys = [];
+      const customFieldValues = [];
+      
+      if (inspectionData.inspectionType) {
+        customFieldKeys.push('inspectionType');
+        customFieldValues.push(inspectionData.inspectionType);
+      }
+      if (inspectionData.inspector) {
+        customFieldKeys.push('inspector');
+        customFieldValues.push(inspectionData.inspector);
+      }
+      if (inspectionData.result) {
+        customFieldKeys.push('result');
+        customFieldValues.push(inspectionData.result);
+      }
+      if (inspectionData.certificateNumber) {
+        customFieldKeys.push('certificateNumber');
+        customFieldValues.push(inspectionData.certificateNumber);
+      }
+      if (inspectionData.expiryDate) {
+        customFieldKeys.push('expiryDate');
+        customFieldValues.push(inspectionData.expiryDate);
+      }
+      if (inspectionData.cost) {
+        customFieldKeys.push('cost');
+        customFieldValues.push(inspectionData.cost.toString());
+      }
+
+      // Call addAssetEvent with INSPECTION type
+      const tx = await this.universalAssetContract.addAssetEvent(
+        tokenId,
+        4, // EventType.INSPECTION (0-indexed: CREATION=0, SALE=1, TRANSFER=2, MAINTENANCE=3, INSPECTION=4)
+        inspectionData.description || 'Inspection performed',
+        ethers.parseEther((inspectionData.cost || 0).toString()),
+        inspectionData.supportingDocs || [],
+        customFieldKeys,
+        customFieldValues
+      );
+
+      const receipt = await tx.wait();
+      console.log('[AssetNFT] Inspection record added successfully:', receipt.hash);
+      
+      return receipt.hash;
+    } catch (error) {
+      console.error('[AssetNFT] Error adding inspection record:', error);
+      throw new Error(`Failed to add inspection record: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Get all assets owned by a user
    */
   async getUserAssets(userAddress: string): Promise<Array<{ tokenId: string; createdAt?: string }>> {
@@ -1048,53 +1110,6 @@ class AssetNFTService {
     } catch (error) {
       console.error('[AssetNFT] Error getting asset owner:', error);
       throw new Error(`Failed to get asset owner: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  /**
-   * Add inspection record to an asset
-   */
-  async addInspectionRecord(tokenId: string, inspectionData: any): Promise<string> {
-    try {
-      if (!this.universalAssetContract) {
-        throw new Error('Universal Asset Contract not initialized');
-      }
-
-      console.log('[AssetNFT] Adding inspection record for token:', tokenId);
-
-      const customFieldKeys = [];
-      const customFieldValues = [];
-      
-      if (inspectionData.inspectorName) {
-        customFieldKeys.push('inspector');
-        customFieldValues.push(inspectionData.inspectorName);
-      }
-      if (inspectionData.result) {
-        customFieldKeys.push('result');
-        customFieldValues.push(inspectionData.result);
-      }
-      if (inspectionData.score) {
-        customFieldKeys.push('score');
-        customFieldValues.push(inspectionData.score.toString());
-      }
-
-      const tx = await this.universalAssetContract.addAssetEvent(
-        tokenId,
-        4, // EventType.INSPECTION
-        inspectionData.description || 'Asset inspected',
-        0,
-        inspectionData.supportingDocs || [],
-        customFieldKeys,
-        customFieldValues
-      );
-
-      const receipt = await tx.wait();
-      console.log('[AssetNFT] Inspection record added successfully:', receipt.hash);
-      
-      return receipt.hash;
-    } catch (error) {
-      console.error('[AssetNFT] Error adding inspection record:', error);
-      throw new Error(`Failed to add inspection record: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

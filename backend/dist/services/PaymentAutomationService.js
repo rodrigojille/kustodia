@@ -1415,12 +1415,39 @@ class PaymentAutomationService {
             // and have been funded for more than 1 minute (reduced from 2 minutes for faster retries)
             const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000);
             console.log(`🔍 Looking for funded payments older than ${oneMinuteAgo.toISOString()}`);
-            const fundedPayments = await paymentRepo.find({
-                where: {
-                    status: 'funded'
-                },
-                relations: ['escrow', 'user', 'seller']
-            });
+            let fundedPayments;
+            try {
+                fundedPayments = await paymentRepo.find({
+                    where: {
+                        status: 'funded'
+                    },
+                    relations: ['escrow', 'user', 'seller']
+                });
+            }
+            catch (error) {
+                // Handle missing automation_state column gracefully
+                if (error.message?.includes('automation_state')) {
+                    console.warn('⚠️ automation_state column not found, using fallback query');
+                    fundedPayments = await paymentRepo.createQueryBuilder('payment')
+                        .leftJoinAndSelect('payment.escrow', 'escrow')
+                        .leftJoinAndSelect('payment.user', 'user')
+                        .leftJoinAndSelect('payment.seller', 'seller')
+                        .where('payment.status = :status', { status: 'funded' })
+                        .select([
+                        'payment.id',
+                        'payment.status',
+                        'payment.amount',
+                        'payment.updated_at',
+                        'escrow',
+                        'user',
+                        'seller'
+                    ])
+                        .getMany();
+                }
+                else {
+                    throw error;
+                }
+            }
             console.log(`📊 Found ${fundedPayments.length} total funded payments`);
             const paymentsNeedingEscrow = fundedPayments.filter(payment => {
                 // Check if payment has escrow configuration but no smart contract created

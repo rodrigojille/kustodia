@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { getRepository } from 'typeorm';
 import { User } from '../entity/User';
 import { Payment } from '../entity/Payment';
-import { getCurrentNetworkConfig } from '../utils/networkConfig';
+import { getCurrentNetworkConfig, isMainnetActive } from '../utils/networkConfig';
 import assetNFTService from './assetNFTService';
 import ormconfig from '../ormconfig';
 
@@ -28,6 +28,25 @@ export interface ServiceProviderUpdate {
   providerType: 'dealership' | 'contractor' | 'appraiser' | 'owner';
   updateData: any;
   supportingDocs?: string[];
+}
+
+// Network-aware configuration helpers
+function getNetworkConfig() {
+  const config = getCurrentNetworkConfig();
+  const isMainnet = isMainnetActive();
+  
+  return {
+    blockchain: isMainnet ? 'arbitrum-mainnet' : 'arbitrum-sepolia',
+    explorerUrl: config.explorerUrl,
+    networkName: config.networkName,
+    chainId: config.chainId,
+    contractAddress: config.nftCompactAddress
+  };
+}
+
+function getVerificationUrl(tokenId: string): string {
+  const { explorerUrl, contractAddress } = getNetworkConfig();
+  return `${explorerUrl}/token/${contractAddress}?a=${tokenId}`;
 }
 
 class AssetIntegrationService {
@@ -224,7 +243,8 @@ class AssetIntegrationService {
       const ownedTokens = await this.getOwnedTokens(user.wallet_address);
       console.log('[AssetIntegration] Found owned tokens:', ownedTokens?.length || 0);
 
-      const universalContractAddress = process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS;
+      const networkConfig = getNetworkConfig();
+      const universalContractAddress = networkConfig.contractAddress;
 
       if (!ownedTokens || ownedTokens.length === 0) {
         console.log('[AssetIntegration] No tokens found for user');
@@ -249,8 +269,8 @@ class AssetIntegrationService {
             return {
               tokenId: tokenIdString,
               contractAddress: universalContractAddress,
-              blockchain: 'arbitrum-sepolia',
-              verificationUrl: `https://sepolia.arbiscan.io/token/${universalContractAddress}?a=${tokenIdString}`,
+              blockchain: networkConfig.blockchain,
+              verificationUrl: getVerificationUrl(tokenIdString),
               kustodiaCertified: true,
               lastUpdated: new Date().toISOString(),
               metadata: metadata, // Include full metadata
@@ -277,8 +297,8 @@ class AssetIntegrationService {
             return {
               tokenId: tokenId.toString(),
               contractAddress: universalContractAddress,
-              blockchain: 'arbitrum-sepolia',
-              verificationUrl: `https://sepolia.arbiscan.io/token/${universalContractAddress}?a=${tokenId}`,
+              blockchain: networkConfig.blockchain,
+              verificationUrl: getVerificationUrl(tokenId.toString()),
               kustodiaCertified: true,
               lastUpdated: new Date().toISOString(),
               metadata: {},
@@ -309,11 +329,12 @@ class AssetIntegrationService {
       console.log('[AssetIntegration] History data received:', historyData);
       
       // Generate OpenSea-compatible metadata with English property names to match frontend interface
+      const networkConfig = getNetworkConfig();
       const marketplaceData = {
         tokenId,
-        contractAddress: process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS,
-        blockchain: 'arbitrum-sepolia',
-        verificationUrl: `https://sepolia.arbiscan.io/token/${process.env.UNIVERSAL_ASSET_CONTRACT_ADDRESS}?a=${tokenId}`,
+        contractAddress: networkConfig.contractAddress,
+        blockchain: networkConfig.blockchain,
+        verificationUrl: getVerificationUrl(tokenId),
         history: historyData?.totalEvents || 0,
         lastUpdated: historyData?.lastUpdated || new Date().toISOString(),
         kustodiaCertified: true,
