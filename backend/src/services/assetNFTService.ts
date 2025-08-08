@@ -437,7 +437,19 @@ class AssetNFTService {
 
       console.log('[AssetNFT] Getting enhanced asset history for token:', tokenId);
       
-      const historyLength = Number(await this.universalAssetContract.getAssetHistoryLength(tokenId));
+      // Check if token exists first
+      const exists = await this.tokenExists(tokenId);
+      if (!exists) {
+        console.log('[AssetNFT] Token does not exist:', tokenId);
+        return {
+          events: [],
+          summary: this.generateHistorySummary([]),
+          verificationStatus: this.getOverallVerificationStatus([]),
+          publicAccess: true
+        };
+      }
+      
+      const historyLength = Number(await this.universalAssetContract.getAssetEventCount(tokenId));
       const history = [];
 
       for (let i = 0; i < historyLength; i++) {
@@ -628,6 +640,20 @@ class AssetNFTService {
 
       console.log('[AssetNFT] Getting asset metadata for token:', tokenId);
 
+      // Check if token exists first
+      const exists = await this.tokenExists(tokenId);
+      if (!exists) {
+        console.log('[AssetNFT] Token does not exist:', tokenId);
+        return {
+          tokenId,
+          exists: false,
+          metadata: {},
+          tokenURI: '',
+          owner: '0x0000000000000000000000000000000000000000',
+          history: []
+        };
+      }
+
       // Get basic info that we can retrieve
       const tokenURI = await this.universalAssetContract.tokenURI(tokenId);
       const owner = await this.universalAssetContract.ownerOf(tokenId);
@@ -656,7 +682,7 @@ class AssetNFTService {
       console.log('[AssetNFT] Retrieved metadata object:', metadata);
       
       // Get asset history
-      const historyLength = await this.universalAssetContract.getAssetHistoryLength(tokenId);
+      const historyLength = await this.universalAssetContract.getAssetEventCount(tokenId);
       const history = [];
 
       for (let i = 0; i < historyLength; i++) {
