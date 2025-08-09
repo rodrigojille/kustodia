@@ -6,10 +6,32 @@ import AppDataSource from '../ormconfig';
 
 export class PaymentService {
   // 1. Detectar y registrar depósito SPEI
-  async logPaymentEvent(paymentId: number, type: string, description?: string, isAutomatic: boolean = false): Promise<void> {
+  async logPaymentEvent(
+    paymentId: number, 
+    type: string, 
+    description?: string, 
+    isAutomatic: boolean = false,
+    userFriendlyMessage?: string
+  ): Promise<void> {
     const paymentEventRepo = AppDataSource.getRepository(PaymentEvent);
-    const event = paymentEventRepo.create({ paymentId, type, description, is_automatic: isAutomatic });
+    
+    // If userFriendlyMessage is provided, use it for user-facing display
+    // Keep technical description for internal logging/debugging
+    const displayDescription = userFriendlyMessage || description;
+    
+    const event = paymentEventRepo.create({ 
+      paymentId, 
+      type, 
+      description: displayDescription, 
+      is_automatic: isAutomatic 
+    });
+    
     await paymentEventRepo.save(event);
+    
+    // Log technical details separately for debugging (if different from user message)
+    if (userFriendlyMessage && description && userFriendlyMessage !== description) {
+      console.log(`[TECHNICAL LOG] Payment ${paymentId} - ${type}: ${description}`);
+    }
   }
 
   async processDeposit(clabe: string, amount: number): Promise<Payment | null> {

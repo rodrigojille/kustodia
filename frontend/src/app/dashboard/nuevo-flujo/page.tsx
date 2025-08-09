@@ -136,7 +136,18 @@ const stepsByVertical: Record<string, string[]> = {
     "Condiciones de liberación y control de entregas",
     "Resumen y creación"
   ],
-
+  ecommerce: [
+    "Datos del pago y participantes",
+    "Tipo de producto",
+    "Condiciones de liberación y entrega",
+    "Resumen y creación"
+  ],
+  marketplace: [
+    "Datos del pago y participantes",
+    "Tipo de servicio en marketplace",
+    "Condiciones de liberación y satisfacción",
+    "Resumen y creación"
+  ]
 };
 
 type FormDataType = Record<string, any>;
@@ -284,6 +295,9 @@ function PaymentDetailsForm({ data, setData, vertical }: {
             boxSizing: 'border-box'
           }}
         />
+        <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+          💡 Monto base de la transacción antes de comisiones. Se agregará la comisión de plataforma al total.
+        </p>
       </div>
 
       <div>
@@ -304,6 +318,9 @@ function PaymentDetailsForm({ data, setData, vertical }: {
             boxSizing: 'border-box'
           }}
         />
+        <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+          📋 Describe claramente qué se está pagando. Esta información será visible para ambas partes.
+        </p>
       </div>
 
       <div>
@@ -332,6 +349,9 @@ function PaymentDetailsForm({ data, setData, vertical }: {
             boxSizing: 'border-box'
           }}
         />
+        <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+          👤 El beneficiario debe estar registrado en Kustodia. Si no tiene cuenta, recibirá instrucciones por email.
+        </p>
         {payeeLoading && <div style={{ color: '#6b7280', fontSize: '14px', marginTop: '8px' }}>Validando usuario...</div>}
         {payeeValid && payeeVerified && !payeeError && (
           <div style={{ color: '#34c759', fontSize: '14px', marginTop: '8px' }}>
@@ -472,41 +492,89 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
   }
 
   // Define the input type and label for each step of each vertical
-  const stepInputs: Record<string, { type: string; label: string; options?: string[]; placeholder?: string; min?: number; max?: number; step?: number; suffix?: string }> = {
+  const stepInputs: Record<string, { type: string; label: string; options?: string[]; placeholder?: string; min?: number; max?: number; step?: number; suffix?: string; helperText?: string }> = {
     // Inmobiliaria
-    inmobiliaria_step_1: { type: 'select', label: 'Tipo de operación', options: ['Enganche', 'Apartado', 'Renta', 'Compra-venta'] },
+    inmobiliaria_step_1: { 
+      type: 'select', 
+      label: 'Tipo de operación', 
+      options: ['Enganche', 'Apartado', 'Renta', 'Compra-venta'],
+      helperText: '🏠 Selecciona el tipo de transacción inmobiliaria. Esto ayuda a personalizar las condiciones de liberación.'
+    },
     inmobiliaria_step_2: { 
       type: 'textarea', 
       label: 'Condiciones de liberación y documentación', 
-      placeholder: 'Ejemplo: El pago se liberará cuando el contrato de compra-venta esté firmado por ambas partes y se haya entregado la documentación requerida (escrituras, identificaciones, etc.)'
+      placeholder: 'Ejemplo: El pago se liberará cuando el contrato de compra-venta esté firmado por ambas partes y se haya entregado la documentación requerida (escrituras, identificaciones, etc.)',
+      helperText: '📋 Define claramente qué debe suceder para liberar el pago. Incluye documentos necesarios y condiciones específicas.'
     },
     
     // Freelancer
-    freelancer_step_1: { type: 'select', label: 'Tipo de servicio', options: ['Desarrollo web', 'Diseño gráfico', 'Marketing digital', 'Redacción', 'Consultoría', 'Otro'] },
+    freelancer_step_1: { 
+      type: 'select', 
+      label: 'Tipo de servicio', 
+      options: ['Desarrollo web', 'Diseño gráfico', 'Marketing digital', 'Redacción', 'Consultoría', 'Otro'],
+      helperText: '💻 Categoriza tu servicio profesional. Esto ayuda a establecer expectativas claras sobre los entregables.'
+    },
     freelancer_step_2: { 
       type: 'textarea', 
       label: 'Condiciones de liberación y entregables', 
-      placeholder: 'Ejemplo: El pago se liberará cuando se entregue el sitio web completamente funcional, con diseño responsive y cumpliendo todos los requisitos especificados en el brief.'
+      placeholder: 'Ejemplo: El pago se liberará cuando se entregue el sitio web completamente funcional, con diseño responsive y cumpliendo todos los requisitos especificados en el brief.',
+      helperText: '✅ Especifica exactamente qué entregarás y cuándo se considerará completado el trabajo. Sé específico para evitar malentendidos.'
     },
     
     // Particulares
-    particulares_step_1: { type: 'select', label: 'Tipo de producto', options: ['Compra-venta de vehículo', 'Venta de vehículo', 'Electrónicos', 'Electrodomésticos', 'Muebles', 'Otro'] },
+    particulares_step_1: { 
+      type: 'select', 
+      label: 'Tipo de producto', 
+      options: ['Compra-venta de vehículo', 'Venta de vehículo', 'Electrónicos', 'Electrodomésticos', 'Muebles', 'Otro'],
+      helperText: '🛍️ Categoriza el producto que estás vendiendo. Esto ayuda a establecer condiciones apropiadas para la transacción.'
+    },
     particulares_step_2: { 
       type: 'textarea', 
       label: 'Condiciones de liberación', 
-      placeholder: 'Ejemplo: El pago se liberará cuando el producto sea entregado en las condiciones acordadas y el comprador confirme que está satisfecho con la compra.'
+      placeholder: 'Ejemplo: El pago se liberará cuando el producto sea entregado en las condiciones acordadas y el comprador confirme que está satisfecho con la compra.',
+      helperText: '🤝 Define cuándo y cómo se liberará el pago. Incluye condiciones de entrega, inspección y aceptación del producto.'
     },
     
     // B2B
     b2b_step_1: { 
       type: 'select', 
       label: 'Configuración de hitos', 
-      options: ['Pago único (100%)', 'Dos hitos (50% - 50%)', 'Tres hitos (40% - 30% - 30%)', 'Cuatro hitos (25% cada uno)', 'Configuración personalizada'] 
+      options: ['Pago único (100%)', 'Dos hitos (50% - 50%)', 'Tres hitos (40% - 30% - 30%)', 'Cuatro hitos (25% cada uno)', 'Configuración personalizada'],
+      helperText: '🏢 Divide el proyecto en hitos para pagos parciales. Esto reduce riesgo y mejora el flujo de caja para ambas partes.'
     },
     b2b_step_2: { 
       type: 'textarea', 
       label: 'Condiciones de liberación y control de entregas', 
-      placeholder: 'Ejemplo: Hito 1: Entrega de diseños y wireframes aprobados. Hito 2: Desarrollo completado y testing exitoso. Hito 3: Implementación en producción y capacitación del equipo.'
+      placeholder: 'Ejemplo: Hito 1: Entrega de diseños y wireframes aprobados. Hito 2: Desarrollo completado y testing exitoso. Hito 3: Implementación en producción y capacitación del equipo.',
+      helperText: '📊 Define claramente cada hito del proyecto y qué debe completarse para liberar cada pago. Sé específico en los entregables.'
+    },
+
+    // E-commerce
+    ecommerce_step_1: {
+      type: 'select',
+      label: 'Tipo de producto',
+      options: ['Electrónicos', 'Ropa y accesorios', 'Hogar y jardín', 'Deportes', 'Libros y medios', 'Otro'],
+      helperText: '🛒 Categoriza tu producto para establecer condiciones de entrega y verificación apropiadas.'
+    },
+    ecommerce_step_2: {
+      type: 'textarea',
+      label: 'Condiciones de liberación y entrega',
+      placeholder: 'Ejemplo: El pago se liberará cuando el producto sea entregado al comprador, verificado en buen estado y sin daños, con un período de 3 días para reportar cualquier problema.',
+      helperText: '📦 Define las condiciones de entrega, verificación del producto y período de gracia para reclamos.'
+    },
+
+    // Marketplace
+    marketplace_step_1: {
+      type: 'select',
+      label: 'Tipo de servicio en marketplace',
+      options: ['Servicios profesionales', 'Servicios creativos', 'Servicios técnicos', 'Consultoría', 'Educación y tutorías', 'Otro'],
+      helperText: '🌐 Especifica el tipo de servicio que ofreces en el marketplace para personalizar las condiciones.'
+    },
+    marketplace_step_2: {
+      type: 'textarea',
+      label: 'Condiciones de liberación y satisfacción',
+      placeholder: 'Ejemplo: El pago se liberará cuando el servicio sea completado según las especificaciones acordadas y el cliente confirme su satisfacción dentro de 5 días hábiles.',
+      helperText: '⭐ Define claramente cuándo se considera completado el servicio y el proceso de confirmación de satisfacción del cliente.'
     }
   };
 
@@ -578,6 +646,11 @@ function StepInputs({ vertical, stepIndex, data, setData }: {
         {stepConfig.label}
       </label>
       {renderInput()}
+      {stepConfig.helperText && (
+        <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px', lineHeight: '1.4' }}>
+          {stepConfig.helperText}
+        </p>
+      )}
       {stepConfig.suffix && (
         <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
           {stepConfig.suffix}

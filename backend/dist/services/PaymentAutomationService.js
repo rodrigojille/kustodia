@@ -287,7 +287,7 @@ class PaymentAutomationService {
                     console.error(`❌ Seller payout failed: ${payoutError.message}`);
                     console.log(`⚠️ Payout failed - ${payoutAmount} MXN remains in Juno for manual processing`);
                     console.log(`📋 Escrow will still be created with original custody amount: ${custodyAmount} MXN`);
-                    await this.paymentService.logPaymentEvent(paymentId, 'payout_failed', `Seller payout failed: ${payoutError.message}. ${payoutAmount} MXN remains in Juno. Escrow will contain ${custodyAmount} MXN as planned.`, true);
+                    await this.paymentService.logPaymentEvent(paymentId, 'payout_failed', `Seller payout failed: ${payoutError.message}. ${payoutAmount} MXN remains in Juno. Escrow will contain ${custodyAmount} MXN as planned.`, false, 'Procesando tu pago automáticamente. El monto de custodia se está configurando correctamente.');
                 }
             }
             // Always try to create escrow with original custody amount
@@ -312,7 +312,7 @@ class PaymentAutomationService {
         }
         catch (error) {
             console.error(`❌ Automation failed for payment ${paymentId}:`, error.message);
-            await this.paymentService.logPaymentEvent(paymentId, 'automation_error', `Automation failed: ${error.message}`);
+            await this.paymentService.logPaymentEvent(paymentId, 'automation_error', `Automation failed: ${error.message}`, false, 'Tu pago está siendo procesado. Nos pondremos en contacto contigo si necesitamos información adicional.');
         }
     }
     /**
@@ -385,7 +385,9 @@ class PaymentAutomationService {
                         // Continue with the process - the redemption will validate if account exists
                     }
                     else {
-                        throw new Error(`Bank account registration failed: ${registrationError.message}`);
+                        // Log technical error for admin debugging
+                        await this.paymentService.logPaymentEvent(payment.id, 'bank_registration_error', `Bank account registration failed: ${registrationError.message}`, false);
+                        throw new Error('Error en el procesamiento del pago. Nuestro equipo ha sido notificado.');
                     }
                 }
             }
@@ -462,14 +464,14 @@ class PaymentAutomationService {
         try {
             console.log(`🔄 Starting bridge withdrawal for payment ${payment.id}: ${amount} MXNB to ${bridgeWallet}`);
             const withdrawalResult = await (0, junoService_1.withdrawMXNBToBridge)(amount, bridgeWallet);
-            await this.paymentService.logPaymentEvent(payment.id, 'bridge_withdrawal_success', `Retiro de ${amount} MXNB a billetera puente completado exitosamente. ID de retiro: ${withdrawalResult?.id || 'N/A'}`, true);
+            await this.paymentService.logPaymentEvent(payment.id, 'bridge_withdrawal_success', `Retiro de ${amount} MXNB a billetera puente completado exitosamente. ID de retiro: ${withdrawalResult?.id || 'N/A'}`, false, 'Configurando tu custodia automáticamente...');
             console.log(`✅ Bridge withdrawal for payment ${payment.id} completed successfully`);
             console.log(`📋 Withdrawal details:`, withdrawalResult);
         }
         catch (error) {
             console.error(`❌ Bridge withdrawal failed for payment ${payment.id}:`, error.message);
             // Log the error but check if withdrawal might have succeeded anyway
-            await this.paymentService.logPaymentEvent(payment.id, 'bridge_withdrawal_error', `Withdrawal error: ${error.message}. Verifying if withdrawal was processed...`, false);
+            await this.paymentService.logPaymentEvent(payment.id, 'bridge_withdrawal_error', `Withdrawal error: ${error.message}. Verifying if withdrawal was processed...`, false, 'Procesando tu custodia automáticamente...');
             // Give some time for potential processing
             await new Promise(resolve => setTimeout(resolve, 3000));
             // Verify if withdrawal was actually processed despite the error
@@ -477,13 +479,13 @@ class PaymentAutomationService {
             const verifiedWithdrawal = await (0, junoService_1.verifyWithdrawalProcessed)(amount, bridgeWallet, 10);
             if (verifiedWithdrawal) {
                 console.log(`✅ Withdrawal verification successful for payment ${payment.id} - withdrawal was processed despite error`);
-                await this.paymentService.logPaymentEvent(payment.id, 'bridge_withdrawal_verified', `Withdrawal verified as successful despite initial error. Withdrawal ID: ${verifiedWithdrawal.id || 'N/A'}`, true);
+                await this.paymentService.logPaymentEvent(payment.id, 'bridge_withdrawal_verified', `Withdrawal verified as successful despite initial error. Withdrawal ID: ${verifiedWithdrawal.id || 'N/A'}`, false, 'Custodia configurada exitosamente.');
                 // Don't throw error since withdrawal was successful
                 return;
             }
             else {
                 console.log(`❌ Withdrawal verification failed for payment ${payment.id} - withdrawal was not processed`);
-                await this.paymentService.logPaymentEvent(payment.id, 'bridge_withdrawal_failed', `Withdrawal failed and could not be verified: ${error.message}`, false);
+                await this.paymentService.logPaymentEvent(payment.id, 'bridge_withdrawal_failed', `Withdrawal failed and could not be verified: ${error.message}`, false, 'Configurando tu custodia. Te notificaremos cuando esté lista.');
                 throw error;
             }
         }
@@ -540,7 +542,7 @@ class PaymentAutomationService {
             const errorMsg = `Insufficient MXNB balance in bridge wallet. Required: ${balanceCheck.requiredBalance} MXNB, Available: ${balanceCheck.currentBalance} MXNB`;
             console.log(`[escrow] ⏳ ${errorMsg} - Payment ${payment.id} will retry on next automation cycle`);
             // Log the balance issue for tracking
-            await this.paymentService.logPaymentEvent(payment.id, 'escrow_balance_insufficient', `${errorMsg}. Waiting for bridge transfer to complete.`, true);
+            await this.paymentService.logPaymentEvent(payment.id, 'escrow_balance_insufficient', `${errorMsg}. Waiting for bridge transfer to complete.`, true, 'Configurando tu custodia automáticamente...');
             // Don't throw error - just return and let automation retry later
             return;
         }
@@ -619,7 +621,7 @@ class PaymentAutomationService {
                     console.log(`🔐 Pre-approval created for Payment ${payment.id} - Approval ID: ${preApproval.id}`);
                     console.log(`📧 Admins can now sign approval ${preApproval.id} before release deadline`);
                     // Log pre-approval creation
-                    await this.paymentService.logPaymentEvent(payment.id, 'multisig_preapproval_created', `Pre-approval created for high-value payment. Approval ID: ${preApproval.id}. Signatures can be collected now.`, true);
+                    await this.paymentService.logPaymentEvent(payment.id, 'multisig_preapproval_created', `Pre-approval created for high-value payment. Approval ID: ${preApproval.id}. Signatures can be collected now.`, true, 'Tu pago de alto valor está siendo procesado con medidas de seguridad adicionales.');
                 }
                 catch (preApprovalError) {
                     console.error(`❌ Failed to create pre-approval for Payment ${payment.id}:`, preApprovalError.message);
@@ -629,7 +631,7 @@ class PaymentAutomationService {
             }
             await escrowRepo.save(payment.escrow);
             await paymentRepo.save(payment);
-            await this.paymentService.logPaymentEvent(payment.id, 'escrow_created', `Custodia ${createResult.escrowId} creada en blockchain. Tx: ${createResult.txHash}. ID de custodia: ${createResult.escrowId}`, true);
+            await this.paymentService.logPaymentEvent(payment.id, 'escrow_created', `Custodia ${createResult.escrowId} creada en blockchain. Tx: ${createResult.txHash}. ID de custodia: ${createResult.escrowId}`, true, 'Tu custodia ha sido creada exitosamente y está activa.');
             // Send escrowed notification email
             try {
                 const recipients = [];
@@ -676,7 +678,7 @@ class PaymentAutomationService {
         }
         catch (error) {
             console.error(`❌ Escrow creation failed for payment ${payment.id}:`, error.message);
-            await this.paymentService.logPaymentEvent(payment.id, 'escrow_error', `Error al crear custodia: ${error.message}`, true);
+            await this.paymentService.logPaymentEvent(payment.id, 'escrow_error', `Error al crear custodia: ${error.message}`, true, 'Configurando tu custodia. Te notificaremos cuando esté lista.');
             throw error;
         }
     }
@@ -737,7 +739,7 @@ class PaymentAutomationService {
                 }
                 catch (error) {
                     console.error(`❌ Error processing Payment ${payment.id}:`, error.message);
-                    await this.paymentService.logPaymentEvent(payment.id, 'automation_error', `Recovery processing failed: ${error.message}`);
+                    await this.paymentService.logPaymentEvent(payment.id, 'automation_error', `Recovery processing failed: ${error.message}`, true, 'Tu pago está siendo procesado automáticamente.');
                 }
             }
             console.log('✅ Incomplete payment processing completed');
@@ -1387,7 +1389,7 @@ class PaymentAutomationService {
                     }
                     console.log(`⚡ Payment ${payment.id}: Balance now sufficient, attempting escrow creation`);
                     await this.processEscrowCreationAndFunding(payment, custodyAmount);
-                    await this.paymentService.logPaymentEvent(payment.id, 'quick_retry_success', `Quick retry successful - escrow created after balance recovery`, true);
+                    await this.paymentService.logPaymentEvent(payment.id, 'escrow_retry_success', `Escrow creation retry successful after balance issue. Escrow ID: ${payment.escrow?.smart_contract_escrow_id}`, true, 'Custodia configurada exitosamente.');
                 }
                 catch (error) {
                     console.error(`❌ Quick retry failed for payment ${failureEvent.paymentId}:`, error.message);
@@ -1515,8 +1517,6 @@ class PaymentAutomationService {
                         else {
                             console.log(`✅ Payment ${payment.id}: Escrow already exists (ID: ${payment.escrow.smart_contract_escrow_id}) - skipping creation`);
                         }
-                        await this.paymentService.logPaymentEvent(payment.id, 'escrow_retry_success', `Escrow creation retry successful`, true);
-                        console.log(`✅ Payment ${payment.id}: Escrow retry completed successfully`);
                     }
                     else {
                         console.log(`⚠️ Payment ${payment.id}: Custody amount is 0, skipping`);

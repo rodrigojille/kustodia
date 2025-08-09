@@ -173,21 +173,27 @@ export default function PagoFormFull() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Redirect to instructions page for the new payment
-        if (data.payment && data.payment.id) {
-          window.location.href = `/dashboard/pagos/${data.payment.id}/instrucciones`;
-        } else if (data.id) {
-          window.location.href = `/dashboard/pagos/${data.id}/instrucciones`;
-        } else {
-          setSuccess(true);
-        }
+        // Close loading modal first, then redirect
+        setLoading(false);
+        
+        // Small delay to ensure modal closes before redirect
+        setTimeout(() => {
+          if (data.payment && data.payment.id) {
+            window.location.href = `/dashboard/pagos/${data.payment.id}/instrucciones`;
+          } else if (data.id) {
+            window.location.href = `/dashboard/pagos/${data.id}/instrucciones`;
+          } else {
+            setSuccess(true);
+          }
+        }, 100);
       } else {
         setError(data.error || "No se pudo crear el pago.");
+        setLoading(false);
       }
     } catch (err: any) {
       setError("Error de red o servidor.");
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -206,6 +212,7 @@ export default function PagoFormFull() {
           onBlur={handleRecipientBlur}
           required
         />
+        <p className="text-xs text-gray-500">El destinatario debe estar registrado y verificado en Kustodia</p>
       </div>
       {/* Validation Messages */}
       {recipientLoading && <div className="text-gray-500 text-sm">Validando destinatario...</div>}
@@ -226,6 +233,7 @@ export default function PagoFormFull() {
           required 
           min={1} 
         />
+        <p className="text-xs text-gray-500">Ingresa el monto base de la transacción en pesos mexicanos</p>
         
         {/* Platform Commission Breakdown */}
         {amount && parseFloat(amount) > 0 && (
@@ -262,6 +270,7 @@ export default function PagoFormFull() {
           value={description} 
           onChange={e => setDescription(e.target.value)} 
         />
+        <p className="text-xs text-gray-500">Describe brevemente el propósito de esta transacción</p>
       </div>
       
       {/* Warranty Percentage */}
@@ -276,6 +285,7 @@ export default function PagoFormFull() {
           min={0} 
           max={100} 
         />
+        <p className="text-xs text-gray-500">Porcentaje del monto que permanecerá en garantía hasta completar las condiciones (0-100%)</p>
       </div>
       
       {/* Custody Days */}
@@ -289,58 +299,85 @@ export default function PagoFormFull() {
           onChange={e => setCustodyDays(e.target.value)} 
           min={1} 
         />
+        <p className="text-xs text-gray-500">Número de días que los fondos permanecerán en custodia antes de liberarse automáticamente</p>
       </div>
-      <div className="mt-4 mb-2 font-semibold text-black">
+      {/* Commission Section */}
+      <div className="space-y-2">
         <button
           type="button"
-          className="w-full flex items-center justify-between py-2 px-4 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors font-semibold"
+          className="w-full flex items-center justify-between py-3 px-4 rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"
           onClick={() => setShowCommission(v => !v)}
         >
           Comisión (opcional)
-          <span>{showCommission ? '▲' : '▼'}</span>
+          <span className="text-gray-500">{showCommission ? '▲' : '▼'}</span>
         </button>
+        <p className="text-xs text-gray-500">Configura una comisión adicional para un tercero (opcional)</p>
+        
+        {showCommission && (
+          <div className="space-y-3 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">% de comisión (ej. 5)</label>
+              <input
+                type="number"
+                className="input-standard"
+                placeholder="% de comisión (ej. 5)"
+                value={commissionPercent}
+                onChange={e => setCommissionPercent(e.target.value)}
+                min={0}
+                max={100}
+              />
+              <p className="text-xs text-gray-500">Porcentaje de comisión que se descontará del monto base</p>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Nombre del beneficiario de la comisión</label>
+              <input
+                type="text"
+                className="input-standard"
+                placeholder="Nombre del beneficiario de la comisión"
+                value={commissionBeneficiaryName}
+                onChange={e => setCommissionBeneficiaryName(e.target.value)}
+                disabled={!commissionPercent}
+              />
+              <p className="text-xs text-gray-500">Nombre completo de quien recibirá la comisión</p>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Email del beneficiario de la comisión</label>
+              <input
+                type="email"
+                className="input-standard"
+                placeholder="Email del beneficiario de la comisión"
+                value={commissionBeneficiaryEmail}
+                onChange={e => setCommissionBeneficiaryEmail(e.target.value)}
+                onBlur={handleCommissionerBlur}
+                autoComplete="off"
+                disabled={!commissionPercent}
+              />
+              <p className="text-xs text-gray-500">El beneficiario debe estar registrado y verificado en Kustodia</p>
+            </div>
+            
+            {/* Commission Validation Messages */}
+            {commissionPercent && commissionBeneficiaryEmail && commissionerLoading && (
+              <div className="text-gray-500 text-sm">Validando beneficiario...</div>
+            )}
+            {commissionPercent && commissionBeneficiaryEmail && commissionerValid && commissionerVerified && !commissionerError && (
+              <div className="text-green-700 font-semibold text-sm">✓ Beneficiario válido y verificado</div>
+            )}
+            {commissionPercent && commissionBeneficiaryEmail && commissionerError && (
+              <div className="text-red-600 text-sm font-semibold">{commissionerError}</div>
+            )}
+            
+            {/* Commission Amount Display */}
+            {commissionAmount !== "N/A" && (
+              <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
+                <span className="text-gray-700">Monto comisión: </span>
+                <span className="font-semibold text-blue-800">${commissionAmount}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      {showCommission && (
-        <div className="space-y-2">
-          <input
-            type="number"
-            className="input w-full text-black placeholder-black"
-            placeholder="% de comisión (ej. 5)"
-            value={commissionPercent}
-            onChange={e => setCommissionPercent(e.target.value)}
-            min={0}
-            max={100}
-          />
-          <input
-            type="text"
-            className="input w-full text-black placeholder-black"
-            placeholder="Nombre del beneficiario de la comisión"
-            value={commissionBeneficiaryName}
-            onChange={e => setCommissionBeneficiaryName(e.target.value)}
-            disabled={!commissionPercent}
-          />
-          <input
-            type="email"
-            className="input w-full text-black placeholder-black"
-            placeholder="Email del beneficiario de la comisión"
-            value={commissionBeneficiaryEmail}
-            onChange={e => setCommissionBeneficiaryEmail(e.target.value)}
-            onBlur={handleCommissionerBlur}
-            autoComplete="off"
-            disabled={!commissionPercent}
-          />
-          {commissionPercent && commissionBeneficiaryEmail && commissionerLoading && (
-            <div className="text-gray-500 text-sm mt-1">Validando beneficiario...</div>
-          )}
-          {commissionPercent && commissionBeneficiaryEmail && commissionerValid && commissionerVerified && !commissionerError && (
-            <div className="text-green-700 font-semibold text-sm mt-1">Beneficiario válido y verificado.</div>
-          )}
-          {commissionPercent && commissionBeneficiaryEmail && commissionerError && (
-            <div className="text-red-600 text-sm mt-1 font-semibold">{commissionerError}</div>
-          )}
-          <div className="text-sm mt-1 text-black">Monto comisión: <b>{commissionAmount !== "N/A" ? `$${commissionAmount}` : "N/A"}</b></div>
-        </div>
-      )}
       <button
         type="submit"
         className={`btn-primary w-full mt-6 ${

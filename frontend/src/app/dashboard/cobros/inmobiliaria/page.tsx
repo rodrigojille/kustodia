@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { authFetch } from "../../../../utils/authFetch";
+import { calculatePlatformCommission, formatCurrency } from "../../../../utils/platformCommissionConfig";
 
 type CommissionRecipient = {
   id: string;
@@ -318,6 +319,9 @@ export default function CobroInmobiliariaPage() {
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">MXN</span>
               </div>
+              <p className="text-sm text-gray-500 mt-1">
+                💡 Monto base que solicitarás al comprador. Las comisiones de plataforma y asesores se calcularán por separado.
+              </p>
             </div>
 
             <div>
@@ -331,6 +335,9 @@ export default function CobroInmobiliariaPage() {
                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 rows={3}
               />
+              <p className="text-sm text-gray-500 mt-1">
+                📋 Describe claramente el propósito del pago. Esta información será visible para todas las partes involucradas.
+              </p>
             </div>
 
             <div>
@@ -353,6 +360,11 @@ export default function CobroInmobiliariaPage() {
                 }}
                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
               />
+              {!buyerLoading && !buyerValid && (
+                <p className="text-sm text-gray-500 mt-1">
+                  🔍 El comprador debe tener cuenta en Kustodia. Se validará automáticamente al escribir el email.
+                </p>
+              )}
               {buyerLoading && <p className="text-blue-600 text-sm mt-1">Validando usuario...</p>}
               {buyerValid === true && (
                 <p className="text-green-600 text-sm mt-1">
@@ -393,8 +405,13 @@ export default function CobroInmobiliariaPage() {
               {sellerValid === false && (
                 <p className="text-red-600 text-sm mt-1">✗ {sellerError}</p>
               )}
+              {!sellerLoading && !sellerValid && (
+                <p className="text-sm text-gray-500 mt-1">
+                  🏠 Propietario que recibirá el pago. Debe tener cuenta en Kustodia para recibir los fondos.
+                </p>
+              )}
               <p className="text-sm text-gray-500 mt-1">
-                El vendedor recibirá el monto neto (total - comisiones)
+                💰 El vendedor recibirá el monto neto (total - comisiones de plataforma y asesores)
               </p>
             </div>
 
@@ -419,6 +436,9 @@ export default function CobroInmobiliariaPage() {
                   </label>
                 </div>
               </div>
+              <p className="text-sm text-blue-700 mb-3">
+                💡 Activa esta opción si hay asesores inmobiliarios que deben recibir comisión por esta venta. Si es venta directa, manténla desactivada.
+              </p>
                
               {data.has_commission ? (
                 <div className="space-y-4">
@@ -440,7 +460,7 @@ export default function CobroInmobiliariaPage() {
                       <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                     </div>
                     <p className="text-sm text-gray-500 mt-1">
-                      Porcentaje total que se deducirá del monto y se distribuirá entre brokers
+                      📊 Porcentaje total que se deducirá del monto y se distribuirá entre asesores. Ejemplo: 5% de $100,000 = $5,000 en comisiones.
                     </p>
                   </div>
 
@@ -461,15 +481,18 @@ export default function CobroInmobiliariaPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block font-medium text-gray-700 mb-2">
-                            📧 Email del broker
+                            📧 Email del asesor
                           </label>
                           <input
                             type="email"
-                            placeholder="broker@inmobiliaria.com"
+                            placeholder="asesor@inmobiliaria.com"
                             value={recipient.broker_email}
                             onChange={(e) => updateCommissionRecipient(recipient.id, 'broker_email', e.target.value)}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                           />
+                          <p className="text-sm text-gray-500 mt-1">
+                            🔍 El asesor debe tener cuenta en Kustodia para recibir su comisión.
+                          </p>
                         </div>
                         
                         <div>
@@ -490,7 +513,7 @@ export default function CobroInmobiliariaPage() {
                             <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                           </div>
                           <p className="text-sm text-gray-500 mt-1">
-                            Porcentaje de la comisión total que recibirá este broker
+                            📊 Porcentaje de la comisión total que recibirá este asesor. Ejemplo: 50% de una comisión del 5% = 2.5% del monto total.
                           </p>
                         </div>
                       </div>
@@ -591,6 +614,19 @@ export default function CobroInmobiliariaPage() {
                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 rows={6}
               />
+              <p className="text-sm text-gray-500 mt-1">
+                🔐 Define claramente cuándo y bajo qué condiciones se debe liberar el pago en custodia. Esto protege a ambas partes y evita disputas futuras.
+              </p>
+              <div className="bg-blue-50 p-3 rounded-lg mt-3">
+                <p className="text-sm text-blue-700 font-medium mb-1">💡 Ejemplos de condiciones comunes:</p>
+                <ul className="text-sm text-blue-600 space-y-1">
+                  <li>• Firma del contrato de compra-venta por ambas partes</li>
+                  <li>• Entrega de escrituras y documentación legal</li>
+                  <li>• Verificación de identificaciones oficiales</li>
+                  <li>• Inspección satisfactoria de la propiedad</li>
+                  <li>• Liberación de gravámenes (si aplica)</li>
+                </ul>
+              </div>
             </div>
           </div>
         );
@@ -599,22 +635,43 @@ export default function CobroInmobiliariaPage() {
         return (
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">📋 Resumen del cobro</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">📄 Resumen del cobro</h3>
               
               <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Monto total:</span>
-                  <span className="font-semibold">${data.payment_amount} MXN</span>
-                </div>
+                {(() => {
+                  const baseAmount = parseFloat(data.payment_amount) || 0;
+                  const commissionData = calculatePlatformCommission(baseAmount, 'traditional');
+                  
+                  return (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Monto base:</span>
+                        <span className="font-semibold">{formatCurrency(baseAmount)} MXN</span>
+                      </div>
+                      
+                      <div className="flex justify-between text-blue-600">
+                        <span className="text-blue-600">+ Comisión Kustodia ({commissionData.percent}%):</span>
+                        <span className="font-semibold">{formatCurrency(commissionData.amount)} MXN</span>
+                      </div>
+                      
+                      <div className="flex justify-between border-t pt-2 text-lg">
+                        <span className="text-gray-900 font-semibold">Total a pagar:</span>
+                        <span className="font-bold text-green-600">{formatCurrency(commissionData.totalAmountToPay)} MXN</span>
+                      </div>
+                    </>
+                  );
+                })()}
                 
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Comprador:</span>
-                  <span className="font-semibold">{data.buyer_email}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Vendedor:</span>
-                  <span className="font-semibold">{data.seller_email}</span>
+                <div className="border-t pt-3 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">👤 Comprador:</span>
+                    <span className="font-semibold">{data.buyer_email}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">🏠 Vendedor:</span>
+                    <span className="font-semibold">{data.seller_email}</span>
+                  </div>
                 </div>
                 
                 {data.has_commission ? (
@@ -655,27 +712,57 @@ export default function CobroInmobiliariaPage() {
                   </div>
                 )}
                 
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Custodia:</span>
-                  <span className="font-semibold">{data.custody_percent}% por {data.custody_period} días</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tipo de operación:</span>
-                  <span className="font-semibold">{data.operation_type}</span>
+                <div className="border-t pt-3 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">🔒 Custodia:</span>
+                    <span className="font-semibold">{data.custody_percent}% por {data.custody_period} días</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">🏢 Tipo de operación:</span>
+                    <span className="font-semibold">{data.operation_type}</span>
+                  </div>
+                  
+                  {data.release_conditions && (
+                    <div className="mt-3">
+                      <p className="text-gray-600 font-medium mb-1">📋 Condiciones de liberación:</p>
+                      <p className="text-sm text-gray-700 bg-gray-100 p-2 rounded">{data.release_conditions}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h4 className="font-semibold text-blue-900 mb-2">💡 ¿Qué sucede después?</h4>
-              <ul className="space-y-2 text-sm text-blue-800">
-                <li>• Se enviará una solicitud de pago al comprador</li>
-                <li>• El comprador podrá pagar usando el link seguro</li>
-                <li>• El dinero quedará en custodia hasta que se cumplan las condiciones</li>
-                <li>• Ambas partes deben aprobar la liberación del pago</li>
-                {data.has_commission && data.commission_recipients.length > 0 && <li>• La comisión se distribuirá automáticamente</li>}
-              </ul>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                <span className="mr-2">🚀</span>
+                Proceso de cobro inmobiliario
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <h5 className="font-medium text-blue-800 mb-2">📧 Notificación y pago</h5>
+                  <ul className="space-y-1 text-sm text-blue-700">
+                    <li className="flex items-start"><span className="mr-2 text-green-500">✓</span>Se enviará solicitud de pago al comprador</li>
+                    <li className="flex items-start"><span className="mr-2 text-green-500">✓</span>El comprador podrá realizar el pago</li>
+                    <li className="flex items-start"><span className="mr-2 text-green-500">✓</span>Notificaciones automáticas a todas las partes</li>
+                  </ul>
+                </div>
+                <div className="space-y-3">
+                  <h5 className="font-medium text-blue-800 mb-2">🔐 Custodia y liberación</h5>
+                  <ul className="space-y-1 text-sm text-blue-700">
+                    <li className="flex items-start"><span className="mr-2 text-yellow-500">⏳</span>Fondos en custodia segura hasta cumplir condiciones</li>
+                    <li className="flex items-start"><span className="mr-2 text-yellow-500">⏳</span>Ambas partes deben aprobar la liberación</li>
+                    {data.has_commission && data.commission_recipients.length > 0 && (
+                      <li className="flex items-start"><span className="mr-2 text-blue-500">💰</span>Distribución automática de comisiones</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">⚡ Duración:</span> El proceso depende de cuándo las partes cumplan y aprueben las condiciones de liberación.
+                </p>
+              </div>
             </div>
           </div>
         );
@@ -687,10 +774,21 @@ export default function CobroInmobiliariaPage() {
 
   if (loading) {
     return (
-      <div className="page-container flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando formulario...</p>
+      <div className="page-container flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl">🏠</span>
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Preparando formulario</h3>
+          <p className="text-gray-600 mb-4">Configurando tu cobro inmobiliario...</p>
+          <div className="flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+          </div>
         </div>
       </div>
     );
@@ -781,6 +879,43 @@ export default function CobroInmobiliariaPage() {
           </div>
         </div>
       </div>
+
+      {/* Professional Submission Loading Overlay */}
+      {submitting && (
+        <div className="fixed inset-0 bg-gray-50 bg-opacity-95 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md mx-4 text-center">
+            <div className="relative mb-6">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl">🏠</span>
+              </div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Creando solicitud de pago</h3>
+            <p className="text-gray-600 mb-4">Configurando tu cobro inmobiliario seguro...</p>
+            
+            <div className="space-y-2 text-sm text-gray-500">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+                <span>Validando información</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
+                <span>Configurando custodia segura</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                <span>Preparando notificaciones</span>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-3 bg-green-50 rounded-lg border border-green-200">
+              <p className="text-sm text-green-800">
+                <span className="font-medium">⚡ Casi listo:</span> Tu solicitud de pago estará lista en unos segundos.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

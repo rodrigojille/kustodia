@@ -102,7 +102,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Payment.prototype, "commission_amount", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ nullable: true, type: "decimal", precision: 5, scale: 2 }),
     __metadata("design:type", Number)
 ], Payment.prototype, "platform_commission_percent", void 0);
 __decorate([

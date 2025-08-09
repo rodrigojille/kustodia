@@ -315,16 +315,37 @@ export default function CobroAutosPage() {
     
     try {
       const payload = {
-        ...data,
-        payment_type: 'cobro_inteligente',
-        transaction_type: 'autos',
+        payment_amount: parseFloat(data.payment_amount),
+        payment_description: data.payment_description,
+        buyer_email: data.buyer_email,
+        seller_email: data.seller_email,
         broker_email: user?.email, // Current user is the broker creating the form
-        seller_email: data.seller_email, // The vehicle owner who receives net payment
         payer_email: data.buyer_email, // The buyer who will pay
         payee_email: data.seller_email, // The seller who receives the payment
+        total_commission_percentage: data.has_commission ? parseFloat(data.total_commission_percentage || '0') : 0,
+        commission_recipients: data.has_commission ? data.commission_recipients.map(r => ({
+          ...r,
+          broker_percentage: parseFloat(r.broker_percentage || '0')
+        })) : [],
+        custody_percent: parseFloat(data.custody_percent || '0'),
+        custody_period: parseInt(data.custody_period || '0'),
+        operation_type: data.operation_type,
+        release_conditions: data.release_conditions,
+        payment_type: 'cobro_inteligente',
+        transaction_type: 'autos',
+        transaction_category: 'autos',
         vertical: 'autos',
-        // Commission recipients (nuevo flujo style)
-        commission_recipients: data.commission_recipients
+        // Automotive-specific fields
+        vehicle_brand: data.vehicle_brand,
+        vehicle_model: data.vehicle_model,
+        vehicle_year: data.vehicle_year,
+        vehicle_vin: data.vehicle_vin,
+        vehicle_mileage: data.vehicle_mileage,
+        vehicle_condition: data.vehicle_condition,
+        // Digital twin fields if present
+        ...(data.selected_digital_twin && {
+          digital_twin_token_id: data.digital_twin_token_id
+        })
       };
 
       const response = await authFetch('payments/cobro-inteligente', {
@@ -371,6 +392,16 @@ export default function CobroAutosPage() {
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">MXN</span>
               </div>
+              <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-700">
+                  💡 <strong>Ejemplos comunes:</strong>
+                </p>
+                <ul className="text-sm text-blue-600 mt-1 ml-4">
+                  <li>• <strong>Apartado:</strong> $5,000 - $20,000 MXN</li>
+                  <li>• <strong>Enganche:</strong> $50,000 - $200,000 MXN</li>
+                  <li>• <strong>Pago total:</strong> Valor completo del vehículo</li>
+                </ul>
+              </div>
             </div>
 
             <div>
@@ -384,6 +415,19 @@ export default function CobroAutosPage() {
                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 rows={3}
               />
+              <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-green-700">
+                  ✨ <strong>Define el tipo de pago:</strong>
+                </p>
+                <ul className="text-sm text-green-600 mt-1 ml-4">
+                  <li>• <strong>Apartado:</strong> Reserva del vehículo</li>
+                  <li>• <strong>Enganche:</strong> Pago inicial para financiamiento</li>
+                  <li>• <strong>Liquidación:</strong> Pago total del vehículo</li>
+                </ul>
+                <p className="text-xs text-green-600 mt-2">
+                  📋 <em>Esta información aparecerá en el recibo y notificaciones</em>
+                </p>
+              </div>
             </div>
 
             <div>
@@ -406,6 +450,15 @@ export default function CobroAutosPage() {
                 }}
                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
               />
+              <div className="mt-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <p className="text-sm text-yellow-700">
+                  🔍 <strong>Persona que realizará el pago:</strong>
+                </p>
+                <ul className="text-sm text-yellow-600 mt-1 ml-4">
+                  <li>• Debe estar registrado en la plataforma Kustodia</li>
+                  <li>• Recibirá la solicitud de pago por email</li>
+                </ul>
+              </div>
               {buyerLoading && <p className="text-blue-600 text-sm mt-1">Validando usuario...</p>}
               {buyerValid === true && (
                 <p className="text-green-600 text-sm mt-1">
@@ -446,9 +499,16 @@ export default function CobroAutosPage() {
               {sellerValid === false && (
                 <p className="text-red-600 text-sm mt-1">✗ {sellerError}</p>
               )}
-              <p className="text-sm text-gray-500 mt-1">
-                El vendedor recibirá el monto neto (total - comisiones)
-              </p>
+              <div className="mt-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <p className="text-sm text-purple-700">
+                  🏆 <strong>Propietario actual del vehículo:</strong>
+                </p>
+                <ul className="text-sm text-purple-600 mt-1 ml-4">
+                  <li>• Debe estar registrado en Kustodia</li>
+                  <li>• Recibirá el pago una vez liberado</li>
+                  <li>• Monto neto = Total - comisiones (si aplican)</li>
+                </ul>
+              </div>
             </div>
 
             {/* Commission Toggle */}
@@ -623,6 +683,16 @@ export default function CobroAutosPage() {
                   />
                   <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                 </div>
+                <div className="mt-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-sm text-orange-700">
+                    🛡️ <strong>Protección del pago:</strong>
+                  </p>
+                  <ul className="text-sm text-orange-600 mt-1 ml-4">
+                    <li>• <strong>100%:</strong> Custodia total (recomendado)</li>
+                    <li>• <strong>50%:</strong> Custodia parcial</li>
+                    <li>• <strong>0%:</strong> Pago directo sin custodia</li>
+                  </ul>
+                </div>
               </div>
 
               <div>
@@ -638,6 +708,16 @@ export default function CobroAutosPage() {
                     className="w-full p-3 pr-16 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                   />
                   <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">días</span>
+                </div>
+                <div className="mt-2 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                  <p className="text-sm text-indigo-700">
+                    📅 <strong>Tiempo de protección:</strong>
+                  </p>
+                  <ul className="text-sm text-indigo-600 mt-1 ml-4">
+                    <li>• <strong>7-15 días:</strong> Apartados rápidos</li>
+                    <li>• <strong>30 días:</strong> Transacciones estándar</li>
+                    <li>• <strong>60+ días:</strong> Procesos complejos</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -833,6 +913,16 @@ export default function CobroAutosPage() {
                 <option value="Enganche">Enganche</option>
                 <option value="Compra-venta">Compra-venta completa</option>
               </select>
+              <div className="mt-2 p-3 bg-teal-50 rounded-lg border border-teal-200">
+                <p className="text-sm text-teal-700">
+                  💼 <strong>Tipos de transacción:</strong>
+                </p>
+                <ul className="text-sm text-teal-600 mt-1 ml-4">
+                  <li>• <strong>Apartado:</strong> Reserva del vehículo (5-20% del valor)</li>
+                  <li>• <strong>Enganche:</strong> Pago inicial para financiamiento</li>
+                  <li>• <strong>Compra-venta:</strong> Pago total del vehículo</li>
+                </ul>
+              </div>
             </div>
           </div>
         );
@@ -851,6 +941,20 @@ export default function CobroAutosPage() {
                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 rows={6}
               />
+              <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
+                <p className="text-sm text-red-700">
+                  📝 <strong>Condiciones comunes para autos:</strong>
+                </p>
+                <ul className="text-sm text-red-600 mt-1 ml-4">
+                  <li>• <strong>Documentación:</strong> Tarjeta de circulación, factura original, verificación</li>
+                  <li>• <strong>Inspección:</strong> Revisión física del vehículo y funcionamiento</li>
+                  <li>• <strong>Legal:</strong> Firma de contrato de compra-venta ante notario</li>
+                  <li>• <strong>Financiero:</strong> Liberación de gravamen (si aplica)</li>
+                </ul>
+                <p className="text-xs text-red-600 mt-2">
+                  ⚠️ <em>Estas condiciones deben cumplirse para liberar el pago</em>
+                </p>
+              </div>
             </div>
           </div>
         );
@@ -988,7 +1092,6 @@ export default function CobroAutosPage() {
                 <li>• El comprador podrá pagar usando el link seguro</li>
                 <li>• El dinero quedará en custodia hasta que se complete la inspección y documentación</li>
                 <li>• Ambas partes deben aprobar la liberación del pago</li>
-                <li>• Se verificará la documentación del vehículo (tarjeta de circulación, factura, etc.)</li>
                 {data.commission_recipients.length > 0 && <li>• La comisión se distribuirá automáticamente</li>}
               </ul>
             </div>
@@ -1095,6 +1198,56 @@ export default function CobroAutosPage() {
           </div>
         </div>
       </div>
+
+      {/* Enhanced Loading Modal */}
+      {submitting && (
+        <div className="fixed inset-0 bg-white bg-opacity-95 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-gray-100">
+            <div className="text-center">
+              {/* Main spinner */}
+              <div className="relative mb-6">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-100 border-t-blue-600 mx-auto"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                🚗 Creando solicitud de pago
+              </h3>
+              
+              {/* Subtitle */}
+              <p className="text-gray-600 mb-6">
+                Procesando la información del vehículo y configurando la custodia...
+              </p>
+
+              {/* Progress steps */}
+              <div className="space-y-3 text-left">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-700">Validando datos del vehículo</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                  <span className="text-sm text-gray-700">Configurando custodia y condiciones</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  <span className="text-sm text-gray-700">Generando solicitud de pago</span>
+                </div>
+              </div>
+
+              {/* Bottom message */}
+              <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-xs text-blue-700">
+                  ⏱️ Este proceso toma unos segundos...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

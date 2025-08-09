@@ -10,10 +10,22 @@ const junoService_1 = require("./junoService"); // Correct import for the redemp
 const ormconfig_1 = __importDefault(require("../ormconfig"));
 class PaymentService {
     // 1. Detectar y registrar depósito SPEI
-    async logPaymentEvent(paymentId, type, description, isAutomatic = false) {
+    async logPaymentEvent(paymentId, type, description, isAutomatic = false, userFriendlyMessage) {
         const paymentEventRepo = ormconfig_1.default.getRepository(PaymentEvent_1.PaymentEvent);
-        const event = paymentEventRepo.create({ paymentId, type, description, is_automatic: isAutomatic });
+        // If userFriendlyMessage is provided, use it for user-facing display
+        // Keep technical description for internal logging/debugging
+        const displayDescription = userFriendlyMessage || description;
+        const event = paymentEventRepo.create({
+            paymentId,
+            type,
+            description: displayDescription,
+            is_automatic: isAutomatic
+        });
         await paymentEventRepo.save(event);
+        // Log technical details separately for debugging (if different from user message)
+        if (userFriendlyMessage && description && userFriendlyMessage !== description) {
+            console.log(`[TECHNICAL LOG] Payment ${paymentId} - ${type}: ${description}`);
+        }
     }
     async processDeposit(clabe, amount) {
         const paymentRepo = ormconfig_1.default.getRepository(Payment_1.Payment);

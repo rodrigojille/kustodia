@@ -82,7 +82,7 @@ export class Payment {
   @Column({ nullable: true, type: "decimal", precision: 10, scale: 2 })
   commission_amount?: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: "decimal", precision: 5, scale: 2 })
   platform_commission_percent?: number;
 
   @Column({ type: "decimal", precision: 10, scale: 2, nullable: true })

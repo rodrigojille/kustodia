@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { authFetch } from "../../../../utils/authFetch";
+import { calculatePlatformCommission, formatCurrency } from "../../../../utils/platformCommissionConfig";
 
 type CommissionRecipient = {
   id: string;
@@ -230,19 +231,32 @@ export default function CobroOtrosPage() {
     
     try {
       const payload = {
-        ...data,
-        payment_type: 'cobro_inteligente',
-        transaction_type: 'otros',
-        broker_email: user?.email,
+        payment_amount: parseFloat(data.payment_amount),
+        payment_description: data.payment_description,
+        buyer_email: data.buyer_email,
         seller_email: data.seller_email,
+        broker_email: user?.email,
         payer_email: data.buyer_email,
         payee_email: data.seller_email,
-        vertical: 'otros',
-        // Commission calculation - only calculate if commissions are enabled
-        total_commission_amount: data.has_commission ? ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100) : 0,
-        net_amount: data.has_commission ? (parseFloat(data.payment_amount) - ((parseFloat(data.payment_amount) * parseFloat(data.total_commission_percentage || '0')) / 100)) : parseFloat(data.payment_amount),
-        // Add broker's commission percentage (only if commission is enabled)
-        commission_recipients: data.commission_recipients
+        total_commission_percentage: data.has_commission ? parseFloat(data.total_commission_percentage || '0') : 0,
+        commission_recipients: data.has_commission ? data.commission_recipients.map(r => ({
+          broker_email: r.broker_email,
+          broker_percentage: parseFloat(r.broker_percentage || '0')
+        })) : [],
+        custody_percent: parseFloat(data.custody_percent || '0'),
+        custody_period: parseInt(data.custody_period || '0'),
+        // Map otros-specific fields to backend expected fields (must be one of: Enganche, Apartado, Renta, Compra-venta)
+        operation_type: 'Compra-venta', // Default to Compra-venta for otros services
+        release_conditions: data.delivery_conditions || 'Entrega según condiciones acordadas',
+        // Keep otros-specific fields for reference
+        service_type: data.service_type,
+        service_details: data.service_details,
+        delivery_date: data.delivery_date,
+        delivery_conditions: data.delivery_conditions,
+        delivery_notes: data.delivery_notes,
+        payment_type: 'cobro_inteligente',
+        transaction_type: 'otros',
+        vertical: 'otros'
       };
 
       const response = await authFetch('payments/cobro-inteligente', {
@@ -283,9 +297,19 @@ export default function CobroOtrosPage() {
                   placeholder="5000"
                   value={data.payment_amount}
                   onChange={(e) => setData({ ...data, payment_amount: e.target.value })}
-                  className="w-full pl-8 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                  className="w-full pl-8 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none placeholder-black"
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">MXN</span>
+              </div>
+              <div className="mt-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <p className="text-sm text-purple-700">
+                  💡 <strong>Ejemplos comunes:</strong>
+                </p>
+                <ul className="text-sm text-purple-600 mt-1 ml-4">
+                  <li>• <strong>Consultoría:</strong> $2,000 - $15,000 MXN</li>
+                  <li>• <strong>Desarrollo web:</strong> $10,000 - $50,000 MXN</li>
+                  <li>• <strong>Productos:</strong> Precio de venta del artículo</li>
+                </ul>
               </div>
             </div>
 
@@ -297,9 +321,19 @@ export default function CobroOtrosPage() {
                 placeholder="Ej: Consultoría de marketing digital, Desarrollo de página web, Venta de equipo"
                 value={data.payment_description}
                 onChange={(e) => setData({ ...data, payment_description: e.target.value })}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none placeholder-black"
                 rows={3}
               />
+              <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-green-700">
+                  ✨ <strong>Describe claramente:</strong>
+                </p>
+                <ul className="text-sm text-green-600 mt-1 ml-4">
+                  <li>• <strong>Qué incluye:</strong> Alcance del servicio o especificaciones del producto</li>
+                  <li>• <strong>Entregables:</strong> Qué recibirá el cliente exactamente</li>
+                  <li>• <strong>Tiempo:</strong> Duración estimada o fecha de entrega</li>
+                </ul>
+              </div>
             </div>
 
             <div>
@@ -319,8 +353,13 @@ export default function CobroOtrosPage() {
                     return () => clearTimeout(timeoutId);
                   }
                 }}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none placeholder-black"
               />
+              {!buyerLoading && !buyerValid && (
+                <p className="text-sm text-gray-500 mt-1">
+                  🔍 El cliente debe tener cuenta en Kustodia. Se validará automáticamente al escribir el email.
+                </p>
+              )}
               {buyerLoading && <p className="text-purple-600 text-sm mt-1">Validando usuario...</p>}
               {buyerValid === true && (
                 <p className="text-green-600 text-sm mt-1">
@@ -349,7 +388,7 @@ export default function CobroOtrosPage() {
                     return () => clearTimeout(timeoutId);
                   }
                 }}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none placeholder-black"
               />
               {sellerLoading && <p className="text-purple-600 text-sm mt-1">Validando proveedor...</p>}
               {sellerValid === true && (
@@ -406,9 +445,16 @@ export default function CobroOtrosPage() {
                       />
                       <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Porcentaje total que se deducirá del monto y se distribuirá entre colaboradores
-                    </p>
+                    <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-700">
+                        💡 <strong>Sugerencias comunes:</strong>
+                      </p>
+                      <ul className="text-sm text-blue-600 mt-1 ml-4">
+                        <li>• <strong>Servicios profesionales:</strong> 5-15%</li>
+                        <li>• <strong>Productos digitales:</strong> 10-25%</li>
+                        <li>• <strong>Consultoría:</strong> 5-20%</li>
+                      </ul>
+                    </div>
                   </div>
 
                   
@@ -591,6 +637,17 @@ export default function CobroOtrosPage() {
                 <option value="servicio_continuo">Servicio continuo</option>
                 <option value="bajo_demanda">Bajo demanda</option>
               </select>
+              <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-green-700">
+                  🎯 <strong>Ejemplos de condiciones:</strong>
+                </p>
+                <ul className="text-sm text-green-600 mt-1 ml-4">
+                  <li>• <strong>Inmediata:</strong> Productos digitales, archivos</li>
+                  <li>• <strong>Programada:</strong> Servicios con fecha específica</li>
+                  <li>• <strong>Por fases:</strong> Proyectos con entregables múltiples</li>
+                  <li>• <strong>Continuo:</strong> Suscripciones, mantenimiento</li>
+                </ul>
+              </div>
             </div>
 
             <div>
@@ -617,9 +674,38 @@ export default function CobroOtrosPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <p className="font-medium text-gray-700">Monto total:</p>
+                    <p className="font-medium text-gray-700">Monto base:</p>
                     <p className="text-2xl font-bold text-purple-600">${data.payment_amount} MXN</p>
                   </div>
+                  
+                  {/* Platform Commission Breakdown */}
+                  {data.payment_amount && (
+                    <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                      <h4 className="font-semibold text-blue-800 mb-3">💳 Desglose de comisión de plataforma</h4>
+                      <div className="space-y-2">
+                        {(() => {
+                          const baseAmount = parseFloat(data.payment_amount) || 0;
+                          const commission = calculatePlatformCommission(baseAmount, 'cobro_inteligente');
+                          return (
+                            <>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Monto base:</span>
+                                <span>{formatCurrency(baseAmount)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Comisión plataforma ({commission.percent}%):</span>
+                                <span>{formatCurrency(commission.amount)}</span>
+                              </div>
+                              <div className="flex justify-between font-semibold border-t pt-2">
+                                <span className="text-blue-700">Total a pagar por el cliente:</span>
+                                <span className="text-blue-700">{formatCurrency(commission.totalAmountToPay)}</span>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
                   
                   <div>
                     <p className="font-medium text-gray-700">Descripción:</p>
@@ -701,15 +787,72 @@ export default function CobroOtrosPage() {
               </div>
             </div>
             
-            <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-200">
-              <h4 className="font-semibold text-yellow-800 mb-2">🔄 ¿Qué pasa después?</h4>
-              <div className="space-y-2 text-sm text-yellow-700">
-                <p>1. El cliente recibirá un enlace de pago seguro</p>
-                <p>2. Una vez pagado, el dinero quedará en custodia segura</p>
-                <p>3. Cuando se cumplan las condiciones, se liberará el pago</p>
-                {data.has_commission && (
-                  <p>4. Las comisiones se distribuirán automáticamente según lo configurado</p>
-                )}
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border-2 border-green-200">
+              <h4 className="font-bold text-green-800 mb-4 text-lg">🚀 ¿Qué sucede después?</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col space-y-3">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 flex-1 min-h-[120px] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm mr-3">
+                          1
+                        </div>
+                        <h4 className="font-semibold text-blue-800">📧 Notificación instantánea</h4>
+                      </div>
+                      <p className="text-sm text-blue-700 ml-11">
+                        El cliente recibe enlace de pago seguro por email
+                      </p>
+                    </div>
+                    <p className="text-xs text-blue-600 ml-11 mt-1">⏱️ Inmediato</p>
+                  </div>
+                  
+                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 flex-1 min-h-[120px] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm mr-3">
+                          3
+                        </div>
+                        <h4 className="font-semibold text-orange-800">🔒 Custodia segura</h4>
+                      </div>
+                      <p className="text-sm text-orange-700 ml-11">
+                        Dinero protegido hasta cumplir condiciones
+                      </p>
+                    </div>
+                    <p className="text-xs text-orange-600 ml-11 mt-1">⏱️ {data.custody_period} días máximo</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col space-y-3">
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex-1 min-h-[120px] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm mr-3">
+                          2
+                        </div>
+                        <h4 className="font-semibold text-green-800">💳 Pago seguro</h4>
+                      </div>
+                      <p className="text-sm text-green-700 ml-11">
+                        Cliente paga únicamente por transferencia bancaria
+                      </p>
+                    </div>
+                    <p className="text-xs text-green-600 ml-11 mt-1">⏱️ 1-5 minutos</p>
+                  </div>
+                  
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 flex-1 min-h-[120px] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm mr-3">
+                          4
+                        </div>
+                        <h4 className="font-semibold text-purple-800">🔓 Liberación automática</h4>
+                      </div>
+                      <p className="text-sm text-purple-700 ml-11">
+                        Liberación automática en cuanto ambas partes confirmen
+                      </p>
+                    </div>
+                    <p className="text-xs text-purple-600 ml-11 mt-1">📋 Al cumplir condiciones</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -722,9 +865,24 @@ export default function CobroOtrosPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando...</p>
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+          <div className="mb-6">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto mb-4"></div>
+            <div className="flex items-center justify-center space-x-1 mb-2">
+              <span className="text-2xl">📦</span>
+              <h3 className="text-xl font-bold text-purple-800">Cobro Otros</h3>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-gray-700 font-medium">Preparando formulario</p>
+            <div className="flex justify-center space-x-1">
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+            <p className="text-sm text-gray-500">Cargando configuración de servicios diversos</p>
+          </div>
         </div>
       </div>
     );

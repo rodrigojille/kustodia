@@ -45,10 +45,11 @@ export function MultipleBrokersSection({ data, setData, width }: MultipleBrokers
 
   return (
     <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: 0 }}>
-          🏢 Comisiones de asesores (opcional)
-        </h4>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: 0 }}>
+            🏢 Comisiones de asesores (opcional)
+          </h4>
         <button
           type="button"
           onClick={addBroker}
@@ -67,6 +68,10 @@ export function MultipleBrokersSection({ data, setData, width }: MultipleBrokers
         >
           ➕ Agregar asesor
         </button>
+        </div>
+        <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px', lineHeight: '1.4' }}>
+          💼 Agrega múltiples asesores inmobiliarios que participaron en la transacción. Cada uno recibirá su comisión automáticamente cuando se libere el pago.
+        </p>
       </div>
 
       {commissionRecipients.length === 0 && (
@@ -130,6 +135,9 @@ export function MultipleBrokersSection({ data, setData, width }: MultipleBrokers
                   boxSizing: 'border-box'
                 }}
               />
+              <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                El asesor debe tener cuenta en Kustodia
+              </p>
             </div>
             
             <div>
@@ -150,6 +158,9 @@ export function MultipleBrokersSection({ data, setData, width }: MultipleBrokers
                   boxSizing: 'border-box'
                 }}
               />
+              <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                Opcional: para identificación en reportes
+              </p>
             </div>
           </div>
 
@@ -185,6 +196,9 @@ export function MultipleBrokersSection({ data, setData, width }: MultipleBrokers
                 fontSize: '14px'
               }}>%</span>
             </div>
+            <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+              Porcentaje del monto base (máximo 50% total entre todos)
+            </p>
             {parseFloat(broker.broker_percentage) > 50 && (
               <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', margin: '4px 0 0 0' }}>
                 ⚠️ El porcentaje no puede exceder 50%

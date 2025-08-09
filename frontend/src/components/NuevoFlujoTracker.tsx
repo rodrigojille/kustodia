@@ -83,6 +83,7 @@ function formatAmount(amount: number, currency: string = 'MXN'): string {
 
 function getEventDisplayName(eventType: string): string {
   const eventNames: Record<string, string> = {
+    // Existing translations
     'deposito_detectado': 'Depósito SPEI detectado',
     'escrow_created_onchain': 'Custodia creada en blockchain',
     'escrow_funded': 'Custodia fondeada',
@@ -94,13 +95,48 @@ function getEventDisplayName(eventType: string): string {
     'processing': 'Procesando pago',
     'lifecycle_start': 'Pago iniciado',
     'mxnb_withdrawn': 'MXNB retirado',
-    'spei_completado': 'Transferencia SPEI completada'
+    'spei_completado': 'Transferencia SPEI completada',
+    
+    // Payment creation and automation
+    'payment_created': 'Pago creado exitosamente',
+    'automation_error': 'Procesando pago automáticamente',
+    'bank_account_registered': 'Cuenta bancaria registrada',
+    
+    // Bridge and withdrawal events
+    'bridge_withdrawal_success': 'Retiro procesado exitosamente',
+    'bridge_withdrawal_error': 'Procesando retiro',
+    'bridge_withdrawal_verified': 'Retiro verificado exitosamente',
+    'bridge_withdrawal_failed': 'Configurando retiro',
+    
+    // Redemption events
+    'redemption_initiated': 'Iniciando transferencia',
+    'redemption_success': 'Transferencia completada',
+    'redemption_failed': 'Procesando transferencia',
+    'spei_redemption_initiated': 'Iniciando transferencia SPEI',
+    
+    // Payout events
+    'payout_completed': 'Pago completado exitosamente',
+    'payout_failed': 'Procesando pago',
+    'payout_error': 'Procesando pago',
+    'payout_processing_error': 'Procesando pago',
+    'payout_skipped': 'Pago procesado',
+    
+    // Commission and seller payments
+    'commission_paid': 'Comisión procesada',
+    'commission_failed': 'Procesando comisión',
+    'seller_paid': 'Pago al vendedor completado',
+    'seller_payout_failed': 'Procesando pago al vendedor',
+    
+    // Lifecycle events
+    'lifecycle_end': 'Pago completado',
+    'redeemed': 'Fondos procesados'
   };
   return eventNames[eventType] || eventType;
 }
 
 function getEventIcon(eventType: string): string {
   const eventIcons: Record<string, string> = {
+    // Existing icons
     'deposito_detectado': '💰',
     'escrow_created_onchain': '🔐',
     'escrow_funded': '🏦',
@@ -112,7 +148,41 @@ function getEventIcon(eventType: string): string {
     'processing': '⚙️',
     'lifecycle_start': '🚀',
     'mxnb_withdrawn': '💸',
-    'spei_completado': '✅'
+    'spei_completado': '✅',
+    
+    // Payment creation and automation
+    'payment_created': '📝',
+    'automation_error': '⚙️',
+    'bank_account_registered': '🏦',
+    
+    // Bridge and withdrawal events
+    'bridge_withdrawal_success': '💸',
+    'bridge_withdrawal_error': '⚙️',
+    'bridge_withdrawal_verified': '✅',
+    'bridge_withdrawal_failed': '⚙️',
+    
+    // Redemption events
+    'redemption_initiated': '🔄',
+    'redemption_success': '✅',
+    'redemption_failed': '⚙️',
+    'spei_redemption_initiated': '🔄',
+    
+    // Payout events
+    'payout_completed': '🎉',
+    'payout_failed': '⚙️',
+    'payout_error': '⚙️',
+    'payout_processing_error': '⚙️',
+    'payout_skipped': '✅',
+    
+    // Commission and seller payments
+    'commission_paid': '💰',
+    'commission_failed': '⚙️',
+    'seller_paid': '💰',
+    'seller_payout_failed': '⚙️',
+    
+    // Lifecycle events
+    'lifecycle_end': '🎉',
+    'redeemed': '✅'
   };
   return eventIcons[eventType] || '📝';
 }
