@@ -545,12 +545,12 @@ export class PaymentAutomationService {
       
       const withdrawalResult = await withdrawMXNBToBridge(amount, bridgeWallet);
       
+      // Log technical success but don't notify user yet (wait for escrow creation)
       await this.paymentService.logPaymentEvent(
         payment.id,
         'bridge_withdrawal_success',
         `Retiro de ${amount} MXNB a billetera puente completado exitosamente. ID de retiro: ${withdrawalResult?.id || 'N/A'}`,
-        false,
-        'Configurando tu custodia automáticamente...'
+        false // No user notification - wait for escrow completion
       );
       
       console.log(`✅ Bridge withdrawal for payment ${payment.id} completed successfully`);
@@ -578,12 +578,12 @@ export class PaymentAutomationService {
       if (verifiedWithdrawal) {
         console.log(`✅ Withdrawal verification successful for payment ${payment.id} - withdrawal was processed despite error`);
         
+        // Log technical verification but don't notify user yet
         await this.paymentService.logPaymentEvent(
           payment.id,
           'bridge_withdrawal_verified',
           `Withdrawal verified as successful despite initial error. Withdrawal ID: ${verifiedWithdrawal.id || 'N/A'}`,
-          false,
-          'Custodia configurada exitosamente.'
+          false // No user notification - wait for escrow completion
         );
         
         // Don't throw error since withdrawal was successful
@@ -591,12 +591,12 @@ export class PaymentAutomationService {
       } else {
         console.log(`❌ Withdrawal verification failed for payment ${payment.id} - withdrawal was not processed`);
         
+        // Log technical failure but don't notify user yet
         await this.paymentService.logPaymentEvent(
           payment.id,
           'bridge_withdrawal_failed',
           `Withdrawal failed and could not be verified: ${error.message}`,
-          false,
-          'Configurando tu custodia. Te notificaremos cuando esté lista.'
+          false // No user notification - will retry automatically
         );
         
         throw error;
@@ -662,12 +662,12 @@ export class PaymentAutomationService {
       console.log(`[escrow] ⏳ ${errorMsg} - Payment ${payment.id} will retry on next automation cycle`);
       
       // Log the balance issue for tracking
+      // Log balance issue but don't notify user (will retry automatically)
       await this.paymentService.logPaymentEvent(
         payment.id,
         'escrow_balance_insufficient',
         `${errorMsg}. Waiting for bridge transfer to complete.`,
-        true,
-        'Configurando tu custodia automáticamente...'
+        false // No user notification - automatic retry
       );
       
       // Don't throw error - just return and let automation retry later
@@ -782,12 +782,16 @@ export class PaymentAutomationService {
       await escrowRepo.save(payment.escrow);
       await paymentRepo.save(payment);
 
+      // Get network config for explorer URL
+      const networkConfig = getCurrentNetworkConfig();
+      const explorerUrl = `${networkConfig.explorerUrl}/tx/${createResult.txHash}`;
+      
       await this.paymentService.logPaymentEvent(
         payment.id,
         'escrow_created',
         `Custodia ${createResult.escrowId} creada en blockchain. Tx: ${createResult.txHash}. ID de custodia: ${createResult.escrowId}`,
         true,
-        'Tu custodia ha sido creada exitosamente y está activa.'
+        `🔒 Tu custodia ha sido creada exitosamente y está activa.\n\n📋 **ID de Custodia:** ${createResult.escrowId}\n🔗 **Ver en blockchain:** [${explorerUrl}](${explorerUrl})\n\n✅ Los fondos están seguros hasta que se cumplan las condiciones acordadas.`
       );
       
       // Send escrowed notification email
@@ -830,19 +834,19 @@ export class PaymentAutomationService {
           console.log(`📧 Payment ${payment.id} escrowed - email notifications sent`);
         }
       } catch (emailError) {
-        console.error(`⚠️ Failed to send escrowed email notifications for payment ${payment.id}:`, emailError);
+        console.error(` Failed to send escrowed email notifications for payment ${payment.id}:`, emailError);
       }
       
-      console.log(`✅ Escrow ${createResult.escrowId} created and payment ${payment.id} updated to 'escrowed'`);
+      console.log(` Escrow ${createResult.escrowId} created and payment ${payment.id} updated to 'escrowed'`);
 
     } catch (error: any) {
-      console.error(`❌ Escrow creation failed for payment ${payment.id}:`, error.message);
+      console.error(` Escrow creation failed for payment ${payment.id}:`, error.message);
+      // Log technical error but don't notify user (will retry automatically)
       await this.paymentService.logPaymentEvent(
         payment.id, 
         'escrow_error', 
         `Error al crear custodia: ${error.message}`, 
-        true,
-        'Configurando tu custodia. Te notificaremos cuando esté lista.'
+        false // No user notification - automatic retry will handle this
       );
       throw error;
     }
@@ -1660,12 +1664,17 @@ export class PaymentAutomationService {
    */
   private async handleDirectReleaseNotifications(escrow: Escrow, releaseTxHash: string): Promise<void> {
     try {
-      // Log the release event with transaction hash
+      // Get network config for explorer URL
+      const networkConfig = getCurrentNetworkConfig();
+      const explorerUrl = `${networkConfig.explorerUrl}/tx/${releaseTxHash}`;
+      
+      // Log the release event with transaction hash and user-friendly message
       await this.paymentService.logPaymentEvent(
         escrow.payment.id,
         'escrow_release_success',
         `Custodia ${escrow.smart_contract_escrow_id} liberada del contrato. Tx: ${releaseTxHash}`,
-        true
+        true,
+        `🔓 Tu custodia ha sido liberada exitosamente.\n\n📋 **ID de Custodia:** ${escrow.smart_contract_escrow_id}\n🔗 **Ver liberación en blockchain:** [${explorerUrl}](${explorerUrl})\n\n✅ Los fondos han sido transferidos según las condiciones acordadas.`
       );
       
       // Create escrow release notification
@@ -1936,11 +1945,12 @@ export class PaymentAutomationService {
         } catch (error: any) {
           console.error(`❌ Escrow retry failed for payment ${payment.id}:`, error.message);
           
+          // Log technical retry error but don't notify user (automatic process)
           await this.paymentService.logPaymentEvent(
             payment.id,
             'escrow_retry_error',
             `Escrow retry failed: ${error.message}`,
-            false
+            false // No user notification - technical retry process
           );
         }
       }
